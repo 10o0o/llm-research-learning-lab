@@ -45,7 +45,7 @@ REQUIRED_SECTIONS = (
     "## 2. ID, 깊이, 자료 충족도 범례",
     "## 3. 공통 핵심 역량",
     "## 4. 선택 전문 트랙",
-    "## 5. 현재 48개 강의자료 Registry",
+    "## 5. 현재 강의자료 Registry",
     "## 6. 감사 중 발견된 주요 오류와 공백",
     "## 7. 갱신 규칙",
 )
@@ -102,6 +102,7 @@ COURSES = {
             "02-01", "02-02", "02-03", "02-04",
             "03-01", "03-02", "03-03", "03-04", "03-05",
             "04-01", "04-02", "04-03", "04-04",
+            "05-01", "05-02", "05-03", "05-04",
         ),
     ),
 }
@@ -566,9 +567,11 @@ def _validate_sources(
             document_path, line_by_id[unexpected], "SOURCE_UNEXPECTED",
             f"unexpected source ID {unexpected}",
         ))
-    if len(sources) != 48:
+    expected_source_count = len(EXPECTED_SOURCE_IDS)
+    if len(sources) != expected_source_count:
         findings.append(Finding(
-            document_path, 1, "SOURCE_COUNT", f"registry has {len(sources)} rows; expected 48",
+            document_path, 1, "SOURCE_COUNT",
+            f"registry has {len(sources)} rows; expected {expected_source_count}",
         ))
 
     paths = [source.relative_path for source in sources]

@@ -118,12 +118,12 @@ class CurriculumValidatorTests(unittest.TestCase):
         changed = self.valid_text + "\n| 항목 | 점수 |\n|---|---|\n| 예시 | 1 |\n"
         self.assertIn("PROGRESS_FIELD", self.codes(self.validate_text(changed)))
 
-    def test_registry_requires_exact_48_sources(self) -> None:
+    def test_registry_requires_all_expected_sources(self) -> None:
         changed = self.valid_text.replace(
             next(
                 line + "\n"
                 for line in self.valid_text.splitlines()
-                if line.startswith("| SRC-KDL-04-04 |")
+                if line.startswith("| SRC-KDL-05-04 |")
             ),
             "",
             1,
@@ -131,6 +131,25 @@ class CurriculumValidatorTests(unittest.TestCase):
         codes = self.codes(self.validate_text(changed))
         self.assertIn("SOURCE_COUNT", codes)
         self.assertIn("SOURCE_MISSING", codes)
+
+    def test_source_count_uses_current_expected_catalog_length(self) -> None:
+        changed = self.valid_text.replace(
+            next(
+                line + "\n"
+                for line in self.valid_text.splitlines()
+                if line.startswith("| SRC-KDL-05-04 |")
+            ),
+            "",
+            1,
+        )
+        findings = self.validate_text(changed)
+        source_count = next(
+            finding for finding in findings if finding.code == "SOURCE_COUNT"
+        )
+        self.assertIn(
+            f"expected {len(validator.EXPECTED_SOURCE_IDS)}",
+            source_count.message,
+        )
 
     def test_invalid_hash_shape_is_rejected(self) -> None:
         changed = self.valid_text.replace(
