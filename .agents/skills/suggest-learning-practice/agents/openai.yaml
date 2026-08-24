@@ -1,4 +1,4 @@
 interface:
   display_name: "현업형 학습 실습"
   short_description: "완성된 TIL 전체를 직접 구현·테스트·해석하는 실습으로 바꿉니다"
-  default_prompt: "$suggest-learning-practice를 사용해 정확히 지정한 날짜별 TIL의 주요 학습 성과 전체를 Practice Coverage Map으로 만들고, 강의 INDEX에 명시적으로 연결된 실습을 참고해 바닥부터 구현하는 작은 현업형 bundle을 구성해줘."
+  default_prompt: "$suggest-learning-practice를 사용해 정확히 지정한 날짜별 TIL의 주요 학습 성과 전체를 매핑하고, 원문을 열지 않아도 모든 고정 조건을 알 수 있지만 핵심 구현은 비어 있는 단일 ipynb 실습을 구성해줘."

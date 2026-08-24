@@ -10,7 +10,13 @@ import sys
 SKILL = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SKILL / "scripts"))
 
-from validate_practice_artifact import validate  # noqa: E402
+from validate_practice_artifact import validate as validate_artifact  # noqa: E402
+
+
+def validate(*args, **kwargs):
+    """Keep historical bundle-contract tests explicit about compatibility mode."""
+    kwargs.setdefault("allow_legacy_bundle", True)
+    return validate_artifact(*args, **kwargs)
 
 
 def markdown_cell(text: str) -> dict[str, object]:
@@ -181,7 +187,15 @@ Predict the result before running the fixture.
 
 ### 작은 유사 사례와 계약
 
-Return the provided value while preserving its contract.
+| Contract ID | Kind | Learner-visible requirement |
+| --- | --- | --- |
+| C-E01-01 | practice-given | Return the provided value without changing its public type. |
+| C-E01-02 | derive | Preserve the visible normal and edge fixtures. |
+| C-E01-03 | practice-given | Reject the declared invalid input boundary. |
+
+#### 학습자가 구현·판단할 것
+
+Implement the transformation and explain the observed boundary.
 
 ### 구현
 
@@ -203,7 +217,7 @@ Trace one value through the function.
         payload = {
             "cells": [
                 markdown_cell(overview),
-                code_cell("# setup-check: notebook-only imports\nimport numpy as np\n"),
+                code_cell("# setup-check: notebook-only imports\nfrom pathlib import Path\n"),
                 markdown_cell(exercise),
                 code_cell(
                     "# TODO: E01\n"
@@ -224,10 +238,13 @@ Trace one value through the function.
                     "# test-check: E01\n"
                     "def check_e01():\n"
                     "    # normal\n"
+                    "    # contract: C-E01-01\n"
                     "    np.testing.assert_equal(True, True)\n"
                     "    # edge\n"
+                    "    # contract: C-E01-02\n"
                     "    np.testing.assert_equal(True, True)\n"
                     "    # failure\n"
+                    "    # contract: C-E01-03\n"
                     "    np.testing.assert_equal(True, True)\n"
                     "check_e01()\n"
                 ),
@@ -250,6 +267,14 @@ Trace one value through the function.
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             self.assertEqual(validate(self.build_bundle(root), repo_root=root, check_collection=False), [])
+
+    def test_new_bundle_is_rejected_by_default(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            codes = self.codes(
+                validate_artifact(self.build_bundle(root), repo_root=root, check_collection=False)
+            )
+            self.assertEqual(codes, {"NOTEBOOK_ONLY"})
 
     def test_valid_notebook_only_artifact_passes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -368,6 +393,85 @@ Trace one value through the function.
             notebook.write_text(json.dumps(payload), encoding="utf-8")
             self.assertIn(
                 "EXERCISE_ORDER",
+                self.codes(validate(notebook, repo_root=root, check_collection=False)),
+            )
+
+    def test_notebook_only_missing_contract_table_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            notebook = self.build_notebook(root)
+            payload = json.loads(notebook.read_text(encoding="utf-8"))
+            payload["cells"][2]["source"] = [
+                line
+                for line in payload["cells"][2]["source"]
+                if not line.startswith("| Contract ID")
+            ]
+            notebook.write_text(json.dumps(payload), encoding="utf-8")
+            self.assertIn(
+                "CONTRACT_SPEC",
+                self.codes(validate(notebook, repo_root=root, check_collection=False)),
+            )
+
+    def test_notebook_only_invalid_or_cross_exercise_contract_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            notebook = self.build_notebook(root)
+            payload = json.loads(notebook.read_text(encoding="utf-8"))
+            payload["cells"][2]["source"] = [
+                line.replace(
+                    "| C-E01-02 | derive |",
+                    "| C-E02-02 | hidden |",
+                )
+                for line in payload["cells"][2]["source"]
+            ]
+            notebook.write_text(json.dumps(payload), encoding="utf-8")
+            self.assertIn(
+                "CONTRACT_SPEC",
+                self.codes(validate(notebook, repo_root=root, check_collection=False)),
+            )
+
+    def test_notebook_only_undeclared_and_unused_contracts_fail(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            notebook = self.build_notebook(root)
+            payload = json.loads(notebook.read_text(encoding="utf-8"))
+            payload["cells"][6]["source"] = [
+                line.replace("C-E01-02", "C-E01-09")
+                for line in payload["cells"][6]["source"]
+            ]
+            notebook.write_text(json.dumps(payload), encoding="utf-8")
+            self.assertIn(
+                "CONTRACT_TRACE",
+                self.codes(validate(notebook, repo_root=root, check_collection=False)),
+            )
+
+    def test_hidden_fixed_requirements_without_contract_markers_fail(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            notebook = self.build_notebook(root)
+            payload = json.loads(notebook.read_text(encoding="utf-8"))
+            payload["cells"][6]["source"] = code_cell(
+                "# test-check: E01\n"
+                "def check_e01():\n"
+                "    # normal\n"
+                "    np.testing.assert_equal(recommend_start(5_000), 'deep_learning_candidate')\n"
+                "    np.testing.assert_equal(card()['dtype'], 'torch.float32')\n"
+                "    np.testing.assert_equal(card()['device'], 'cpu')\n"
+                "    np.testing.assert_equal(predict(0.5), 1)\n"
+                "    # edge\n"
+                "    np.testing.assert_allclose(grad_norm(), 2.0)\n"
+                "    # failure\n"
+                "    try:\n"
+                "        select_checkpoint_epoch([])\n"
+                "    except ValueError:\n"
+                "        pass\n"
+                "    else:\n"
+                "        raise AssertionError('empty history must fail')\n"
+                "check_e01()\n"
+            )["source"]
+            notebook.write_text(json.dumps(payload), encoding="utf-8")
+            self.assertIn(
+                "CONTRACT_TRACE",
                 self.codes(validate(notebook, repo_root=root, check_collection=False)),
             )
 

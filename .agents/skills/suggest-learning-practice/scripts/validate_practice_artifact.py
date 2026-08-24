@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Validate an unexecuted adaptive practice Notebook or authentic project bundle."""
+"""Validate an unexecuted single-Notebook practice artifact.
+
+Legacy bundles can be reviewed only with an explicit compatibility flag.
+"""
 
 from __future__ import annotations
 
@@ -19,6 +22,8 @@ from validate_practice_index import validate as validate_index
 
 ACTIONS = {"implement", "test", "debug", "interpret", "design"}
 COVERAGE_COLUMNS = ("Outcome ID", "TIL location", "Practice action", "Artifact/Exercise", "Required evidence")
+CONTRACT_COLUMNS = ("Contract ID", "Kind", "Learner-visible requirement")
+CONTRACT_KINDS = {"source-given", "practice-given", "derive"}
 EXERCISE_SECTIONS = (
     "실제 사용 맥락",
     "실행 전 회상·예측",
@@ -28,6 +33,10 @@ EXERCISE_SECTIONS = (
     "결과 해석",
 )
 TIL_RE = re.compile(r"til/\d{4}/\d{2}/\d{4}-\d{2}-\d{2}\.md\Z")
+CONTRACT_ID_RE = re.compile(r"C-(E\d{2})-(\d{2})\Z")
+CONTRACT_MARKER_RE = re.compile(
+    r"^\s*# contract:\s*(C-E\d{2}-\d{2}(?:\s*,\s*C-E\d{2}-\d{2})*)\s*$"
+)
 
 
 @dataclass(frozen=True)
@@ -87,6 +96,131 @@ def _cell_text(cell: dict[str, object]) -> str:
     return ""
 
 
+def _parse_exercise_contracts(
+    notebook: Path,
+    exercise_id: str,
+    body: str,
+    *,
+    line: int,
+) -> tuple[list[Problem], set[str]]:
+    problems: list[Problem] = []
+    declared: set[str] = set()
+    contract_heading = "### 작은 유사 사례와 계약"
+    implementation_heading = "### 구현"
+    start = body.find(contract_heading)
+    end = body.find(implementation_heading)
+    if start < 0 or end < 0 or start >= end:
+        return problems, declared
+
+    region = body[start + len(contract_heading) : end]
+    learner_heading = "#### 학습자가 구현·판단할 것"
+    learner_position = region.find(learner_heading)
+    if learner_position < 0:
+        problems.append(
+            Problem(
+                notebook,
+                line,
+                "CONTRACT_SPEC",
+                f"{exercise_id} needs #### 학습자가 구현·판단할 것 after its contract table",
+            )
+        )
+        table_region = region
+    else:
+        table_region = region[:learner_position]
+        learner_content = region[learner_position + len(learner_heading) :].strip()
+        if not learner_content:
+            problems.append(
+                Problem(
+                    notebook,
+                    line,
+                    "CONTRACT_SPEC",
+                    f"{exercise_id} learner-owned implementation/judgment section is empty",
+                )
+            )
+
+    lines = table_region.splitlines()
+    header_text = f"| {' | '.join(CONTRACT_COLUMNS)} |"
+    header_index = next(
+        (index for index, raw in enumerate(lines) if raw.strip() == header_text),
+        None,
+    )
+    if header_index is None:
+        problems.append(
+            Problem(
+                notebook,
+                line,
+                "CONTRACT_SPEC",
+                f"{exercise_id} contract columns must be: {' | '.join(CONTRACT_COLUMNS)}",
+            )
+        )
+        return problems, declared
+
+    rows: list[list[str]] = []
+    for raw in lines[header_index + 2 :]:
+        stripped = raw.strip()
+        if not stripped:
+            if rows:
+                break
+            continue
+        if stripped.startswith("#### "):
+            break
+        if not (stripped.startswith("|") and stripped.endswith("|")):
+            continue
+        rows.append([part.strip().strip("`") for part in stripped[1:-1].split("|")])
+
+    if not rows:
+        problems.append(
+            Problem(notebook, line, "CONTRACT_SPEC", f"{exercise_id} needs at least one contract row")
+        )
+        return problems, declared
+
+    observed_ids: list[str] = []
+    for row in rows:
+        if len(row) != 3:
+            problems.append(
+                Problem(notebook, line, "CONTRACT_SPEC", f"{exercise_id} contract row must have three cells")
+            )
+            continue
+        contract_id, kind, requirement = row
+        observed_ids.append(contract_id)
+        match = CONTRACT_ID_RE.fullmatch(contract_id)
+        if match is None or match.group(1) != exercise_id:
+            problems.append(
+                Problem(
+                    notebook,
+                    line,
+                    "CONTRACT_SPEC",
+                    f"{exercise_id} has invalid or cross-exercise Contract ID: {contract_id}",
+                )
+            )
+        elif contract_id in declared:
+            problems.append(
+                Problem(notebook, line, "CONTRACT_SPEC", f"duplicate Contract ID: {contract_id}")
+            )
+        else:
+            declared.add(contract_id)
+        if kind not in CONTRACT_KINDS:
+            problems.append(
+                Problem(notebook, line, "CONTRACT_SPEC", f"{contract_id} has invalid Kind: {kind}")
+            )
+        if not requirement:
+            problems.append(
+                Problem(notebook, line, "CONTRACT_SPEC", f"{contract_id} needs a learner-visible requirement")
+            )
+
+    expected_ids = [f"C-{exercise_id}-{index:02d}" for index in range(1, len(observed_ids) + 1)]
+    if observed_ids != expected_ids:
+        problems.append(
+            Problem(
+                notebook,
+                line,
+                "CONTRACT_SPEC",
+                f"{exercise_id} Contract IDs must be contiguous: C-{exercise_id}-01, ...",
+            )
+        )
+    return problems, declared
+
+
 def _resolve_link(notebook: Path, target: str, repo: Path) -> tuple[Path | None, str | None]:
     target = unquote(target.split("#", 1)[0].strip())
     if not target or target.startswith(("http://", "https://", "mailto:")) or "<" in target or ">" in target:
@@ -102,14 +236,19 @@ def _resolve_link(notebook: Path, target: str, repo: Path) -> tuple[Path | None,
     return resolved, None
 
 
-def _validate_notebook(notebook: Path, repo: Path) -> tuple[list[Problem], set[str], list[tuple[int, str]]]:
+def _validate_notebook(
+    notebook: Path,
+    repo: Path,
+    *,
+    require_standalone_contracts: bool,
+) -> tuple[list[Problem], set[str], list[tuple[int, str]], dict[str, set[str]]]:
     problems: list[Problem] = []
     try:
         payload = json.loads(notebook.read_text(encoding="utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        return [Problem(notebook, getattr(exc, "lineno", 1), "NOTEBOOK_JSON", f"invalid Notebook JSON: {exc}")], set(), []
+        return [Problem(notebook, getattr(exc, "lineno", 1), "NOTEBOOK_JSON", f"invalid Notebook JSON: {exc}")], set(), [], {}
     if payload.get("nbformat") != 4 or not isinstance(payload.get("cells"), list):
-        return [Problem(notebook, 1, "NOTEBOOK_JSON", "Notebook must use nbformat 4 and contain cells")], set(), []
+        return [Problem(notebook, 1, "NOTEBOOK_JSON", "Notebook must use nbformat 4 and contain cells")], set(), [], {}
 
     cells: list[dict[str, object]] = payload["cells"]
     markdown_cells: list[tuple[int, str]] = []
@@ -191,11 +330,13 @@ def _validate_notebook(notebook: Path, repo: Path) -> tuple[list[Problem], set[s
 
     exercise_matches = list(re.finditer(r"^## (E\d{2})\.\s+.+$", markdown, re.MULTILINE))
     exercise_ids = [match.group(1) for match in exercise_matches]
+    declared_contracts: dict[str, set[str]] = {}
     if exercise_ids != [f"E{index:02d}" for index in range(1, len(exercise_ids) + 1)] or not exercise_ids:
         problems.append(Problem(notebook, 1, "EXERCISE", "exercise IDs must be contiguous headings: ## E01. ..."))
     if set(exercise_ids) != referenced_exercises:
         problems.append(Problem(notebook, 1, "COVERAGE", "coverage map and exercise headings must reference the same exercise set"))
     for index, match in enumerate(exercise_matches):
+        exercise_id = match.group(1)
         end = exercise_matches[index + 1].start() if index + 1 < len(exercise_matches) else len(markdown)
         body = markdown[match.end() : end]
         positions = [body.find(f"### {heading}") for heading in EXERCISE_SECTIONS]
@@ -208,12 +349,22 @@ def _validate_notebook(notebook: Path, repo: Path) -> tuple[list[Problem], set[s
                 content = body[content_start:content_end].strip()
                 if not content:
                     problems.append(Problem(notebook, _line(markdown, match.start()), "EXERCISE", f"{match.group(1)} section is empty: {heading}"))
+        exercise_line = _line(markdown, match.start())
+        if require_standalone_contracts:
+            contract_problems, contract_ids = _parse_exercise_contracts(
+                notebook,
+                exercise_id,
+                body,
+                line=exercise_line,
+            )
+            problems.extend(contract_problems)
+            declared_contracts[exercise_id] = contract_ids
         if body.count("<summary>힌트 1") != 1 or body.count("<summary>힌트 2") != 1:
-            problems.append(Problem(notebook, _line(markdown, match.start()), "HINT_ADJACENCY", f"{match.group(1)} needs exactly one folded Hint 1 and Hint 2"))
-        if f"TODO: {match.group(1)}" not in "\n".join(_cell_text(cell) for cell in cells if cell.get("cell_type") == "code"):
-            problems.append(Problem(notebook, _line(markdown, match.start()), "STARTER", f"{match.group(1)} needs a learner TODO code cell"))
+            problems.append(Problem(notebook, exercise_line, "HINT_ADJACENCY", f"{exercise_id} needs exactly one folded Hint 1 and Hint 2"))
+        if f"TODO: {exercise_id}" not in "\n".join(_cell_text(cell) for cell in cells if cell.get("cell_type") == "code"):
+            problems.append(Problem(notebook, exercise_line, "STARTER", f"{exercise_id} needs a learner TODO code cell"))
 
-    return problems, {path.relative_to(repo).as_posix() for path in resolved_links}, setup_cells
+    return problems, {path.relative_to(repo).as_posix() for path in resolved_links}, setup_cells, declared_contracts
 
 
 def _validate_notebook_setup(
@@ -251,9 +402,132 @@ def _validate_notebook_setup(
     return []
 
 
+def _validate_contract_trace(
+    notebook: Path,
+    exercise_id: str,
+    test_code: str,
+    declared: set[str],
+) -> list[Problem]:
+    problems: list[Problem] = []
+    used: set[str] = set()
+    active_ids: set[str] = set()
+    active_marker_line = 0
+    active_has_observable = False
+    current_category: str | None = None
+    category_observables: set[str] = set()
+
+    def close_marker() -> None:
+        nonlocal active_ids, active_marker_line, active_has_observable
+        if active_ids and not active_has_observable:
+            problems.append(
+                Problem(
+                    notebook,
+                    active_marker_line,
+                    "CONTRACT_TRACE",
+                    f"{exercise_id} contract marker has no assertion or expected-exception block",
+                )
+            )
+        active_ids = set()
+        active_marker_line = 0
+        active_has_observable = False
+
+    for line_number, raw in enumerate(test_code.splitlines(), start=1):
+        stripped = raw.strip()
+        category_match = re.fullmatch(r"# (normal|edge|failure)", stripped)
+        if category_match:
+            close_marker()
+            current_category = category_match.group(1)
+            continue
+
+        marker_match = CONTRACT_MARKER_RE.fullmatch(raw)
+        if stripped.startswith("# contract:"):
+            close_marker()
+            if marker_match is None:
+                problems.append(
+                    Problem(
+                        notebook,
+                        line_number,
+                        "CONTRACT_TRACE",
+                        f"{exercise_id} has a malformed contract marker",
+                    )
+                )
+                continue
+            marker_ids = {
+                item.strip() for item in marker_match.group(1).split(",") if item.strip()
+            }
+            active_ids = marker_ids
+            active_marker_line = line_number
+            for contract_id in marker_ids:
+                match = CONTRACT_ID_RE.fullmatch(contract_id)
+                if match is None or match.group(1) != exercise_id:
+                    problems.append(
+                        Problem(
+                            notebook,
+                            line_number,
+                            "CONTRACT_TRACE",
+                            f"{exercise_id} test references a cross-exercise Contract ID: {contract_id}",
+                        )
+                    )
+                elif contract_id not in declared:
+                    problems.append(
+                        Problem(
+                            notebook,
+                            line_number,
+                            "CONTRACT_TRACE",
+                            f"{exercise_id} test references an undeclared Contract ID: {contract_id}",
+                        )
+                    )
+            continue
+
+        observable = bool(
+            re.search(r"\b(?:np|torch)\.testing\.[A-Za-z_]\w*\s*\(", raw)
+            or re.fullmatch(r"\s*try:\s*", raw)
+        )
+        if not observable:
+            continue
+        if not active_ids:
+            problems.append(
+                Problem(
+                    notebook,
+                    line_number,
+                    "CONTRACT_TRACE",
+                    f"{exercise_id} assertion or expected exception lacks a preceding # contract marker",
+                )
+            )
+            continue
+        active_has_observable = True
+        used.update(active_ids)
+        if current_category is not None:
+            category_observables.add(current_category)
+
+    close_marker()
+    for category in ("normal", "edge", "failure"):
+        if category not in category_observables:
+            problems.append(
+                Problem(
+                    notebook,
+                    1,
+                    "CONTRACT_TRACE",
+                    f"{exercise_id} #{category} needs a contract-traced assertion or expected exception",
+                )
+            )
+    unused = sorted(declared - used)
+    if unused:
+        problems.append(
+            Problem(
+                notebook,
+                1,
+                "CONTRACT_TRACE",
+                f"{exercise_id} declares contracts that no check uses: {', '.join(unused)}",
+            )
+        )
+    return problems
+
+
 def _validate_notebook_only_ergonomics(
     notebook: Path,
     setup_cells: list[tuple[int, str]],
+    declared_contracts: dict[str, set[str]],
 ) -> list[Problem]:
     problems: list[Problem] = []
     try:
@@ -425,6 +699,14 @@ def _validate_notebook_only_ergonomics(
                         f"{exercise_id} test-check needs observable numpy.testing assertions",
                     )
                 )
+            problems.extend(
+                _validate_contract_trace(
+                    notebook,
+                    exercise_id,
+                    test_code,
+                    declared_contracts.get(exercise_id, set()),
+                )
+            )
 
     return problems
 
@@ -651,6 +933,7 @@ def validate(
     *,
     repo_root: Path | str | None = None,
     check_collection: bool = True,
+    allow_legacy_bundle: bool = False,
 ) -> list[Problem]:
     repo = Path(repo_root).resolve() if repo_root is not None else _repo_root()
     target = Path(artifact)
@@ -666,18 +949,41 @@ def validate(
     if not target.exists():
         return [Problem(target, 1, "SOURCE_MISSING", "artifact does not exist")]
     if target.is_dir():
+        if not allow_legacy_bundle:
+            return [
+                Problem(
+                    target,
+                    1,
+                    "NOTEBOOK_ONLY",
+                    "new practice must be one .ipynb file; pass --allow-legacy-bundle only to review an existing bundle",
+                )
+            ]
         notebook = target / "workbook.ipynb"
         if not notebook.is_file():
             return [Problem(target, 1, "BUNDLE", "bundle must contain workbook.ipynb")]
-        problems, links, setup_cells = _validate_notebook(notebook, repo)
+        problems, links, setup_cells, _ = _validate_notebook(
+            notebook,
+            repo,
+            require_standalone_contracts=False,
+        )
         problems.extend(_validate_notebook_setup(notebook, setup_cells, repo=repo))
         problems.extend(_validate_bundle_notebook_ergonomics(notebook, setup_cells))
         problems.extend(_validate_python_bundle(target, repo=repo, check_collection=check_collection))
     elif target.suffix == ".ipynb":
         notebook = target
-        problems, links, setup_cells = _validate_notebook(notebook, repo)
+        problems, links, setup_cells, declared_contracts = _validate_notebook(
+            notebook,
+            repo,
+            require_standalone_contracts=True,
+        )
         problems.extend(_validate_notebook_setup(notebook, setup_cells, repo=repo))
-        problems.extend(_validate_notebook_only_ergonomics(notebook, setup_cells))
+        problems.extend(
+            _validate_notebook_only_ergonomics(
+                notebook,
+                setup_cells,
+                declared_contracts,
+            )
+        )
     else:
         return [Problem(target, 1, "PATH", "artifact must be a .ipynb file or bundle directory")]
 
@@ -716,9 +1022,14 @@ class ContractParser(argparse.ArgumentParser):
 def main(argv: list[str] | None = None) -> int:
     parser = ContractParser(description=__doc__)
     parser.add_argument("artifact", type=Path)
+    parser.add_argument(
+        "--allow-legacy-bundle",
+        action="store_true",
+        help="review an existing multi-file bundle without allowing it as a new practice artifact",
+    )
     args = parser.parse_args(argv)
     try:
-        problems = validate(args.artifact)
+        problems = validate(args.artifact, allow_legacy_bundle=args.allow_legacy_bundle)
     except Exception as exc:  # pragma: no cover
         print(f"ERROR {args.artifact}:1 [ARTIFACT_SCHEMA] internal error: {exc}", file=sys.stderr)
         return 2
