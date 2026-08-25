@@ -9,5 +9,7 @@
   "markdown.copyFiles.overwriteBehavior": "nameIncrementally",
   "workbench.editorAssociations": {
     "*.ipynb": "jupyter-notebook"
-  }
+  },
+  "deepml.solutionsDir": "challenges/deep-ml/solutions",
+  "deepml.pythonPath": "/home/jake/llm-research-learning-lab/.venv/bin/python"
 }

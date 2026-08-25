@@ -14,8 +14,9 @@ LLM Research Engineer를 목표로 학습 기록, 개념 지식, 실행 실습�
 | [`til/`](./til/) | 그날 배운 것과 생각을 남기는 날짜별 학습 일기 |
 | [`knowledge/`](./knowledge/) | 지금 내가 이해하고 있는 내용을 주제별로 갱신하는 지식 베이스 |
 | [`practice/`](./practice/) | 직접 실행한 Notebook, Kaggle, 모델 실험 |
+| [`challenges/`](./challenges/) | 외부 문제 플랫폼에서 푼 제출 코드와 짧은 학습 기록 |
 | [`ROADMAP.md`](./ROADMAP.md) | LLM Research Engineer 학습 방향 참고 |
 | [`CURRICULUM.md`](./CURRICULUM.md) | 역량별 목표 깊이와 현재 강의자료의 충족도 기준 |
 | [`archive/`](./archive/) | 구버전 TIL 보관 |
 
-실제로 자주 쓰는 곳은 `til/`, `knowledge/`, `practice/` 세 곳입니다.
+실제로 자주 쓰는 곳은 `til/`, `knowledge/`, `practice/`, `challenges/`입니다.
