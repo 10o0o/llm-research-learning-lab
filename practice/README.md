@@ -12,26 +12,16 @@ TIL에서 배운 내용을 직접 회상하고 구현하며, 실제 테스트 �
 practice/<area>/<topic>.ipynb
 ```
 
-Notebook 안에서는 구현 셀, 고정 fixture 셀, normal·edge·failure 검사 셀,
-결과 해석을 분리해 가까이 둡니다. 재사용 API, 여러 모듈·클래스, 격리된
-pytest·CI, 학습 파이프라인이나 systems 경계가 성과에 포함될 때만 작은
-bundle을 사용합니다.
+Notebook 안에서는 설명, 구현, 고정 fixture, 공개 검사, 결과 해석을
+가까이 둡니다. 작은 학습·validation·checkpoint 흐름도 한 Notebook 안에서
+완결합니다. 재사용 가능한 여러 모듈과 CI가 학습 대상인 별도 프로젝트를
+사용자가 명시적으로 요청했을 때만 다중 파일 구조를 만듭니다.
 
-```text
-practice/<area>/<topic>/
-├── workbook.ipynb
-├── src/
-│   └── <package>/<module>.py
-└── tests/
-    └── test_<module>.py
-```
-
-Notebook은 상황, 실행 전 예측, 작은 계약, 단계별 힌트, 테스트 실행과
-결과 해석을 안내합니다. 단일 Notebook의 learner function과 bundle의
-`src/` public function은 모두 `NotImplementedError`에서 시작합니다.
-Bundle의 `tests/`는 normal·edge·failure 계약을 보여주되 구현 방법을
-노출하지 않으며, 첫 `# setup-check` 셀은 저장소 루트 kernel에서 해당
-`src/`와 public interface를 실제로 import합니다.
+Notebook은 자연스러운 목적과 요구사항, 작은 예, 단계별 힌트, 테스트
+실행과 결과 해석을 안내합니다. 강의에서 배운 핵심 연산·판단만 TODO로
+남기고 함수 시그니처, 반복 검증, 반환 조립, fixture와 bookkeeping은
+기본으로 제공합니다. 따라서 제공된 helper와 scaffold는 완성 코드여도
+되며 모든 함수를 통째로 `NotImplementedError`로 만들지 않습니다.
 
 ## 생성 원칙
 
@@ -50,20 +40,25 @@ Bundle의 `tests/`는 normal·edge·failure 계약을 보여주되 구현 방법
 시작합니다. `Applied`는 작은 현실 조건 하나를, `Advanced`는 기반 구현이
 확인됐을 때만 ablation·민감도·실패 분석 같은 연구 질문 하나를 더합니다.
 
-각 exercise는 다음 순서를 유지합니다.
+각 exercise는 하나의 주 개념과 최대 세 개의 학습자 작업만 다루며 다음
+순서를 유지합니다.
 
 ```text
-실제 사용 맥락
-→ 실행 전 회상·예측
-→ 작은 유사 사례와 계약
-→ 핵심 로직 직접 구현
+자연스러운 목적과 문제
+→ 준비된 뼈대와 직접 완성할 부분
+→ 모든 공개 검사 조건과 작은 예
+→ 강의 핵심 연산·판단 구현
 → 바로 옆의 접힌 힌트
-→ 테스트와 실패 진단
-→ 실제 시스템 의미와 한계 해석
+→ 공개 검사와 실패 진단
+→ 결과의 의미와 한계 해석
 ```
 
 힌트를 파일 아래쪽에 몰아두지 않습니다. 각 TODO 바로 앞에 `힌트 1`과
-`힌트 2`를 접어 두고, 완성 구현은 넣지 않습니다.
+`힌트 2`를 접어 둡니다. 처음에는 `guided`, 익숙해지면 `partial`, 충분한
+증거가 있는 뒤에는 `independent`로 비계를 줄이되 문제의 필수 조건은
+끝까지 모두 공개합니다. 반드시 작성해야 하는 해석은 학습자 target으로
+추적하고, 추적하지 않는 복습 메모는 선택 사항이며 완료 조건이 아니라고
+밝힙니다.
 
 ## 강의 제공 실습
 
@@ -75,8 +70,10 @@ Practice path | Related lesson path | Variant | Format | Original
 ```
 
 TIL에 링크된 정확한 강의와 일치하는 행만 자동으로 참고합니다. 원본은
-learner evidence가 아니며, 문제 상황·테스트·실패 사례를 설계하는 scaffold로
-사용합니다. 답이나 가짜 출력을 복사하지 않습니다.
+learner evidence가 아닙니다. 기본·심화 자료의 starter, TODO, fixture,
+check 경계를 먼저 감사하고 적절한 starter를 우선 보존합니다. 정답은
+명세 확인과 임시 reference 실행에만 사용하며 답이나 가짜 출력을
+Notebook에 복사하지 않습니다.
 
 ## 실행과 피드백
 
@@ -84,16 +81,10 @@ learner evidence가 아니며, 문제 상황·테스트·실패 사례를 설계
 `check_e01()` 형식의 검사 셀 순서로 실행합니다. 함수 수정 뒤에는 현재
 구현 셀부터 다시 실행하면 됩니다.
 
-bundle은 저장소 루트에서 다음처럼 실행합니다.
-
-```bash
-PYTHONPATH=practice/<area>/<topic>/src \
-  uv run pytest practice/<area>/<topic>/tests
-```
-
-구현 전에는 `NotImplementedError` 실패가 정상입니다. import와 collection은
-성공해야 합니다. 막혔을 때 `$suggest-learning-practice`에 정확한 Notebook
-또는 bundle 경로를 주면, 저장된 code와 실제 traceback을 기준으로 한 번에
+미완성 핵심 지점에서만 `NotImplementedError`나 명시적 placeholder 실패가
+정상입니다. 제공된 scaffold는 그대로 실행 가능해야 합니다. 막혔을 때
+`$suggest-learning-practice`에 정확한 Notebook 경로를 주면 저장된 code와
+실제 traceback을 기준으로 한 번에
 가장 작은 blocker부터 안내합니다. 테스트 통과 뒤에도 결정적인 상태나
 출력을 직접 설명해야 완료 증거가 됩니다.
 

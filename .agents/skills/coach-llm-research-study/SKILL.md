@@ -59,29 +59,27 @@ Keep an assessment-only request read-only: report proposed registry and competen
 
 Never add learner completion, dates, scores, mastery boxes, or progress percentages to `CURRICULUM.md`; its statuses describe source coverage only.
 
+Use `ROADMAP.md` only to prioritize direction and high-leverage connections;
+use `CURRICULUM.md` as the operational source-coverage and gap-treatment
+authority. For a lesson, apply the selected targets through the canonical
+handoff treatment map. Do not automatically download an external supplement
+or treat it as source-core before separate user authorization, registration,
+and audit.
+
 ## Gate an interactive lesson contract
 
-Apply this gate only when this skill and `$teach-course-material` are used together for an interactive lesson over a named source. Audit-only work, a direct definition, and a short one-off clarification remain read-only and do not require a handoff.
+This skill owns source auditing, contract preparation, independent semantic
+review, and the TIL completeness judgment for a whole interactive named-source
+lesson. Read and follow
+[`references/lesson-handoff.md`](references/lesson-handoff.md), the sole
+normative schema and lifecycle. Hand teaching to `$teach-course-material` only
+after the canonical readiness gate passes; hand canonical saving to
+`$save-today-til` only after the canonical TIL-readiness gate passes.
 
-Before creating or reviewing `tmp/active-lesson-handoff.md`, read [the lesson handoff contract](references/lesson-handoff.md) completely and follow its schema, hashing rules, ownership boundaries, and lifecycle. The handoff is the sole ignored resumable cache for an active lesson; it is not a permanent review report, progress record, or proof of learner understanding.
-
-1. Resolve any existing handoff before writing. Resume only when the primary source path and hash still match. Treat changed source, asset, curriculum, or lesson-contract hashes as stale and rebuild the contract. Never overwrite a different `active`, `paused`, or `blocked` lesson without resolving whether to resume or explicitly close and replace it. Replace a `completed` handoff for a new lesson only when every confirmed evidence item is already `drafted`; otherwise recover those pending appends first.
-2. Record the complete input manifest, exact source locations for findings, one to three curriculum target IDs, three to seven essential concepts, learner-evidence baseline, `[선수개념]`, `[정정]`, `[보충]`, teaching sequence, tiny examples or checks, and deliberate deferrals. Do not copy the full source or draft a polished lecture transcript.
-3. Validate the preparing handoff with:
-
-   ```bash
-   python3 .agents/skills/coach-llm-research-study/scripts/validate_lesson_handoff.py tmp/active-lesson-handoff.md
-   ```
-
-4. Give the source, its referenced assets, the relevant curriculum rows, learner evidence, and the contract to a fresh read-only reviewer that did not author the contract. Do not provide a desired verdict. The reviewer checks facts, formulas, shapes, code mappings, marker classification, curriculum fit, scope, and evidence provenance.
-5. Allow no more than two total semantic-review attempts: the initial review, then at most one contract correction and review by another fresh reviewer. If a fresh reviewer is unavailable, cannot read the complete inputs, or the second attempt does not pass, set the handoff to `blocked` and do not hand it to teaching. Never replace this gate with self-review.
-6. A review pass is valid only for the exact current input-manifest and lesson-contract hashes. After a pass, require the readiness check before teaching:
-
-   ```bash
-   python3 .agents/skills/coach-llm-research-study/scripts/validate_lesson_handoff.py --ready tmp/active-lesson-handoff.md
-   ```
-
-Changing learner evidence or the current teaching position does not by itself invalidate the reviewed contract. Changing an input, curriculum mapping, or reviewed contract does.
+Audit-only work, direct definitions, short corrections, one-off questions, and
+knowledge-note deepening do not require this handoff. When a whole named-source
+lesson is requested through `$teach-course-material` alone, pair this skill
+automatically to prepare and review the contract before teaching.
 
 ## Prioritize for this learner
 
@@ -89,7 +87,7 @@ Changing learner evidence or the current teaching position does not by itself in
 - **지금 알면 좋음**: not required to follow the lesson, but a high-leverage connection that makes the current concept more useful for later ML or LLM work.
 - **나중에**: useful depth whose study cost is not justified yet.
 
-Do not expand every possible omission. Prefer a few high-impact findings connected to the learner's current level and roadmap. Explicitly defer low-value depth.
+Do not expand every possible outside omission. Prefer a few high-impact additions connected to the learner's current level and roadmap. This prioritization limits prerequisites and supplements, never the source-core objectives in a `full-source` request. Explicitly defer low-value outside depth.
 
 ## Assess demonstrated understanding
 
@@ -115,9 +113,9 @@ Keep this distinction explicit so a later practice or knowledge decision does no
 
 When the user asks to validate `til/today.md` or another rough note before saving:
 
-1. Resolve the exact draft and reconstruct **today's actual learning scope** in this order: the active handoff's Concept Path plus Current Position; confirmed learner answers, calculations, Shape predictions, and code interpretations; the current learning conversation; an explicitly stated self-study scope with exact source paths; then the draft itself. The source table of contents does not prove that every item was studied. If the actual scope cannot be recovered, do not guess; give `추가 확인 후 저장` and ask the smallest scope question.
+1. Resolve the exact draft and reconstruct **today's actual learning scope** in this order: the active handoff's actual delivered scope; confirmed learner answers, calculations, shape predictions, and code interpretations; the current learning conversation; an explicitly stated self-study scope with exact source paths; then the draft itself. Non-assessed guidance and the source table of contents do not prove that a technical concept was studied. If the actual scope cannot be recovered, do not guess; give `추가 확인 후 저장` and ask the smallest scope question.
 2. Read the complete relevant source, the draft, the relevant learning exchange, and only directly related `knowledge/` or executed `practice/` evidence. Reading the whole source is for factual checking, not for expanding today's required scope.
-3. Build a temporary concept inventory. For a handoff-backed lesson, update `Daily Learning Coverage` with every Concept Path item as `confirmed`, `uncertain`, or `deferred`. An uncertain row must record `draft-anchor: <exact excerpt>` pointing into a non-empty `## 남은 질문` section so the mechanical gate cannot pass on metadata alone. For self-study without a handoff, hold the same inventory only in working context; do not create another durable review document.
+3. Build a temporary concept inventory. For a handoff-backed lesson, record it through the canonical handoff contract and its Objective-level learner evidence rules. For self-study without a handoff, hold the inventory only in working context; do not create another durable review document.
 4. Require every core concept actually studied today to appear in one of two honest forms: confirmed understanding under `오늘의 학습` or `배운 점`, and unresolved understanding under `남은 질문`. A deferred source concept is not required. Compare the learner's claims with the source and established facts; do not assume the source itself is correct.
 5. Classify findings as:
    - **반드시 수정**: factually wrong or misleading as currently stated;
@@ -135,18 +133,11 @@ For each blocking finding, quote only the shortest identifying draft fragment, c
 
 Do not silently rewrite a misconception or missing concept into a correct tutor answer. Ask one small confirmation question, preserve the learner's own answer when confirmed, and leave unresolved content as the learner's uncertainty. Use `$teach-course-material` when more than a direct factual correction is needed. Edit the draft only when the user asks and either demonstrates the corrected understanding or explicitly chooses to record the point as unresolved uncertainty.
 
-For a handoff-backed draft, after re-reading the final draft:
-
-1. update every Daily Learning Coverage row and its evidence IDs;
-2. set `pre_save_verdict`, `reviewed_at`, and the SHA-256 of the exact current draft bytes;
-3. require this check before handing off to `$save-today-til`:
-
-   ```bash
-   python3 .agents/skills/coach-llm-research-study/scripts/validate_lesson_handoff.py \
-     --til-ready tmp/active-lesson-handoff.md
-   ```
-
-Any draft edit after that hash is recorded invalidates the verdict and requires a new coach review. A semantic lesson-contract pass is necessary but does not establish TIL completeness.
+For a handoff-backed draft, update the canonical operational coverage and
+pre-save review state exactly as defined in the linked handoff contract. Hand
+off to `$save-today-til` only after its TIL-readiness gate passes for the exact
+current draft. A lesson-contract pass alone does not establish TIL
+completeness.
 
 ## Explain findings enough to act on
 
@@ -156,7 +147,7 @@ When the user wants to learn the whole source, use `$teach-course-material` for 
 
 1. audit the source and learner evidence first;
 2. identify source-native concepts whose understanding is unconfirmed and mark them for teaching before first use;
-3. prioritize only the findings that change the current lesson;
+3. preserve every source-core objective in the requested scope while prioritizing only added findings that change the current lesson;
 4. feed those findings into the adaptive explanation;
 5. present one coherent lesson with `[선수개념]`, `[정정]`, and `[보충]` markers instead of duplicating a full audit report, unless the user asks for separate reports.
 

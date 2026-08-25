@@ -14,6 +14,14 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 
+SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+
+from validate_curriculum import validate_course_index_freshness  # noqa: E402
+
+
+SCHEMA_VERSION = "4"
 STATUSES = {"preparing", "review_pending", "active", "paused", "blocked", "completed"}
 MANIFEST_ROLES = {
     "primary",
@@ -36,9 +44,36 @@ EVIDENCE_KINDS = {
 EVIDENCE_VERDICTS = {"confirmed", "partial", "misconception", "unconfirmed"}
 APPEND_STATES = {"pending", "drafted", "not_eligible"}
 CONCEPT_MARKERS = {"none", "[선수개념]", "[정정]", "[보충]"}
+COVERAGE_MODES = {"full-source", "focused"}
+OBJECTIVE_REQUIREMENTS = {"source-core", "required-added", "optional-added"}
+OBJECTIVE_MARKERS = {"none", "prerequisite", "correction", "supplement"}
+OBJECTIVE_TREATMENTS = {"full", "bridge", "deferred"}
+GOAL_DISPOSITIONS = {"learning", "guidance", "source-gap"}
+GUIDANCE_KINDS = {"orientation", "diagnostic", "reference"}
+FINDING_TYPES = {
+    "none",
+    "correction",
+    "underspecification",
+    "prerequisite",
+    "supplement",
+    "intentional-deferral",
+}
+CHECK_POLICIES = {"adaptive", "none"}
+POSITION_ACTIONS = {"teach", "await-answer", "remediate", "complete"}
+DELIVERY_STATES = {"pending", "delivered"}
+DELIVERY_MODES = {"none", "full", "bridge"}
 TODAY_STATES = {"confirmed", "uncertain", "deferred"}
 TIL_REPRESENTATIONS = {"learning", "remaining-question", "missing", "not-required"}
 PRE_SAVE_VERDICTS = {"pending", "저장 가능", "수정 후 저장", "추가 확인 후 저장"}
+CURRICULUM_COVERAGE = {"미감사", "충분", "부분", "없음", "판정보류"}
+CURRICULUM_GAP_ACTIONS = {
+    "그대로 사용",
+    "수업 내 보충",
+    "별도 자료 확보",
+    "원본 복구 후 재감사",
+    "트랙 선택 시 확보",
+}
+LESSON_TREATMENTS = {"source-only", "supplement-now", "defer-gap", "defer-track"}
 HASH_RE = re.compile(r"[0-9a-f]{64}\Z")
 LESSON_ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{2,63}\Z")
 AGENT_ID_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/@-]{1,127}\Z")
@@ -57,7 +92,14 @@ METADATA_KEYS = (
     "input_manifest_sha256",
     "contract_sha256",
 )
-CURRENT_POSITION_KEYS = ("last_completed", "next_concept", "next_question")
+CURRENT_POSITION_KEYS = (
+    "last_completed_step",
+    "current_step",
+    "next_action",
+    "target_objectives",
+    "basis",
+    "resume_note",
+)
 TIL_REVIEW_KEYS = ("pre_save_verdict", "reviewed_at", "reviewed_draft_sha256")
 REVIEW_KEYS = (
     "reviewer_id",
@@ -69,6 +111,7 @@ REVIEW_KEYS = (
 )
 EVIDENCE_KEYS = (
     "concept",
+    "objective_ids",
     "kind",
     "provenance",
     "verdict",
@@ -78,11 +121,17 @@ EVIDENCE_KEYS = (
 )
 CONTRACT_HEADINGS = (
     "Objective",
+    "Coverage Mode",
     "Curriculum Targets",
+    "Curriculum Treatment Map",
     "Learner Evidence Baseline",
-    "Corrections, Prerequisites, and Supplements",
+    "Audited Findings",
+    "Source Coverage Index",
+    "Declared Goal Alignment",
+    "Guidance Map",
+    "Observable Objective Map",
     "Concept Path",
-    "Prepared Teaching Notes",
+    "Prepared Teaching Steps",
     "Deferred",
 )
 
@@ -137,6 +186,96 @@ class LearningCoverage:
 
 
 @dataclass
+class CurriculumTreatment:
+    target_id: str
+    coverage: str
+    gap_action: str
+    lesson_treatment: str
+    objective_ids: list[str]
+    note: str
+    line: int
+
+
+@dataclass
+class SourceCoverage:
+    primary_id: str
+    goal_ids: list[str]
+    objective_ids: list[str]
+    guidance_ids: list[str]
+    excluded_locations: list[str]
+    reason: str
+    line: int
+
+
+@dataclass
+class DeclaredGoal:
+    goal_id: str
+    primary_id: str
+    goal_location: str
+    disposition: str
+    linked_ids: list[str]
+    body_support: list[str]
+    reason: str
+    line: int
+
+
+@dataclass
+class GuidanceItem:
+    guidance_id: str
+    kind: str
+    source_location: str
+    summary: str
+    trigger: str
+    line: int
+
+
+@dataclass
+class AuditedFinding:
+    finding_id: str
+    finding_type: str
+    source_location: str
+    linked_ids: list[str]
+    note: str
+    line: int
+
+
+@dataclass
+class Objective:
+    objective_id: str
+    requirement: str
+    marker: str
+    source_location: str
+    outcome: str
+    concept_id: str
+    treatment: str
+    teaching_move: str
+    baseline_evidence: str
+    line: int
+
+
+@dataclass
+class ObjectiveDelivery:
+    objective_id: str
+    state: str
+    mode: str
+    note: str
+    line: int
+
+
+@dataclass
+class TeachingStep:
+    step_id: str
+    concept_id: str
+    objective_ids: list[str]
+    delivery_outline: str
+    tiny_example: str
+    check_policy: str
+    check_basis: str
+    check_question: str
+    line: int
+
+
+@dataclass
 class HandoffDocument:
     path: Path
     repo_root: Path
@@ -144,11 +283,20 @@ class HandoffDocument:
     metadata: dict[str, str] = field(default_factory=dict)
     manifest: list[ManifestEntry] = field(default_factory=list)
     contract: str = ""
+    coverage_mode: str = ""
     contract_concepts: list[str] = field(default_factory=list)
+    source_coverage: dict[str, SourceCoverage] = field(default_factory=dict)
+    declared_goals: dict[str, DeclaredGoal] = field(default_factory=dict)
+    guidance: dict[str, GuidanceItem] = field(default_factory=dict)
+    findings: dict[str, AuditedFinding] = field(default_factory=dict)
+    objectives: dict[str, Objective] = field(default_factory=dict)
+    teaching_steps: dict[str, TeachingStep] = field(default_factory=dict)
     curriculum_targets: list[str] = field(default_factory=list)
+    curriculum_treatments: dict[str, CurriculumTreatment] = field(default_factory=dict)
     review_attempt_count: int | None = None
     reviews: list[ReviewAttempt] = field(default_factory=list)
     current_position: dict[str, str] = field(default_factory=dict)
+    objective_delivery: dict[str, ObjectiveDelivery] = field(default_factory=dict)
     evidence: dict[str, Evidence] = field(default_factory=dict)
     til_review: dict[str, str] = field(default_factory=dict)
     learning_coverage: dict[str, LearningCoverage] = field(default_factory=dict)
@@ -244,6 +392,7 @@ def _section_ranges(text: str, errors: list[ValidationError]) -> dict[str, tuple
         "Input Manifest",
         "Semantic Review",
         "Current Position",
+        "Objective Delivery",
         "Daily Learning Coverage",
         "Learner Evidence",
     )
@@ -361,8 +510,14 @@ def _parse_metadata(
     start, end, _ = section
     values, lines, _ = _parse_bullets(text=doc.text, start=start, end=end, expected_keys=METADATA_KEYS, errors=errors, context="metadata")
     doc.metadata = values
-    if values.get("schema_version") != "2":
-        errors.append(ValidationError(lines.get("schema_version", 1), "SCHEMA", "schema_version must be 2"))
+    if values.get("schema_version") != SCHEMA_VERSION:
+        errors.append(
+            ValidationError(
+                lines.get("schema_version", 1),
+                "SCHEMA",
+                f"schema_version must be {SCHEMA_VERSION}; rebuild older handoffs from the current template",
+            )
+        )
     if "lesson_id" in values and not LESSON_ID_RE.fullmatch(values["lesson_id"]):
         errors.append(ValidationError(lines["lesson_id"], "SCHEMA", "lesson_id has an invalid format"))
     if not values.get("title"):
@@ -389,6 +544,148 @@ def _split_table_row(line: str) -> list[str] | None:
     if not stripped.startswith("|") or not stripped.endswith("|"):
         return None
     return [cell.strip() for cell in stripped[1:-1].split("|")]
+
+
+def _contract_table_rows(
+    section: str,
+    expected_header: list[str],
+    doc: HandoffDocument,
+    body_start: int,
+    errors: list[ValidationError],
+    *,
+    context: str,
+) -> list[tuple[list[str], int]]:
+    lines = [(index, line) for index, line in enumerate(section.splitlines()) if line.strip()]
+    base_line = _line_number(doc.text, body_start)
+    if len(lines) < 3:
+        errors.append(ValidationError(base_line, "SCHEMA", f"{context} must contain a header, separator, and rows"))
+        return []
+    header = _split_table_row(lines[0][1])
+    separator = _split_table_row(lines[1][1])
+    if header != expected_header:
+        errors.append(
+            ValidationError(
+                base_line + lines[0][0],
+                "SCHEMA",
+                f"{context} columns must be " + " | ".join(expected_header),
+            )
+        )
+    if separator is None or len(separator) != len(expected_header) or not all(
+        re.fullmatch(r":?-{3,}:?", cell) for cell in separator
+    ):
+        errors.append(ValidationError(base_line + lines[1][0], "SCHEMA", f"{context} separator is invalid"))
+    rows: list[tuple[list[str], int]] = []
+    for index, line in lines[2:]:
+        cells = _split_table_row(line)
+        line_no = base_line + index
+        if cells is None or len(cells) != len(expected_header):
+            errors.append(
+                ValidationError(
+                    line_no,
+                    "SCHEMA",
+                    f"{context} row must have {len(expected_header)} cells",
+                )
+            )
+            continue
+        rows.append((cells, line_no))
+    return rows
+
+
+def _location_path(location: str) -> str | None:
+    if "#" not in location:
+        return None
+    path, anchor = location.rsplit("#", 1)
+    return path if path and anchor.strip() else None
+
+
+def _normalize_location_fragment(value: str) -> str:
+    value = re.sub(r"^#{1,6}[ \t]+", "", value.strip())
+    while True:
+        previous = value
+        value = re.sub(r"^>[ \t]*", "", value)
+        value = re.sub(r"^(?:[-*+]|\d+[.)])[ \t]+", "", value)
+        if value == previous:
+            break
+    value = value.strip("| ")
+    value = value.replace("`", "").replace("**", "").replace("__", "")
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def _pdf_page_count(path: Path) -> int | None:
+    try:
+        from pypdf import PdfReader  # type: ignore[import-not-found]
+    except ImportError:
+        PdfReader = None
+    if PdfReader is not None:
+        try:
+            return len(PdfReader(str(path), strict=False).pages)
+        except Exception:  # pypdf exposes several parser and encryption errors.
+            pass
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return None
+    count = len(re.findall(rb"/Type\s*/Page(?!s)\b", data))
+    return count or None
+
+
+def _location_exists(location: str, repo_root: Path) -> bool:
+    path = _location_path(location)
+    if path is None:
+        return False
+    candidate, path_error = _safe_repo_path(path, repo_root)
+    if path_error or candidate is None or not candidate.is_file():
+        return False
+    anchor = _normalize_location_fragment(location.rsplit("#", 1)[1])
+    if candidate.suffix.lower() == ".pdf":
+        match = re.fullmatch(r"page-(\d+)(?:: .+)?", anchor, re.IGNORECASE)
+        if match is None:
+            return False
+        page_count = _pdf_page_count(candidate)
+        return page_count is not None and 1 <= int(match.group(1)) <= page_count
+    try:
+        text = candidate.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return False
+    if not anchor:
+        return False
+    if CURRICULUM_ID_RE.fullmatch(anchor):
+        return re.search(rf"(?<![A-Z0-9-]){re.escape(anchor)}(?![A-Z0-9-])", text) is not None
+    return any(_normalize_location_fragment(line) == anchor for line in text.splitlines())
+
+
+def _comma_ids(raw: str, pattern: str) -> list[str] | None:
+    if raw == "none":
+        return []
+    values = [value.strip() for value in raw.split(",")]
+    if not values or any(not re.fullmatch(pattern, value) for value in values):
+        return None
+    return values
+
+
+def _mixed_ids(raw: str, prefixes: tuple[str, ...]) -> list[str] | None:
+    if raw == "none":
+        return []
+    values = [value.strip() for value in raw.split(",")]
+    pattern = r"(?:" + "|".join(re.escape(prefix) for prefix in prefixes) + r")\d{3,}"
+    if not values or any(re.fullmatch(pattern, value) is None for value in values):
+        return None
+    return values
+
+
+def _locations(raw: str) -> list[str]:
+    return [] if raw == "none" else [item.strip() for item in raw.split(";") if item.strip()]
+
+
+def _curriculum_target_rows(text: str) -> dict[str, tuple[str, str, int]]:
+    """Return target -> (coverage, gap action, line) from competency tables."""
+    rows: dict[str, tuple[str, str, int]] = {}
+    for line_no, line in enumerate(text.splitlines(), start=1):
+        cells = _split_table_row(line)
+        if cells is None or len(cells) != 9 or CURRICULUM_ID_RE.fullmatch(cells[0]) is None:
+            continue
+        rows[cells[0]] = (cells[6], cells[7], line_no)
+    return rows
 
 
 def _parse_manifest(
@@ -451,6 +748,33 @@ def _parse_manifest(
         if entry.path == doc.metadata.get("draft_path"):
             errors.append(ValidationError(entry.line, "PATH", "the mutable draft_path must not be included in the Input Manifest"))
 
+    manifested_indexes = {entry.path: entry for entry in entries if entry.role == "course-index"}
+    required_indexes: set[str] = set()
+    for entry in entries:
+        if entry.role != "primary":
+            continue
+        parts = PurePosixPath(entry.path).parts
+        if len(parts) >= 4 and parts[:2] == ("materials", "private"):
+            index_path = PurePosixPath(*parts[:3], "INDEX.md").as_posix()
+            required_indexes.add(index_path)
+            if index_path not in manifested_indexes:
+                errors.append(
+                    ValidationError(
+                        entry.line,
+                        "CURRICULUM_FRESHNESS",
+                        f"private-course primary requires its course-index manifest input: {index_path}",
+                    )
+                )
+    for index_path, entry in manifested_indexes.items():
+        if index_path not in required_indexes:
+            errors.append(
+                ValidationError(
+                    entry.line,
+                    "CURRICULUM_FRESHNESS",
+                    f"course-index does not correspond to a private-course primary input: {index_path}",
+                )
+            )
+
     canonical_rows: list[str] = []
     for entry in entries:
         candidate, path_error = _safe_repo_path(entry.path, doc.repo_root)
@@ -500,6 +824,18 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             relative_line = next((offset for name, offset in headings if name == heading), 0)
             errors.append(ValidationError(_line_number(doc.text, body_start + relative_line), "SCHEMA", f"contract section must not be empty: {heading}"))
 
+    mode_lines = [line.strip() for line in sections["Coverage Mode"].splitlines() if line.strip()]
+    if len(mode_lines) != 1 or re.fullmatch(r"- mode: (full-source|focused)", mode_lines[0]) is None:
+        errors.append(
+            ValidationError(
+                _line_number(doc.text, body_start),
+                "SCHEMA",
+                "Coverage Mode must contain exactly '- mode: full-source' or '- mode: focused'",
+            )
+        )
+    else:
+        doc.coverage_mode = mode_lines[0].removeprefix("- mode: ")
+
     target_lines = [line.strip()[2:].strip() for line in sections["Curriculum Targets"].splitlines() if line.strip().startswith("- ")]
     if not 1 <= len(target_lines) <= 3 or len(target_lines) != len(set(target_lines)):
         errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", "Curriculum Targets must contain one to three unique IDs"))
@@ -538,7 +874,485 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
                         f"{concept_id} source path is not in the Input Manifest: {location_path}",
                     )
                 )
+            elif not _location_exists(location, doc.repo_root):
+                errors.append(
+                    ValidationError(
+                        _line_number(doc.text, body_start),
+                        "SOURCE_LOCATION",
+                        f"{concept_id} source location is absent from its manifested file: {location}",
+                    )
+                )
     doc.contract_concepts = [row[1] for row in concept_rows]
+
+    manifest_paths = {entry.path: entry for entry in doc.manifest}
+    primary_entries = [entry for entry in doc.manifest if entry.role == "primary"]
+    primary_by_id = {entry.item_id: entry for entry in primary_entries}
+
+    guidance_rows = _contract_table_rows(
+        sections["Guidance Map"],
+        ["Guidance ID", "Kind", "Source location", "Summary", "Trigger"],
+        doc,
+        body_start,
+        errors,
+        context="Guidance Map",
+    )
+    guidance: dict[str, GuidanceItem] = {}
+    if (
+        len(guidance_rows) == 1
+        and guidance_rows[0][0] == ["none", "none", "none", "none", "none"]
+    ):
+        guidance_rows = []
+    for index, (cells, line_no) in enumerate(guidance_rows, start=1):
+        guidance_id, kind, source_location, summary, trigger = cells
+        expected_id = f"G{index:03d}"
+        if guidance_id != expected_id:
+            errors.append(ValidationError(line_no, "SCHEMA", f"Guidance ID must be {expected_id}"))
+        if guidance_id in guidance:
+            errors.append(ValidationError(line_no, "SCHEMA", f"duplicate Guidance ID: {guidance_id}"))
+            continue
+        if kind not in GUIDANCE_KINDS:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid guidance kind: {kind}"))
+        location_path = _location_path(source_location)
+        entry = manifest_paths.get(location_path or "")
+        if entry is None or entry.role != "primary":
+            errors.append(ValidationError(line_no, "SCHEMA", f"{guidance_id} must point to a manifested primary source"))
+        elif not _location_exists(source_location, doc.repo_root):
+            errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"{guidance_id} source location is absent: {source_location}"))
+        if not summary or summary == "none":
+            errors.append(ValidationError(line_no, "SCHEMA", f"{guidance_id} Summary must not be empty or none"))
+        if not trigger or trigger == "none":
+            errors.append(ValidationError(line_no, "SCHEMA", f"{guidance_id} requires a concrete on-demand Trigger"))
+        guidance[guidance_id] = GuidanceItem(guidance_id, kind, source_location, summary, trigger, line_no)
+    doc.guidance = guidance
+
+    objective_rows = _contract_table_rows(
+        sections["Observable Objective Map"],
+        [
+            "Objective ID",
+            "Requirement",
+            "Marker",
+            "Source location",
+            "Observable outcome",
+            "Concept ID",
+            "Treatment",
+            "Teaching move",
+            "Baseline evidence",
+        ],
+        doc,
+        body_start,
+        errors,
+        context="Observable Objective Map",
+    )
+    objectives: dict[str, Objective] = {}
+    for index, (cells, line_no) in enumerate(objective_rows, start=1):
+        (
+            objective_id,
+            requirement,
+            marker,
+            source_location,
+            outcome,
+            concept_id,
+            treatment,
+            teaching_move,
+            baseline_evidence,
+        ) = cells
+        expected_id = f"O{index:03d}"
+        if objective_id != expected_id:
+            errors.append(ValidationError(line_no, "SCHEMA", f"Objective ID must be {expected_id}"))
+        if objective_id in objectives:
+            errors.append(ValidationError(line_no, "SCHEMA", f"duplicate Objective ID: {objective_id}"))
+            continue
+        if requirement not in OBJECTIVE_REQUIREMENTS:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid objective requirement: {requirement}"))
+        if marker not in OBJECTIVE_MARKERS:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid objective marker: {marker}"))
+        if treatment not in OBJECTIVE_TREATMENTS:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid objective treatment: {treatment}"))
+        location_path = _location_path(source_location)
+        if location_path is None:
+            errors.append(ValidationError(line_no, "SCHEMA", f"{objective_id} source must include an exact #location"))
+        elif location_path not in manifest_paths:
+            errors.append(
+                ValidationError(
+                    line_no,
+                    "REVIEW_NOT_PASS",
+                    f"{objective_id} source path is not in the Input Manifest: {location_path}",
+                )
+            )
+        elif requirement == "source-core" and manifest_paths[location_path].role != "primary":
+            errors.append(ValidationError(line_no, "SCHEMA", f"source-core {objective_id} must point to a primary input"))
+        elif not _location_exists(source_location, doc.repo_root):
+            errors.append(
+                ValidationError(
+                    line_no,
+                    "SOURCE_LOCATION",
+                    f"{objective_id} source location is absent from its manifested file: {source_location}",
+                )
+            )
+        if not outcome or outcome == "none":
+            errors.append(ValidationError(line_no, "SCHEMA", f"{objective_id} Observable outcome must not be empty or none"))
+        if re.search(r"(?<![A-Z0-9])G\d{3,}(?![A-Z0-9])", f"{outcome} {teaching_move} {baseline_evidence}"):
+            errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"{objective_id} must not turn Guidance into an objective or teaching move"))
+        if concept_id not in doc.contract_concepts:
+            errors.append(ValidationError(line_no, "SCHEMA", f"{objective_id} references an unknown Concept ID: {concept_id}"))
+        if requirement == "source-core" and marker in {"correction", "supplement"}:
+            errors.append(ValidationError(line_no, "SCHEMA", f"source-core {objective_id} cannot be marked {marker}"))
+        if requirement == "required-added" and marker == "none":
+            errors.append(ValidationError(line_no, "SCHEMA", f"required-added {objective_id} requires a marker"))
+        if requirement == "optional-added" and marker != "supplement":
+            errors.append(ValidationError(line_no, "SCHEMA", f"optional-added {objective_id} must be marked supplement"))
+        if treatment == "deferred":
+            if teaching_move != "none":
+                errors.append(ValidationError(line_no, "SCHEMA", f"deferred {objective_id} must use Teaching move none"))
+        elif not teaching_move or teaching_move == "none":
+            errors.append(ValidationError(line_no, "SCHEMA", f"non-deferred {objective_id} requires a Teaching move"))
+        if treatment == "bridge":
+            if not baseline_evidence or baseline_evidence == "none":
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"bridge {objective_id} requires exact baseline evidence"))
+        elif baseline_evidence != "none":
+            errors.append(ValidationError(line_no, "SCHEMA", f"non-bridge {objective_id} must use Baseline evidence none"))
+        if requirement == "required-added" and treatment == "deferred":
+            errors.append(
+                ValidationError(
+                    line_no,
+                    "OBJECTIVE_COVERAGE",
+                    f"required-added objective cannot be deferred: {objective_id}",
+                )
+            )
+        elif doc.coverage_mode == "full-source" and requirement == "source-core" and treatment == "deferred":
+            errors.append(
+                ValidationError(
+                    line_no,
+                    "OBJECTIVE_COVERAGE",
+                    f"full-source source-core objective cannot be deferred: {objective_id}",
+                )
+            )
+        objectives[objective_id] = Objective(
+            objective_id,
+            requirement,
+            marker,
+            source_location,
+            outcome,
+            concept_id,
+            treatment,
+            teaching_move,
+            baseline_evidence,
+            line_no,
+        )
+    doc.objectives = objectives
+    if not objectives:
+        errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", "Observable Objective Map must not be empty"))
+
+    treatment_rows = _contract_table_rows(
+        sections["Curriculum Treatment Map"],
+        ["Target ID", "Coverage", "Gap action", "Lesson treatment", "Objective IDs", "Note"],
+        doc,
+        body_start,
+        errors,
+        context="Curriculum Treatment Map",
+    )
+    treatments: dict[str, CurriculumTreatment] = {}
+    for cells, line_no in treatment_rows:
+        target_id, coverage, gap_action, lesson_treatment, raw_objectives, note = cells
+        if target_id in treatments:
+            errors.append(ValidationError(line_no, "SCHEMA", f"duplicate Curriculum Treatment target: {target_id}"))
+            continue
+        objective_ids = _comma_ids(raw_objectives, r"O\d{3,}")
+        if objective_ids is None or len(objective_ids) != len(set(objective_ids)):
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid Objective IDs for Curriculum Treatment target: {target_id}"))
+            objective_ids = []
+        if coverage not in CURRICULUM_COVERAGE:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid Curriculum coverage: {coverage}"))
+        if gap_action not in CURRICULUM_GAP_ACTIONS:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid Curriculum gap action: {gap_action}"))
+        if lesson_treatment not in LESSON_TREATMENTS:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid lesson treatment: {lesson_treatment}"))
+        if not note or note == "none":
+            errors.append(ValidationError(line_no, "SCHEMA", f"Curriculum Treatment {target_id} requires a concrete note"))
+        linked = [objectives[item] for item in objective_ids if item in objectives]
+        unknown = [item for item in objective_ids if item not in objectives]
+        if unknown:
+            errors.append(ValidationError(line_no, "SCHEMA", f"Curriculum Treatment {target_id} references unknown objectives: {', '.join(unknown)}"))
+        if lesson_treatment == "source-only":
+            if gap_action != "그대로 사용" or coverage != "충분":
+                errors.append(ValidationError(line_no, "CURRICULUM_FRESHNESS", "source-only requires current Curriculum values 충분 and 그대로 사용"))
+            if not linked or any(item.requirement != "source-core" for item in linked):
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", "source-only requires one or more source-core Objective IDs only"))
+        elif lesson_treatment == "supplement-now":
+            if gap_action != "수업 내 보충":
+                errors.append(ValidationError(line_no, "CURRICULUM_FRESHNESS", "supplement-now requires current Curriculum gap action 수업 내 보충"))
+            if not any(item.requirement == "required-added" for item in linked):
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", "supplement-now requires at least one linked required-added objective"))
+        elif lesson_treatment == "defer-gap":
+            if gap_action not in {"별도 자료 확보", "원본 복구 후 재감사"}:
+                errors.append(ValidationError(line_no, "CURRICULUM_FRESHNESS", "defer-gap requires 별도 자료 확보 or 원본 복구 후 재감사"))
+            if any(item.requirement != "source-core" for item in linked):
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", "defer-gap may link existing source-core objectives only; it must not invent missing content"))
+        elif lesson_treatment == "defer-track":
+            if not target_id.startswith("TR-") or gap_action != "트랙 선택 시 확보":
+                errors.append(ValidationError(line_no, "CURRICULUM_FRESHNESS", "defer-track requires a TR target with gap action 트랙 선택 시 확보"))
+            if objective_ids:
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", "defer-track must use Objective IDs none"))
+        treatments[target_id] = CurriculumTreatment(
+            target_id,
+            coverage,
+            gap_action,
+            lesson_treatment,
+            objective_ids,
+            note,
+            line_no,
+        )
+    doc.curriculum_treatments = treatments
+    if list(treatments) != target_lines:
+        errors.append(
+            ValidationError(
+                _line_number(doc.text, body_start),
+                "SCHEMA",
+                "Curriculum Treatment Map must contain one ordered row per Curriculum Target",
+            )
+        )
+
+    declared_rows = _contract_table_rows(
+        sections["Declared Goal Alignment"],
+        ["Goal ID", "Primary ID", "Goal location", "Disposition", "Linked IDs", "Body support", "Reason"],
+        doc,
+        body_start,
+        errors,
+        context="Declared Goal Alignment",
+    )
+    declared_goals: dict[str, DeclaredGoal] = {}
+    if (
+        len(declared_rows) == 1
+        and declared_rows[0][0][0:6] == ["none", "none", "none", "none", "none", "none"]
+        and declared_rows[0][0][6] not in {"", "none"}
+    ):
+        declared_rows = []
+    for index, (cells, line_no) in enumerate(declared_rows, start=1):
+        goal_id, primary_id, goal_location, disposition, raw_linked, raw_support, reason = cells
+        expected_id = f"D{index:03d}"
+        if goal_id != expected_id:
+            errors.append(ValidationError(line_no, "SCHEMA", f"Goal ID must be {expected_id}"))
+        if goal_id in declared_goals:
+            errors.append(ValidationError(line_no, "SCHEMA", f"duplicate Goal ID: {goal_id}"))
+            continue
+        primary_entry = primary_by_id.get(primary_id)
+        if primary_entry is None:
+            errors.append(ValidationError(line_no, "SCHEMA", f"{goal_id} references an unknown primary ID: {primary_id}"))
+        elif _location_path(goal_location) != primary_entry.path:
+            errors.append(ValidationError(line_no, "SCHEMA", f"{goal_id} goal location must point to {primary_entry.path}"))
+        elif not _location_exists(goal_location, doc.repo_root):
+            errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"{goal_id} goal location is absent: {goal_location}"))
+        if disposition not in GOAL_DISPOSITIONS:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid goal disposition: {disposition}"))
+        linked_ids = _mixed_ids(raw_linked, ("O", "G"))
+        if linked_ids is None or len(linked_ids) != len(set(linked_ids)):
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid Linked IDs for {goal_id}"))
+            linked_ids = []
+        body_support = _locations(raw_support)
+        for location in body_support:
+            if primary_entry is not None and _location_path(location) != primary_entry.path:
+                errors.append(ValidationError(line_no, "SCHEMA", f"{goal_id} body support must point to {primary_entry.path}: {location}"))
+            elif not _location_exists(location, doc.repo_root):
+                errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"{goal_id} body support is absent: {location}"))
+            if location == goal_location:
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"{goal_id} goal wording cannot be its own body support"))
+        linked_objectives = [objectives[item] for item in linked_ids if item in objectives]
+        linked_guidance = [guidance[item] for item in linked_ids if item in guidance]
+        unknown_links = [item for item in linked_ids if item not in objectives and item not in guidance]
+        if unknown_links:
+            errors.append(ValidationError(line_no, "SCHEMA", f"{goal_id} references unknown IDs: {', '.join(unknown_links)}"))
+        if disposition == "learning":
+            if not linked_objectives or linked_guidance or len(linked_objectives) != len(linked_ids):
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"learning {goal_id} must link one or more Objective IDs only"))
+            if not body_support:
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"learning {goal_id} requires exact body support beyond the goal wording"))
+            if reason != "none":
+                errors.append(ValidationError(line_no, "SCHEMA", f"learning {goal_id} must use Reason none"))
+            for objective in linked_objectives:
+                if objective.requirement != "source-core" or (
+                    primary_entry is not None and _location_path(objective.source_location) != primary_entry.path
+                ):
+                    errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"learning {goal_id} must link source-core objectives from the same primary"))
+        elif disposition == "guidance":
+            if len(linked_ids) != 1 or len(linked_guidance) != 1:
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"guidance {goal_id} must link exactly one Guidance ID"))
+            elif primary_entry is not None and _location_path(linked_guidance[0].source_location) != primary_entry.path:
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"guidance {goal_id} must link Guidance from the same primary"))
+            if not reason or reason == "none":
+                errors.append(ValidationError(line_no, "SCHEMA", f"guidance {goal_id} requires a reason it is not assessed"))
+        elif disposition == "source-gap":
+            if body_support:
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"source-gap {goal_id} must use Body support none"))
+            if not reason or reason == "none":
+                errors.append(ValidationError(line_no, "SCHEMA", f"source-gap {goal_id} requires a reason"))
+            defers_missing_material = any(
+                item.lesson_treatment in {"defer-gap", "defer-track"}
+                for item in doc.curriculum_treatments.values()
+            )
+            if doc.coverage_mode == "full-source" and not linked_objectives and not defers_missing_material:
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"full-source source-gap {goal_id} requires a required-added correction or supplement, or a reviewed defer-gap treatment"))
+            for objective in linked_objectives:
+                if objective.requirement != "required-added" or objective.marker not in {"correction", "supplement"}:
+                    errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"source-gap {goal_id} cannot masquerade as source-core; linked objectives must be required-added correction or supplement"))
+            if linked_guidance:
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"source-gap {goal_id} must not link Guidance"))
+        declared_goals[goal_id] = DeclaredGoal(
+            goal_id,
+            primary_id,
+            goal_location,
+            disposition,
+            linked_ids,
+            body_support,
+            reason,
+            line_no,
+        )
+    doc.declared_goals = declared_goals
+
+    finding_rows = _contract_table_rows(
+        sections["Audited Findings"],
+        ["Finding ID", "Type", "Source location", "Linked IDs", "Note"],
+        doc,
+        body_start,
+        errors,
+        context="Audited Findings",
+    )
+    findings: dict[str, AuditedFinding] = {}
+    if (
+        len(finding_rows) == 1
+        and finding_rows[0][0][0:4] == ["none", "none", "none", "none"]
+        and finding_rows[0][0][4] not in {"", "none"}
+    ):
+        finding_rows = []
+    for index, (cells, line_no) in enumerate(finding_rows, start=1):
+        finding_id, finding_type, source_location, raw_linked, note = cells
+        expected_id = f"F{index:03d}"
+        if finding_id != expected_id:
+            errors.append(ValidationError(line_no, "SCHEMA", f"Finding ID must be {expected_id}"))
+        if finding_id in findings:
+            errors.append(ValidationError(line_no, "SCHEMA", f"duplicate Finding ID: {finding_id}"))
+            continue
+        if finding_type not in FINDING_TYPES - {"none"}:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid audited finding type: {finding_type}"))
+        source_path = _location_path(source_location)
+        if source_path not in manifest_paths:
+            errors.append(ValidationError(line_no, "SCHEMA", f"{finding_id} source must be an exact manifested location"))
+        elif not _location_exists(source_location, doc.repo_root):
+            errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"{finding_id} source location is absent: {source_location}"))
+        linked_ids = _mixed_ids(raw_linked, ("D", "G", "O"))
+        if linked_ids is None or not linked_ids or len(linked_ids) != len(set(linked_ids)):
+            errors.append(ValidationError(line_no, "SCHEMA", f"{finding_id} requires unique Goal, Guidance, or Objective Linked IDs"))
+            linked_ids = []
+        known_ids = set(declared_goals) | set(guidance) | set(objectives)
+        unknown_links = [item for item in linked_ids if item not in known_ids]
+        if unknown_links:
+            errors.append(ValidationError(line_no, "SCHEMA", f"{finding_id} references unknown IDs: {', '.join(unknown_links)}"))
+        if not note or note == "none":
+            errors.append(ValidationError(line_no, "SCHEMA", f"{finding_id} Note must not be empty or none"))
+        marker_by_type = {"correction": "correction", "prerequisite": "prerequisite", "supplement": "supplement"}
+        expected_marker = marker_by_type.get(finding_type)
+        if expected_marker is not None and not any(
+            objectives[item].marker == expected_marker for item in linked_ids if item in objectives
+        ):
+            errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"{finding_id} must link an Objective marked {expected_marker}"))
+        if finding_type == "underspecification" and not any(
+            (item in declared_goals and declared_goals[item].disposition == "source-gap") or item in guidance
+            for item in linked_ids
+        ):
+            errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"{finding_id} underspecification must link a source-gap Goal or Guidance ID"))
+        findings[finding_id] = AuditedFinding(finding_id, finding_type, source_location, linked_ids, note, line_no)
+    doc.findings = findings
+    marker_types = {"prerequisite": "prerequisite", "correction": "correction", "supplement": "supplement"}
+    for objective in objectives.values():
+        expected_type = marker_types.get(objective.marker)
+        if expected_type is not None and not any(
+            finding.finding_type == expected_type and objective.objective_id in finding.linked_ids
+            for finding in findings.values()
+        ):
+            errors.append(ValidationError(objective.line, "OBJECTIVE_COVERAGE", f"marked objective {objective.objective_id} requires a linked {expected_type} Audited Finding"))
+        if objective.treatment == "deferred" and not any(
+            finding.finding_type == "intentional-deferral" and objective.objective_id in finding.linked_ids
+            for finding in findings.values()
+        ):
+            errors.append(ValidationError(objective.line, "OBJECTIVE_COVERAGE", f"deferred objective {objective.objective_id} requires a linked intentional-deferral Audited Finding"))
+    for goal in declared_goals.values():
+        if goal.disposition == "source-gap" and not any(
+            finding.finding_type == "underspecification" and goal.goal_id in finding.linked_ids
+            for finding in findings.values()
+        ):
+            errors.append(ValidationError(goal.line, "OBJECTIVE_COVERAGE", f"source-gap {goal.goal_id} requires a linked underspecification Audited Finding"))
+
+    coverage_rows = _contract_table_rows(
+        sections["Source Coverage Index"],
+        ["Primary ID", "Declared Goal IDs", "Objective IDs", "Guidance IDs", "Excluded locations", "Reason"],
+        doc,
+        body_start,
+        errors,
+        context="Source Coverage Index",
+    )
+    source_coverage: dict[str, SourceCoverage] = {}
+    for cells, line_no in coverage_rows:
+        primary_id, raw_goals, raw_objectives, raw_guidance, raw_exclusions, reason = cells
+        if primary_id in source_coverage:
+            errors.append(ValidationError(line_no, "SCHEMA", f"duplicate Source Coverage primary: {primary_id}"))
+            continue
+        goal_ids = _comma_ids(raw_goals, r"D\d{3,}")
+        objective_ids = _comma_ids(raw_objectives, r"O\d{3,}")
+        guidance_ids = _comma_ids(raw_guidance, r"G\d{3,}")
+        for label, item_ids in (("Declared Goal IDs", goal_ids), ("Objective IDs", objective_ids), ("Guidance IDs", guidance_ids)):
+            if item_ids is None or len(item_ids) != len(set(item_ids)):
+                errors.append(ValidationError(line_no, "SCHEMA", f"invalid {label} for {primary_id}"))
+        goal_ids = goal_ids or []
+        objective_ids = objective_ids or []
+        guidance_ids = guidance_ids or []
+        excluded_locations = _locations(raw_exclusions)
+        primary_entry = primary_by_id.get(primary_id)
+        if primary_entry is None:
+            errors.append(ValidationError(line_no, "SCHEMA", f"Source Coverage references an unknown primary ID: {primary_id}"))
+        if raw_exclusions == "none":
+            if reason != "none":
+                errors.append(ValidationError(line_no, "SCHEMA", f"{primary_id} without exclusions must use Reason none"))
+        else:
+            if not excluded_locations or not reason or reason == "none":
+                errors.append(ValidationError(line_no, "SCHEMA", f"{primary_id} exclusions require exact locations and a reason"))
+            if primary_entry is not None:
+                for location in excluded_locations:
+                    if _location_path(location) != primary_entry.path:
+                        errors.append(ValidationError(line_no, "SCHEMA", f"{primary_id} excluded location must point to its primary path: {location}"))
+                    elif not _location_exists(location, doc.repo_root):
+                        errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"{primary_id} excluded location is absent: {location}"))
+        if doc.coverage_mode == "full-source" and not (goal_ids or objective_ids or guidance_ids):
+            errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"full-source primary requires a declared goal, technical objective, or guidance item: {primary_id}"))
+        if doc.coverage_mode == "focused" and not (goal_ids or objective_ids or guidance_ids or excluded_locations):
+            errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"focused primary without mapped content requires explicit exclusions: {primary_id}"))
+        source_coverage[primary_id] = SourceCoverage(
+            primary_id,
+            goal_ids,
+            objective_ids,
+            guidance_ids,
+            excluded_locations,
+            reason,
+            line_no,
+        )
+    doc.source_coverage = source_coverage
+    if list(source_coverage) != [entry.item_id for entry in primary_entries]:
+        errors.append(ValidationError(_line_number(doc.text, body_start), "OBJECTIVE_COVERAGE", "Source Coverage Index must contain one ordered row per primary input"))
+    for entry in primary_entries:
+        row = source_coverage.get(entry.item_id)
+        if row is None:
+            continue
+        expected_goals = [goal.goal_id for goal in declared_goals.values() if goal.primary_id == entry.item_id]
+        expected_objectives = [
+            objective.objective_id
+            for objective in objectives.values()
+            if objective.requirement == "source-core" and _location_path(objective.source_location) == entry.path
+        ]
+        expected_guidance = [item.guidance_id for item in guidance.values() if _location_path(item.source_location) == entry.path]
+        if row.goal_ids != expected_goals:
+            errors.append(ValidationError(row.line, "OBJECTIVE_COVERAGE", f"{entry.item_id} Declared Goal IDs must exactly match its declared goals"))
+        if row.objective_ids != expected_objectives:
+            errors.append(ValidationError(row.line, "OBJECTIVE_COVERAGE", f"{entry.item_id} Objective IDs must exactly match its source-core objectives"))
+        if row.guidance_ids != expected_guidance:
+            errors.append(ValidationError(row.line, "OBJECTIVE_COVERAGE", f"{entry.item_id} Guidance IDs must exactly match its guidance items"))
 
     curriculum_entry = next((entry for entry in doc.manifest if entry.role == "curriculum" and entry.path == "CURRICULUM.md"), None)
     if curriculum_entry is not None:
@@ -549,30 +1363,183 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             except UnicodeDecodeError:
                 errors.append(ValidationError(curriculum_entry.line, "SCHEMA", "CURRICULUM.md is not valid UTF-8"))
             else:
+                curriculum_rows = _curriculum_target_rows(curriculum_text)
                 for target in target_lines:
-                    if CURRICULUM_ID_RE.fullmatch(target) and re.search(
-                        rf"(?<![A-Z0-9-]){re.escape(target)}(?![A-Z0-9-])", curriculum_text
-                    ) is None:
+                    row = curriculum_rows.get(target)
+                    if CURRICULUM_ID_RE.fullmatch(target) and row is None:
                         errors.append(
                             ValidationError(
                                 _line_number(doc.text, body_start),
                                 "REVIEW_NOT_PASS",
-                                f"Curriculum Target is absent from CURRICULUM.md: {target}",
+                                f"Curriculum Target has no competency row in CURRICULUM.md: {target}",
                             )
                         )
+                        continue
+                    treatment = treatments.get(target)
+                    if row is not None and treatment is not None:
+                        actual_coverage, actual_gap_action, _ = row
+                        if treatment.coverage != actual_coverage or treatment.gap_action != actual_gap_action:
+                            errors.append(
+                                ValidationError(
+                                    treatment.line,
+                                    "CURRICULUM_FRESHNESS",
+                                    f"Curriculum Treatment {target} is stale: expected {actual_coverage} / {actual_gap_action}",
+                                )
+                            )
 
-    notes = sections["Prepared Teaching Notes"]
-    note_matches = list(re.finditer(r"^#### (C\d{2})$", notes, re.MULTILINE))
-    note_ids = [match.group(1) for match in note_matches]
-    if note_ids != doc.contract_concepts:
-        errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", "Prepared Teaching Notes must contain one ordered subsection per concept"))
-    for index, match in enumerate(note_matches):
-        note_start = match.end()
-        note_end = note_matches[index + 1].start() if index + 1 < len(note_matches) else len(notes)
-        note_body = notes[note_start:note_end]
-        fields = dict(re.findall(r"^- (tiny_example|check_question):[ \t]*(.+)$", note_body, re.MULTILINE))
-        if set(fields) != {"tiny_example", "check_question"} or not all(value.strip() for value in fields.values()):
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", f"{match.group(1)} requires non-empty tiny_example and check_question fields"))
+    steps_body = sections["Prepared Teaching Steps"]
+    step_matches = list(re.finditer(r"^#### (T\d{3,})$", steps_body, re.MULTILINE))
+    expected_step_ids = [f"T{index:03d}" for index in range(1, len(step_matches) + 1)]
+    if [match.group(1) for match in step_matches] != expected_step_ids:
+        errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", "Prepared Teaching Step IDs must be unique and contiguous from T001"))
+    assigned_objectives: list[str] = []
+    teaching_steps: dict[str, TeachingStep] = {}
+    for index, match in enumerate(step_matches):
+        step_id = match.group(1)
+        step_start = match.end()
+        step_end = step_matches[index + 1].start() if index + 1 < len(step_matches) else len(steps_body)
+        step_body = steps_body[step_start:step_end]
+        field_matches = re.findall(
+            r"^- (concept_id|objective_ids|delivery_outline|tiny_example|check_policy|check_basis|check_question):[ \t]*(.*)$",
+            step_body,
+            re.MULTILINE,
+        )
+        expected_fields = [
+            "concept_id",
+            "objective_ids",
+            "delivery_outline",
+            "tiny_example",
+            "check_policy",
+            "check_basis",
+            "check_question",
+        ]
+        if [key for key, _ in field_matches] != expected_fields or not all(value.strip() for _, value in field_matches):
+            errors.append(
+                ValidationError(
+                    _line_number(doc.text, body_start),
+                    "SCHEMA",
+                    f"{step_id} requires every ordered Prepared Teaching Step field with a non-empty value",
+                )
+            )
+            continue
+        fields = {key: value.strip() for key, value in field_matches}
+        concept_id = fields["concept_id"]
+        if concept_id not in doc.contract_concepts:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", f"{step_id} references an unknown Concept ID: {concept_id}"))
+        step_objectives = _comma_ids(fields["objective_ids"], r"O\d{3,}")
+        if step_objectives is None or not step_objectives or len(step_objectives) != len(set(step_objectives)):
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", f"{step_id} objective_ids are invalid"))
+            continue
+        for objective_id in step_objectives:
+            objective = objectives.get(objective_id)
+            if objective is None:
+                errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", f"unknown Teaching Step objective: {objective_id}"))
+            elif objective.concept_id != concept_id:
+                errors.append(ValidationError(_line_number(doc.text, body_start), "OBJECTIVE_COVERAGE", f"{objective_id} is assigned to a Teaching Step with the wrong concept"))
+            elif objective.treatment == "deferred":
+                errors.append(ValidationError(_line_number(doc.text, body_start), "OBJECTIVE_COVERAGE", f"deferred objective appears in a Teaching Step: {objective_id}"))
+        check_policy = fields["check_policy"]
+        if check_policy not in CHECK_POLICIES:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", f"{step_id} check_policy must be adaptive or none"))
+        if check_policy == "adaptive":
+            branch_match = re.fullmatch(r"if (.+) -> (.+); else -> (.+)", fields["check_basis"])
+            if branch_match is None:
+                errors.append(
+                    ValidationError(
+                        _line_number(doc.text, body_start),
+                        "ASSESSMENT_ALIGNMENT",
+                        f"{step_id} adaptive check_basis must state how each answer changes the next explanation using 'if ... -> ...; else -> ...'",
+                    )
+                )
+            elif branch_match.group(2).strip() == branch_match.group(3).strip():
+                errors.append(
+                    ValidationError(
+                        _line_number(doc.text, body_start),
+                        "ASSESSMENT_ALIGNMENT",
+                        f"{step_id} adaptive branches must lead to different next teaching moves",
+                    )
+                )
+            if fields["check_question"] == "none":
+                errors.append(ValidationError(_line_number(doc.text, body_start), "ASSESSMENT_ALIGNMENT", f"{step_id} adaptive Step requires a check question"))
+            meta_question = (
+                any(term in fields["check_question"] for term in ("수업 설계", "학습 방법", "강의 목차", "course outline", "teaching method"))
+                or all(term in fields["check_question"] for term in ("이론", "복습", "실습"))
+            )
+            if doc.coverage_mode != "focused" and meta_question:
+                errors.append(
+                    ValidationError(
+                        _line_number(doc.text, body_start),
+                        "ASSESSMENT_ALIGNMENT",
+                        f"{step_id} asks the learner to explain lesson design or study method instead of its technical objectives",
+                    )
+                )
+        elif check_policy == "none":
+            if fields["check_basis"] == "none":
+                errors.append(ValidationError(_line_number(doc.text, body_start), "ASSESSMENT_ALIGNMENT", f"{step_id} check_basis must explain why no question is useful"))
+            if fields["check_question"] != "none":
+                errors.append(ValidationError(_line_number(doc.text, body_start), "ASSESSMENT_ALIGNMENT", f"{step_id} check_policy none requires check_question none"))
+        guidance_refs = re.findall(r"(?<![A-Z0-9])G\d{3,}(?![A-Z0-9])", " ".join(fields.values()))
+        if guidance_refs:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "OBJECTIVE_COVERAGE", f"{step_id} must not include Guidance IDs in teaching or assessment"))
+        assigned_objectives.extend(step_objectives)
+        teaching_steps[step_id] = TeachingStep(
+            step_id,
+            concept_id,
+            step_objectives,
+            fields["delivery_outline"],
+            fields["tiny_example"],
+            check_policy,
+            fields["check_basis"],
+            fields["check_question"],
+            _line_number(doc.text, body_start),
+        )
+    doc.teaching_steps = teaching_steps
+    expected_assigned = [objective.objective_id for objective in objectives.values() if objective.treatment != "deferred"]
+    if set(assigned_objectives) != set(expected_assigned) or len(assigned_objectives) != len(set(assigned_objectives)):
+        errors.append(
+            ValidationError(
+                _line_number(doc.text, body_start),
+                "OBJECTIVE_COVERAGE",
+                "every non-deferred objective must appear exactly once in Prepared Teaching Steps; delivery order may differ from audit order",
+            )
+        )
+    concepts_with_steps = {step.concept_id for step in teaching_steps.values()}
+    missing_concepts = [concept for concept in doc.contract_concepts if concept not in concepts_with_steps]
+    if missing_concepts:
+        errors.append(
+            ValidationError(
+                _line_number(doc.text, body_start),
+                "OBJECTIVE_COVERAGE",
+                "Concept Path entries without a Prepared Teaching Step: " + ", ".join(missing_concepts),
+            )
+        )
+
+    deferred_rows = _contract_table_rows(
+        sections["Deferred"],
+        ["Objective ID", "Source location", "Reason"],
+        doc,
+        body_start,
+        errors,
+        context="Deferred",
+    )
+    expected_deferred = [objective for objective in objectives.values() if objective.treatment == "deferred"]
+    if not expected_deferred:
+        if len(deferred_rows) != 1 or deferred_rows[0][0][0:2] != ["none", "none"] or deferred_rows[0][0][2] in {"", "none"}:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", "Deferred without objectives requires one none | none | reason row"))
+    else:
+        actual_deferred: list[str] = []
+        for cells, line_no in deferred_rows:
+            objective_id, source_location, reason = cells
+            objective = objectives.get(objective_id)
+            actual_deferred.append(objective_id)
+            if objective is None or objective.treatment != "deferred":
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"Deferred references a non-deferred or unknown objective: {objective_id}"))
+            elif source_location != objective.source_location:
+                errors.append(ValidationError(line_no, "SCHEMA", f"Deferred source location differs from {objective_id}"))
+            if not reason or reason == "none":
+                errors.append(ValidationError(line_no, "SCHEMA", f"Deferred {objective_id} requires a reason"))
+        if actual_deferred != [objective.objective_id for objective in expected_deferred]:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "OBJECTIVE_COVERAGE", "Deferred must list every deferred objective once in objective order"))
 
 
 def _parse_review_attempts(
@@ -619,8 +1586,16 @@ def _parse_review_attempts(
         values_end = body_start + findings.start()
         values, lines, _ = _parse_bullets(doc.text, values_start, values_end, REVIEW_KEYS, errors, context=f"review attempt {attempt}")
         findings_start = body_start + findings.end()
-        if not doc.text[findings_start:body_end].strip():
+        findings_lines = [line.strip() for line in doc.text[findings_start:body_end].splitlines() if line.strip()]
+        if not findings_lines:
             errors.append(ValidationError(_line_number(doc.text, findings_start), "SCHEMA", f"review attempt {attempt} Blocking Findings must not be empty"))
+        elif values.get("verdict") == "pass" and findings_lines != ["- none"]:
+            errors.append(ValidationError(_line_number(doc.text, findings_start), "REVIEW_NOT_PASS", f"pass review attempt {attempt} must use exactly '- none' for Blocking Findings"))
+        elif values.get("verdict") in {"changes_required", "unavailable"} and (
+            "- none" in findings_lines
+            or not any(line.startswith("- ") and line != "- none" for line in findings_lines)
+        ):
+            errors.append(ValidationError(_line_number(doc.text, findings_start), "REVIEW_NOT_PASS", f"non-pass review attempt {attempt} requires concrete Blocking Findings without '- none'"))
         if values.get("reviewer_mode") != "fresh-subagent":
             errors.append(ValidationError(lines.get("reviewer_mode", _line_number(doc.text, body_start)), "REVIEW_NOT_PASS", "reviewer_mode must be fresh-subagent"))
         if "reviewer_id" in values and not AGENT_ID_RE.fullmatch(values["reviewer_id"]):
@@ -672,7 +1647,7 @@ def _parse_review_attempts(
         ):
             errors.append(ValidationError(latest.line, "REVIEW_STALE", "pass verdict hashes do not match the current manifest and contract"))
         if verdict == "pass" and any(
-            error.code in {"SOURCE_MISSING", "SOURCE_HASH", "PATH"} for error in errors
+            error.code in {"SOURCE_MISSING", "SOURCE_HASH", "SOURCE_LOCATION", "PATH"} for error in errors
         ):
             errors.append(ValidationError(latest.line, "REVIEW_STALE", "pass verdict is stale because a manifested input is unavailable or changed"))
     if status in {"active", "paused", "completed"}:
@@ -693,15 +1668,105 @@ def _parse_current_position(
     for key in CURRENT_POSITION_KEYS:
         if key in values and not values[key]:
             errors.append(ValidationError(lines[key], "SCHEMA", f"{key} must not be empty"))
-    next_concept = values.get("next_concept")
-    last_completed = values.get("last_completed")
+    last_completed = values.get("last_completed_step")
+    current_step = values.get("current_step")
+    next_action = values.get("next_action")
+    target_objectives = _comma_ids(values.get("target_objectives", ""), r"O\d{3,}")
+    basis = values.get("basis")
+    resume_note = values.get("resume_note")
     status = doc.metadata.get("status")
-    if last_completed and last_completed != "none" and last_completed not in doc.contract_concepts:
-        errors.append(ValidationError(lines.get("last_completed", 1), "SCHEMA", "last_completed must be a contract concept ID or none"))
-    if next_concept and next_concept != "none" and next_concept not in doc.contract_concepts:
-        errors.append(ValidationError(lines.get("next_concept", 1), "SCHEMA", "next_concept must be a contract concept ID or none"))
-    if status != "completed" and next_concept == "none":
-        errors.append(ValidationError(lines.get("next_concept", 1), "SCHEMA", "only a completed lesson may have next_concept: none"))
+    for key, value in (("last_completed_step", last_completed), ("current_step", current_step)):
+        if value and value != "none" and value not in doc.teaching_steps:
+            errors.append(ValidationError(lines.get(key, 1), "SCHEMA", f"{key} must be a Prepared Teaching Step ID or none"))
+    if next_action not in POSITION_ACTIONS:
+        errors.append(ValidationError(lines.get("next_action", 1), "SCHEMA", "next_action must be teach, await-answer, remediate, or complete"))
+    if target_objectives is None or len(target_objectives) != len(set(target_objectives)):
+        errors.append(ValidationError(lines.get("target_objectives", 1), "SCHEMA", "target_objectives must be none or unique Objective IDs"))
+        target_objectives = []
+    unknown_targets = [item for item in target_objectives if item not in doc.objectives]
+    if unknown_targets:
+        errors.append(ValidationError(lines.get("target_objectives", 1), "SCHEMA", "target_objectives contains unknown Objective IDs: " + ", ".join(unknown_targets)))
+    if re.search(r"(?<![A-Z0-9])G\d{3,}(?![A-Z0-9])", " ".join(values.values())):
+        errors.append(ValidationError(lines.get("target_objectives", 1), "OBJECTIVE_COVERAGE", "Current Position must not target or assess Guidance"))
+    step = doc.teaching_steps.get(current_step or "")
+    if next_action == "complete":
+        if current_step != "none" or target_objectives or basis != "none":
+            errors.append(ValidationError(lines.get("next_action", 1), "OBJECTIVE_COVERAGE", "complete requires current_step, target_objectives, and basis none"))
+        if status != "completed":
+            errors.append(ValidationError(lines.get("next_action", 1), "OBJECTIVE_COVERAGE", "next_action complete requires completed lesson status"))
+    else:
+        if current_step == "none" or step is None:
+            errors.append(ValidationError(lines.get("current_step", 1), "OBJECTIVE_COVERAGE", "a non-complete action requires a current Teaching Step"))
+        if not target_objectives:
+            errors.append(ValidationError(lines.get("target_objectives", 1), "OBJECTIVE_COVERAGE", f"{next_action} requires target_objectives"))
+        elif step is not None and any(item not in step.objective_ids for item in target_objectives):
+            errors.append(ValidationError(lines.get("target_objectives", 1), "OBJECTIVE_COVERAGE", "target_objectives must belong to current_step"))
+        if not resume_note or resume_note == "none":
+            errors.append(ValidationError(lines.get("resume_note", 1), "SCHEMA", f"{next_action} requires a concrete resume_note"))
+    if next_action == "await-answer":
+        if step is not None and step.check_policy != "adaptive":
+            errors.append(ValidationError(lines.get("next_action", 1), "ASSESSMENT_ALIGNMENT", "await-answer is allowed only for an adaptive Teaching Step"))
+        if basis != "none":
+            errors.append(ValidationError(lines.get("basis", 1), "ASSESSMENT_ALIGNMENT", "await-answer must use basis none until the learner answers"))
+    elif next_action == "remediate":
+        if re.fullmatch(r"learner-evidence:E\d{3,}", basis or "") is None:
+            errors.append(ValidationError(lines.get("basis", 1), "ASSESSMENT_ALIGNMENT", "remediate requires basis learner-evidence:E###"))
+    elif next_action == "teach" and basis != "none":
+        errors.append(ValidationError(lines.get("basis", 1), "ASSESSMENT_ALIGNMENT", "teach must use basis none"))
+
+
+def _parse_objective_delivery(
+    doc: HandoffDocument,
+    section: tuple[int, int, int] | None,
+    errors: list[ValidationError],
+) -> None:
+    if section is None:
+        return
+    start, end, _ = section
+    rows = _contract_table_rows(
+        doc.text[start:end].strip(),
+        ["Objective ID", "State", "Mode", "Basis/Note"],
+        doc,
+        start,
+        errors,
+        context="Objective Delivery",
+    )
+    delivery: dict[str, ObjectiveDelivery] = {}
+    for cells, line_no in rows:
+        objective_id, state, mode, note = cells
+        if objective_id in delivery:
+            errors.append(ValidationError(line_no, "SCHEMA", f"duplicate Objective Delivery row: {objective_id}"))
+            continue
+        if state not in DELIVERY_STATES:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid Objective Delivery state: {state}"))
+        if mode not in DELIVERY_MODES:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid Objective Delivery mode: {mode}"))
+        if not note:
+            errors.append(ValidationError(line_no, "SCHEMA", f"Objective Delivery note must not be empty: {objective_id}"))
+        if re.search(r"(?<![A-Z0-9])G\d{3,}(?![A-Z0-9])", note):
+            errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"Objective Delivery must not include Guidance: {objective_id}"))
+        objective = doc.objectives.get(objective_id)
+        if objective is None:
+            errors.append(ValidationError(line_no, "SCHEMA", f"Objective Delivery references an unknown objective: {objective_id}"))
+        if state == "pending" and mode != "none":
+            errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"pending {objective_id} must use mode none"))
+        if state == "delivered" and mode not in {"full", "bridge"}:
+            errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"delivered {objective_id} must use full or bridge mode"))
+        if objective is not None and state == "delivered":
+            if objective.treatment == "deferred":
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"deferred objective cannot be delivered without a reviewed contract change: {objective_id}"))
+            elif objective.treatment == "full" and mode != "full":
+                errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"full objective must be delivered in full mode: {objective_id}"))
+        delivery[objective_id] = ObjectiveDelivery(objective_id, state, mode, note, line_no)
+    doc.objective_delivery = delivery
+    if list(delivery) != list(doc.objectives):
+        errors.append(
+            ValidationError(
+                _line_number(doc.text, start),
+                "OBJECTIVE_COVERAGE",
+                "Objective Delivery must contain one ordered row per Observable Objective",
+            )
+        )
 
 
 def _parse_evidence(
@@ -757,8 +1822,24 @@ def _parse_evidence(
             errors.append(ValidationError(item_line, "SCHEMA", f"{evidence_id} Learner Content must not be empty"))
         if not assessment:
             errors.append(ValidationError(item_line, "SCHEMA", f"{evidence_id} Tutor Assessment must not be empty"))
+        if re.search(r"(?<![A-Z0-9])G\d{3,}(?![A-Z0-9])", f"{content}\n{assessment}"):
+            errors.append(ValidationError(item_line, "EVIDENCE_STATE", f"{evidence_id} must not treat Guidance as learner evidence"))
         if values.get("concept") not in doc.contract_concepts:
             errors.append(ValidationError(lines.get("concept", item_line), "EVIDENCE_STATE", f"{evidence_id} concept is not in the reviewed contract"))
+        objective_ids = _comma_ids(values.get("objective_ids", ""), r"O\d{3,}")
+        if objective_ids is None or not objective_ids or len(objective_ids) != len(set(objective_ids)):
+            errors.append(ValidationError(lines.get("objective_ids", item_line), "EVIDENCE_STATE", f"{evidence_id} requires unique Objective IDs"))
+            objective_ids = []
+        for objective_id in objective_ids:
+            objective = doc.objectives.get(objective_id)
+            if objective is None:
+                errors.append(ValidationError(lines.get("objective_ids", item_line), "EVIDENCE_STATE", f"{evidence_id} references an unknown objective: {objective_id}"))
+                continue
+            if objective.concept_id != values.get("concept"):
+                errors.append(ValidationError(lines.get("objective_ids", item_line), "EVIDENCE_STATE", f"{evidence_id} objective belongs to a different concept: {objective_id}"))
+            delivery = doc.objective_delivery.get(objective_id)
+            if delivery is None or delivery.state != "delivered":
+                errors.append(ValidationError(lines.get("objective_ids", item_line), "EVIDENCE_STATE", f"{evidence_id} may reference delivered objectives only: {objective_id}"))
         if values.get("kind") not in EVIDENCE_KINDS:
             errors.append(ValidationError(lines.get("kind", item_line), "SCHEMA", f"{evidence_id} kind is not allowed"))
         if values.get("provenance") != "learner":
@@ -893,6 +1974,8 @@ def _parse_daily_learning_coverage(
             errors.append(ValidationError(line_no, "SCHEMA", f"invalid TIL representation for {concept_id}: {representation}"))
         if not note:
             errors.append(ValidationError(line_no, "SCHEMA", f"coverage note must not be empty: {concept_id}"))
+        if re.search(r"(?<![A-Z0-9])G\d{3,}(?![A-Z0-9])", f"{raw_evidence} {note}"):
+            errors.append(ValidationError(line_no, "TIL_COVERAGE", f"Daily Learning Coverage must not include Guidance: {concept_id}"))
         if today_state == "deferred":
             if evidence_ids or representation != "not-required":
                 errors.append(ValidationError(line_no, "TIL_COVERAGE", f"deferred {concept_id} requires evidence none and not-required"))
@@ -925,12 +2008,150 @@ def _parse_daily_learning_coverage(
             if evidence.values.get("concept") != row.concept_id:
                 errors.append(ValidationError(row.line, "TIL_COVERAGE", f"{evidence_id} belongs to a different concept"))
         if row.today_state == "confirmed" and row.evidence_ids:
-            if not any(
-                doc.evidence.get(evidence_id) is not None
-                and doc.evidence[evidence_id].values.get("verdict") == "confirmed"
+            confirmed_evidence = [
+                doc.evidence[evidence_id]
                 for evidence_id in row.evidence_ids
-            ):
+                if evidence_id in doc.evidence and doc.evidence[evidence_id].values.get("verdict") == "confirmed"
+            ]
+            covered_objectives = {
+                objective_id
+                for evidence in confirmed_evidence
+                for objective_id in (_comma_ids(evidence.values.get("objective_ids", ""), r"O\d{3,}") or [])
+            }
+            delivered_objectives = {
+                objective.objective_id
+                for objective in doc.objectives.values()
+                if objective.concept_id == row.concept_id
+                and doc.objective_delivery.get(objective.objective_id) is not None
+                and doc.objective_delivery[objective.objective_id].state == "delivered"
+            }
+            if not confirmed_evidence:
                 errors.append(ValidationError(row.line, "TIL_COVERAGE", f"confirmed {row.concept_id} requires confirmed evidence"))
+            if not delivered_objectives or covered_objectives != delivered_objectives:
+                missing = sorted(delivered_objectives - covered_objectives)
+                extra = sorted(covered_objectives - delivered_objectives)
+                detail = []
+                if missing:
+                    detail.append("missing " + ", ".join(missing))
+                if extra:
+                    detail.append("non-delivered " + ", ".join(extra))
+                errors.append(
+                    ValidationError(
+                        row.line,
+                        "TIL_COVERAGE",
+                        f"confirmed {row.concept_id} evidence must exactly cover all delivered objectives"
+                        + (": " + "; ".join(detail) if detail else ""),
+                    )
+                )
+
+
+def _validate_objective_state(doc: HandoffDocument, errors: list[ValidationError]) -> None:
+    manifest_by_path = {entry.path: entry for entry in doc.manifest}
+    for objective in doc.objectives.values():
+        if objective.treatment != "bridge":
+            continue
+        references = [item.strip() for item in objective.baseline_evidence.split(";") if item.strip()]
+        if not references:
+            errors.append(ValidationError(objective.line, "OBJECTIVE_COVERAGE", f"bridge {objective.objective_id} requires exact baseline evidence"))
+            continue
+        for reference in references:
+            evidence_match = re.fullmatch(r"learner-evidence:(E\d{3})", reference)
+            if evidence_match is not None:
+                evidence = doc.evidence.get(evidence_match.group(1))
+                if evidence is None or evidence.values.get("provenance") != "learner" or evidence.values.get("verdict") != "confirmed":
+                    errors.append(
+                        ValidationError(
+                            objective.line,
+                            "OBJECTIVE_COVERAGE",
+                            f"bridge {objective.objective_id} references non-confirmed learner evidence: {reference}",
+                        )
+                    )
+                continue
+            path = _location_path(reference)
+            entry = manifest_by_path.get(path or "")
+            if entry is None or entry.role not in {"knowledge", "til", "practice"}:
+                errors.append(
+                    ValidationError(
+                        objective.line,
+                        "OBJECTIVE_COVERAGE",
+                        f"bridge {objective.objective_id} baseline must be confirmed learner evidence or an exact manifested knowledge, til, or practice location: {reference}",
+                    )
+                )
+            elif not _location_exists(reference, doc.repo_root):
+                errors.append(
+                    ValidationError(
+                        objective.line,
+                        "SOURCE_LOCATION",
+                        f"bridge {objective.objective_id} baseline location is absent from its manifested file: {reference}",
+                    )
+                )
+
+    delivery = doc.objective_delivery
+    non_deferred = [objective for objective in doc.objectives.values() if objective.treatment != "deferred"]
+    delivered_ids = {
+        objective.objective_id
+        for objective in doc.objectives.values()
+        if delivery.get(objective.objective_id) is not None and delivery[objective.objective_id].state == "delivered"
+    }
+    pending_ids = [objective.objective_id for objective in non_deferred if objective.objective_id not in delivered_ids]
+    status = doc.metadata.get("status")
+    position = doc.current_position
+    action = position.get("next_action")
+    step_ids = list(doc.teaching_steps)
+    current_step = position.get("current_step")
+    last_completed = position.get("last_completed_step")
+    target_ids = _comma_ids(position.get("target_objectives", ""), r"O\d{3,}") or []
+
+    if status == "completed" and pending_ids:
+        first = delivery.get(pending_ids[0])
+        errors.append(ValidationError(first.line if first is not None else 1, "OBJECTIVE_COVERAGE", "completed lesson still has pending required delivery: " + ", ".join(pending_ids)))
+    if action == "complete" and pending_ids:
+        errors.append(ValidationError(1, "OBJECTIVE_COVERAGE", "next_action complete is forbidden while objectives remain pending: " + ", ".join(pending_ids)))
+
+    if action == "complete":
+        expected_last = step_ids[-1] if step_ids else "none"
+        if last_completed != expected_last:
+            errors.append(ValidationError(1, "OBJECTIVE_COVERAGE", f"completed lesson last_completed_step must be {expected_last}"))
+    elif current_step in doc.teaching_steps:
+        current_index = step_ids.index(current_step)
+        expected_last = step_ids[current_index - 1] if current_index > 0 else "none"
+        if last_completed != expected_last:
+            errors.append(ValidationError(1, "OBJECTIVE_COVERAGE", f"last_completed_step must immediately precede current_step: {expected_last}"))
+        for completed_step_id in step_ids[:current_index]:
+            completed_step = doc.teaching_steps[completed_step_id]
+            missing = [item for item in completed_step.objective_ids if item not in delivered_ids]
+            if missing:
+                errors.append(ValidationError(completed_step.line, "OBJECTIVE_COVERAGE", f"completed Teaching Step {completed_step_id} still has pending objectives: {', '.join(missing)}"))
+        current = doc.teaching_steps[current_step]
+        if action == "teach":
+            expected_targets = [item for item in current.objective_ids if item not in delivered_ids]
+            if target_ids != expected_targets or not expected_targets:
+                errors.append(ValidationError(current.line, "OBJECTIVE_COVERAGE", f"teach target_objectives must exactly match pending objectives in {current_step}: {', '.join(expected_targets) or 'none'}"))
+        elif action == "await-answer":
+            missing = [item for item in current.objective_ids if item not in delivered_ids]
+            if missing:
+                errors.append(ValidationError(current.line, "ASSESSMENT_ALIGNMENT", f"await-answer requires current Step objectives to be delivered first: {', '.join(missing)}"))
+            if target_ids != current.objective_ids:
+                errors.append(ValidationError(current.line, "ASSESSMENT_ALIGNMENT", f"await-answer target_objectives must exactly match {current_step} objectives"))
+        elif action == "remediate":
+            evidence_match = re.fullmatch(r"learner-evidence:(E\d{3,})", position.get("basis", ""))
+            evidence = doc.evidence.get(evidence_match.group(1)) if evidence_match is not None else None
+            if evidence is None or evidence.values.get("verdict") not in {"partial", "misconception", "unconfirmed"}:
+                errors.append(ValidationError(current.line, "ASSESSMENT_ALIGNMENT", "remediate basis must reference partial, misconception, or unconfirmed learner evidence"))
+            elif evidence.values.get("concept") != current.concept_id:
+                errors.append(ValidationError(current.line, "ASSESSMENT_ALIGNMENT", "remediate evidence must belong to the current Step concept"))
+
+    delivered_concepts = {doc.objectives[objective_id].concept_id for objective_id in delivered_ids if objective_id in doc.objectives}
+    for concept_id in delivered_concepts:
+        coverage = doc.learning_coverage.get(concept_id)
+        if coverage is not None and coverage.today_state == "deferred":
+            errors.append(
+                ValidationError(
+                    coverage.line,
+                    "OBJECTIVE_COVERAGE",
+                    f"delivered objectives cannot belong to a deferred Daily Learning Coverage concept: {concept_id}",
+                )
+            )
 
 
 def _validate_til_readiness(doc: HandoffDocument, errors: list[ValidationError]) -> None:
@@ -977,13 +2198,13 @@ def _validate_til_readiness(doc: HandoffDocument, errors: list[ValidationError])
     remaining_questions = _markdown_h2_body(draft_text, "남은 질문") if draft_text is not None else None
 
     for row in doc.learning_coverage.values():
+        for evidence_id in row.evidence_ids:
+            evidence = doc.evidence.get(evidence_id)
+            if evidence is not None and evidence.values.get("verdict") == "confirmed" and evidence.values.get("append_state") != "drafted":
+                errors.append(ValidationError(row.line, "TIL_COVERAGE", f"confirmed evidence is not drafted: {evidence_id}"))
         if row.today_state == "confirmed":
             if row.til_representation != "learning":
                 errors.append(ValidationError(row.line, "TIL_COVERAGE", f"confirmed {row.concept_id} is not represented as learning"))
-            for evidence_id in row.evidence_ids:
-                evidence = doc.evidence.get(evidence_id)
-                if evidence is not None and evidence.values.get("verdict") == "confirmed" and evidence.values.get("append_state") != "drafted":
-                    errors.append(ValidationError(row.line, "TIL_COVERAGE", f"confirmed evidence is not drafted: {evidence_id}"))
         elif row.today_state == "uncertain":
             if row.til_representation != "remaining-question":
                 errors.append(ValidationError(row.line, "TIL_COVERAGE", f"uncertain {row.concept_id} is not represented as a remaining question"))
@@ -1006,6 +2227,30 @@ def _validate_declared_hashes(doc: HandoffDocument, metadata_lines: dict[str, in
     declared_contract = doc.metadata.get("contract_sha256")
     if HASH_RE.fullmatch(declared_contract or "") and declared_contract != doc.computed_contract_sha256:
         errors.append(ValidationError(metadata_lines.get("contract_sha256", 1), "CONTRACT_HASH", f"contract hash mismatch: got {doc.computed_contract_sha256}"))
+
+
+def _validate_course_freshness(doc: HandoffDocument, errors: list[ValidationError]) -> None:
+    curriculum = next(
+        (entry for entry in doc.manifest if entry.role == "curriculum" and entry.path == "CURRICULUM.md"),
+        None,
+    )
+    if curriculum is None:
+        return
+    curriculum_path = doc.repo_root / curriculum.path
+    for entry in (item for item in doc.manifest if item.role == "course-index"):
+        index_path = doc.repo_root / entry.path
+        for finding in validate_course_index_freshness(
+            curriculum_path,
+            index_path,
+            repo_root=doc.repo_root,
+        ):
+            errors.append(
+                ValidationError(
+                    entry.line,
+                    "CURRICULUM_FRESHNESS",
+                    f"{finding.code}: {finding.path}:{finding.line}: {finding.message}",
+                )
+            )
 
 
 def _draft_marker_blocks(text: str, lesson_id: str) -> tuple[list[tuple[str, str, str, int]], bool]:
@@ -1134,12 +2379,15 @@ def validate_handoff(
     _validate_declared_hashes(doc, metadata_lines, errors)
     _parse_review_attempts(doc, sections.get("Semantic Review"), errors)
     _parse_current_position(doc, sections.get("Current Position"), errors)
+    _parse_objective_delivery(doc, sections.get("Objective Delivery"), errors)
     _parse_evidence(doc, sections.get("Learner Evidence"), errors)
     _parse_daily_learning_coverage(doc, sections.get("Daily Learning Coverage"), errors)
+    _validate_objective_state(doc, errors)
     if check_draft:
         _validate_draft(doc, errors)
 
     if ready:
+        _validate_course_freshness(doc, errors)
         status = doc.metadata.get("status")
         if status not in {"active", "paused"}:
             errors.append(ValidationError(metadata_lines.get("status", 1), "REVIEW_NOT_PASS", "--ready requires active or paused status"))
@@ -1153,6 +2401,7 @@ def validate_handoff(
             errors.append(ValidationError(latest.line, "REVIEW_STALE", "--ready review hashes are stale"))
 
     if til_ready:
+        _validate_course_freshness(doc, errors)
         _validate_til_readiness(doc, errors)
 
     deduplicated: list[ValidationError] = []

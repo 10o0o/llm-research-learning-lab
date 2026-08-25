@@ -25,7 +25,7 @@ register source material -> audit it against CURRICULUM.md
 -> review the draft for every core concept actually studied today
 -> resolve or mark important uncertainty -> finalize a dated TIL
 -> map that exact TIL's major outcomes to practice actions
--> implement core logic from scratch in one small authentic Notebook
+-> complete the studied core inside a guided-fading authentic Notebook
 -> run tests, diagnose failures, and interpret the resulting state
 -> update only understanding supported by learner-authored evidence
 -> optionally deepen a knowledge concept and update the same note only after new evidence
@@ -43,12 +43,14 @@ is required.
 - Preserve unrelated working-tree changes.
 - Treat review and explanation requests as read-only unless the user asks for edits.
 - Use `apply_patch` for text edits.
-- Use `tmp/active-lesson-handoff.md` as the only resumable interactive-lesson cache. It is ignored operational state, not a durable review, progress, or learner-evidence document.
-- For a named multi-source lesson, use `full-source` when the user asks for all files or a complete range and `focused` only for an explicit subset. Audit every declared goal against separate body support, classify it as technical learning, guidance, or source-gap, and never invent source-core prose for an unsupported goal. Keep three to seven Concept Path entries as navigation groups, while the unlimited Observable Objective Map carries technical completeness and Guidance Map preserves orientation, roadmap, self-diagnostic, environment, and reference material without assessing it. Compression may shorten an evidence-backed explanation; it must never remove a required source-core objective.
-- Teach in Prepared Teaching Step order. Use an adaptive question only when its answer changes the next explanation; otherwise continue without a question. Questions must check the current Step's technical Objectives, not course design, study method, source organization, or Guidance, unless that meta-topic is the explicit subject of a focused lesson.
-- Keep Objective Delivery as mutable operational state separate from learner mastery. A lesson cannot be `completed` while any non-deferred objective is pending, and a delivered objective does not become confirmed learner evidence.
-- Keep its `Daily Learning Coverage` as mutable operational state: confirmed and uncertain concepts actually studied today must be represented in the exact reviewed draft, while deferred concepts are not required. A handoff-backed save requires `validate_lesson_handoff.py --til-ready` against the current draft hash.
-- Do not replace a completed handoff with a new lesson until every confirmed learner-evidence item is drafted. Remove it only after the dated TIL commit succeeds.
+- Use `tmp/active-lesson-handoff.md` as the only resumable interactive-lesson
+  cache. It is ignored operational state, not a durable review, progress, or
+  learner-evidence document. Its only normative schema and lifecycle are in
+  [the coach handoff contract](./.agents/skills/coach-llm-research-study/references/lesson-handoff.md).
+- Preserve the top-level invariant: the coach owns source audit, contract
+  preparation, independent review, and TIL completeness; teaching and
+  canonical saving may consume the handoff only after their respective
+  validator gates pass.
 - During a multi-source curriculum audit, `tmp/curriculum-audit/` may hold disposable per-source recovery notes. Delete them after reviewed findings are integrated into `CURRICULUM.md`; they are not learner evidence or progress records.
 - Do not relocate, delete, or rewrite existing `archive/` notes in bulk.
 - Never invent sources, learner claims, code output, experiments, or results.
@@ -76,7 +78,11 @@ is required.
 - For difficult topics, connect intuition, a small example, formulas and shapes, code, and actual ML/LLM use.
 - In user-facing tutoring and audit responses, treat inline LaTeX as unsupported. Use inline code for short symbols such as `q_i`, `d_k`, and `QK^T`; put typeset formulas in standalone `$$` blocks with blank lines around them and the delimiters on lines by themselves. Never put LaTeX in a heading, table, bullet label, or ordinary sentence, and scan for single-dollar math delimiters before sending.
 - Do not treat tutor-generated explanations as proof of learner knowledge. Update `knowledge/` only when explicitly requested and supported by the learner's own explanation, calculation, answer, or interpreted result.
-- Before finalizing a TIL, reconstruct today's actual learning scope from completed/current Prepared Teaching Steps and Objective Delivery, learner evidence, the current conversation, explicitly named self-study scope, and the draft. Exclude Guidance from assessed learning. Distinguish factual errors, learner uncertainty, a core concept actually studied today but missing from the draft, optional enrichment, and tutor-supplied explanations.
+- Before finalizing a TIL, reconstruct today's actual learning scope from the
+  canonical handoff when present, learner evidence, the current conversation,
+  explicitly named self-study scope, and the draft. Exclude non-assessed
+  guidance and distinguish factual errors, learner uncertainty, missing studied
+  concepts, optional enrichment, and tutor-supplied explanations.
 - Do not require untouched parts of the lecture. Require every core concept actually studied today to appear either as confirmed learning under `오늘의 학습` or `배운 점`, or as unresolved uncertainty under `남은 질문`. Deferred source content is not a TIL omission.
 - Give a pre-save verdict of `저장 가능`, `수정 후 저장`, or `추가 확인 후 저장`. Resolve one important misconception at a time with `$teach-course-material`; update the draft only after the learner demonstrates or explicitly confirms the corrected understanding. An unresolved point may instead remain clearly labeled as uncertainty.
 - Treat `$save-today-til` as a formatter and filer, not a factual reviewer. In the normal daily flow, run the pre-save review first. If the current conversation still has unresolved blocking findings, do not finalize them as factual claims unless the user explicitly chooses to preserve them as uncertainty.
@@ -84,14 +90,18 @@ is required.
 - Keep hands-on work separate from lesson evaluation. `$suggest-learning-practice` requires one explicitly named, validated `til/YYYY/MM/YYYY-MM-DD.md`; never infer the latest note or accept `til/today.md` or the legacy root draft. Follow its exact source links and stop rather than guessing when a source-based TIL has no resolvable material.
 - Invoking `$suggest-learning-practice` with an exact finalized TIL authorizes exactly one unexecuted `practice/<area>/<topic>.ipynb`. Keep all coherent outcomes as exercises in that Notebook; lack of implementation evidence calls for the smallest Core practice, not more files.
 - Map every major TIL outcome to `implement`, `test`, `debug`, `interpret`, or `design`. Use the one Notebook for deterministic calculations, Tensor/Shape mechanics, small training and validation flows, debugging, and local API contracts. Do not create learner `src/`, `tests/`, or a project directory unless the user explicitly asks for a reusable multi-file project outside `$suggest-learning-practice`'s default flow.
-- Give the Notebook exactly one unexecuted `# setup-check` cell before its TODOs. It imports only dependencies, shared types, and non-solution helpers; each exercise keeps its implementation, fixture, and `check_e##()` normal/edge/failure checks adjacent.
-- Treat the generated Notebook as the learner's complete task interface. Source links are provenance, not required reading: every tested threshold, precedence rule, exact token or key, dtype/device representation, axis or inclusive boundary, aggregation, and error contract must be stated before the TODO. Separate `source-given`, `practice-given`, and learner-derived contracts with contiguous IDs, and trace every assertion or expected exception to a disclosed same-exercise contract. Compression or answer withholding must never hide the problem specification.
-- Put folded progressive hints in the Markdown cell immediately beside each TODO, never in a global hint appendix. Provide signatures, deterministic fixtures, tests, and boilerplate, but leave core algorithms, Tensor operations, training order, validation, and interpretation to the learner from scratch. Do not overwrite learner work, include a complete answer, invent output, execute the Notebook, or commit it unless separately asked.
-- Before reporting generated practice as ready, validate it and obtain a pass from a fresh read-only reviewer. Permit one revision and one second reviewer only. If review is unavailable or the second review does not pass, do not deliver it as ready.
+- Give every Notebook cell a stable ID and an internal role under `metadata.llm_research_lab.practice`. Keep exactly one unexecuted setup-role cell before the exercises; each exercise keeps its brief, implementation, fixture, `check_e##()`, and reflection cells adjacent.
+- Treat the generated Notebook as the learner's complete task interface. Source links are provenance, not required reading: every tested threshold, precedence rule, exact token or key, dtype/device representation, axis or inclusive boundary, aggregation, and error behavior must be stated naturally before implementation. Keep source kinds, Outcome/Requirement/Target IDs, full claims and source anchors, scaffold ownership, cell roles, and assertion traces in custom metadata only; never render them as learner-facing tables, headings, IDs, or code markers. Compression or answer withholding must never hide the problem specification.
+- Put folded progressive hints in the Markdown cell immediately beside each TODO, never in a global hint appendix. Read every explicitly mapped basic and advanced instructor practice first, preserve a sound starter/TODO boundary, and use its solution only for contract verification. Provide signatures, deterministic fixtures, tests, repetitive validation, return assembly, and bookkeeping; leave only the TIL-linked core algorithms, Tensor operations, training order, diagnosis, and interpretation learner-owned. Use `guided`, then `partial`, then evidence-backed `independent` scaffolding, with one primary concept and at most three learner targets per Exercise. Track every required written reflection as one of those targets; untracked reflection must be explicitly optional and not a completion condition. Do not overwrite learner work, include a complete answer, invent output, execute a new Notebook, or commit it unless separately asked.
+- Before reporting generated practice as ready, validate it and obtain a pass from a fresh read-only reviewer. The reviewer first inspects only the rendered learner surface for natural standalone courseware and audit leakage, then inspects metadata and sources for fidelity and traceability. Permit one revision and one second reviewer only. If review is unavailable or the second review does not pass, do not deliver it as ready.
 - When `$suggest-learning-practice` is given an exact practice path for feedback, inspect the saved code and actual traceback or test output, address one blocker at a time, and require state/output interpretation even after tests pass. Do not complete learner-owned core logic without explicit authorization.
 - Use Kaggle only when data handling, validation, metrics, or error analysis is the point; use local code or benchmarks for mechanics and systems topics. Verify any current recommendation.
 - When a user requests the full daily flow, coordinate the separate skills in the order above; do not merge their responsibilities into a new orchestration skill.
-- For an interactive named-source lesson using both coaching and teaching, `$coach-llm-research-study` owns the source audit, lesson contract, and fresh semantic review; `$teach-course-material` may start only after the handoff validator reports ready. Allow at most two total semantic-review attempts. If a fresh reviewer is unavailable or the second attempt does not pass, keep the handoff blocked and do not teach from that contract.
+- A whole interactive named-source lesson automatically pairs
+  `$coach-llm-research-study` with `$teach-course-material`, even when only the
+  teaching skill is invoked. The coach-owned readiness gate must pass before
+  teaching starts; direct definitions, short corrections, one-off questions,
+  and knowledge-note deepening remain handoff-free.
 - During that interactive lesson, append to `til/today.md` only a learner-authored answer that has been assessed as confirmed. Keep partial answers, misconceptions, simple agreement, copied tutor wording, source summaries, and tutor assessments in the temporary handoff only; a corrected explain-back is new evidence rather than a rewrite of the earlier attempt.
 
 ## TIL, knowledge, and practice

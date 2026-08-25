@@ -47,6 +47,58 @@ class CurriculumValidatorTests(unittest.TestCase):
             validator.validate_curriculum(CURRICULUM, strict_sources=True),
         )
 
+    def test_repository_deep_learning_course_passes_scoped_validation(self) -> None:
+        self.assertEqual(
+            [],
+            validator.validate_curriculum(
+                CURRICULUM,
+                strict_sources=True,
+                course_index=REPO_ROOT / "materials/private/kant-deep-learning-basics/INDEX.md",
+            ),
+        )
+
+    def test_course_freshness_detects_source_and_index_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            course = root / "materials/private/kant-deep-learning-basics"
+            course.mkdir(parents=True)
+            source = course / "06-01_lesson.md"
+            source.write_text("# Lesson\n", encoding="utf-8")
+            digest = validator.sha256_file(source)
+            index = course / "INDEX.md"
+            index.write_text(
+                "# Index\n\n## 강의 자료\n\n"
+                "| 파일 | 설명 |\n| --- | --- |\n"
+                "| `06-01_lesson.md` | fixture |\n",
+                encoding="utf-8",
+            )
+            curriculum = root / "CURRICULUM.md"
+            curriculum.write_text(
+                "| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |\n"
+                "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
+                f"| SRC-KDL-06-01 | `materials/private/kant-deep-learning-basics/06-01_lesson.md` | HTML 토글 펼침 Markdown | `{digest}` | complete | complete | 2026-08-25 | fixture |\n",
+                encoding="utf-8",
+            )
+            configured = {
+                "KDL": ("kant-deep-learning-basics", ("06-01",)),
+            }
+            with mock.patch.dict(validator.COURSES, configured, clear=True):
+                self.assertEqual(
+                    [],
+                    validator.validate_course_index_freshness(
+                        curriculum,
+                        index,
+                        repo_root=root,
+                    ),
+                )
+                source.write_text("# Changed lesson\n", encoding="utf-8")
+                findings = validator.validate_course_index_freshness(
+                    curriculum,
+                    index,
+                    repo_root=root,
+                )
+            self.assertIn("SOURCE_HASH_STALE", self.codes(findings))
+
     def test_structural_mode_does_not_require_private_sources(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             clone_root = Path(temporary_directory)

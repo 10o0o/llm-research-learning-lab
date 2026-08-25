@@ -43,7 +43,7 @@ VS Code에서 Notebook을 실행할 때는 `/home/jake/llm-research-learning-lab
 11. `$update-learning-knowledge`로 실제로 이해했다고 확인된 내용만 `knowledge/`에 반영합니다.
 12. 새 지식 문서를 더 깊게 공부하고 싶다면 그 문서를 대상으로 다시 질문하고, 새 이해가 확인된 경우 같은 문서만 갱신합니다.
 
-동등한 구현·실행·해석 증거가 이미 있으면 추가 실습 없음도 가능하고, 새로 반영할 지식이 없다는 결론도 정상입니다. 영구 중복 강의록이나 학습자 진도표는 만들지 않으며, `tmp/active-lesson-handoff.md`는 확인된 학습자 답변과 오늘 학습한 범위가 초안에 모두 반영되고 날짜별 TIL 커밋이 성공한 후에만 제거하는 임시 운영 캐시입니다.
+동등한 구현·실행·해석 증거가 이미 있으면 추가 실습 없음도 가능하고, 새로 반영할 지식이 없다는 결론도 정상입니다. 영구 중복 강의록이나 학습자 진도표는 만들지 않으며, `tmp/active-lesson-handoff.md`는 수업 재개와 안전한 저장에만 쓰는 임시 운영 캐시입니다.
 
 ## 강의자료 등록
 
@@ -74,7 +74,7 @@ til/2026/09/2026-09-01.md
 - 직접 계산하거나 실행해본 결과
 - 다음에 이어서 보고 싶은 것
 
-다 쓴 뒤 바로 저장하지 않고, 평가 코치가 handoff의 완료·현재 Teaching Step과 Objective Delivery, 확인된 학습자 답변, 실제 학습 대화, 명시한 자율학습 범위를 기준으로 초안을 먼저 검토합니다. 원자료 전체를 요약할 필요는 없지만 **오늘 실제로 다룬 기술적 핵심은 모두** 남겨야 합니다. 이해가 확인됐으면 `오늘의 학습`이나 `배운 점`에, 아직 불확실하면 `남은 질문`에 적습니다. 필요할 때만 알려 주는 로드맵·학습법·자기진단 같은 Guidance는 학습 증거나 TIL 핵심으로 세지 않습니다. 오늘 다루지 않은 원자료 내용은 `deferred`이며 누락이 아닙니다.
+다 쓴 뒤 바로 저장하지 않고, 평가 코치가 실제 수업 범위, 확인된 학습자 답변, 학습 대화와 명시한 자율학습 범위를 기준으로 초안을 먼저 검토합니다. 원자료 전체를 요약할 필요는 없지만 **오늘 실제로 다룬 기술적 핵심은 모두** 남겨야 합니다. 이해가 확인됐으면 `오늘의 학습`이나 `배운 점`에, 아직 불확실하면 `남은 질문`에 적습니다. 오늘 다루지 않은 원자료 내용은 누락이 아닙니다.
 
 검토를 마치면 [`til/template.md`](./til/template.md)의 순서에 맞게 저장됩니다. `오늘의 학습`은 항상 남기고, 나머지 항목은 실제 내용이 있을 때만 남깁니다. 라이브 수업과 GPT 보충 학습을 구분해서 썼다면 `오늘의 학습` 안에서 그 구분을 유지합니다.
 
@@ -105,13 +105,15 @@ practice/math/vector-normalization.ipynb
 practice/deep-learning/tiny-image-classifier-contracts.ipynb
 ```
 
-[`practice/template.ipynb`](./practice/template.ipynb)는 이 단일 워크북의 기본 구조입니다. 관련 날짜별 TIL과 강의자료는 Notebook 상단에 정확히 링크합니다.
+[`practice/template.ipynb`](./practice/template.ipynb)는 이 단일 워크북의 기본 구조입니다. 학습자가 보는 첫 화면에는 목적과 실행 순서만 간결하게 두고, 전체 TIL·강의·제공 실습 감사 정보는 같은 Notebook의 custom metadata에 보존합니다. 필요하면 TIL과 과정 INDEX만 선택 복습 링크로 표시합니다.
 
 단일 Notebook에서는 setup을 한 번 실행한 뒤 현재 E번호의 구현 셀, fixture 셀, `check_e01()` 형식의 검사 셀을 순서대로 실행합니다. 함수 수정 뒤에는 현재 구현 셀부터 다시 실행합니다.
 
-워크북은 TIL의 주요 성과를 `implement`, `test`, `debug`, `interpret`, `design`에 연결한 Practice Coverage Map을 가집니다. 각 exercise는 실제 사용 맥락, 실행 전 회상·예측, 작은 계약, 직접 구현, 바로 옆의 접힌 힌트, 테스트와 실패 진단, 결과 해석 순서입니다. 원문 링크는 출처와 추가 복습용이며, 문제를 풀기 위해 열어야 하는 숨은 명세가 아닙니다. 테스트가 요구하는 임계값·분기 순서·반환 token과 key·dtype/device 표현·축·경계 포함 여부·집계·오류 조건은 TODO 전에 `source-given` 또는 `practice-given` 계약으로 공개하고, 학습자가 계산할 결과는 `derive`로 분리합니다. 전역 힌트 절은 만들지 않습니다. 난이도는 `Core`, `Applied`, `Advanced` 중 하나이며, 설명을 잘했더라도 구현 증거가 없으면 작은 Core부터 시작합니다.
+워크북 내부 metadata는 TIL의 주요 성과를 `implement`, `test`, `debug`, `interpret`, `design`에 연결하고 source hash, 원자적 요구사항, 제공 비계와 학습자 target, cell 역할, assertion 추적을 관리합니다. 이 감사 구조는 학습 화면에 표시하지 않습니다. 각 실습은 자연스러운 목적, 구현할 기능, 정확한 요구사항, 작은 예와 바로 옆의 접힌 힌트, 구현, 공개 검사, 결과 해석으로 읽혀야 합니다. 원문 링크는 출처와 추가 복습용이며, 문제를 풀기 위해 열어야 하는 숨은 명세가 아닙니다. 테스트가 요구하는 임계값·분기 순서·반환 token과 key·dtype/device 표현·축·경계 포함 여부·집계·오류 조건은 ID나 내부 분류명 없이 TODO 전에 완전한 문장으로 공개합니다. 전역 힌트 절은 만들지 않습니다. 난이도는 `Core`, `Applied`, `Advanced` 중 하나이며, 설명을 잘했더라도 구현 증거가 없으면 작은 Core부터 시작합니다.
 
-처음에는 learner function이 `NotImplementedError`라서 해당 exercise의 check가 실패하는 것이 정상입니다. JSON·import·셀 순서 자체가 실패하면 워크북 결함입니다.
+기본 비계는 `guided → partial → independent`로 줄어듭니다. 초반에는 함수 signature, 반복 검증, dict·tuple 조립, 오류 처리 같은 주변 코드를 제공하고 강의에서 배운 결정적 연산만 `NotImplementedError`로 남깁니다. 한 exercise에는 주 개념 하나와 학습자 target 최대 세 개만 둡니다. 필수로 작성해야 하는 결과 해석도 target에 포함하며, 추적하지 않는 복습 메모는 선택 사항이고 완료 조건이 아니라고 명시합니다. 처음 실행할 때는 선언된 target에서만 멈추는 것이 정상이며 JSON·import·제공 비계·셀 순서가 먼저 실패하면 워크북 결함입니다.
+
+새 실습의 준비 상태는 기본 creation-ready 검증으로 확인하고, 이미 일부 target을 구현하거나 실행한 기존 Notebook은 `validate_practice_artifact.py <path> --learner-state`로 같은 구조·명세·추적 관계를 검사합니다.
 
 실행하지 않은 결과는 기록하지 않고, 데이터셋·모델 가중치·API 키·큰 출력 파일은 Git에 올리지 않습니다. Notebook 출력도 결과를 이해하는 데 필요한 것만 남깁니다.
 
@@ -132,11 +134,10 @@ materials/private/kant-basic-math/01-01_벡터의_정의와_기하학적_해석.
 한 번에 전부 설명하지 말고 개념 단위로 진행하면서 내 설명과 계산을 통해 이해를 확인해줘.
 ```
 
-수업 전에 ignored 임시 파일인 `tmp/active-lesson-handoff.md`에 자료 hash, 수업 계약, 검토 결과와 현재 Teaching Step을 남깁니다. 전체 범위는 `full-source`, 명시한 일부 범위는 `focused`로 기록합니다. 먼저 모든 명시적 목표를 본문 근거와 대조해 `learning`, `guidance`, `source-gap`으로 나눕니다. 학습법·로드맵·최종 산출물·자기진단·환경 안내는 Guidance Map에 보존하되, Trigger가 생길 때만 안내하고 이해 질문이나 학습 증거로 만들지 않습니다. 목표 문구만 있고 설명 본문이 없으면 source-core 내용을 만들어내지 않습니다.
+강의 파일 전체를 대화형으로 학습할 때는 teaching 스킬만 불러도 평가 코치가 자동으로 함께 동작합니다. 코치는 원문·과정 INDEX·`CURRICULUM.md`를 대조해 강의 핵심을 보존하고, `ROADMAP.md` 방향에 필요한 보충을 지금 수업할지 별도 자료로 미룰지 판단합니다. 독립 검토와 readiness 검증을 통과한 뒤에만 teaching 스킬이 수업을 시작합니다. 정의·짧은 정정·일회성 질문·기존 지식 문서 심화에는 이 절차를 만들지 않습니다.
 
-3~7개의 Concept Path는 큰 탐색 묶음일 뿐입니다. 기술적 완전성은 개수 제한 없는 Observable Objective Map으로, 실제 전달 순서는 Prepared Teaching Steps로 관리합니다. `check_policy: adaptive`는 답에 따라 다음 설명이 달라질 때만 사용하고, 그 차이가 없으면 `none`으로 두어 질문 없이 진행합니다. 각 기술 목표가 실제로 설명됐는지는 Objective Delivery에 별도로 기록하며, 필수 목표가 하나라도 남으면 전체 수업을 완료로 표시할 수 없습니다. 이 전달 기록은 학습자의 이해 증거가 아니므로 TIL에는 여전히 학습자가 직접 확인한 답변만 들어갑니다.
-
-fresh reviewer가 계약을 통과시켜야 수업을 시작하며, 각 강의 파일의 선언 목표와 실제 본문 근거, 공식·코드·그림·본문 예제가 목표표와 Teaching Step에 정확히 연결됐는지 확인합니다. 원문에 없는 메커니즘의 과잉 승격, Guidance의 평가 목표화, 다음 설명을 바꾸지 않는 질문도 실패 사유입니다. 첫 검토와 수정 후 재검토까지 총 2회 안에 통과하지 못하거나 reviewer를 사용할 수 없으면 수업을 중단합니다. 이 파일은 컨텍스트 복구용 운영 캐시이며 영구 강의록이나 학습 증거가 아닙니다.
+`tmp/active-lesson-handoff.md`의 schema와 lifecycle은
+[`lesson-handoff.md`](./.agents/skills/coach-llm-research-study/references/lesson-handoff.md)만이 정의합니다. 이 파일은 컨텍스트 복구용 운영 캐시이며 영구 강의록·진도표·학습 증거가 아닙니다.
 
 평가 결과는 필요한 곳에 `[선수개념]`, `[정정]`, `[보충]`으로 반영됩니다. 학습자의 답변 중 정확한 이해가 확인된 것만 `til/today.md`에 자동으로 추가되며, 튜터 설명·단순 동의·부분 이해·오개념은 추가되지 않습니다. 별도 평가 보고서까지 필요할 때만 요청합니다.
 
@@ -179,7 +180,7 @@ $teach-course-material을 사용해
 내가 다시 설명해서 이해가 확인되면 내 답변만 til/today.md에 반영해줘.
 ```
 
-평가 코치는 오개념이나 빠진 내용을 정답 문장으로 몰래 바꾸지 않습니다. 작은 확인 질문에 내가 다시 설명한 내용만 학습으로 반영하고, 해결되지 않은 부분은 `남은 질문`에 둡니다. 모든 강의 내용을 추가하는 것이 아니라 오늘 실제로 학습한 핵심의 경계를 빠짐없이 기록하는 것이 목표입니다. Handoff 기반 수업은 최종 draft hash와 coverage를 `--til-ready`로 확인합니다.
+평가 코치는 오개념이나 빠진 내용을 정답 문장으로 몰래 바꾸지 않습니다. 작은 확인 질문에 내가 다시 설명한 내용만 학습으로 반영하고, 해결되지 않은 부분은 `남은 질문`에 둡니다. 모든 강의 내용을 추가하는 것이 아니라 오늘 실제로 학습한 핵심의 경계를 빠짐없이 기록하는 것이 목표입니다. Handoff 기반 수업은 저장 전에 현재 초안에 대한 readiness를 자동 확인합니다.
 
 ### 3. 오늘의 TIL 저장
 
@@ -195,7 +196,7 @@ $save-today-til을 사용해 til/today.md를 정리하고 날짜별 TIL로 저�
 $save-today-til을 사용해 rough.md를 2026-08-13 TIL로 저장해줘.
 ```
 
-사용자의 말투, 질문, 계산, 코드와 실제 결과는 보존하고 맞춤법·문단·중복만 가볍게 정리합니다. 저장 스킬은 사실 검증을 반복하지 않습니다. 같은 날짜의 TIL이 있으면 기존 내용에 합치며, 내부 중복 방지 marker는 최종 TIL에서 제거합니다. 검증과 날짜별 TIL 하나의 path-limited 커밋이 성공한 뒤에만 `til/today.md`와 완료된 handoff를 정리하며 push하지 않습니다. 검증이나 커밋이 실패하면 둘 다 그대로 보존합니다.
+사용자의 말투, 질문, 계산, 코드와 실제 결과는 보존하고 맞춤법·문단·중복만 가볍게 정리합니다. 저장 스킬은 사실 검증을 반복하지 않습니다. canonical `til/today.md`와 active handoff가 함께 있으면 marker가 없어도 저장 준비 검증을 요구하고, 통과한 입력에서만 내부 marker를 제거합니다. 별도로 이름을 지정한 초안은 standalone으로 저장하며 active handoff를 건드리지 않습니다. 같은 날짜의 TIL이 있으면 기존 내용에 합치고, 날짜별 TIL 하나의 path-limited 커밋만 만들며 push하지 않습니다. 준비·검증·커밋이 실패하면 draft와 handoff를 그대로 보존합니다.
 
 나중에 새로운 오류를 발견했거나 자료가 바뀌었다면 완성된 TIL을 평가 코치로 다시 검토할 수 있지만, 매일 저장 후 같은 평가를 반복할 필요는 없습니다.
 
@@ -205,15 +206,15 @@ $save-today-til을 사용해 rough.md를 2026-08-13 TIL로 저장해줘.
 
 ```text
 $suggest-learning-practice를 사용해
-til/2026/08/2026-08-13.md의 주요 학습 성과 전체를 직접 구현하고
-테스트하는 실습으로 만들어줘.
+til/2026/08/2026-08-13.md의 주요 학습 성과를 강의 핵심 중심의
+guided 단일 Notebook 실습으로 만들어줘.
 ```
 
-스킬은 TIL의 정확한 강의 링크를 따라가고, 해당 과정 `INDEX.md`에서 `Related lesson path`가 그 강의와 일치하는 강의 제공 실습만 자동으로 읽습니다. 기본·심화가 모두 매핑돼 있으면 비교하되, 원본을 수정하거나 모범답안·대표 출력을 복사하지 않습니다. 차시 번호나 비슷한 파일명으로 매핑을 추측하지 않습니다.
+스킬은 TIL의 정확한 강의 링크를 따라가고, 해당 과정 `INDEX.md`에서 `Related lesson path`가 그 강의와 일치하는 강의 제공 실습만 자동으로 읽습니다. 기본·심화가 모두 매핑돼 있으면 starter·TODO·fixture·check 경계를 먼저 비교하고, 적절한 뼈대는 보존하거나 최소 변환합니다. 정답은 명세 확인과 임시 reference 실행에만 사용하며 원본을 수정하거나 모범답안·대표 출력을 복사하지 않습니다. 차시 번호나 비슷한 파일명으로 매핑을 추측하지 않습니다.
 
-TIL이 올바르더라도 구현 경험이 없다면 **실습 생성**이 기본입니다. TIL의 주요 성과를 Practice Coverage Map에 넣고 `implement`, `test`, `debug`, `interpret`, `design` 중 하나 이상으로 연결합니다. 증거가 적으면 실습을 막는 대신 작은 `Core`부터 시작합니다. 이미 같은 성과를 구현·실행·해석한 동등한 증거가 있으면 기존 미완성 실습을 계속하거나 예외적으로 추가 실습 없이 끝낼 수 있습니다.
+TIL이 올바르더라도 구현 경험이 없다면 **실습 생성**이 기본입니다. TIL의 주요 성과는 내부 metadata에서 `implement`, `test`, `debug`, `interpret`, `design` 중 하나 이상으로 연결합니다. 증거가 적으면 실습을 막는 대신 작은 `Core`부터 시작합니다. 이미 같은 성과를 구현·실행·해석한 동등한 증거가 있으면 기존 미완성 실습을 계속하거나 예외적으로 추가 실습 없이 끝낼 수 있습니다.
 
-실습은 언제나 `practice/<area>/<topic>.ipynb` 하나로 만듭니다. 이 파일만 읽어도 모든 TODO와 check의 고정 조건을 알 수 있어야 하며, 강의 링크를 열어야만 알 수 있는 임계값이나 반환 규칙은 허용하지 않습니다. 함수 signature, deterministic fixture와 local normal·edge·failure check는 제공하지만 핵심 로직은 `NotImplementedError`에서 내가 직접 시작합니다. 각 check는 공개된 Contract ID를 참조하고, 힌트는 각 TODO 바로 앞의 접힌 블록에 있습니다. `힌트 1`은 관찰 상태, `힌트 2`는 작은 trace나 Shape 흐름을 제공합니다. 생성물은 Notebook-only 명세 검토와 원문 대조를 포함한 validator·fresh reviewer를 통과해야 준비 완료로 전달됩니다.
+실습은 언제나 `practice/<area>/<topic>.ipynb` 하나로 만듭니다. 이 파일만 읽어도 모든 TODO와 check의 고정 조건을 알 수 있어야 하며, 강의 링크를 열어야만 알 수 있는 임계값이나 반환 규칙은 허용하지 않습니다. deterministic fixture와 의미 있는 normal·edge·failure check, 반복 API 코드는 제공하고 TIL과 직접 연결된 핵심만 직접 완성합니다. check와 완전한 요구 문장, source anchor, 제공 비계와 learner target의 연결은 custom metadata가 관리하며 학습 화면에는 내부 ID·감사표·role marker를 표시하지 않습니다. 힌트는 해당 구현 바로 앞의 접힌 블록에 둡니다. 생성물은 check마다 앞선 명세 문장을 역추적하는 learner-surface 검토와 metadata·원문 대조를 포함한 validator·fresh reviewer를 통과해야 준비 완료로 전달됩니다.
 
 시도 중 막혔을 때는 날짜별 TIL 대신 정확한 실습 경로를 줍니다.
 

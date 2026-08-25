@@ -103,6 +103,8 @@ COURSES = {
             "03-01", "03-02", "03-03", "03-04", "03-05",
             "04-01", "04-02", "04-03", "04-04",
             "05-01", "05-02", "05-03", "05-04",
+            "06-01", "06-02", "06-03", "06-04", "06-05",
+            "07-01", "07-02", "07-03", "07-04", "07-05",
         ),
     ),
 }
@@ -701,14 +703,58 @@ def _check_asset_signature(path: Path) -> str | None:
     return None
 
 
+def _course_for_index(
+    course_index: Path,
+    repo_root: Path,
+) -> tuple[str, str, tuple[str, ...]] | None:
+    try:
+        relative = course_index.resolve().relative_to(repo_root.resolve()).as_posix()
+    except ValueError:
+        return None
+    for course, (directory, expected_lessons) in COURSES.items():
+        expected = f"materials/private/{directory}/INDEX.md"
+        if relative == expected:
+            return course, directory, expected_lessons
+    return None
+
+
 def _strict_source_checks(
-    sources: list[Source], repo_root: Path, findings: list[Finding]
+    sources: list[Source],
+    repo_root: Path,
+    findings: list[Finding],
+    *,
+    course_index: Path | None = None,
 ) -> None:
     root = repo_root.resolve()
+    selected_course = None
+    if course_index is not None:
+        selected_course = _course_for_index(course_index, repo_root)
+        if selected_course is None:
+            findings.append(Finding(
+                _display_path(course_index, repo_root),
+                1,
+                "INDEX_SCOPE",
+                "--course-index must name a configured course INDEX.md",
+            ))
+            return
+    selected_directory = selected_course[1] if selected_course else None
+    scoped_sources = [
+        source
+        for source in sources
+        if selected_directory is None
+        or source.relative_path.startswith(f"materials/private/{selected_directory}/")
+    ]
     registered_paths: set[str] = set()
-    for source in sources:
+    for source in scoped_sources:
         source_path = repo_root / source.relative_path
         display = source.relative_path
+        if source.audit_status != "complete":
+            findings.append(Finding(
+                display,
+                1,
+                "SOURCE_AUDIT_INCOMPLETE",
+                f"registered source audit status is {source.audit_status!r}; expected 'complete'",
+            ))
         try:
             resolved = source_path.resolve(strict=True)
         except FileNotFoundError:
@@ -775,7 +821,12 @@ def _strict_source_checks(
                         ))
 
     indexed_paths: set[str] = set()
-    for course, (directory, expected_lessons) in COURSES.items():
+    course_items = (
+        [(selected_course[0], (selected_course[1], selected_course[2]))]
+        if selected_course
+        else list(COURSES.items())
+    )
+    for course, (directory, expected_lessons) in course_items:
         index_path = repo_root / "materials" / "private" / directory / "INDEX.md"
         display = str(index_path.relative_to(repo_root))
         if not index_path.is_file():
@@ -811,10 +862,49 @@ def _strict_source_checks(
         findings.append(Finding(extra, 1, "REGISTRY_NOT_INDEXED", "registered source is absent from course index"))
 
 
+def validate_course_index_freshness(
+    curriculum_path: Path,
+    course_index: Path,
+    *,
+    repo_root: Path = REPO_ROOT,
+) -> list[Finding]:
+    """Validate one configured course INDEX against registry rows and source bytes."""
+    path = curriculum_path.resolve()
+    document_path = _display_path(path, repo_root)
+    findings: list[Finding] = []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return [Finding(document_path, 1, "CURRICULUM_MISSING", "curriculum document does not exist")]
+    except UnicodeDecodeError as exc:
+        return [Finding(document_path, 1, "CURRICULUM_ENCODING", f"document is not UTF-8: {exc}")]
+
+    source_rows, source_tables = _extract_tables(
+        lines, SOURCE_HEADER, document_path, findings,
+    )
+    if source_tables != 1:
+        findings.append(Finding(
+            document_path,
+            1,
+            "SOURCE_TABLE_COUNT",
+            f"found {source_tables} source registry tables; expected 1",
+        ))
+        return findings
+    sources = _parse_sources(source_rows, document_path, findings)
+    _strict_source_checks(
+        sources,
+        repo_root,
+        findings,
+        course_index=course_index,
+    )
+    return findings
+
+
 def validate_curriculum(
     curriculum_path: Path = DEFAULT_CURRICULUM,
     *,
     strict_sources: bool = False,
+    course_index: Path | None = None,
     repo_root: Path = REPO_ROOT,
 ) -> list[Finding]:
     path = curriculum_path.resolve()
@@ -851,7 +941,12 @@ def validate_curriculum(
     _validate_sources(sources, document_path, findings)
     _validate_competencies(competencies, sources, document_path, findings)
     if strict_sources:
-        _strict_source_checks(sources, repo_root, findings)
+        _strict_source_checks(
+            sources,
+            repo_root,
+            findings,
+            course_index=course_index,
+        )
     return findings
 
 
@@ -867,14 +962,24 @@ def _build_parser() -> argparse.ArgumentParser:
         "--strict-sources", action="store_true",
         help="also check private files, SHA-256, course index parity, and local links",
     )
+    parser.add_argument(
+        "--course-index", type=Path,
+        help="with --strict-sources, restrict byte and parity checks to one configured course INDEX.md",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+    if args.course_index is not None and not args.strict_sources:
+        parser.error("--course-index requires --strict-sources")
     try:
-        findings = validate_curriculum(args.path, strict_sources=args.strict_sources)
+        findings = validate_curriculum(
+            args.path,
+            strict_sources=args.strict_sources,
+            course_index=args.course_index,
+        )
     except Exception as exc:  # pragma: no cover - defensive CLI boundary
         print(f"ERROR {args.path}:1 [VALIDATOR_INTERNAL] {type(exc).__name__}: {exc}", file=sys.stderr)
         return 2

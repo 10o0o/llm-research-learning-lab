@@ -13,9 +13,18 @@ Explicit invocation of this skill authorizes exactly one path-limited commit con
 
 This skill formats and files a draft; it does not establish conceptual correctness.
 
+The handoff schema, lifecycle, readiness gates, evidence rules, and cleanup
+conditions are defined only in
+[`../coach-llm-research-study/references/lesson-handoff.md`](../coach-llm-research-study/references/lesson-handoff.md).
+This skill consumes that contract through the read-only preflight; do not
+redefine or bypass it here.
+
 - In the normal daily workflow, use `$coach-llm-research-study` to review the draft against its studied source before invoking this skill.
 - Do not perform a source audit merely because no prior review is visible; a standalone save request remains valid, and a TIL may intentionally preserve uncertainty.
-- When `tmp/active-lesson-handoff.md` and its evidence markers contributed to the canonical draft, require the coach's complete-scope pre-save review of that exact draft. Run the handoff validator with `--til-ready`; a lesson-contract review or a stale draft hash is not a substitute for this gate.
+- For the canonical draft, always run the read-only preflight below. An active
+  handoff requires its current TIL-readiness gate even when the draft contains
+  no evidence marker. A separately named draft remains standalone and must not
+  alter or remove the active handoff.
 - If the current conversation contains a pre-save verdict with unresolved `반드시 수정` or `추가 확인` findings, do not finalize those statements as established facts. Continue only after the learner resolves them, asks to express them explicitly as uncertainty, or knowingly asks to preserve the unverified draft.
 - Never treat a `저장 가능` verdict as evidence for `knowledge/`; it only means the draft is suitable as a chronological TIL.
 
@@ -27,6 +36,15 @@ This skill formats and files a draft; it does not establish conceptual correctne
 4. If the default `til/today.md` does not exist, create it with only the reset comment below, report that there is nothing to save, and stop. Treat any other missing input as an error without creating it.
 5. Read the entire draft and `til/template.md` before editing anything.
 6. Treat an empty file or the reset comment alone as having nothing to save. Report that and make no other changes.
+7. Prepare the parsing input without mutating either file:
+
+   ```bash
+   python3 .agents/skills/save-today-til/scripts/prepare_til_input.py <draft-path>
+   ```
+
+   Omit `<draft-path>` only for canonical `til/today.md`. Stop on any preflight
+   error. Parse the printed output, not an independently stripped or re-read
+   marker body.
 
 ## Choose the date and destination
 
@@ -71,20 +89,9 @@ Keep pre-save factual evaluation in `$coach-llm-research-study`, reusable concep
 - If the destination does not exist, create it from the template with all placeholders removed.
 - If the destination exists, read it fully and merge new material into the matching sections. Preserve existing content and remove only clear duplication. Never overwrite the file wholesale.
 - Resolve relative links from the source location and rewrite them relative to the destination. Do not create a link unless its target is known and exists.
-- Before parsing a handoff-backed draft, validate and remove only its paired internal evidence comments with:
-
-  ```bash
-  python3 .agents/skills/coach-llm-research-study/scripts/validate_lesson_handoff.py \
-    --til-ready tmp/active-lesson-handoff.md
-  python3 .agents/skills/save-today-til/scripts/strip_lesson_evidence_markers.py til/today.md
-  ```
-
-  Stop without changing the draft or handoff if `--til-ready` fails. Use the
-  printed cleaned draft as the parsing input only after it passes; the helper
-  does not mutate the inbox. It preserves the learner content enclosed by each
-  valid pair and rejects malformed, unmatched, nested, duplicate, or
-  hash-inconsistent marker blocks. Do not reproduce the envelope comments in
-  the destination. No `lesson-evidence` marker may remain in the finalized TIL.
+- Use only the preflight output prepared during input resolution. Do not
+  reproduce internal envelope comments in the destination, and allow no
+  `lesson-evidence` marker in the finalized TIL.
 - Use `apply_patch` for the note and other text changes.
 - Do not reset the source until the destination passes validation and its dated TIL commit succeeds.
 - After those steps succeed, replace the canonical `til/today.md`, or explicitly named legacy root `today.md`, with only:
@@ -118,7 +125,8 @@ After the commit succeeds:
 
 1. inspect the created commit and require its changed-path set to equal the one dated TIL path;
 2. reset the canonical or explicitly named legacy inbox as described above;
-3. delete `tmp/active-lesson-handoff.md` only when it corresponds to this draft, its status is `completed`, and every confirmed evidence item is already marked `drafted`; otherwise preserve it;
+3. apply the canonical handoff cleanup condition from the linked contract;
+   otherwise preserve `tmp/active-lesson-handoff.md`;
 4. read the reset source and report the saved path, whether an existing daily note was merged, the commit hash, the exact committed path, draft and handoff cleanup, and any check that could not be completed.
 
 If validation, staging checks, a commit hook, or the commit fails, do not reset the draft or delete the handoff. Do not create an empty commit and never push.

@@ -17,6 +17,14 @@ from handoff_fixture import build_handoff, draft_envelope  # noqa: E402
 from validate_lesson_handoff import validate_handoff  # noqa: E402
 
 
+def delivered_o001() -> list[dict[str, str]]:
+    return [
+        {"objective": "O001", "state": "delivered", "mode": "full", "note": "Axis meaning was taught."},
+        {"objective": "O002", "state": "pending", "mode": "none", "note": "Awaiting instruction."},
+        {"objective": "O003", "state": "pending", "mode": "none", "note": "Awaiting instruction."},
+    ]
+
+
 class AppendLessonEvidenceTests(unittest.TestCase):
     def test_confirmed_evidence_is_appended_once_and_state_becomes_drafted(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -27,6 +35,7 @@ class AppendLessonEvidenceTests(unittest.TestCase):
                 status="active",
                 reviews=[("pass", "fresh-reviewer")],
                 evidence=[{"content": content, "assessment": "학습자가 두 축을 정확히 구분했다."}],
+                delivery=delivered_o001(),
             )
             code, message = append_evidence(handoff, "E001", repo_root=root)
             self.assertEqual(code, 0, message)
@@ -54,6 +63,7 @@ class AppendLessonEvidenceTests(unittest.TestCase):
                 status="active",
                 reviews=[("pass", "fresh-reviewer")],
                 evidence=[{"content": content}],
+                delivery=delivered_o001(),
             )
             draft = root / "til/today.md"
             draft.parent.mkdir(parents=True)
@@ -98,6 +108,7 @@ class AppendLessonEvidenceTests(unittest.TestCase):
                 status="paused",
                 reviews=[("pass", "fresh-reviewer")],
                 evidence=[{"content": content}],
+                delivery=delivered_o001(),
             )
             draft = root / "til/today.md"
             draft.parent.mkdir(parents=True)

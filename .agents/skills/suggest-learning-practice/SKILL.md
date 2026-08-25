@@ -1,6 +1,6 @@
 ---
 name: suggest-learning-practice
-description: Turn one explicitly supplied finalized dated TIL and its exactly linked course sources into one self-contained hands-on Notebook for recall, from-scratch implementation, testing, debugging, interpretation, and design, or coach an attempt from an explicitly supplied practice artifact and real failure output. Use when the user invokes $suggest-learning-practice with an exact til/YYYY/MM/YYYY-MM-DD.md path to create one Notebook under practice, or with an exact existing practice path for stepwise feedback. Automatically use only instructor practice explicitly mapped to the TIL's lesson in that course INDEX.md. Do not infer the latest TIL or artifact, repair an incomplete TIL, execute a new workbook, reveal a complete solution, or treat tutor prose as learner evidence.
+description: Turn one explicitly supplied finalized dated TIL and its exactly linked course sources into one self-contained guided-fading Notebook that provides routine scaffolding while the learner implements, tests, debugs, interprets, and designs the core studied concepts, or coach an attempt from an explicitly supplied practice artifact and real failure output. Use when the user invokes $suggest-learning-practice with an exact til/YYYY/MM/YYYY-MM-DD.md path to create one Notebook under practice, or with an exact existing practice path for stepwise feedback. Automatically use only instructor practice explicitly mapped to the TIL's lesson in that course INDEX.md. Do not infer the latest TIL or artifact, repair an incomplete TIL, execute a new workbook, reveal a complete solution, or treat tutor prose as learner evidence.
 ---
 
 # Build and Coach Authentic Practice
@@ -11,7 +11,9 @@ still a practice target when they have not independently recalled,
 implemented, tested, debugged, transferred, or interpreted it.
 
 Read [the practice design contract](references/practice-design.md) completely
-before generating or reviewing an artifact. Use exactly one of the modes below.
+before generating or reviewing an artifact. In creation mode also read
+[practice audit metadata v2](references/practice-audit-metadata.md) completely.
+Use exactly one of the modes below.
 
 ## Resolve the mode and exact input
 
@@ -50,10 +52,14 @@ before generating or reviewing an artifact. Use exactly one of the modes below.
      materials/private/<course>/INDEX.md
    ```
 
-   Read the mapped `basic` and `advanced` variants when both exist. Do not load
-   an unlisted, neighboring, or same-numbered practice. Instructor practice is
-   source scaffolding, not learner evidence; keep it unchanged and never copy
-   its full answer or claimed output.
+   Read the mapped `basic` and `advanced` variants when both exist. Audit their
+   starter, TODO, fixture, check, and solution boundaries before designing the
+   generated Exercise. Preserve or minimally adapt a sound instructor starter
+   before inventing a new public API. Use solutions only to verify the public
+   specification and in an ephemeral reference run; never copy learner-core
+   answers or claimed output. Do not load an unlisted, neighboring, or
+   same-numbered practice. Instructor practice is source scaffolding, not
+   learner evidence, and remains unchanged.
 5. Search `practice/` for learner artifacts that explicitly link the same TIL
    outcomes. Do not overwrite executed work, answers, outputs, or reflections.
 
@@ -64,8 +70,9 @@ is a mechanism, calculation, Shape or dtype contract, implementation flow,
 debugging rule, evaluation judgment, or limitation that materially represents
 what the learner studied. Do not turn incidental prose into busywork.
 
-Create this exact map in the generated Notebook. The map plus explicitly cited
-equivalent completed learner evidence must cover the TIL's major outcomes:
+Create this map in the Notebook's internal practice metadata. It must not appear
+in learner-facing cells. The map plus explicitly cited equivalent completed
+learner evidence must cover the TIL's major outcomes:
 
 ```text
 Outcome ID | TIL location | Practice action | Artifact/Exercise | Required evidence
@@ -138,43 +145,57 @@ including policy thresholds and precedence, exact return tokens and dictionary
 keys, dtype or device representation, axis and inclusive-boundary conventions,
 aggregation formulas, and required error behavior.
 
-Do not turn this requirement into an answer leak. Separate fixed requirements
-from results the learner must derive. In every exercise, put this exact table
-inside `### 작은 유사 사례와 계약`, followed by a non-empty
-`#### 학습자가 구현·판단할 것` subsection:
+Do not turn this requirement into an answer leak or an authoring rubric on the
+learner surface. State fixed requirements in natural prose and bullets, then
+state what the learner must implement or infer. Internally, keep contiguous
+Requirement IDs and `source-given`, `practice-given`, or `derive` kinds in
+`metadata.llm_research_lab.practice` only.
 
-```text
-| Contract ID | Kind | Learner-visible requirement |
-| --- | --- | --- |
-| C-E01-01 | source-given | An exact requirement retained from a linked source. |
-| C-E01-02 | practice-given | An exact local API or failure requirement added by this practice. |
-| C-E01-03 | derive | An observable result or invariant the learner derives from visible inputs. |
-```
-
-- Contract IDs are contiguous within each exercise: `C-E01-01`,
-  `C-E01-02`, and so on.
-- `source-given` must faithfully state the linked source's rule and identify
-  source-specific thresholds as local policies rather than universal facts.
-- `practice-given` is allowed only for a useful local interface or failure
-  boundary and must state the choice explicitly.
-- `derive` states what must be calculated or checked without supplying the
-  completed algorithm or derived answer.
-- Put `# contract: C-E01-01` immediately before every assertion group or
-  expected-exception block in `check_e01()`. Every declared contract must be
-  exercised and every assertion or expected exception must have a same-exercise
-  contract marker.
+- A source-given Requirement faithfully names a precise source location and
+  identifies a source-specific threshold as a local policy, not a universal
+  fact.
+- A practice-given Requirement is allowed only for a useful local interface or
+  failure boundary and records its rationale internally.
+- A derive Requirement states what must be calculated or checked without
+  putting the completed algorithm or derived answer in the brief.
+- Each Requirement points to a same-exercise brief cell before implementation,
+  and its complete normalized natural-language claim must occur there. Isolated
+  word matches are not evidence that the relation was disclosed.
+- Each `np.testing` or `torch.testing` assertion and expected-exception block is
+  traced internally by AST ordinal and fingerprint. Never put Requirement IDs
+  or trace markers in Markdown or code.
+- Do not invent a callable or token assertion for a prose-only concept. A
+  learner-owned design or interpretation Requirement may instead terminate in
+  the adjacent reflection cell, with its exact prompt and unresolved
+  placeholder tracked as the learner target.
+- Track every required reflection response as a learner target. A reflection
+  that has no target must be phrased as optional and state that it is not a
+  completion condition; never hide a fourth required action in prose after an
+  Exercise has reached its three-target limit.
 
 If two reasonable implementations satisfy the visible Notebook but only one
 passes its checks, the artifact is defective. A test may verify a derived
 consequence; it may not be the first disclosure of an arbitrary rule.
 
-Provide only setup that does not solve the learning target:
+Use guided fading. Choose `guided` when the learner is meeting a mechanism for
+the first time, `partial` when they can complete a familiar core inside a
+provided boundary, and `independent` only when their evidence supports writing
+the whole small mechanism. In every stage, provide signatures, repetitive
+validation, return assembly, fixture wiring, and bookkeeping unless one of
+those is itself a mapped learning outcome. The learner owns the decisive
+operation, reasoning, diagnosis, or design choice.
+
+Keep one primary concept per Exercise and no more than three learner targets.
+Split independent concepts into adjacent Exercises in the same Notebook. A
+completed learner Exercise may be preserved as an explicit migration exception;
+do not erase it merely to restore a creation-ready state.
+
+Provide setup and scaffolding that do not solve the declared learner targets:
 
 - a realistic scenario and requirements;
 - public signatures, type hints, and docstrings;
 - deterministic tiny fixtures, imports, and environment boilerplate;
-- exactly one unexecuted `# setup-check` code cell before the first exercise,
-  so it precedes every learner TODO;
+- exactly one unexecuted setup-role code cell before the first exercise;
 - tests expressing already disclosed normal, edge, and failure contracts;
 - commands and values to observe.
 
@@ -182,31 +203,38 @@ Every created artifact is a Notebook-only artifact:
 
 - keep the setup cell to dependency imports, type aliases, and non-solution
   helpers;
-- put learner-owned functions in one `# TODO: E01` implementation cell;
-- put deterministic calls and observations in a separate
-  `# provided-fixture: E01` cell;
-- put a self-contained `check_e01()` definition and call in one
-  `# test-check: E01` cell, with explicit `# normal`, `# edge`, and `# failure`
-  cases;
+- give every cell a stable nbformat cell ID and one internal role;
+- for each Exercise, keep one brief, implementation, fixture, `check_e01()`, and
+  reflection cell in that order;
+- use natural comments such as `# 예제 입력으로 동작을 살펴보세요` and
+  `# 잘못된 입력`; never expose setup, fixture, check, Outcome, Requirement, or
+  trace role markers;
+- keep normal, edge, and failure categories in check metadata while presenting
+  learner-friendly comments in code;
 - use lightweight local assertions such as `numpy.testing`; do not add path
   manipulation, module reload, subprocess, pytest, package imports, or hidden
   test files.
 
-Imports, fixtures, calls, prints, and comparison assertions are scaffolding,
-not the learner's answer. Keep the runnable fixture beside its TODO; do not
-make the learner copy it by hand. Keep the core algorithm, target-specific
-validation, and interpretation learner-owned.
+Imports, fixtures, calls, prints, comparison assertions, routine validation,
+dict or tuple assembly, and API bookkeeping are normally scaffolding, not the
+learner's answer. Keep the runnable fixture beside its TODO; do not make the
+learner copy it by hand. A practice-added API rule defaults to provided
+scaffolding and may become learner-owned only when an exact TIL outcome makes
+that rule the concept being practised.
 
-Leave these to the learner from scratch:
+Leave these to the learner at the selected scaffold stage:
 
 - core algorithms and Tensor operations;
 - the decisive train/validation ordering;
 - metric, checkpoint, batching, and validation judgments;
-- implementation of explicitly specified target-specific error handling;
 - result interpretation and design justification.
 
-Every public learner function starts with `raise NotImplementedError`. Do not
-prefill most of the algorithm and leave cosmetic blanks. Tests may verify the
+Track each learner-owned boundary as an internal learner target. A guided or
+partial function may contain completed provided code around an explicit
+unresolved `NotImplementedError`; only the target operation must remain blank.
+An implementation cell may also contain complete helpers or top-level
+prediction/design work and need not expose a public learner function. Do not
+prefill the declared core and leave cosmetic blanks. Tests may verify the
 observable contract, never introduce a hidden requirement or reveal an
 implementation strategy. Use only production
 features that serve the outcome: explicit Shape/dtype contracts, separated
@@ -214,36 +242,30 @@ public interfaces, deterministic config, train/eval boundaries, meaningful
 return values, input validation, or normal/edge/failure tests. Avoid Docker,
 cloud, large downloads, elaborate packaging, and other decorative complexity.
 
-Each exercise uses this exact order:
+Do not prescribe exact learner-facing headings. Write a polished exercise that
+reads like finished courseware: a natural title and short purpose, the functions
+to implement, exact fixed requirements, a tiny analogous example when useful,
+folded progressive hints, starter code, local observations, and an
+interpretation prompt. The metadata roles establish order without leaking the
+authoring schema. Never create a global hint section.
 
-```text
-## E01. <title>
-### 실제 사용 맥락
-### 실행 전 회상·예측
-### 작은 유사 사례와 계약
-### 구현
-<folded Hint 1 and Hint 2 beside the TODO>
-### 테스트와 실패 진단
-### 결과 해석
-```
-
-Put the folded hints in the Markdown cell immediately before the code cell
-containing `# TODO: E01`. Never create a global hint section.
+Put folded hints in the brief immediately before the implementation cell.
 
 - Hint 1 points to the state or concept to inspect.
 - Hint 2 gives a tiny trace, Shape flow, or pseudocode.
 - Add Hint 3 only when a minimal API skeleton is necessary; never give the
   completed core.
 
-Link the exact TIL, all used lessons, and every mapped instructor-practice file
-from the workbook. State what was retained from course scaffolding and what was
-added as scenario, test, or failure case. Leave every code cell unexecuted with
-`execution_count: null` and empty outputs. Do not invent success, output,
-metric, or experiment results.
+Store the exact TIL, all used lessons, every mapped instructor-practice file,
+their hashes, Outcome coverage, and source-versus-practice findings in the
+internal metadata. The learner surface may contain one concise optional TIL or
+course-index review link, but never an exhaustive audit list or coverage table.
+Leave every code cell unexecuted with `execution_count: null` and empty outputs.
+Do not invent success, output, metric, or experiment results.
 
-The initial run is expected to fail only because learner functions remain
-`NotImplementedError`; syntax errors, import errors, fixture failures, and test
-cell-order errors are artifact defects.
+The initial run is expected to fail only at declared unresolved learner targets;
+syntax errors, import errors, provided-scaffold failures, fixture failures, and
+test cell-order errors are artifact defects.
 
 ## Validate and obtain an independent review
 
@@ -251,25 +273,29 @@ Run the artifact validator on the Notebook:
 
 ```bash
 python3 .agents/skills/suggest-learning-practice/scripts/validate_practice_artifact.py \
-  practice/<area>/<topic>
+  practice/<area>/<topic>.ipynb
 ```
 
-Also run Notebook JSON validation, the `# setup-check` from the repository root,
-code-cell compilation, link checks, and `git diff --check`. Read the final
-Notebook.
+Use `--learner-state` only when validating an existing Notebook that already
+contains learner implementations or execution state. It preserves specification
+and trace audits but does not certify the artifact as newly created and blank.
 
-Then give the exact TIL, linked sources, mapped instructor practice, Practice
-Coverage Map, and Notebook to a fresh read-only reviewer that did not author it.
-The reviewer first reads only the Notebook and checks that every test behavior
-is determinable without opening a source. The reviewer then compares the TIL,
-linked lessons, and mapped instructor practice for source fidelity, full outcome
-coverage, from-scratch core work, useful non-solution local checks, adjacent
-sufficient hints, single-file simplicity, and absence of decorative complexity
-or fake output. A source-only requirement, a hidden test convention, or a
-source-specific policy presented as a universal fact is blocking. Permit one
-revision and a second fresh reviewer only. If review is unavailable or the
-second review does not pass, do not call the artifact ready or deliver it as
-completed.
+Also run Notebook JSON and metadata validation, the setup-role cell from the
+repository root, code-cell compilation, source hash and link checks, and
+`git diff --check`. Read the final Notebook.
+
+Then give the Notebook to a fresh read-only reviewer that did not author it.
+First provide only the rendered learner surface: the reviewer checks that it
+reads like polished courseware, contains no internal audit language, and makes
+every check behavior determinable without another file. Only after that pass,
+provide the exact TIL, metadata, linked sources, and mapped instructor practice
+for source fidelity, full outcome coverage, appropriate scaffold ownership,
+useful
+non-solution local checks, adjacent sufficient hints, single-file simplicity,
+and absence of fake output. A source-only requirement, a hidden test convention,
+audit leakage, or a source-specific policy presented as universal is blocking.
+Permit one revision and one second fresh reviewer only. If review is unavailable
+or the second review does not pass, do not call the artifact ready.
 
 Do not execute learner TODOs or commit/push unless the user separately asks.
 
@@ -282,7 +308,7 @@ Do not execute learner TODOs or commit/push unless the user separately asks.
 2. Distinguish inputs, model outputs, targets, parameters, gradients, metrics,
    and persisted artifacts. Trace the smallest relevant state or Shape.
 3. Address one blocker at a time. Start with the smallest concept hint, then a
-   partial trace, then a minimal API skeleton. Do not complete the core
+   partial trace, then the provided API boundary. Do not complete the core
    implementation without explicit authorization.
 4. After tests pass, require the learner to explain the decisive state change,
    output, or contract. A green test alone is not completion evidence.
