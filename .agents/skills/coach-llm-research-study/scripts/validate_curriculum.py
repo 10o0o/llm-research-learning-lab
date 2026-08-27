@@ -164,6 +164,9 @@ class RegistrySummary:
 
 @dataclass(frozen=True)
 class CurriculumTargetSnapshot:
+    depth: str
+    prerequisites: tuple[str, ...]
+    required_evidence: tuple[str, ...]
     coverage: str
     gap_action: str
     line: int
@@ -428,6 +431,9 @@ def curriculum_snapshot_from_text(text: str) -> CurriculumSnapshot:
             for path in paths_by_id.get(source_id, [])
         )
         targets[competency.identifier] = CurriculumTargetSnapshot(
+            depth=competency.depth,
+            prerequisites=tuple(competency.prerequisites),
+            required_evidence=tuple(competency.evidence),
             coverage=competency.coverage,
             gap_action=competency.gap_action,
             line=competency.line,

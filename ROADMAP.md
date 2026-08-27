@@ -18,6 +18,17 @@
 
 Modeling과 Computer Vision은 별도 주력 트랙이 아니라 위 전문화를 이해하거나 검증하는 데 필요한 선수개념·연결 학습으로 다룹니다. 이 우선순위는 공통 핵심의 선수 관계를 건너뛴다는 뜻이 아닙니다. `CURRICULUM.md`에서 현재 목표의 blocking prerequisite가 확인되면 그 공백을 먼저 해소합니다.
 
+## 정적 목표 endpoint
+
+아래 표는 전문화 방향의 도착점을 고정할 뿐, 완료 여부나 현재 진도를 기록하지 않습니다. 실제 다음 목표는 `CURRICULUM.md`의 선수 그래프와 학습자가 직접 남긴 근거를 함께 보고 정합니다.
+
+| 우선순위 | 방향 | Endpoint |
+|---:|---|---|
+| 1 | Systems·Inference | `TR-SYS-03`, `TR-SYS-04` |
+| 2 | Post-training·Evaluation | `TR-MOD-03`, `TR-EVAL-02`, `TR-EVAL-04` |
+
+Modeling과 Computer Vision은 이 endpoint에 필요한 선수개념 또는 연결 학습으로만 선택합니다.
+
 ## 1. 수학과 Tensor
 
 - 선형대수, 미분, 확률

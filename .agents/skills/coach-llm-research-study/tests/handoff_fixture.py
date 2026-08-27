@@ -23,11 +23,34 @@ Trace a tensor operation and explain its shape contract.
 
 - CC-DL-01
 
+### Target Decision
+
+- selection_mode: user-named-target
+- target_state: START_TARGET
+- primary_target: CC-DL-01
+- bridge_target: none
+- evidence_gap: explain
+- completion_evidence: Explain both axes and predict the broadcast result shape.
+- endpoint: TR-SYS-03
+- why_now: The named tensor target is a prerequisite on the Systems route.
+
 ### Curriculum Treatment Map
 
 | Target ID | Coverage | Gap action | Lesson treatment | Objective IDs | Note |
 | --- | --- | --- | --- | --- | --- |
 | CC-DL-01 | 충분 | 그대로 사용 | source-only | O001, O002 | The named source directly supports the selected tensor-shape target. |
+
+### External Source Identity
+
+| Primary ID | Provider | Course | Offering/Edition | Artifact | Official URL | Final URL | Retrieved at | Media type | Scope | Receipt path |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| none | none | none | none | none | none | none | none | none | none | none |
+
+### External Target Relation
+
+| Target ID | Primary ID | Relation | Objective IDs | Audit basis |
+| --- | --- | --- | --- | --- |
+| none | none | none | none | none |
 
 ### Learner Evidence Baseline
 
@@ -122,6 +145,7 @@ def build_handoff(
     reviews: list[tuple[str, str]] | None = None,
     evidence: list[dict[str, str]] | None = None,
     lesson_id: str = "tensor-shape-lesson",
+    primary_role: str = "primary",
     primary_path: str = "materials/lesson.md",
     primary_bytes: bytes = (
         b"# Lesson\n\n"
@@ -133,6 +157,7 @@ def build_handoff(
         b"## shape-propagation\n\nBroadcast shapes.\n\n"
         b"## orientation\n\nUse the course map when navigation is needed.\n"
     ),
+    additional_manifest_inputs: list[tuple[str, str, bytes]] | None = None,
     course_index_path: str | None = None,
     coverage: list[dict[str, str]] | None = None,
     pre_save_verdict: str = "pending",
@@ -161,11 +186,27 @@ def build_handoff(
             encoding="utf-8",
         )
     curriculum_hash = sha256(curriculum.read_bytes())
-    manifest_inputs = [("primary", primary_path, source_hash)]
+    roadmap = root / "ROADMAP.md"
+    if not roadmap.exists():
+        roadmap.write_text(
+            "# Roadmap\n\n## 정적 목표 endpoint\n\n"
+            "| 우선순위 | 방향 | Endpoint |\n"
+            "| ---: | --- | --- |\n"
+            "| 1 | Systems | `TR-SYS-03` |\n",
+            encoding="utf-8",
+        )
+    roadmap_hash = sha256(roadmap.read_bytes())
+    manifest_inputs = [(primary_role, primary_path, source_hash)]
+    for role, path, payload in additional_manifest_inputs or []:
+        candidate = root / path
+        candidate.parent.mkdir(parents=True, exist_ok=True)
+        candidate.write_bytes(payload)
+        manifest_inputs.append((role, path, sha256(payload)))
     if course_index_path is not None:
         course_index = root / course_index_path
         manifest_inputs.append(("course-index", course_index_path, sha256(course_index.read_bytes())))
     manifest_inputs.append(("curriculum", "CURRICULUM.md", curriculum_hash))
+    manifest_inputs.append(("roadmap", "ROADMAP.md", roadmap_hash))
     manifest_rows = [
         (f"I{index:03d}", role, path, digest)
         for index, (role, path, digest) in enumerate(manifest_inputs, start=1)
@@ -297,7 +338,7 @@ def build_handoff(
 
 ## Metadata
 
-- schema_version: 4
+- schema_version: 5
 - lesson_id: {lesson_id}
 - title: Tensor shape lesson
 - status: {status}

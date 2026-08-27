@@ -1,66 +1,116 @@
-# Learning planner contract
+# Target-first learning planner contract
 
-Use this contract to recommend the next learning move. It is a read-only decision aid, not learner progress state.
+Use this contract to choose one primary curriculum target and, only when needed, one bridge prerequisite. This is a read-only decision aid, not learner progress state.
 
 ## Inputs and evidence boundaries
 
-Read the smallest relevant subset in this order:
+Read the smallest relevant subset:
 
-1. `ROADMAP.md` for broad specialization priority;
-2. the target and prerequisite rows in `CURRICULUM.md` for operational gaps and source relations;
-3. the related registry rows, course `INDEX.md`, and read-only freshness result;
+1. `ROADMAP.md` for static endpoint priority;
+2. `CURRICULUM.md` through `scripts/inspect_target_graph.py` for `depth`, prerequisite closure, required evidence, source relations, coverage, and gap action;
+3. the selected target's registry rows, course `INDEX.md`, and read-only freshness result;
 4. learner-authored evidence in the current conversation, `knowledge/`, finalized dated TIL, and executed practice;
 5. challenge evidence only when an exact target or TIL link, actual verification result, and learner explanation all exist.
 
-Treat practice implementation plus executed output and learner interpretation as the strongest local evidence. Treat `knowledge/` as the current explanation but verify its cited provenance. Treat TIL as dated historical evidence. Tutor prose, source summaries, lecture completion, green checks alone, and platform passes alone do not establish mastery.
+Do not persist a planner snapshot, target status, mastery flag, score, or completion percentage. Source availability never changes target priority. Resolve source feasibility only after choosing the target.
 
-Do not scan unrelated history merely to fill the response. If evidence is absent or contradictory, classify it as `unknown`.
+Implementation plus executed output and learner interpretation is the strongest local evidence. `knowledge/` is the current explanation but its cited provenance still matters. TIL is dated historical evidence. Tutor prose, source summaries, lecture completion, green checks alone, and platform passes alone do not establish mastery.
 
-## Freshness and prerequisite classification
+## Prerequisite and evidence classification
 
-Run the relevant structural or scoped source validator when needed. Keep registry health separate from the learning recommendation:
-
-- `registry_action: REPAIR_REQUIRED` when a selected or candidate local source has missing registration, stale bytes, incomplete audit, or INDEX parity failure;
-- `registry_action: NONE` when the relevant source slice is current or the recommendation does not rely on a local source.
-
-Classify every prerequisite that can change the recommendation:
+Classify every prerequisite that can change the decision:
 
 - `satisfied`: learner-authored explanation or implemented, executed, and interpreted evidence supports reuse;
-- `bridgeable`: enough prior evidence exists for a short explicit bridge before the target;
-- `blocking`: the target cannot be understood or practiced safely without first learning the prerequisite;
-- `unknown`: current evidence cannot support one of the other judgments.
+- `bridgeable`: a short explicit bridge can close a narrow gap before the primary target;
+- `blocking`: the target cannot be learned or practiced safely before this target is addressed;
+- `unknown`: available evidence cannot support another classification.
 
-Never hardcode a universal course order. A blocking prerequisite outranks specialization preference; otherwise use ROADMAP priority to break ties.
+For the chosen target, subtract demonstrated evidence from `required_evidence` and report the remaining evidence tokens. Do not infer a token from file presence. When a prerequisite is `unknown` and that uncertainty changes the route, return a diagnostic instead of guessing.
+An evidence token remains missing until learner-authored evidence covers the
+materially distinct behaviors named by that target row; one narrow green check
+does not satisfy `debug`, `implement`, or `interpret` across the whole target.
 
-## Candidate selection
+## Target selection
 
-Rank candidates by:
+Choose exactly one primary target and at most one bridge target in this order:
 
-1. unresolved work in an existing linked practice artifact;
-2. an audited local source that addresses the highest-priority current gap;
-3. an unaudited local source, clearly paired with registry repair before learning;
-4. one official primary external artifact when no suitable local source exists.
+1. an exact target named by the user;
+2. a blocking prerequisite on the path to the highest-priority ROADMAP endpoint;
+3. the active target when it still lacks required learner evidence;
+4. the current frontier target that unlocks the greatest number of downstream targets;
+5. only for a tie, expected time, compute, access cost, and explicit user constraints.
 
-Return at most three targets. Prefer one precise next artifact and range over a broad syllabus. An optional bridge may precede the primary target, but it is not a reason to add unrelated study.
+Before step 2, classify the relevant prerequisite closure. A frontier
+prerequisite is one whose own prerequisites are already `satisfied` or can be
+closed by a short inline `bridgeable` explanation. If any frontier prerequisite
+is `blocking`, retain the endpoint as `primary_target`, select exactly one such
+blocker as `bridge_target`, and teach and evidence it first. Do not select a
+merely `bridgeable` prerequisite or a nearly finished practice while a frontier
+blocker remains. Among multiple frontier blockers, choose the one that unlocks
+the most remaining nodes on the selected endpoint route; only then use time,
+compute, access cost, and explicit user constraints. If those are still
+identical, use Curriculum row order only as a reproducible final ordering, not
+as a learning preference. If an unknown state could change this choice, return
+`NEED_DIAGNOSTIC` instead of choosing.
 
-External identity is the tuple `provider + course + offering or edition + artifact`. Do not combine slides, videos, assignments, or readings from different offerings as if they were one audited source. Include the official URL and exact chapter, lecture, or assignment range. Mark every download or registration as awaiting user approval.
+`bridgeable` does not replace the primary target; close it inside the selected
+target or blocker lesson. A chapter number, source order, local source
+availability, or unfinished artifact cannot independently select a target.
+
+After selecting the target, reuse an existing practice only when all are true:
+
+- its metadata directly names the primary target or bridge target;
+- at least one still-required execution evidence token remains;
+- completing it is valuable relative to its time and compute cost;
+- it is not paused or explicitly deferred;
+- no unresolved conceptual blocker makes practice premature.
+
+Unrelated, low-value, paused, legacy-without-target-metadata, or merely unfinished practice does not outrank the target. A directly related useful unfinished practice may determine the next artifact, never the target priority.
+
+## Source resolution after target selection
+
+Keep registry health separate from the learning move:
+
+- `registry_action: REPAIR_REQUIRED` when a selected local source is missing, stale, incompletely audited, or inconsistent with its INDEX;
+- `registry_action: NONE` when the selected slice is current or no local source is used.
+
+Prefer a current registered local source when it directly supports the selected target. Otherwise identify one exact official external primary source as `provider + course + offering/edition + artifact + scope`.
+
+Use `learning_action: USE_TEMPORARY_EXTERNAL_SOURCE` when a public official HTTPS artifact can be safely cached and audited for this lesson. Use `AWAIT_SOURCE_APPROVAL` for login, payment, more than 100 MiB, an archive, dataset, model weight, non-HTTPS access, permanent registration, or a user decision that materially changes scope. Never combine artifacts from different offerings or editions as one source.
+
+Use `source_persistence: EPHEMERAL` for the first temporary lesson. Change the recommendation to `REGISTRATION_RECOMMENDED` when the same exact source is needed for a second independent lesson or is becoming a central long-term route. Do not register it automatically. Registered sources use `LOCAL_REGISTERED`; no source need uses `NONE`.
+
+The registered Harvard Stat110 source is normal local material. Recommend its exact Second Edition PDF and Chapters 1–4 only when `CC-PROB-01` is the selected target; its mere availability never changes target selection.
 
 ## Output contract
 
-Always return these two independent axes first:
+Return these four fields first:
 
+- `target_state`: `START_TARGET`, `CONTINUE_TARGET`, `BRIDGE_PREREQUISITE`, `NEED_DIAGNOSTIC`, or `NO_ACTIONABLE_TARGET`;
 - `registry_action`: `REPAIR_REQUIRED` or `NONE`;
-- `learning_action`: `CONTINUE_EXISTING_PRACTICE`, `CONTINUE_LOCAL_SOURCE`, `PROPOSE_EXTERNAL_SOURCE`, or `NO_NEW_SOURCE_NEEDED`.
+- `learning_action`: `CONTINUE_EXISTING_PRACTICE`, `CONTINUE_LOCAL_SOURCE`, `USE_TEMPORARY_EXTERNAL_SOURCE`, `AWAIT_SOURCE_APPROVAL`, or `NO_NEW_SOURCE_NEEDED`;
+- `source_persistence`: `LOCAL_REGISTERED`, `EPHEMERAL`, `REGISTRATION_RECOMMENDED`, or `NONE`.
 
-Then state:
+Then report:
 
-- one to three target competency IDs and why they rank now;
-- the evidence used and its limitations;
-- prerequisite states and any smallest bridge;
-- the exact next artifact and range;
-- explicit excluded scope;
-- expected time, compute, data, and access burden using honest qualitative bounds;
-- observable completion evidence, such as an explanation, hand calculation, shape trace, implementation, executed check, or interpreted output;
-- approval state for any future write, download, registration, or replacement.
+- exactly one `primary_target`, or `none` only with `NO_ACTIONABLE_TARGET`;
+- optional `bridge_target` and each relevant prerequisite state;
+- the target-first selection reason, including the endpoint it advances;
+- evidence consulted, its limitations, and exact missing evidence tokens;
+- observable target completion evidence;
+- the exact next artifact and range, plus explicit excluded scope;
+- honest qualitative time, compute, data, and access burden;
+- approval state for temporary retrieval, persistent registration, paid/authenticated access, or external participation.
 
-When `registry_action` is `REPAIR_REQUIRED`, say whether learning can safely continue from an already verified artifact or must wait for the source repair. Do not turn the repair into proof of learner understanding.
+`bridge_target` is non-`none` if and only if `target_state` is
+`BRIDGE_PREREQUISITE`. `NEED_DIAGNOSTIC` retains the tentative
+`primary_target` but uses `bridge_target: none` until the missing evidence makes
+the route decidable. `NO_ACTIONABLE_TARGET` alone uses `primary_target: none`.
+
+When registry repair is required, state whether learning can continue from already verified bytes or must wait. Repair and source completion are never learner evidence.
+
+For `NEED_DIAGNOSTIC`, use `registry_action: NONE`,
+`learning_action: NO_NEW_SOURCE_NEEDED`, and `source_persistence: NONE` unless
+the diagnostic itself has already revealed a source integrity problem. Name the
+exact evidence needed to decide; these values mean “diagnose before source
+resolution,” not that the target is complete or needs no future source.

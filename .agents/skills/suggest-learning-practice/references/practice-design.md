@@ -61,7 +61,7 @@ Keep two distinct layers inside the same `.ipynb`:
 - **Audit metadata**: source hashes, TIL coverage, Requirement kinds, cell roles,
   and assertion traceability under `metadata.llm_research_lab.practice`.
 
-Read [practice audit metadata v2](practice-audit-metadata.md) when creating or
+Read [practice audit metadata v3](practice-audit-metadata.md) when creating or
 validating a Notebook. The internal IDs and audit kinds must never be rendered
 in Markdown or code. Hiding an ID does not hide its requirement: every fixed
 value and convention still appears naturally before the learner implementation.
@@ -81,6 +81,17 @@ as `# setup-check`. The artifact validator executes this cell from the
 repository root.
 
 ## Choose the smallest useful artifact boundary
+
+Choose the modality before the artifact. Use `NOTEBOOK` for mathematics,
+Tensor mechanics, model mechanisms, and small implementations; `BENCHMARK` for
+latency, throughput, memory, batching, and KV-cache measurements; and
+`DATASET_PROJECT` for data handling, validation, metrics, and error analysis.
+All three local modes keep the one-Notebook boundary but must use mode-specific
+tasks and metadata. A verified external challenge or competition is a proposal,
+not a local Notebook, and requires approval before account access,
+participation, or submission. If the current item or its material value cannot
+be verified, keep the decision typed and use the corresponding local fallback
+instead of emitting an exception or an unverified external name.
 
 Create exactly one `practice/<area>/<topic>.ipynb` for each generated practice.
 Use exercises inside that Notebook for every part of the whole task, including
@@ -157,6 +168,8 @@ For every major TIL outcome, ask:
 A fresh reviewer returns `pass` only when all are true:
 
 - the exact finalized TIL is valid and all major outcomes are represented;
+- the practice modality matches the evidence the selected Curriculum target
+  requires, and every Outcome declares a relevant target;
 - exact lesson links resolve and instructor practice comes from an explicit
   `INDEX.md` mapping;
 - each learner target is a genuine blank core operation or response while
@@ -181,6 +194,12 @@ A fresh reviewer returns `pass` only when all are true:
   source-audit prose, or cell-role/test-trace marker;
 - each Exercise has one primary concept and no more than three learner targets;
 - initial execution fails only at explicit learner-owned unresolved boundaries.
+
+The completion gate is separate from creation review. `--completion-ready`
+requires every learner target and required reflection to be resolved, setup,
+implementation, fixture, and checker cells to have actually executed in the
+current order, no error output, and current TIL/source provenance. A green
+checker without the learner's interpretation is still not learning evidence.
 
 The reviewer first receives only the rendered learner surface and performs a
 specification inversion: for every public assertion or expected exception, it

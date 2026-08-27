@@ -1,4 +1,4 @@
 interface:
   display_name: "현업형 학습 실습"
-  short_description: "강의 핵심만 직접 완성하는 guided 단일 Notebook을 만듭니다"
-  default_prompt: "$suggest-learning-practice를 사용해 정확히 지정한 날짜별 TIL과 매핑 실습을 바탕으로, 반복 코드는 제공하고 강의 핵심만 점진적으로 직접 완성하는 단일 ipynb 실습을 만들어줘."
+  short_description: "목표 근거에 맞는 실습 modality를 판정하고 실행합니다"
+  default_prompt: "$suggest-learning-practice를 사용해 선택된 target과 정확한 날짜별 TIL의 부족한 수행 근거를 확인하고 practice_action과 practice_mode를 정한 뒤, 승인된 범위에서 실행해줘."

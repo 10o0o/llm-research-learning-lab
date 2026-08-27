@@ -10,8 +10,10 @@ import re
 import sys
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 from typing import Any
+from urllib.parse import urlsplit
 
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
@@ -24,13 +26,16 @@ from validate_curriculum import (  # noqa: E402
 )
 
 
-SCHEMA_VERSION = "4"
+SCHEMA_VERSION = "5"
 STATUSES = {"preparing", "review_pending", "active", "paused", "blocked", "completed"}
 MANIFEST_ROLES = {
     "primary",
+    "external-primary",
+    "external-asset",
     "asset",
     "course-index",
     "curriculum",
+    "roadmap",
     "knowledge",
     "til",
     "practice",
@@ -76,7 +81,33 @@ CURRICULUM_GAP_ACTIONS = {
     "원본 복구 후 재감사",
     "트랙 선택 시 확보",
 }
-LESSON_TREATMENTS = {"source-only", "supplement-now", "defer-gap", "defer-track"}
+LESSON_TREATMENTS = {
+    "source-only",
+    "supplement-now",
+    "resolved-external",
+    "defer-gap",
+    "defer-track",
+}
+PRIMARY_ROLES = {"primary", "external-primary"}
+TARGET_SELECTION_MODES = {"planner", "user-named-target", "user-named-source"}
+TARGET_STATES = {
+    "START_TARGET",
+    "CONTINUE_TARGET",
+    "BRIDGE_PREREQUISITE",
+    "NEED_DIAGNOSTIC",
+    "NO_ACTIONABLE_TARGET",
+}
+EXTERNAL_RELATIONS = {"primary", "supporting"}
+EVIDENCE_TOKENS = {
+    "explain",
+    "calculate",
+    "shape",
+    "implement",
+    "debug",
+    "interpret",
+    "design",
+    "transfer",
+}
 HASH_RE = re.compile(r"[0-9a-f]{64}\Z")
 LESSON_ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{2,63}\Z")
 AGENT_ID_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/@-]{1,127}\Z")
@@ -126,7 +157,10 @@ CONTRACT_HEADINGS = (
     "Objective",
     "Coverage Mode",
     "Curriculum Targets",
+    "Target Decision",
     "Curriculum Treatment Map",
+    "External Source Identity",
+    "External Target Relation",
     "Learner Evidence Baseline",
     "Audited Findings",
     "Source Coverage Index",
@@ -171,6 +205,45 @@ class ManifestEntry:
     role: str
     path: str
     sha256: str
+    line: int
+
+
+@dataclass
+class TargetDecision:
+    selection_mode: str
+    target_state: str
+    primary_target: str
+    bridge_target: str
+    evidence_gap: list[str]
+    completion_evidence: str
+    endpoint: str
+    why_now: str
+    line: int
+
+
+@dataclass
+class ExternalSourceIdentity:
+    primary_id: str
+    provider: str
+    course: str
+    offering_or_edition: str
+    artifact: str
+    official_url: str
+    final_url: str
+    retrieved_at: str
+    media_type: str
+    scope: str
+    receipt_path: str
+    line: int
+
+
+@dataclass
+class ExternalTargetRelation:
+    target_id: str
+    primary_id: str
+    relation: str
+    objective_ids: list[str]
+    audit_basis: str
     line: int
 
 
@@ -309,6 +382,9 @@ class HandoffDocument:
     teaching_steps: dict[str, TeachingStep] = field(default_factory=dict)
     curriculum_targets: list[str] = field(default_factory=list)
     curriculum_treatments: dict[str, CurriculumTreatment] = field(default_factory=dict)
+    target_decision: TargetDecision | None = None
+    external_identities: dict[str, ExternalSourceIdentity] = field(default_factory=dict)
+    external_relations: dict[tuple[str, str], ExternalTargetRelation] = field(default_factory=dict)
     review_attempt_count: int | None = None
     reviews: list[ReviewAttempt] = field(default_factory=list)
     current_position: dict[str, str] = field(default_factory=dict)
@@ -629,6 +705,26 @@ def _normalize_location_fragment(value: str) -> str:
     return re.sub(r"\s+", " ", value).strip()
 
 
+class _VisibleTextParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+        self._ignored_depth = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        del attrs
+        if tag.lower() in {"script", "style", "noscript", "template"}:
+            self._ignored_depth += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() in {"script", "style", "noscript", "template"} and self._ignored_depth:
+            self._ignored_depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        if not self._ignored_depth:
+            self.parts.append(data)
+
+
 def _pdf_page_count(path: Path) -> int | None:
     try:
         from pypdf import PdfReader  # type: ignore[import-not-found]
@@ -667,6 +763,19 @@ def _location_exists(location: str, repo_root: Path) -> bool:
         return False
     if not anchor:
         return False
+    if anchor.lower().startswith("text: "):
+        excerpt = _normalize_location_fragment(anchor[6:])
+        if candidate.suffix.lower() in {".html", ".htm"}:
+            parser = _VisibleTextParser()
+            try:
+                parser.feed(text)
+            except Exception:
+                return False
+            candidate_text = " ".join(parser.parts)
+        else:
+            candidate_text = text
+        normalized_text = re.sub(r"\s+", " ", candidate_text).strip()
+        return bool(excerpt) and excerpt in normalized_text
     if CURRICULUM_ID_RE.fullmatch(anchor):
         return re.search(rf"(?<![A-Z0-9-]){re.escape(anchor)}(?![A-Z0-9-])", text) is not None
     return any(_normalize_location_fragment(line) == anchor for line in text.splitlines())
@@ -754,13 +863,41 @@ def _parse_manifest(
     duplicate_paths = sorted({path for path in paths if paths.count(path) > 1})
     if duplicate_paths:
         errors.append(ValidationError(entries[0].line if entries else 1, "PATH", "duplicate manifest paths: " + ", ".join(duplicate_paths)))
-    if not any(entry.role == "primary" for entry in entries):
-        errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "manifest requires at least one primary input"))
+    if not any(entry.role in PRIMARY_ROLES for entry in entries):
+        errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "manifest requires at least one local or external primary input"))
     if sum(entry.role == "curriculum" for entry in entries) != 1:
         errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "manifest requires exactly one curriculum input"))
+    if sum(entry.role == "roadmap" for entry in entries) != 1:
+        errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "manifest requires exactly one roadmap input"))
     for entry in entries:
         if entry.role == "curriculum" and entry.path != "CURRICULUM.md":
             errors.append(ValidationError(entry.line, "PATH", "the curriculum manifest path must be exactly CURRICULUM.md"))
+        if entry.role == "roadmap" and entry.path != "ROADMAP.md":
+            errors.append(ValidationError(entry.line, "PATH", "the roadmap manifest path must be exactly ROADMAP.md"))
+        if entry.role in {"external-primary", "external-asset"}:
+            expected_prefix = f"tmp/active-lesson-sources/{doc.metadata.get('lesson_id', '')}/"
+            if not entry.path.startswith(expected_prefix):
+                errors.append(
+                    ValidationError(
+                        entry.line,
+                        "PATH",
+                        f"{entry.role} must be inside {expected_prefix}",
+                    )
+                )
+            allowed_suffixes = (
+                {".pdf", ".html", ".md", ".txt"}
+                if entry.role == "external-primary"
+                else {".png", ".jpg", ".webp", ".gif", ".svg"}
+            )
+            external_path = PurePosixPath(entry.path)
+            if external_path.stem != entry.sha256 or external_path.suffix not in allowed_suffixes:
+                errors.append(
+                    ValidationError(
+                        entry.line,
+                        "PATH",
+                        f"{entry.role} path must use its SHA-256 filename and an allowed media suffix",
+                    )
+                )
         if entry.path == doc.metadata.get("draft_path"):
             errors.append(ValidationError(entry.line, "PATH", "the mutable draft_path must not be included in the Input Manifest"))
 
@@ -824,6 +961,349 @@ def _contract_sections(contract: str) -> tuple[dict[str, str], list[tuple[str, i
     return sections, headings
 
 
+def _parse_target_decision(
+    doc: HandoffDocument,
+    section: str,
+    body_start: int,
+    errors: list[ValidationError],
+) -> None:
+    expected = (
+        "selection_mode",
+        "target_state",
+        "primary_target",
+        "bridge_target",
+        "evidence_gap",
+        "completion_evidence",
+        "endpoint",
+        "why_now",
+    )
+    values: dict[str, str] = {}
+    line_no = _line_number(doc.text, body_start)
+    for line in section.splitlines():
+        if not line.strip():
+            continue
+        match = re.fullmatch(r"- ([a-z_]+):[ \t]*(.*)", line.strip())
+        if match is None:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid Target Decision row: {line.strip()}"))
+            continue
+        key, value = match.groups()
+        if key in values:
+            errors.append(ValidationError(line_no, "SCHEMA", f"duplicate Target Decision field: {key}"))
+        values[key] = value.strip()
+    if tuple(values) != expected:
+        errors.append(
+            ValidationError(
+                line_no,
+                "SCHEMA",
+                "Target Decision fields must appear exactly in order: " + ", ".join(expected),
+            )
+        )
+        return
+
+    selection_mode = values["selection_mode"]
+    target_state = values["target_state"]
+    primary_target = values["primary_target"]
+    bridge_target = values["bridge_target"]
+    evidence_gap = _comma_ids(values["evidence_gap"], r"(?:explain|calculate|shape|implement|debug|interpret|design|transfer)")
+    if selection_mode not in TARGET_SELECTION_MODES:
+        errors.append(ValidationError(line_no, "SCHEMA", f"invalid target selection mode: {selection_mode}"))
+    if target_state not in TARGET_STATES:
+        errors.append(ValidationError(line_no, "SCHEMA", f"invalid target state: {target_state}"))
+    if not CURRICULUM_ID_RE.fullmatch(primary_target):
+        errors.append(ValidationError(line_no, "SCHEMA", f"invalid primary target: {primary_target}"))
+    if bridge_target != "none" and not CURRICULUM_ID_RE.fullmatch(bridge_target):
+        errors.append(ValidationError(line_no, "SCHEMA", f"invalid bridge target: {bridge_target}"))
+    if evidence_gap is None or len(evidence_gap) != len(set(evidence_gap)):
+        errors.append(ValidationError(line_no, "SCHEMA", "evidence_gap must be none or unique evidence tokens"))
+        evidence_gap = []
+    for key in ("completion_evidence", "endpoint", "why_now"):
+        if not values[key] or values[key] == "none":
+            errors.append(ValidationError(line_no, "SCHEMA", f"Target Decision {key} must be concrete"))
+    if target_state == "BRIDGE_PREREQUISITE" and bridge_target == "none":
+        errors.append(ValidationError(line_no, "SCHEMA", "BRIDGE_PREREQUISITE requires bridge_target"))
+    if target_state != "BRIDGE_PREREQUISITE" and bridge_target != "none":
+        errors.append(ValidationError(line_no, "SCHEMA", "bridge_target requires BRIDGE_PREREQUISITE"))
+    doc.target_decision = TargetDecision(
+        selection_mode,
+        target_state,
+        primary_target,
+        bridge_target,
+        evidence_gap or [],
+        values["completion_evidence"],
+        values["endpoint"],
+        values["why_now"],
+        line_no,
+    )
+
+
+def _parse_external_identities(
+    doc: HandoffDocument,
+    section: str,
+    body_start: int,
+    errors: list[ValidationError],
+) -> None:
+    rows = _contract_table_rows(
+        section,
+        [
+            "Primary ID",
+            "Provider",
+            "Course",
+            "Offering/Edition",
+            "Artifact",
+            "Official URL",
+            "Final URL",
+            "Retrieved at",
+            "Media type",
+            "Scope",
+            "Receipt path",
+        ],
+        doc,
+        body_start,
+        errors,
+        context="External Source Identity",
+    )
+    if len(rows) == 1 and rows[0][0] == ["none"] * 11:
+        rows = []
+    identities: dict[str, ExternalSourceIdentity] = {}
+    for cells, line_no in rows:
+        (
+            primary_id,
+            provider,
+            course,
+            offering,
+            artifact,
+            official_url,
+            final_url,
+            retrieved_at,
+            media_type,
+            scope,
+            receipt_path,
+        ) = cells
+        if primary_id in identities:
+            errors.append(ValidationError(line_no, "EXTERNAL_IDENTITY", f"duplicate external identity: {primary_id}"))
+            continue
+        entry = next((item for item in doc.manifest if item.item_id == primary_id), None)
+        if entry is None or entry.role != "external-primary":
+            errors.append(ValidationError(line_no, "EXTERNAL_IDENTITY", f"{primary_id} is not an external-primary manifest row"))
+        for label, value in (
+            ("Provider", provider),
+            ("Course", course),
+            ("Offering/Edition", offering),
+            ("Artifact", artifact),
+            ("Scope", scope),
+        ):
+            if not value or value == "none":
+                errors.append(ValidationError(line_no, "EXTERNAL_IDENTITY", f"{label} must be concrete"))
+        for label, value in (("Official URL", official_url), ("Final URL", final_url)):
+            parsed = urlsplit(value)
+            if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+                errors.append(ValidationError(line_no, "EXTERNAL_IDENTITY", f"{label} must be a public HTTPS URL without credentials"))
+        if not _is_rfc3339(retrieved_at):
+            errors.append(ValidationError(line_no, "EXTERNAL_IDENTITY", "Retrieved at must be RFC 3339"))
+        if not media_type or media_type == "none":
+            errors.append(ValidationError(line_no, "EXTERNAL_IDENTITY", "Media type must be concrete"))
+        receipt, path_error = _safe_repo_path(receipt_path, doc.repo_root)
+        if path_error or receipt is None:
+            errors.append(ValidationError(line_no, "EXTERNAL_IDENTITY", f"invalid receipt path: {path_error}"))
+        if entry is not None and entry.role == "external-primary":
+            expected_receipt = (
+                f"tmp/active-lesson-sources/{doc.metadata.get('lesson_id', '')}/"
+                f"{entry.sha256}.receipt.json"
+            )
+            if receipt_path != expected_receipt:
+                errors.append(
+                    ValidationError(
+                        line_no,
+                        "EXTERNAL_IDENTITY",
+                        f"Receipt path must be the content-addressed lesson receipt: {expected_receipt}",
+                    )
+                )
+        identities[primary_id] = ExternalSourceIdentity(
+            primary_id,
+            provider,
+            course,
+            offering,
+            artifact,
+            official_url,
+            final_url,
+            retrieved_at,
+            media_type,
+            scope,
+            receipt_path,
+            line_no,
+        )
+    external_primary_ids = [
+        entry.item_id for entry in doc.manifest if entry.role == "external-primary"
+    ]
+    if list(identities) != external_primary_ids:
+        errors.append(
+            ValidationError(
+                _line_number(doc.text, body_start),
+                "EXTERNAL_IDENTITY",
+                "External Source Identity must contain one ordered row per external-primary input",
+            )
+        )
+    doc.external_identities = identities
+
+
+def _validate_external_receipts(
+    doc: HandoffDocument,
+    errors: list[ValidationError],
+) -> None:
+    manifest_by_id = {entry.item_id: entry for entry in doc.manifest}
+    for primary_id, identity in doc.external_identities.items():
+        entry = manifest_by_id.get(primary_id)
+        if entry is None:
+            continue
+        receipt_path, path_error = _safe_repo_path(identity.receipt_path, doc.repo_root)
+        if path_error or receipt_path is None or not receipt_path.is_file():
+            errors.append(ValidationError(identity.line, "EXTERNAL_CACHE_MISSING", f"cache receipt is missing: {identity.receipt_path}"))
+            continue
+        try:
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            errors.append(ValidationError(identity.line, "EXTERNAL_CACHE_IDENTITY", f"cache receipt is unreadable: {identity.receipt_path}"))
+            continue
+        expected = {
+            "status": "CACHED",
+            "lesson_id": doc.metadata.get("lesson_id"),
+            "kind": "primary",
+            "original_url": identity.official_url,
+            "final_url": identity.final_url,
+            "media_type": identity.media_type,
+            "retrieved_at": identity.retrieved_at,
+            "sha256": entry.sha256,
+            "path": entry.path,
+            "receipt_path": identity.receipt_path,
+        }
+        mismatches = [key for key, value in expected.items() if receipt.get(key) != value]
+        candidate = doc.repo_root / entry.path
+        if candidate.is_file() and receipt.get("byte_count") != candidate.stat().st_size:
+            mismatches.append("byte_count")
+        if mismatches:
+            errors.append(
+                ValidationError(
+                    identity.line,
+                    "EXTERNAL_CACHE_IDENTITY",
+                    f"cache receipt differs from handoff identity: {', '.join(sorted(set(mismatches)))}",
+                )
+            )
+
+    for entry in (item for item in doc.manifest if item.role == "external-asset"):
+        expected_receipt_path = (
+            doc.repo_root
+            / "tmp/active-lesson-sources"
+            / str(doc.metadata.get("lesson_id", ""))
+            / f"{entry.sha256}.receipt.json"
+        )
+        if not expected_receipt_path.is_file():
+            errors.append(
+                ValidationError(
+                    entry.line,
+                    "EXTERNAL_CACHE_MISSING",
+                    f"external asset receipt is missing: {expected_receipt_path.relative_to(doc.repo_root).as_posix()}",
+                )
+            )
+            continue
+        try:
+            receipt = json.loads(expected_receipt_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            errors.append(
+                ValidationError(
+                    entry.line,
+                    "EXTERNAL_CACHE_IDENTITY",
+                    "external asset receipt is unreadable",
+                )
+            )
+            continue
+        expected = {
+            "status": "CACHED",
+            "lesson_id": doc.metadata.get("lesson_id"),
+            "kind": "asset",
+            "sha256": entry.sha256,
+            "path": entry.path,
+            "receipt_path": expected_receipt_path.relative_to(doc.repo_root).as_posix(),
+        }
+        mismatches = [key for key, value in expected.items() if receipt.get(key) != value]
+        for key in ("original_url", "final_url"):
+            parsed = urlsplit(str(receipt.get(key, "")))
+            if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+                mismatches.append(key)
+        candidate = doc.repo_root / entry.path
+        if candidate.is_file() and receipt.get("byte_count") != candidate.stat().st_size:
+            mismatches.append("byte_count")
+        if mismatches:
+            errors.append(
+                ValidationError(
+                    entry.line,
+                    "EXTERNAL_CACHE_IDENTITY",
+                    "external asset receipt differs from the manifest: "
+                    + ", ".join(sorted(set(mismatches))),
+                )
+            )
+
+
+def _parse_external_relations(
+    doc: HandoffDocument,
+    section: str,
+    body_start: int,
+    errors: list[ValidationError],
+) -> None:
+    rows = _contract_table_rows(
+        section,
+        ["Target ID", "Primary ID", "Relation", "Objective IDs", "Audit basis"],
+        doc,
+        body_start,
+        errors,
+        context="External Target Relation",
+    )
+    if len(rows) == 1 and rows[0][0] == ["none"] * 5:
+        rows = []
+    relations: dict[tuple[str, str], ExternalTargetRelation] = {}
+    manifest_by_id = {entry.item_id: entry for entry in doc.manifest}
+    for cells, line_no in rows:
+        target_id, primary_id, relation, raw_objectives, audit_basis = cells
+        key = (target_id, primary_id)
+        if key in relations:
+            errors.append(ValidationError(line_no, "EXTERNAL_SOURCE_RELATION", f"duplicate external target relation: {target_id} / {primary_id}"))
+            continue
+        if target_id not in doc.curriculum_targets:
+            errors.append(ValidationError(line_no, "EXTERNAL_SOURCE_RELATION", f"external relation target is not selected: {target_id}"))
+        entry = manifest_by_id.get(primary_id)
+        if entry is None or entry.role != "external-primary":
+            errors.append(ValidationError(line_no, "EXTERNAL_SOURCE_RELATION", f"external relation primary is invalid: {primary_id}"))
+        if relation not in EXTERNAL_RELATIONS:
+            errors.append(ValidationError(line_no, "EXTERNAL_SOURCE_RELATION", f"invalid external relation: {relation}"))
+        objective_ids = _comma_ids(raw_objectives, r"O\d{3,}")
+        if objective_ids is None or not objective_ids or len(objective_ids) != len(set(objective_ids)):
+            errors.append(ValidationError(line_no, "EXTERNAL_SOURCE_RELATION", "external relation requires unique Objective IDs"))
+            objective_ids = []
+        for objective_id in objective_ids:
+            objective = doc.objectives.get(objective_id)
+            if objective is None:
+                errors.append(ValidationError(line_no, "EXTERNAL_SOURCE_RELATION", f"unknown external Objective ID: {objective_id}"))
+                continue
+            objective_path = _location_path(objective.source_location)
+            if (
+                objective.requirement != "source-core"
+                or entry is None
+                or objective_path != entry.path
+            ):
+                errors.append(
+                    ValidationError(
+                        line_no,
+                        "EXTERNAL_SOURCE_RELATION",
+                        f"{objective_id} must be source-core from {primary_id}",
+                    )
+                )
+        if not audit_basis or audit_basis == "none":
+            errors.append(ValidationError(line_no, "EXTERNAL_SOURCE_RELATION", "Audit basis must be concrete"))
+        relations[key] = ExternalTargetRelation(
+            target_id, primary_id, relation, objective_ids, audit_basis, line_no
+        )
+    doc.external_relations = relations
+
+
 def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None:
     marked = _marker_body(doc.text, "<!-- lesson-contract:start -->", "<!-- lesson-contract:end -->", errors)
     if marked is None:
@@ -853,12 +1333,30 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
         doc.coverage_mode = mode_lines[0].removeprefix("- mode: ")
 
     target_lines = [line.strip()[2:].strip() for line in sections["Curriculum Targets"].splitlines() if line.strip().startswith("- ")]
-    if not 1 <= len(target_lines) <= 3 or len(target_lines) != len(set(target_lines)):
-        errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", "Curriculum Targets must contain one to three unique IDs"))
+    if not 1 <= len(target_lines) <= 2 or len(target_lines) != len(set(target_lines)):
+        errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", "Curriculum Targets must contain one or two unique IDs"))
     for target in target_lines:
         if not CURRICULUM_ID_RE.fullmatch(target):
             errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", f"invalid curriculum target ID: {target}"))
     doc.curriculum_targets = target_lines
+
+    _parse_target_decision(doc, sections["Target Decision"], body_start, errors)
+    if doc.target_decision is not None:
+        expected_targets = [doc.target_decision.primary_target]
+        if doc.target_decision.bridge_target != "none":
+            expected_targets.append(doc.target_decision.bridge_target)
+        if target_lines != expected_targets:
+            errors.append(
+                ValidationError(
+                    doc.target_decision.line,
+                    "TARGET_DECISION",
+                    "Curriculum Targets must be primary_target followed by the optional bridge_target",
+                )
+            )
+
+    _parse_external_identities(
+        doc, sections["External Source Identity"], body_start, errors
+    )
 
     concept_rows: list[tuple[int, str, str, str, str]] = []
     for line in sections["Concept Path"].splitlines():
@@ -901,7 +1399,7 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
     doc.contract_concepts = [row[1] for row in concept_rows]
 
     manifest_paths = {entry.path: entry for entry in doc.manifest}
-    primary_entries = [entry for entry in doc.manifest if entry.role == "primary"]
+    primary_entries = [entry for entry in doc.manifest if entry.role in PRIMARY_ROLES]
     primary_by_id = {entry.item_id: entry for entry in primary_entries}
 
     guidance_rows = _contract_table_rows(
@@ -930,7 +1428,7 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             errors.append(ValidationError(line_no, "SCHEMA", f"invalid guidance kind: {kind}"))
         location_path = _location_path(source_location)
         entry = manifest_paths.get(location_path or "")
-        if entry is None or entry.role != "primary":
+        if entry is None or entry.role not in PRIMARY_ROLES:
             errors.append(ValidationError(line_no, "SCHEMA", f"{guidance_id} must point to a manifested primary source"))
         elif not _location_exists(source_location, doc.repo_root):
             errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"{guidance_id} source location is absent: {source_location}"))
@@ -995,7 +1493,7 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
                     f"{objective_id} source path is not in the Input Manifest: {location_path}",
                 )
             )
-        elif requirement == "source-core" and manifest_paths[location_path].role != "primary":
+        elif requirement == "source-core" and manifest_paths[location_path].role not in PRIMARY_ROLES:
             errors.append(ValidationError(line_no, "SCHEMA", f"source-core {objective_id} must point to a primary input"))
         elif not _location_exists(source_location, doc.repo_root):
             errors.append(
@@ -1059,6 +1557,10 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
     if not objectives:
         errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", "Observable Objective Map must not be empty"))
 
+    _parse_external_relations(
+        doc, sections["External Target Relation"], body_start, errors
+    )
+
     treatment_rows = _contract_table_rows(
         sections["Curriculum Treatment Map"],
         ["Target ID", "Coverage", "Gap action", "Lesson treatment", "Objective IDs", "Note"],
@@ -1099,6 +1601,23 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
                 errors.append(ValidationError(line_no, "CURRICULUM_FRESHNESS", "supplement-now requires current Curriculum gap action 수업 내 보충"))
             if not any(item.requirement == "required-added" for item in linked):
                 errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", "supplement-now requires at least one linked required-added objective"))
+        elif lesson_treatment == "resolved-external":
+            external_core = [
+                item
+                for item in linked
+                if item.requirement == "source-core"
+                and (path := _location_path(item.source_location)) is not None
+                and manifest_paths.get(path) is not None
+                and manifest_paths[path].role == "external-primary"
+            ]
+            if not external_core:
+                errors.append(
+                    ValidationError(
+                        line_no,
+                        "OBJECTIVE_COVERAGE",
+                        "resolved-external requires one or more external source-core objectives",
+                    )
+                )
         elif lesson_treatment == "defer-gap":
             if gap_action not in {"별도 자료 확보", "원본 복구 후 재감사"}:
                 errors.append(ValidationError(line_no, "CURRICULUM_FRESHNESS", "defer-gap requires 별도 자료 확보 or 원본 복구 후 재감사"))
@@ -1380,6 +1899,39 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
                 errors.append(ValidationError(curriculum_entry.line, "SCHEMA", "CURRICULUM.md is not valid UTF-8"))
             else:
                 curriculum_rows = _curriculum_target_rows(curriculum_text)
+                curriculum_snapshot = curriculum_snapshot_from_text(curriculum_text)
+                decision = doc.target_decision
+                if decision is not None and decision.primary_target in curriculum_snapshot.targets:
+                    primary_snapshot = curriculum_snapshot.targets[decision.primary_target]
+                    unknown_evidence = set(decision.evidence_gap) - set(primary_snapshot.required_evidence)
+                    if unknown_evidence:
+                        errors.append(
+                            ValidationError(
+                                decision.line,
+                                "TARGET_DECISION",
+                                "evidence_gap is not required by the primary target: "
+                                + ", ".join(sorted(unknown_evidence)),
+                            )
+                        )
+                    if decision.bridge_target != "none":
+                        frontier = list(primary_snapshot.prerequisites)
+                        closure: set[str] = set()
+                        while frontier:
+                            prerequisite = frontier.pop()
+                            if prerequisite in closure:
+                                continue
+                            closure.add(prerequisite)
+                            nested = curriculum_snapshot.targets.get(prerequisite)
+                            if nested is not None:
+                                frontier.extend(nested.prerequisites)
+                        if decision.bridge_target not in closure:
+                            errors.append(
+                                ValidationError(
+                                    decision.line,
+                                    "TARGET_DECISION",
+                                    f"bridge_target is not a prerequisite of {decision.primary_target}",
+                                )
+                            )
                 for target in target_lines:
                     row = curriculum_rows.get(target)
                     if CURRICULUM_ID_RE.fullmatch(target) and row is None:
@@ -2213,6 +2765,9 @@ def _validate_til_readiness(doc: HandoffDocument, errors: list[ValidationError])
 
     remaining_questions = _markdown_h2_body(draft_text, "남은 질문") if draft_text is not None else None
 
+    if draft_text is not None:
+        _validate_external_til_provenance(doc, draft_text, errors)
+
     for row in doc.learning_coverage.values():
         for evidence_id in row.evidence_ids:
             evidence = doc.evidence.get(evidence_id)
@@ -2236,6 +2791,75 @@ def _validate_til_readiness(doc: HandoffDocument, errors: list[ValidationError])
             errors.append(ValidationError(row.line, "TIL_COVERAGE", f"deferred {row.concept_id} must be not-required"))
 
 
+def _validate_external_til_provenance(
+    doc: HandoffDocument,
+    draft_text: str,
+    errors: list[ValidationError],
+) -> None:
+    """Require exact lesson provenance before an external-source TIL can save."""
+    if not doc.external_identities:
+        return
+    related = _markdown_h2_body(draft_text, "관련 기록")
+    if related is None:
+        errors.append(
+            ValidationError(
+                1,
+                "EXTERNAL_TIL_PROVENANCE",
+                "a temporary external lesson requires a non-empty ## 관련 기록 section",
+            )
+        )
+        return
+
+    for identity in doc.external_identities.values():
+        required = (
+            ("official URL", identity.official_url),
+            ("offering or edition", identity.offering_or_edition),
+            ("scope", identity.scope),
+        )
+        for label, exact_value in required:
+            if exact_value not in related:
+                errors.append(
+                    ValidationError(
+                        identity.line,
+                        "EXTERNAL_TIL_PROVENANCE",
+                        f"## 관련 기록 is missing the exact external {label}: {exact_value}",
+                    )
+                )
+
+    related_lines = {line.strip() for line in related.splitlines()}
+    competency_targets = sorted(
+        {
+            relation.target_id
+            for relation in doc.external_relations.values()
+            if relation.target_id.startswith("CC-")
+        }
+    )
+    if not competency_targets:
+        errors.append(
+            ValidationError(
+                1,
+                "EXTERNAL_TIL_PROVENANCE",
+                "a temporary external lesson needs at least one directly related CC target for TIL provenance",
+            )
+        )
+        return
+    for target_id in competency_targets:
+        expected = f"- 관련 역량: `{target_id}`"
+        if expected not in related_lines:
+            relation_line = next(
+                relation.line
+                for relation in doc.external_relations.values()
+                if relation.target_id == target_id
+            )
+            errors.append(
+                ValidationError(
+                    relation_line,
+                    "EXTERNAL_TIL_PROVENANCE",
+                    f"## 관련 기록 must contain exactly {expected!r}",
+                )
+            )
+
+
 def _validate_declared_hashes(doc: HandoffDocument, metadata_lines: dict[str, int], errors: list[ValidationError]) -> None:
     declared_manifest = doc.metadata.get("input_manifest_sha256")
     if HASH_RE.fullmatch(declared_manifest or "") and declared_manifest != doc.computed_manifest_sha256:
@@ -2251,38 +2875,75 @@ def _validate_curriculum_source_relations(
     errors: list[ValidationError],
 ) -> None:
     snapshot = curriculum_snapshot_from_text(curriculum_text)
-    manifested_primary_paths = {
-        entry.path for entry in doc.manifest if entry.role == "primary"
-    }
+    manifest_by_path = {entry.path: entry for entry in doc.manifest}
+    expected_external: dict[tuple[str, str], list[str]] = {}
     for target_id, treatment in doc.curriculum_treatments.items():
         if treatment.lesson_treatment == "defer-track":
             continue
-        source_core_paths = {
-            path
+        source_core = [
+            (objective_id, path, manifest_by_path.get(path))
             for objective_id in treatment.objective_ids
             if (objective := doc.objectives.get(objective_id)) is not None
             and objective.requirement == "source-core"
             if (path := _location_path(objective.source_location)) is not None
-        }
-        if not source_core_paths:
+        ]
+        if not source_core:
             continue
         target = snapshot.targets.get(target_id)
         if target is None:
             continue
-        eligible_paths = (
-            source_core_paths
-            & manifested_primary_paths
-            & set(target.direct_source_paths)
+        unrelated_local = sorted(
+            {
+                path
+                for _, path, entry in source_core
+                if entry is not None
+                and entry.role == "primary"
+                and path not in target.direct_source_paths
+            }
         )
-        if eligible_paths:
-            continue
-        errors.append(ValidationError(
-            treatment.line,
-            "CURRICULUM_SOURCE_RELATION",
-            f"Curriculum Treatment {target_id} has source-core objectives but none of "
-            "their manifested primary paths is registered as primary or supporting "
-            "for that target",
-        ))
+        if unrelated_local:
+            errors.append(
+                ValidationError(
+                    treatment.line,
+                    "CURRICULUM_SOURCE_RELATION",
+                    f"Curriculum Treatment {target_id} has local source-core primaries "
+                    "without a primary or supporting relation: "
+                    + ", ".join(unrelated_local),
+                )
+            )
+        for objective_id, _, entry in source_core:
+            if entry is not None and entry.role == "external-primary":
+                expected_external.setdefault((target_id, entry.item_id), []).append(
+                    objective_id
+                )
+
+    for key, objective_ids in expected_external.items():
+        relation = doc.external_relations.get(key)
+        if relation is None:
+            errors.append(
+                ValidationError(
+                    doc.curriculum_treatments[key[0]].line,
+                    "EXTERNAL_SOURCE_RELATION",
+                    f"missing external target relation for {key[0]} / {key[1]}",
+                )
+            )
+        elif relation.objective_ids != objective_ids:
+            errors.append(
+                ValidationError(
+                    relation.line,
+                    "EXTERNAL_SOURCE_RELATION",
+                    f"{key[0]} / {key[1]} Objective IDs must exactly match its linked source-core objectives",
+                )
+            )
+    for key, relation in doc.external_relations.items():
+        if key not in expected_external:
+            errors.append(
+                ValidationError(
+                    relation.line,
+                    "EXTERNAL_SOURCE_RELATION",
+                    f"external relation is not used by its Curriculum Treatment: {key[0]} / {key[1]}",
+                )
+            )
 
 
 def _validate_course_freshness(
@@ -2473,6 +3134,7 @@ def validate_handoff(
 
     if ready:
         _validate_course_freshness(doc, errors, warnings)
+        _validate_external_receipts(doc, errors)
         status = doc.metadata.get("status")
         if status not in {"active", "paused"}:
             errors.append(ValidationError(metadata_lines.get("status", 1), "REVIEW_NOT_PASS", "--ready requires active or paused status"))
@@ -2487,6 +3149,7 @@ def validate_handoff(
 
     if til_ready:
         _validate_course_freshness(doc, errors, warnings)
+        _validate_external_receipts(doc, errors)
         _validate_til_readiness(doc, errors)
 
     deduplicated: list[ValidationError] = []

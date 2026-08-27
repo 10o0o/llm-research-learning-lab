@@ -19,17 +19,16 @@ This is a lightweight personal TIL repository for studying toward an LLM Researc
 The normal flow is:
 
 ```text
-when the next target or source is undecided, narrow it with plan-roadmap-learning
--> register a newly approved source only when needed -> audit it against CURRICULUM.md
+select one primary Curriculum target and, only when needed, one bridge target
+-> resolve an audited local source or one reviewed temporary official source
 -> prepare and independently review one temporary lesson handoff
 -> teach at the learner's level -> append only confirmed learner answers to til/today.md
 -> review the draft for every core concept actually studied today
 -> resolve or mark important uncertainty -> finalize a dated TIL
--> map that exact TIL's major outcomes to practice actions
--> complete the studied core inside a guided-fading authentic Notebook
--> run tests, diagnose failures, and interpret the resulting state
+-> choose the practice action and modality for that target and exact TIL
+-> implement, execute, diagnose, and interpret the required evidence
 -> update only understanding supported by learner-authored evidence
--> optionally deepen a knowledge concept and update the same note only after new evidence
+-> recompute the next target from the new evidence
 ```
 
 "No extra practice" is valid only when equivalent implementation, execution,
@@ -56,6 +55,10 @@ is required.
 - Do not relocate, delete, or rewrite existing `archive/` notes in bulk.
 - Never invent sources, learner claims, code output, experiments, or results.
 - Verify current recommendations such as Kaggle competitions, libraries, models, and tools.
+- An unregistered official HTTPS source may be cached only for one reviewed
+  lesson under `tmp/active-lesson-sources/<lesson-id>/`. The handoff owns its
+  exact identity, hash, scope, target relation, and cleanup. This temporary use
+  never changes durable `CURRICULUM.md` coverage or silently registers a source.
 - Register private course PDFs under `materials/private/<course>/` with a stable lesson-prefixed filename such as `NN-NN_title.pdf`; verify that the whole file is readable and update that course's local `INDEX.md`. Every course INDEX declares exactly one uppercase `source_namespace`, and each source ID uses `SRC-<source_namespace>-<NN-NN>`.
 - Store instructor-provided practice under `materials/private/<course>/course-provided-practice/`; it is source material and must not be mixed with learner or agent-generated work under top-level `practice/`. Map every such file explicitly in that course `INDEX.md` with `Practice path`, `Related lesson path`, `Variant`, `Format`, and `Original`; never infer a relationship from numbering.
 - When normalizing a saved Notion HTML page for long-term use, write an expanded Markdown copy with a stable lesson-prefixed name. Preserve headings, toggle children, exact code indentation, output, tables, links, formulas, captions, and content images; discard browser UI assets only after the Markdown package passes a source-to-output integrity check.
@@ -63,7 +66,7 @@ is required.
 
 ## Tutoring
 
-- Use `$plan-roadmap-learning` first only when the learner asks what to study next or requests a source for an unresolved target. It recommends read-only and hands an approved source choice to the separate registration and audit workflow.
+- Use `$plan-roadmap-learning` first when the learner asks what to study next or requests a source for an unresolved target. It chooses exactly one primary target and at most one blocking bridge before resolving sources. Source availability affects executability after selection, not target priority. The planner remains read-only.
 - Keep source and understanding evaluation in `$coach-llm-research-study`, adaptive teaching in `$teach-course-material`, hands-on decisions in `$suggest-learning-practice`, and durable concept writing in `$update-learning-knowledge`.
 - When teaching a named source, read it completely, inspect relevant `knowledge/` and learner-authored evidence, reorder concepts for understanding, and teach a meaningful chunk. Check understanding only at a knowledge or skill boundary where the answer changes the next teaching move.
 - Before first using an essential concept, check for demonstrated understanding in the current conversation, relevant `knowledge/`, learner-authored TIL, and interpreted practice. Treat missing evidence as unconfirmed understanding even when the source introduces the concept; archived notes and tutor-authored prose may provide context but do not establish mastery on their own.
@@ -90,7 +93,14 @@ is required.
 - Treat `$save-today-til` as a formatter and filer, not a factual reviewer. In the normal daily flow, run the pre-save review first. If the current conversation still has unresolved blocking findings, do not finalize them as factual claims unless the user explicitly chooses to preserve them as uncertainty.
 - After review, distinguish what the learner demonstrated from what the tutor merely corrected. Use only the former as evidence for practice and knowledge decisions.
 - Keep hands-on work separate from lesson evaluation. `$suggest-learning-practice` requires one explicitly named, validated `til/YYYY/MM/YYYY-MM-DD.md`; never infer the latest note or accept `til/today.md` or the legacy root draft. Follow its exact source links and stop rather than guessing when a source-based TIL has no resolvable material.
-- Invoking `$suggest-learning-practice` with an exact finalized TIL authorizes exactly one unexecuted `practice/<area>/<topic>.ipynb`. Keep all coherent outcomes as exercises in that Notebook; lack of implementation evidence calls for the smallest Core practice, not more files.
+- `$suggest-learning-practice` first returns one practice action and modality.
+  Local `NOTEBOOK`, `BENCHMARK`, and `DATASET_PROJECT` modes share exactly one
+  `practice/<area>/<topic>.ipynb`; external challenge or competition proposals
+  require current verification and approval before account access,
+  participation, or submission. `NO_EXTRA_PRACTICE` requires equivalent
+  implementation, execution, and interpretation evidence or no
+  practice-capable outcome.
+- Invoking `$suggest-learning-practice` with an exact finalized TIL authorizes exactly one unexecuted local Notebook when its decision is `CREATE_LOCAL_PRACTICE`. Keep all coherent outcomes as exercises in that Notebook; lack of implementation evidence calls for the smallest Core practice, not more files.
 - Map every major TIL outcome to `implement`, `test`, `debug`, `interpret`, or `design`. Use the one Notebook for deterministic calculations, Tensor/Shape mechanics, small training and validation flows, debugging, and local API contracts. Do not create learner `src/`, `tests/`, or a project directory unless the user explicitly asks for a reusable multi-file project outside `$suggest-learning-practice`'s default flow.
 - Give every Notebook cell a stable ID and an internal role under `metadata.llm_research_lab.practice`. Keep exactly one unexecuted setup-role cell before the exercises; each exercise keeps its brief, implementation, fixture, `check_e##()`, and reflection cells adjacent.
 - Treat the generated Notebook as the learner's complete task interface. Source links are provenance, not required reading: every tested threshold, precedence rule, exact token or key, dtype/device representation, axis or inclusive boundary, aggregation, and error behavior must be stated naturally before implementation. Keep source kinds, Outcome/Requirement/Target IDs, full claims and source anchors, scaffold ownership, cell roles, and assertion traces in custom metadata only; never render them as learner-facing tables, headings, IDs, or code markers. Compression or answer withholding must never hide the problem specification.
@@ -98,7 +108,22 @@ is required.
 - Before reporting generated practice as ready, validate it and obtain a pass from a fresh read-only reviewer. The reviewer first inspects only the rendered learner surface for natural standalone courseware and audit leakage, then inspects metadata and sources for fidelity and traceability. Permit one revision and one second reviewer only. If review is unavailable or the second review does not pass, do not deliver it as ready.
 - When `$suggest-learning-practice` is given an exact practice path for feedback, inspect the saved code and actual traceback or test output, address one blocker at a time, and require state/output interpretation even after tests pass. Do not complete learner-owned core logic without explicit authorization.
 - Use Kaggle only when data handling, validation, metrics, or error analysis is the point; use local code or benchmarks for mechanics and systems topics. Verify any current recommendation.
-- When a user requests the full daily flow, coordinate the separate skills in the order above; do not merge their responsibilities into a new orchestration skill.
+- Only an explicit request to proceed with the **full learning flow** authorizes
+  one complete cycle in the current conversation: select the target and exact
+  artifact; cache a public official source when allowed; run the reviewed
+  lesson and append confirmed learner answers; after `저장 가능`, finalize and
+  path-limit commit the exact dated TIL; immediately create one unexecuted local
+  practice artifact without committing it; after the learner personally
+  implements, executes, interprets, and passes `--completion-ready`, commit only
+  that practice path as `practice: complete <artifact-stem>`; update and
+  path-limit commit zero to three evidence-backed knowledge notes; preview the
+  next target; then end the cycle. Coordinate the existing skills in that
+  order; do not create an orchestration skill, snapshot, or progress database.
+- The full-flow authorization never permits the agent to supply learner answers
+  or perform learner-owned practice. It also excludes permanent source
+  registration, paid or authenticated downloads, external participation or
+  submission, and push. A request such as `오늘 학습 시작` or `계속` resumes the
+  exact active handoff or practice only and does not grant commit authority.
 - A whole interactive named-source lesson automatically pairs
   `$coach-llm-research-study` with `$teach-course-material`, even when only the
   teaching skill is invoked. The coach-owned readiness gate must pass before
@@ -111,11 +136,11 @@ is required.
 - Treat TIL files as chronological history. Preserve the learner's voice, uncertainty, and what changed that day instead of rewriting them into textbook notes.
 - Use one TIL per study day under `til/YYYY/MM/`. Final notes follow `til/template.md`; natural prose is preferred inside its sections and empty optional sections may be omitted.
 - When the draft clearly distinguishes them, preserve `### 라이브 수업` and `### 보충 학습` under `오늘의 학습`; do not invent that distinction when it is absent.
-- For source-based study, keep an exact resolvable source link under the finalized TIL's `관련 기록`; that TIL is the required entry point for later practice.
+- For source-based study, keep an exact resolvable source link under the finalized TIL's `관련 기록`; that TIL is the required entry point for later practice. A temporary external source additionally records its official URL, provider/course, offering or edition, exact scope, and `- 관련 역량: \`CC-...\``. The target is provenance, not mastery.
 - Treat `til/today.md` as a local inbox, not a knowledge artifact. Reset it only after `$save-today-til` has written, validated, and committed the destination. Keep it ignored and untracked.
 - Treat `knowledge/` as the learner's current state of knowledge. Use one date-free file per reusable concept and revise outdated understanding in place.
 - Synthesize at most a few durable ideas into knowledge notes rather than copying an entire TIL. Not every TIL needs a corresponding knowledge note, and an explicit zero-change result is acceptable.
-- Short code may stay in a TIL. Generated learning practice uses one `.ipynb` with compact calculations, implementation, local checks, training or validation traces, and interpretation kept together.
+- Short code may stay in a TIL. Generated local practice uses one metadata-v3 `.ipynb` with its modality, Curriculum targets, stable source IDs, compact implementation, local checks, traces, and interpretation kept together.
 - Record only observed results from code that actually ran.
 - Keep datasets, model weights, credentials, and large generated files out of Git unless explicitly authorized and appropriate.
 - Treat PDFs as sources, not public notes. Include toggle children, figures, code, tables, and formulas when exporting Notion pages.
@@ -143,4 +168,4 @@ python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py p
 
 ## Git
 
-Do not commit or push unless the user explicitly asks. A request to commit does not imply permission to push. Explicitly invoking `$save-today-til` or asking to finalize a daily TIL is the narrow exception: it authorizes exactly one path-limited commit containing only the dated `til/YYYY/MM/YYYY-MM-DD.md`, after validation. It never authorizes a push, another file, or cleanup before commit success. Stage only exact authorized paths, review the staged diff, and never rewrite history or force-push without explicit authorization.
+Do not commit or push unless the user explicitly asks. A request to commit does not imply permission to push. Explicitly invoking `$save-today-til` or asking to finalize a daily TIL is the narrow exception: it authorizes exactly one path-limited commit containing only the dated `til/YYYY/MM/YYYY-MM-DD.md`, after validation. An explicitly authorized full learning flow adds only the later completion-ready practice commit and evidence-backed knowledge commit defined above. It never authorizes a push, source-registration commit, external submission, unrelated path, or cleanup before the applicable validation succeeds. Stage only exact authorized paths, review the staged diff, and never rewrite history or force-push without explicit authorization.

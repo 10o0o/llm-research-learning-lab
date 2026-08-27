@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate guided-fading Notebook practice backed by audit metadata v2."""
+"""Validate guided-fading Notebook practice backed by audit metadata v3."""
 
 from __future__ import annotations
 
@@ -7,9 +7,10 @@ import ast
 import hashlib
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 
 
 ACTIONS = {"implement", "test", "debug", "interpret", "design"}
@@ -17,7 +18,14 @@ REQUIREMENT_KINDS = {"source-given", "practice-given", "derive"}
 REQUIREMENT_OWNERS = {"provided", "learner"}
 TARGET_KINDS = {"code", "debug", "prediction", "design", "interpretation"}
 SCAFFOLD_STAGES = {"guided", "partial", "independent"}
-SOURCE_KINDS = {"course-index", "lesson", "instructor-practice", "reference"}
+SOURCE_KINDS = {
+    "course-index",
+    "lesson",
+    "instructor-practice",
+    "reference",
+    "external-reference",
+}
+PRACTICE_MODES = {"NOTEBOOK", "BENCHMARK", "DATASET_PROJECT"}
 CELL_ROLES = {
     "intro",
     "setup",
@@ -49,6 +57,11 @@ REQUIREMENT_ID_RE = re.compile(r"C-(E\d{2})-(\d{2})\Z")
 TARGET_ID_RE = re.compile(r"T-(E\d{2})-(\d{2})\Z")
 CELL_ID_RE = re.compile(r"[A-Za-z0-9_-]{1,64}\Z")
 SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
+SOURCE_ID_RE = re.compile(r"S\d{3}\Z")
+CURRICULUM_ID_RE = re.compile(r"(?:CC|TR)-[A-Z]+-\d{2}\Z")
+EXTERNAL_CACHE_RE = re.compile(
+    r"tmp/active-lesson-sources/([a-z0-9][a-z0-9-]{2,63})/([0-9a-f]{64})\.(?:pdf|html|md|txt)\Z"
+)
 LEAK_PATTERNS = (
     (re.compile(r"\bC-E\d{2}-\d{2}\b"), "internal Requirement ID"),
     (re.compile(r"\bT-E\d{2}-\d{2}\b"), "internal Learner Target ID"),
@@ -81,6 +94,7 @@ class NotebookValidation:
     issues: list[NotebookIssue]
     source_links: set[str]
     setup_cells: list[tuple[int, str]]
+    warnings: list[NotebookIssue] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -282,6 +296,126 @@ def _validate_hash_record(
     return raw_path if isinstance(raw_path, str) else None
 
 
+def _rfc3339(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+    try:
+        parsed = datetime.fromisoformat(
+            value[:-1] + "+00:00" if value.endswith("Z") else value
+        )
+    except ValueError:
+        return False
+    return parsed.tzinfo is not None
+
+
+def _validate_external_record(
+    issues: list[NotebookIssue],
+    warnings: list[NotebookIssue],
+    *,
+    record: dict[str, object],
+    repo: Path,
+    label: str,
+    strict: bool,
+) -> Path | None:
+    required_text = (
+        "provider",
+        "course",
+        "offering_or_edition",
+        "artifact",
+        "url",
+        "final_url",
+        "media_type",
+        "scope",
+        "cache_path",
+        "receipt_path",
+    )
+    for key in required_text:
+        if not isinstance(record.get(key), str) or not str(record[key]).strip():
+            issues.append(NotebookIssue(1, "EXTERNAL_SOURCE_IDENTITY", f"{label} needs {key}"))
+    for key in ("url", "final_url"):
+        value = record.get(key)
+        if isinstance(value, str):
+            parsed = urlsplit(value)
+            if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+                issues.append(NotebookIssue(1, "EXTERNAL_SOURCE_IDENTITY", f"{label} {key} must be public HTTPS without credentials"))
+    if not _rfc3339(record.get("retrieved_at")):
+        issues.append(NotebookIssue(1, "EXTERNAL_SOURCE_IDENTITY", f"{label} retrieved_at must be RFC 3339"))
+    if not isinstance(record.get("sha256"), str) or SHA256_RE.fullmatch(str(record["sha256"])) is None:
+        issues.append(NotebookIssue(1, "EXTERNAL_SOURCE_IDENTITY", f"{label} sha256 must be lowercase SHA-256"))
+
+    raw_cache_path = record.get("cache_path")
+    raw_receipt_path = record.get("receipt_path")
+    cache_match = (
+        EXTERNAL_CACHE_RE.fullmatch(raw_cache_path)
+        if isinstance(raw_cache_path, str)
+        else None
+    )
+    expected_digest = record.get("sha256")
+    if cache_match is None or cache_match.group(2) != expected_digest:
+        issues.append(
+            NotebookIssue(
+                1,
+                "EXTERNAL_SOURCE_IDENTITY",
+                f"{label} cache_path must be content-addressed inside one active lesson directory",
+            )
+        )
+    expected_receipt_path = (
+        f"tmp/active-lesson-sources/{cache_match.group(1)}/{cache_match.group(2)}.receipt.json"
+        if cache_match is not None
+        else None
+    )
+    if raw_receipt_path != expected_receipt_path:
+        issues.append(
+            NotebookIssue(
+                1,
+                "EXTERNAL_SOURCE_IDENTITY",
+                f"{label} receipt_path must match its content-addressed cache path",
+            )
+        )
+
+    cache_path, cache_error = _resolve_repo_file(raw_cache_path, repo)
+    receipt_path, receipt_error = _resolve_repo_file(raw_receipt_path, repo)
+    if cache_error or receipt_error or cache_path is None or receipt_path is None:
+        issue = NotebookIssue(
+            1,
+            "EXTERNAL_SOURCE_OFFLINE",
+            f"{label} temporary cache is unavailable; preserve the identity and re-fetch before strict provenance validation",
+        )
+        (issues if strict else warnings).append(issue)
+        return None
+    try:
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        issues.append(NotebookIssue(1, "EXTERNAL_SOURCE_RECEIPT", f"{label} receipt is unreadable"))
+        return None
+    expected = {
+        "status": "CACHED",
+        "lesson_id": cache_match.group(1) if cache_match is not None else None,
+        "kind": "primary",
+        "original_url": record.get("url"),
+        "final_url": record.get("final_url"),
+        "media_type": record.get("media_type"),
+        "retrieved_at": record.get("retrieved_at"),
+        "sha256": record.get("sha256"),
+        "path": record.get("cache_path"),
+        "receipt_path": record.get("receipt_path"),
+    }
+    mismatches = [key for key, value in expected.items() if receipt.get(key) != value]
+    if SHA256_RE.fullmatch(str(record.get("sha256", ""))) and _sha256(cache_path) != record.get("sha256"):
+        mismatches.append("cache sha256")
+    if receipt.get("byte_count") != cache_path.stat().st_size:
+        mismatches.append("byte_count")
+    if mismatches:
+        issues.append(
+            NotebookIssue(
+                1,
+                "EXTERNAL_SOURCE_RECEIPT",
+                f"{label} receipt or cache mismatch: {', '.join(sorted(set(mismatches)))}",
+            )
+        )
+    return cache_path
+
+
 def _validate_visible_links(
     issues: list[NotebookIssue],
     *,
@@ -304,13 +438,16 @@ def _validate_visible_links(
             issues.append(NotebookIssue(1, "BROKEN_LINK", f"link target does not exist: {target}"))
 
 
-def validate_notebook_v2(
+def validate_notebook_v3(
     notebook: Path,
     repo: Path,
     *,
     learner_state: bool = False,
+    strict_external_sources: bool = False,
+    completion_ready: bool = False,
 ) -> NotebookValidation:
     issues: list[NotebookIssue] = []
+    warnings: list[NotebookIssue] = []
     source_links: set[str] = set()
     setup_cells: list[tuple[int, str]] = []
     try:
@@ -343,17 +480,33 @@ def validate_notebook_v2(
             [],
         )
     schema_version = practice.get("schema_version")
-    if schema_version != 2:
+    if schema_version != 3:
         message = (
-            "practice schema v1 must be deliberately migrated to v2; token lists cannot be reused as claims"
-            if schema_version == 1
-            else "practice schema_version must be 2"
+            "practice schema v2 must be mechanically migrated to v3 without changing learner cells"
+            if schema_version == 2
+            else "practice schema_version must be 3"
         )
         return NotebookValidation([NotebookIssue(1, "SCHEMA_MIGRATION", message)], set(), [])
     if practice.get("artifact_kind") != "standalone-practice":
         issues.append(NotebookIssue(1, "AUDIT_METADATA", "artifact_kind must be standalone-practice"))
     if practice.get("scaffold_mode") != "guided-fading":
         issues.append(NotebookIssue(1, "AUDIT_METADATA", "scaffold_mode must be guided-fading"))
+    if practice.get("practice_mode") not in PRACTICE_MODES:
+        issues.append(NotebookIssue(1, "AUDIT_METADATA", "practice_mode must be NOTEBOOK, BENCHMARK, or DATASET_PROJECT"))
+    raw_curriculum_targets = practice.get("curriculum_targets")
+    if (
+        not isinstance(raw_curriculum_targets, list)
+        or not raw_curriculum_targets
+        or len(raw_curriculum_targets) != len(set(raw_curriculum_targets))
+        or not all(
+            isinstance(value, str) and CURRICULUM_ID_RE.fullmatch(value)
+            for value in raw_curriculum_targets
+        )
+    ):
+        issues.append(NotebookIssue(1, "TARGET_RELATION", "curriculum_targets must contain unique Curriculum IDs"))
+        curriculum_targets: list[str] = []
+    else:
+        curriculum_targets = raw_curriculum_targets
 
     cells: list[dict[str, object]] = payload["cells"]
     cells_by_id: dict[str, tuple[int, dict[str, object], dict[str, object]]] = {}
@@ -463,32 +616,60 @@ def validate_notebook_v2(
         issues.append(NotebookIssue(1, "SOURCE_AUDIT", "sources must be a list"))
         raw_sources = []
     source_records = [item for item in raw_sources if isinstance(item, dict)]
+    source_by_id: dict[str, dict[str, object]] = {}
+    source_order: list[str] = []
     listed_source_paths = {
-        item.get("path") for item in source_records if isinstance(item.get("path"), str)
+        item.get("path")
+        for item in source_records
+        if item.get("kind") != "external-reference" and isinstance(item.get("path"), str)
     }
     valid_source_paths: set[str] = set()
+    cached_external_paths: dict[str, Path] = {}
     for index, record in enumerate(raw_sources):
+        if not isinstance(record, dict):
+            issues.append(NotebookIssue(1, "SOURCE_AUDIT", f"source[{index}] must be an object"))
+            continue
+        source_id = record.get("id")
+        if not isinstance(source_id, str) or SOURCE_ID_RE.fullmatch(source_id) is None or source_id in source_by_id:
+            issues.append(NotebookIssue(1, "SOURCE_AUDIT", f"source[{index}] has invalid or duplicate stable id: {source_id}"))
+        else:
+            source_by_id[source_id] = record
+            source_order.append(source_id)
+        kind = record.get("kind")
+        if kind not in SOURCE_KINDS:
+            issues.append(NotebookIssue(1, "SOURCE_AUDIT", f"source[{index}] has invalid kind: {kind}"))
+            continue
+        if kind == "external-reference":
+            cache_path = _validate_external_record(
+                issues,
+                warnings,
+                record=record,
+                repo=repo,
+                label=f"source[{index}]",
+                strict=strict_external_sources or completion_ready,
+            )
+            if cache_path is not None and isinstance(source_id, str):
+                cached_external_paths[source_id] = cache_path
+            continue
         path = _validate_hash_record(issues, record=record, repo=repo, label=f"source[{index}]")
         if path is not None:
             if path in valid_source_paths:
                 issues.append(NotebookIssue(1, "SOURCE_AUDIT", f"duplicate source path: {path}"))
             valid_source_paths.add(path)
             source_links.add(path)
-        if not isinstance(record, dict):
-            continue
-        kind = record.get("kind")
-        if kind not in SOURCE_KINDS:
-            issues.append(NotebookIssue(1, "SOURCE_AUDIT", f"source[{index}] has invalid kind: {kind}"))
         if kind == "instructor-practice":
             if record.get("variant") not in {"basic", "advanced", "single"}:
                 issues.append(NotebookIssue(1, "SOURCE_AUDIT", f"source[{index}] needs a valid practice variant"))
             related = record.get("related_lesson")
             if not isinstance(related, str) or related not in listed_source_paths:
                 issues.append(NotebookIssue(1, "SOURCE_AUDIT", f"source[{index}] needs a listed related_lesson"))
+    if source_order != [f"S{index:03d}" for index in range(1, len(source_order) + 1)] or not source_order:
+        issues.append(NotebookIssue(1, "SOURCE_AUDIT", "source IDs must be contiguous S001, S002, ..."))
 
     raw_outcomes = practice.get("outcomes")
     outcomes: dict[str, dict[str, object]] = {}
     outcome_order: list[str] = []
+    outcome_curriculum_targets: set[str] = set()
     covered_exercises: set[str] = set()
     if not isinstance(raw_outcomes, list):
         issues.append(NotebookIssue(1, "AUDIT_METADATA", "outcomes must be a list"))
@@ -509,6 +690,19 @@ def validate_notebook_v2(
             issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{outcome_id} needs til_location"))
         if not isinstance(item.get("required_evidence"), str) or not item["required_evidence"].strip():
             issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{outcome_id} needs required_evidence"))
+        linked_targets = item.get("curriculum_target_ids")
+        if (
+            not isinstance(linked_targets, list)
+            or not linked_targets
+            or len(linked_targets) != len(set(linked_targets))
+            or not all(
+                isinstance(value, str) and value in curriculum_targets
+                for value in linked_targets
+            )
+        ):
+            issues.append(NotebookIssue(1, "TARGET_RELATION", f"{outcome_id} needs unique artifact curriculum_target_ids"))
+        else:
+            outcome_curriculum_targets.update(linked_targets)
         linked = item.get("exercise_ids")
         if not isinstance(linked, list) or not linked or not all(isinstance(value, str) for value in linked):
             issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{outcome_id} needs exercise_ids"))
@@ -521,6 +715,8 @@ def validate_notebook_v2(
         issues.append(NotebookIssue(1, "AUDIT_METADATA", "outcome IDs must be contiguous O01, O02, ..."))
     if set(exercise_ids) != covered_exercises:
         issues.append(NotebookIssue(1, "AUDIT_METADATA", "outcomes and learner-flow exercises must cover the same exercise set"))
+    if set(curriculum_targets) != outcome_curriculum_targets:
+        issues.append(NotebookIssue(1, "TARGET_RELATION", "artifact and Outcome curriculum targets must reference each other"))
 
     raw_exercises = practice.get("exercises")
     exercise_profiles: dict[str, dict[str, object]] = {}
@@ -603,23 +799,32 @@ def validate_notebook_v2(
             if not isinstance(location, dict):
                 issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{requirement_id} has invalid source location"))
                 continue
-            raw_path = location.get("path")
-            if raw_path not in valid_source_paths:
-                issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{requirement_id} source location is not a listed source"))
+            source_id = location.get("source_id")
+            if not isinstance(source_id, str) or source_id not in source_by_id:
+                issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{requirement_id} source location is not a listed stable source ID"))
                 continue
             if not isinstance(location.get("locator"), str) or not location["locator"].strip():
                 issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{requirement_id} source location needs locator"))
             anchor = location.get("anchor")
             if not isinstance(anchor, str) or not anchor.strip():
                 issues.append(NotebookIssue(1, "SOURCE_ANCHOR", f"{requirement_id} source location needs anchor"))
-            elif isinstance(raw_path, str):
-                if raw_path not in source_text_cache:
+            else:
+                source_record = source_by_id[source_id]
+                raw_path = source_record.get("path")
+                source_file: Path | None = None
+                if isinstance(raw_path, str):
+                    source_file = repo / raw_path
+                elif source_record.get("kind") == "external-reference":
+                    source_file = cached_external_paths.get(source_id)
+                if source_file is None:
+                    continue
+                if source_id not in source_text_cache:
                     try:
-                        source_text_cache[raw_path] = _normalized((repo / raw_path).read_text(encoding="utf-8"))
+                        source_text_cache[source_id] = _normalized(source_file.read_text(encoding="utf-8"))
                     except (OSError, UnicodeDecodeError):
-                        source_text_cache[raw_path] = ""
-                if _normalized(anchor) not in source_text_cache[raw_path]:
-                    issues.append(NotebookIssue(1, "SOURCE_ANCHOR", f"{requirement_id} anchor does not occur in {raw_path}"))
+                        source_text_cache[source_id] = ""
+                if _normalized(anchor) not in source_text_cache[source_id]:
+                    issues.append(NotebookIssue(1, "SOURCE_ANCHOR", f"{requirement_id} anchor does not occur in {source_id}"))
         visible_cell_id = item.get("visible_cell_id")
         if not isinstance(visible_cell_id, str) or visible_cell_id not in cells_by_id:
             issues.append(NotebookIssue(1, "SPEC_DISCLOSURE", f"{requirement_id} has no visible brief cell"))
@@ -917,4 +1122,77 @@ def validate_notebook_v2(
         if re.search(r"\bglobals\s*\(", setup_code):
             issues.append(NotebookIssue(1, "DYNAMIC_GLOBALS", "setup cell must not create learner callables through globals()"))
 
-    return NotebookValidation(issues, source_links, setup_cells)
+    if completion_ready:
+        for target_id, target in targets.items():
+            cell_id = target.get("cell_id")
+            placeholder = target.get("placeholder")
+            cell_record = cells_by_id.get(cell_id) if isinstance(cell_id, str) else None
+            if (
+                cell_record is not None
+                and isinstance(placeholder, str)
+                and placeholder in _cell_text(cell_record[1])
+            ):
+                issues.append(
+                    NotebookIssue(
+                        1,
+                        "COMPLETION_INCOMPLETE",
+                        f"{target_id} still contains its learner placeholder",
+                    )
+                )
+
+        executed_roles = ("setup", "implementation", "fixture", "check")
+        for role in executed_roles:
+            for _, cell_id, cell, _ in role_cells.get(role, []):
+                execution_count = cell.get("execution_count")
+                if not isinstance(execution_count, int) or execution_count <= 0:
+                    issues.append(
+                        NotebookIssue(
+                            1,
+                            "COMPLETION_UNEXECUTED",
+                            f"{cell_id} ({role}) has not been actually executed",
+                        )
+                    )
+                outputs = cell.get("outputs", [])
+                if isinstance(outputs, list):
+                    for output in outputs:
+                        if not isinstance(output, dict):
+                            continue
+                        if output.get("output_type") == "error" or (
+                            output.get("output_type") == "stream"
+                            and output.get("name") == "stderr"
+                            and bool(output.get("text"))
+                        ):
+                            issues.append(
+                                NotebookIssue(
+                                    1,
+                                    "COMPLETION_ERROR_OUTPUT",
+                                    f"{cell_id} contains an error output",
+                                )
+                            )
+
+        for exercise_id in exercise_ids:
+            roles = exercise_roles.get(exercise_id, {})
+            implementation = roles.get("implementation", [])
+            fixture = roles.get("fixture", [])
+            check = roles.get("check", [])
+            if not (len(implementation) == len(fixture) == len(check) == 1):
+                continue
+            implementation_count = implementation[0][2].get("execution_count")
+            fixture_count = fixture[0][2].get("execution_count")
+            check_count = check[0][2].get("execution_count")
+            if all(isinstance(value, int) for value in (implementation_count, fixture_count, check_count)) and not (
+                check_count > implementation_count and check_count > fixture_count
+            ):
+                issues.append(
+                    NotebookIssue(
+                        1,
+                        "COMPLETION_STALE_CHECK",
+                        f"{exercise_id} checker must run after its latest implementation and fixture",
+                    )
+                )
+
+    return NotebookValidation(issues, source_links, setup_cells, warnings)
+
+
+# Import compatibility for callers that have not yet renamed the function.
+validate_notebook_v2 = validate_notebook_v3

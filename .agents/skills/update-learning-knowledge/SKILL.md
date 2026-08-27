@@ -1,6 +1,6 @@
 ---
 name: update-learning-knowledge
-description: Create or update this repository's concise, concept-oriented knowledge notes from understanding the learner has demonstrated in their own TIL, answers, calculations, or interpreted experiment results, then commit only the validated knowledge changes. Use only when the user explicitly invokes $update-learning-knowledge or asks to reflect, promote, or save verified learning into knowledge/. Create or update zero to three concept notes, revise existing notes in place, and return no knowledge change when evidence is insufficient or nothing durable changed. Do not use for teaching, source auditing, TIL formatting, or copying tutor prose into the knowledge base.
+description: Create or update this repository's concise, concept-oriented knowledge notes from understanding the learner has demonstrated in their own TIL, answers, calculations, or interpreted experiment results, then commit only the validated knowledge changes. Use when the user explicitly invokes $update-learning-knowledge, asks to reflect or save verified learning into knowledge/, or an explicitly authorized full learning flow has reached its evidence-backed knowledge stage. Create or update zero to three concept notes, revise existing notes in place, and return no knowledge change when evidence is insufficient or nothing durable changed. Do not use for teaching, source auditing, TIL formatting, or copying tutor prose into the knowledge base.
 ---
 
 # Update Learning Knowledge
@@ -13,6 +13,9 @@ Maintain `knowledge/` as the learner's current demonstrated understanding, not a
 2. Use the TIL, lesson, concepts, or date named by the user. If no source is named, use the current learning conversation and the most recently finalized relevant TIL; do not scan unrelated history.
 3. Read only related existing `knowledge/` notes and executed `practice/` artifacts. Search by concepts and relationships before deciding that no note exists.
 4. Use source material and `$coach-llm-research-study` findings to check accuracy, but never treat source text or tutor feedback as evidence that the learner understands it.
+5. In a full learning flow, run only after the learner has supplied the required
+   answer or interpreted practice evidence. The full-flow request supplies the
+   update and path-limited commit authorization, but never supplies evidence.
 
 ## Separate evidence from instruction
 

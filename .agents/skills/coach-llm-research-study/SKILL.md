@@ -62,9 +62,13 @@ Never add learner completion, dates, scores, mastery boxes, or progress percenta
 Use `ROADMAP.md` only to prioritize direction and high-leverage connections;
 use `CURRICULUM.md` as the operational source-coverage and gap-treatment
 authority. For a lesson, apply the selected targets through the canonical
-handoff treatment map. Do not automatically download an external supplement
-or treat it as source-core before separate user authorization, registration,
-and audit.
+handoff treatment map. A target-first lesson may use one public official HTTPS
+artifact through the canonical temporary cache and `resolved-external`
+treatment after auditing its exact identity, bytes, scope, and direct target
+relation. This temporary relation is lesson-local and never changes durable
+Curriculum coverage. Require approval instead for permanent registration,
+paid or authenticated access, an oversized or unsupported artifact, or a
+material source substitution.
 
 ## Gate an interactive lesson contract
 
@@ -76,9 +80,10 @@ normative schema and lifecycle. Hand teaching to `$teach-course-material` only
 after the canonical readiness gate passes; hand canonical saving to
 `$save-today-til` only after the canonical TIL-readiness gate passes.
 Those lesson gates use the handoff contract's semantic-slice freshness rule:
-selected source problems block, while unrelated same-course source problems
-warn. Keep the separate strict Curriculum validator course-wide for source
-registration and audit work.
+selected local or external source problems and any missing direct target
+relation block, while unrelated same-course source problems warn. Keep the
+separate strict Curriculum validator course-wide for source registration and
+audit work.
 
 Audit-only work, direct definitions, short corrections, one-off questions, and
 knowledge-note deepening do not require this handoff. When a whole named-source

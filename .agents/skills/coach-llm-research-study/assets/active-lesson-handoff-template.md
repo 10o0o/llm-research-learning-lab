@@ -5,7 +5,7 @@
 
 ## Metadata
 
-- schema_version: 4
+- schema_version: 5
 - lesson_id: replace-with-stable-lesson-id
 - title: Replace with lesson title
 - status: preparing
@@ -24,6 +24,7 @@
 | I001 | primary | materials/private/course/NN-NN_lesson.md | replace-with-file-sha256 |
 | I002 | course-index | materials/private/course/INDEX.md | replace-with-file-sha256 |
 | I003 | curriculum | CURRICULUM.md | replace-with-file-sha256 |
+| I004 | roadmap | ROADMAP.md | replace-with-file-sha256 |
 
 <!-- lesson-contract:start -->
 ### Objective
@@ -38,11 +39,34 @@ Replace with one observable lesson objective.
 
 - CC-DL-01
 
+### Target Decision
+
+- selection_mode: planner
+- target_state: START_TARGET
+- primary_target: CC-DL-01
+- bridge_target: none
+- evidence_gap: explain
+- completion_evidence: Replace with the observable evidence that closes this target for the current cycle.
+- endpoint: TR-SYS-03
+- why_now: Replace with the target-first graph and learner-evidence reason.
+
 ### Curriculum Treatment Map
 
 | Target ID | Coverage | Gap action | Lesson treatment | Objective IDs | Note |
 | --- | --- | --- | --- | --- | --- |
 | CC-DL-01 | 충분 | 그대로 사용 | source-only | O001, O002 | Replace with the reviewed reason this treatment matches the current Curriculum row. |
+
+### External Source Identity
+
+| Primary ID | Provider | Course | Offering/Edition | Artifact | Official URL | Final URL | Retrieved at | Media type | Scope | Receipt path |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| none | none | none | none | none | none | none | none | none | none | none |
+
+### External Target Relation
+
+| Target ID | Primary ID | Relation | Objective IDs | Audit basis |
+| --- | --- | --- | --- | --- |
+| none | none | none | none | none |
 
 ### Learner Evidence Baseline
 

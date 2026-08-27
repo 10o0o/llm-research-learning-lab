@@ -48,13 +48,16 @@ validator never edits the handoff.
    remaining question, and untouched content as deferred. Record the coach's
    verdict and the exact draft hash, then run `--til-ready`.
 8. Set status `completed` only after every non-deferred objective has been
-   delivered. The save workflow
-   may remove a completed handoff only after every confirmed evidence item is
-   drafted, `--til-ready` passes, and the dated TIL commit succeeds.
+   delivered. The save workflow may remove a completed local-only handoff only
+   after every confirmed evidence item is drafted, `--til-ready` passes, and
+   the dated TIL commit succeeds. When a practice artifact still needs an
+   external source receipt, preserve the handoff and exact lesson cache through
+   strict practice provenance validation; delete only that lesson cache
+   directory afterward. Preserve both on interruption or validation failure.
 
-Schema version 4 has no in-place migration from version 3. Rebuild an older
-handoff from the current template; do not guess how old state maps to the new
-Objective-level evidence and Curriculum Treatment fields.
+Schema version 5 has no in-place migration from version 4. Rebuild an older
+handoff from the current template; do not guess how old target, external
+identity, or ROADMAP state maps to the new contract.
 
 Resume an existing handoff only when the named primary input path and hash are
 unchanged. A source, curriculum, manifest, or lesson-contract change makes a
@@ -69,7 +72,7 @@ to discard learner content.
 
 Metadata is a Markdown bullet list with exactly these keys:
 
-- `schema_version`: currently `4`.
+- `schema_version`: currently `5`.
 - `lesson_id`: stable lowercase identifier matching
   `[a-z0-9][a-z0-9-]{2,63}`.
 - `title`: one non-empty line.
@@ -91,25 +94,36 @@ ID | Role | Path | SHA-256
 ```
 
 - IDs are contiguous `I001`, `I002`, and so on.
-- Roles are `primary`, `asset`, `course-index`, `curriculum`, `knowledge`,
-  `til`, or `practice`.
-- Include at least one `primary` input and exactly one `curriculum` input. The
-  curriculum row path is exactly `CURRICULUM.md`.
+- Roles are `primary`, `external-primary`, `external-asset`, `asset`,
+  `course-index`, `curriculum`, `roadmap`, `knowledge`, `til`, or `practice`.
+- Include at least one local `primary` or `external-primary`, exactly one
+  `curriculum`, and exactly one `roadmap`. Their paths are exactly
+  `CURRICULUM.md` and `ROADMAP.md`.
+- External rows live only under
+  `tmp/active-lesson-sources/<lesson-id>/`. Create them with
+  `cache_external_source.py`; every redirect remains HTTPS, credentials and
+  cookies are not stored, local or non-public network destinations are rejected,
+  and unsupported, authenticated, paid, archive,
+  dataset, weight, or over-100-MiB access returns `AWAIT_SOURCE_APPROVAL`.
+  Cache content and receipts are content-addressed and atomic. Every
+  `external-asset` keeps its generated receipt; readiness verifies its lesson,
+  kind, HTTPS URLs, path, byte count, and hash as well as the manifested bytes.
 - Every primary under `materials/private/<course>/` requires that exact
   course's `materials/private/<course>/INDEX.md` as a `course-index` input.
   `--ready` and `--til-ready` apply blocking freshness checks to the lesson's
   semantic slice: each selected primary, its directly referenced local assets,
   every supporting source actually manifested for the lesson, the selected
-  Curriculum targets and treatments, the target's direct `primary` or
-  `supporting` relation to manifested source-core primary paths, and the exact
+  Curriculum targets and treatments, every local source-core primary's direct
+  `primary` or `supporting` relation to its target, every temporary external
+  relation, and the exact
   registry and INDEX rows for those sources. A `context` relation is not direct
   support. Missing, stale, unregistered, duplicated, or mismatched inputs inside
   that slice block readiness. Unrelated source problems in the same course are
   reported as warnings and do not block the lesson gate. The standalone
   `validate_curriculum.py --strict-sources` command remains the course-wide
   parity and freshness gate.
-- Keep the complete course `INDEX.md` and `CURRICULUM.md` in the manifest. Any
-  byte change to either file still makes an existing handoff and its semantic
+- Keep the complete course `INDEX.md`, `CURRICULUM.md`, and `ROADMAP.md` in the
+  manifest. Any byte change to one still makes an existing handoff and its semantic
   review stale, so rebuild and review the handoff once. After rebuilding,
   unrelated same-course source problems remain warnings under the semantic
   slice rule above.
@@ -145,19 +159,43 @@ Keep the contract between its marker lines and retain these headings in order:
 1. `Objective`
 2. `Coverage Mode`
 3. `Curriculum Targets`
-4. `Curriculum Treatment Map`
-5. `Learner Evidence Baseline`
-6. `Audited Findings`
-7. `Source Coverage Index`
-8. `Declared Goal Alignment`
-9. `Guidance Map`
-10. `Observable Objective Map`
-11. `Concept Path`
-12. `Prepared Teaching Steps`
-13. `Deferred`
+4. `Target Decision`
+5. `Curriculum Treatment Map`
+6. `External Source Identity`
+7. `External Target Relation`
+8. `Learner Evidence Baseline`
+9. `Audited Findings`
+10. `Source Coverage Index`
+11. `Declared Goal Alignment`
+12. `Guidance Map`
+13. `Observable Objective Map`
+14. `Concept Path`
+15. `Prepared Teaching Steps`
+16. `Deferred`
 
-List one to three stable `CC-*` or `TR-*` curriculum IDs that actually occur in
+List one or two stable `CC-*` or `TR-*` curriculum IDs that actually occur in
 the manifested `CURRICULUM.md` under Curriculum Targets.
+
+Target Decision contains exactly these ordered bullet fields:
+
+```text
+selection_mode
+target_state
+primary_target
+bridge_target
+evidence_gap
+completion_evidence
+endpoint
+why_now
+```
+
+Selection mode is `planner`, `user-named-target`, or `user-named-source`.
+Target state uses the planner contract. Curriculum Targets is exactly the one
+primary target followed by its optional prerequisite bridge. Evidence gap is
+`none` or unique required-evidence tokens from the primary Curriculum row.
+When a bridge exists it must be in the primary target's prerequisite closure.
+Source convenience, chapter order, or this handoff never changes that target
+decision.
 
 Curriculum Treatment Map has these exact columns and exactly one ordered row
 per selected target:
@@ -174,12 +212,47 @@ row. `Objective IDs` are comma-separated or `none`.
 - `supplement-now` requires `수업 내 보충` and links at least one
   `required-added` Objective. The supplement is taught now and must be backed
   by an Audited Finding and a manifested exact source location.
+- `resolved-external` links one or more `source-core` Objectives from an
+  `external-primary`. It is valid only inside this reviewed lesson contract and
+  never changes durable Curriculum coverage.
 - `defer-gap` requires `별도 자료 확보` or `원본 복구 후 재감사`. It may
   link existing `source-core` Objectives, but never added content that pretends
-  to fill the missing source. External material is not source-core until the
-  user separately authorizes its registration and audit.
+  to fill the missing source.
 - `defer-track` requires a `TR-*` target with `트랙 선택 시 확보` and uses
   Objective IDs `none`.
+
+External Source Identity has one ordered row per `external-primary` and these
+columns:
+
+```text
+Primary ID | Provider | Course | Offering/Edition | Artifact | Official URL | Final URL | Retrieved at | Media type | Scope | Receipt path
+```
+
+Local-only lessons use one all-`none` row. URLs are public HTTPS without
+credentials. The cache receipt must exactly match both URLs, retrieval time,
+media type, lesson ID, primary kind, content and receipt paths, byte count, and
+SHA-256. `Receipt path` is exactly
+`tmp/active-lesson-sources/<lesson-id>/<primary-sha256>.receipt.json`.
+
+External Target Relation has these columns:
+
+```text
+Target ID | Primary ID | Relation | Objective IDs | Audit basis
+```
+
+Each relation is `primary` or `supporting`, never `context`, and identifies the
+exact external source-core Objectives audited for that target. Every external
+primary linked by a target treatment needs its own row. For mixed lessons,
+every linked local and external primary must independently satisfy its direct
+relation; one matching source cannot hide an unrelated source.
+
+Before `--til-ready` can pass for a temporary external lesson, the reviewed
+draft's `## 관련 기록` section must contain each primary's exact Official URL,
+Offering/Edition, and Scope plus an exact provenance line
+`- 관련 역량: \`CC-...\`` for every directly related competency target. The
+line records lesson provenance only; it does not establish mastery or durable
+Curriculum coverage. A track endpoint therefore needs a directly related
+`CC-*` treatment as well when the external lesson is going to be finalized.
 
 Coverage Mode contains exactly one of:
 
@@ -273,8 +346,10 @@ Objective ID | Requirement | Marker | Source location | Observable outcome | Con
 - `Marker` is `none`, `prerequisite`, `correction`, or `supplement`, rendered
   during teaching as no marker, `[선수개념]`, `[정정]`, or `[보충]`.
 - `Source location` is an exact manifested `path#location`. A `source-core`
-  objective points to a primary input. Markdown and text locations must match
-  an actual normalized line. PDF locations use `path.pdf#page-N` or
+  objective points to a local or external primary input. Markdown and local
+  text locations match an actual normalized line. Cached HTML uses
+  `path.html#text: <normalized exact excerpt>` while preserving raw bytes.
+  PDF locations use `path.pdf#page-N` or
   `path.pdf#page-N: short locator`; `N` must be within the parsed page count.
 - `Observable outcome` says what the learner should be able to explain,
   calculate, trace, predict, or distinguish. Topic names alone are invalid.
@@ -518,7 +593,8 @@ Tutor prose does not satisfy a confirmed row. After corrections, set the exact
 review timestamp, hash the current draft bytes, and record `저장 가능` only
 when every non-deferred concept is represented. Any later draft edit makes the
 review stale. `--til-ready` verifies this operational contract in addition to
-requiring a current independent lesson-contract pass.
+requiring a current independent lesson-contract pass and, for temporary
+external sources, the exact `관련 기록` provenance described above.
 
 ## Learner Evidence
 
@@ -625,7 +701,10 @@ ERROR path:line [CODE] message
 JSON output always contains separate `warnings` and `errors` arrays. A warning
 never changes the report's `ok` value; only an error does.
 
-Codes are `SCHEMA`, `PATH`, `SOURCE_MISSING`, `SOURCE_HASH`, `SOURCE_LOCATION`,
-`CONTRACT_HASH`, `CURRICULUM_FRESHNESS`, `REVIEW_STALE`, `REVIEW_NOT_PASS`, `OBJECTIVE_COVERAGE`, `EVIDENCE_STATE`,
+Codes include `SCHEMA`, `PATH`, `SOURCE_MISSING`, `SOURCE_HASH`, `SOURCE_LOCATION`,
+`CONTRACT_HASH`, `CURRICULUM_FRESHNESS`, `CURRICULUM_SOURCE_RELATION`,
+`TARGET_DECISION`, `EXTERNAL_IDENTITY`, `EXTERNAL_CACHE_MISSING`,
+`EXTERNAL_CACHE_IDENTITY`, `EXTERNAL_SOURCE_RELATION`, `REVIEW_STALE`,
+`REVIEW_NOT_PASS`, `OBJECTIVE_COVERAGE`, `EVIDENCE_STATE`,
 `ASSESSMENT_ALIGNMENT`, `DRAFT_MARKER`, `DRAFT_CONTENT`, `TIL_COVERAGE`, and
 `TIL_REVIEW_STALE`.

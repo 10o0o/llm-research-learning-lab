@@ -1,4 +1,4 @@
 interface:
   display_name: "학습 로드맵 플래너"
-  short_description: "현재 근거와 로드맵으로 다음 학습 단계를 읽기 전용으로 제안합니다"
-  default_prompt: "$plan-roadmap-learning을 사용해 현재 학습 근거와 ROADMAP을 확인하고, 바로 이어갈 다음 학습 목표를 1~3개로 제안해줘."
+  short_description: "정적 endpoint와 증거로 primary target 하나를 읽기 전용으로 결정합니다"
+  default_prompt: "$plan-roadmap-learning을 사용해 target graph와 내 학습 근거를 확인하고 primary target 하나와 필요한 bridge, 정확한 다음 artifact를 정해줘."

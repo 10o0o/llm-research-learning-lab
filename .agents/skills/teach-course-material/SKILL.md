@@ -68,6 +68,11 @@ reviewed teaching sequence and its mutable delivery state; it does not approve,
 rebuild, replace, or clean up the contract on its own. If the user asks to
 continue without a resolvable current lesson, ask for the exact source.
 
+Teach a reviewed temporary official source exactly like a reviewed local
+primary, using only its cached bytes, exact locator, scope, and target relation.
+Do not silently refresh changed bytes, combine offerings, promote temporary
+coverage into `CURRICULUM.md`, or turn retrieval into learner evidence.
+
 ## Teach for connected understanding
 
 For a difficult concept, prefer this chain and omit only steps that add no value:
@@ -174,4 +179,4 @@ or require a learner quiz for every objective.
 
 After confirmed learner-authored evidence is saved into a validated dated TIL, the user may pass that exact TIL to `$suggest-learning-practice` or use it with `$update-learning-knowledge`. Never pass the temporary handoff itself as their input or treat its tutor assessment as learner evidence. Do not make either decision inside this skill.
 
-Do not automatically write the tutor's explanation into `knowledge/`; that would misrepresent it as the learner's understanding. Use `$update-learning-knowledge` only when the user separately asks and learner-authored evidence supports the content. Apart from the reviewed operational handoff and confirmed-answer append described above, do not create a TIL, practice file, progress tracker, or commit. `$save-today-til` alone finalizes and commits the dated TIL.
+Do not automatically write the tutor's explanation into `knowledge/`; that would misrepresent it as the learner's understanding. Use `$update-learning-knowledge` only when the user separately asks, or at the evidence stage of an explicitly authorized full learning flow, and learner-authored evidence supports the content. Apart from the reviewed operational handoff and confirmed-answer append described above, this teaching skill does not create a TIL, practice file, progress tracker, or commit. `$save-today-til` alone finalizes and commits the dated TIL.

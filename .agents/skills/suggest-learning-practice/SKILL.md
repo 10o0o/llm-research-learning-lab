@@ -1,6 +1,6 @@
 ---
 name: suggest-learning-practice
-description: Turn one explicitly supplied finalized dated TIL and its exactly linked course sources into one self-contained guided-fading Notebook that provides routine scaffolding while the learner implements, tests, debugs, interprets, and designs the core studied concepts, or coach an attempt from an explicitly supplied practice artifact and real failure output. Use when the user invokes $suggest-learning-practice with an exact til/YYYY/MM/YYYY-MM-DD.md path to create one Notebook under practice, or with an exact existing practice path for stepwise feedback. Automatically use only instructor practice explicitly mapped to the TIL's lesson in that course INDEX.md. Do not infer the latest TIL or artifact, repair an incomplete TIL, execute a new workbook, reveal a complete solution, or treat tutor prose as learner evidence.
+description: Decide the practice action and modality for one selected Curriculum target and its exact finalized TIL, then create one mode-specific guided-fading local Notebook, propose one verified external challenge or competition, continue a directly linked artifact, or return no extra practice. Also coach an attempt from an exact practice path and real failure output. Do not infer the latest TIL or artifact, repair an incomplete TIL, perform learner work, submit externally, reveal a full solution, or treat green checks as mastery.
 ---
 
 # Build and Coach Authentic Practice
@@ -12,8 +12,31 @@ implemented, tested, debugged, transferred, or interpreted it.
 
 Read [the practice design contract](references/practice-design.md) completely
 before generating or reviewing an artifact. In creation mode also read
-[practice audit metadata v2](references/practice-audit-metadata.md) completely.
+[practice audit metadata v3](references/practice-audit-metadata.md) completely.
 Use exactly one of the modes below.
+
+## Decide before executing
+
+Return both axes before creating or proposing anything:
+
+- `practice_action`: `TIL_REPAIR_REQUIRED`, `CONTINUE_EXISTING_PRACTICE`, `CREATE_LOCAL_PRACTICE`, `PROPOSE_EXTERNAL_PRACTICE`, or `NO_EXTRA_PRACTICE`;
+- `practice_mode`: `NOTEBOOK`, `BENCHMARK`, `DATASET_PROJECT`, `EXTERNAL_CHALLENGE`, `EXTERNAL_COMPETITION`, or `NONE`.
+
+Use `scripts/route_practice.py` as the deterministic baseline, then verify the exact target, TIL outcomes, learner evidence, and artifact state. Choose modality by the performance evidence needed:
+
+- mathematics, Tensor mechanics, small algorithms, or model mechanisms -> `NOTEBOOK`;
+- latency, throughput, memory, batching, KV cache, or quantization measurements -> `BENCHMARK`;
+- data handling, validation, metrics, or error analysis -> `DATASET_PROJECT`, or a genuinely valuable current competition;
+- a short algorithm or API contract with a useful verified platform item -> `EXTERNAL_CHALLENGE`;
+- equivalent independent implementation, execution, and interpretation evidence, or no practice-capable outcome -> `NONE`.
+
+Local modes all preserve the one-Notebook boundary; their scenario, fixtures, measurements, and metadata must reflect the selected modality. Search and verify the current exact item before naming an external challenge or competition. Account access, participation, and submission require approval and are never implied by practice planning or the full learning flow.
+If no exact current external item has material value, return a typed local
+fallback (`NOTEBOOK` for a short algorithm/API or `DATASET_PROJECT` for data and
+evaluation) instead of raising an error or naming an unverified item. When an
+external proposal is selected, state the approval scope as account access,
+participation, and submission; the read-only proposal itself does not perform
+any of them.
 
 ## Resolve the mode and exact input
 
@@ -21,10 +44,10 @@ Use exactly one of the modes below.
   `til/YYYY/MM/YYYY-MM-DD.md`.
 - **Attempt-feedback mode** requires exactly one named artifact under `practice/`.
 - Never infer today's, latest, or most likely file. Never accept
-  `til/today.md` for creation. If the user says only “continue,” ask for the
-  exact artifact path.
-- A decision-only request remains read-only. Creation mode otherwise authorizes
-  exactly one unexecuted Notebook-only artifact.
+  `til/today.md` for creation. If the user says only “continue,” resume an exact
+  practice artifact already established in the current conversation; otherwise
+  ask for its path. This resume phrase does not authorize a commit.
+- A decision-only request remains read-only. Creation mode otherwise authorizes exactly one unexecuted Notebook-only artifact. In an explicitly authorized full learning flow, the exact newly finalized TIL is the creation input and the selected local artifact is generated immediately without another prompt; it remains uncommitted.
 
 ## Creation mode: establish the complete practice input
 
@@ -93,12 +116,13 @@ Outcome ID | TIL location | Practice action | Artifact/Exercise | Required evide
 
 Choose exactly one result:
 
-- **TIL 수정 우선**: validation or the coach completeness gate failed.
-- **기존 실습 계속**: an unfinished learner artifact already exercises the
+- `TIL_REPAIR_REQUIRED`: validation or the coach completeness gate failed.
+- `CONTINUE_EXISTING_PRACTICE`: an unfinished learner artifact already exercises the
   same outcomes; name that exact path and do not replace it.
-- **실습 생성**: the normal result, including when evidence is thin. Begin
+- `CREATE_LOCAL_PRACTICE`: the normal local result, including when evidence is thin. Begin
   with the smallest Core task instead of withholding practice.
-- **추가 실습 없음**: exceptional; every major outcome already has equivalent
+- `PROPOSE_EXTERNAL_PRACTICE`: one exact current external challenge or competition has material value for the selected evidence. Await approval before account access, participation, or submission.
+- `NO_EXTRA_PRACTICE`: exceptional; every major outcome already has equivalent
   implemented, executed, and interpreted evidence, or there is no
   practice-capable learning outcome. Cite that evidence.
 
@@ -280,6 +304,8 @@ Use `--learner-state` only when validating an existing Notebook that already
 contains learner implementations or execution state. It preserves specification
 and trace audits but does not certify the artifact as newly created and blank.
 
+Use `--strict-external-sources` before deleting a lesson's temporary cache. Use `--completion-ready` only after the learner has implemented, run, and interpreted the whole artifact. A completion-ready pass permits a commit of exactly that Notebook path with `practice: complete <artifact-stem>` when the current request authorizes it; creation never does. Do not replace learner work to make this gate pass.
+
 Also run Notebook JSON and metadata validation, the setup-role cell from the
 repository root, code-cell compilation, source hash and link checks, and
 `git diff --check`. Read the final Notebook.
@@ -297,7 +323,7 @@ audit leakage, or a source-specific policy presented as universal is blocking.
 Permit one revision and one second fresh reviewer only. If review is unavailable
 or the second review does not pass, do not call the artifact ready.
 
-Do not execute learner TODOs or commit/push unless the user separately asks.
+Do not execute learner TODOs or push. Commit only under an explicit request or the exact full-flow completion authorization described in the repository rules.
 
 ## Attempt-feedback mode
 

@@ -183,7 +183,7 @@ check_e01()
                 "owner": "provided",
                 "source_locations": [
                     {
-                        "path": "materials/lesson.md",
+                        "source_id": "S001",
                         "locator": "Tensor 카드",
                         "anchor": "Tensor 이름을 인자로 받는다",
                     }
@@ -228,12 +228,14 @@ check_e01()
             "metadata": {
                 "llm_research_lab": {
                     "practice": {
-                        "schema_version": 2,
+                        "schema_version": 3,
                         "artifact_kind": "standalone-practice",
                         "scaffold_mode": "guided-fading",
+                        "practice_mode": "NOTEBOOK",
+                        "curriculum_targets": ["CC-DL-01"],
                         "til": {"path": "til/2026/08/2026-08-20.md", "sha256": sha256(til)},
                         "sources": [
-                            {"kind": "lesson", "path": "materials/lesson.md", "sha256": sha256(lesson)}
+                            {"id": "S001", "kind": "lesson", "path": "materials/lesson.md", "sha256": sha256(lesson)}
                         ],
                         "outcomes": [
                             {
@@ -242,6 +244,7 @@ check_e01()
                                 "action": "implement",
                                 "exercise_ids": ["E01"],
                                 "required_evidence": "shape 구현과 공개 검사",
+                                "curriculum_target_ids": ["CC-DL-01"],
                             }
                         ],
                         "exercises": [
@@ -373,7 +376,7 @@ check_e01()
                     "owner": "learner",
                     "source_locations": [
                         {
-                            "path": "materials/lesson.md",
+                            "source_id": "S001",
                             "locator": "Tensor 카드",
                             "anchor": "Tensor 이름을 인자로 받는다",
                         }
@@ -727,9 +730,10 @@ check_e01()
             payload = self.load(notebook)
             practice = payload["metadata"]["llm_research_lab"]["practice"]
             practice["sources"] = [
-                {"kind": "course-index", "path": "materials/private/course/INDEX.md", "sha256": sha256(index)},
-                {"kind": "lesson", "path": "materials/private/course/lesson.md", "sha256": sha256(lesson)},
+                {"id": "S001", "kind": "course-index", "path": "materials/private/course/INDEX.md", "sha256": sha256(index)},
+                {"id": "S002", "kind": "lesson", "path": "materials/private/course/lesson.md", "sha256": sha256(lesson)},
                 {
+                    "id": "S003",
                     "kind": "instructor-practice",
                     "path": "materials/private/course/course-provided-practice/practice.md",
                     "sha256": sha256(provided),
@@ -739,7 +743,7 @@ check_e01()
             ]
             practice["requirements"][0]["source_locations"] = [
                 {
-                    "path": "materials/private/course/lesson.md",
+                    "source_id": "S002",
                     "locator": "Lesson",
                     "anchor": "Tensor 이름을 인자로 받는다",
                 }

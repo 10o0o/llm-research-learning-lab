@@ -25,6 +25,7 @@ BOLD_BEFORE_KOREAN_RE = re.compile(r"\*\*(?!\s)(?:(?!\*\*).)+?\*\*(?=[가-힣])"
 PROHIBITED_MACRO_RE = re.compile(
     r"\\(?:operatorname|DeclareMathOperator|newcommand|renewcommand|def|require)\b"
 )
+RELATED_TARGET_RE = re.compile(r"^- 관련 역량: `CC-[A-Z]+-\d{2}`$")
 
 
 def parse_args() -> argparse.Namespace:
@@ -274,6 +275,33 @@ def heading_schema(
     return errors
 
 
+def check_related_target_provenance(path: Path, lines: list[str]) -> list[str]:
+    """Keep temporary-source target provenance exact and non-mastery-shaped."""
+    errors: list[str] = []
+    current_h2: str | None = None
+    in_fence = False
+    for line_number, line in enumerate(lines, start=1):
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        heading = re.fullmatch(r"##(?!#)\s+(.+?)\s*", line)
+        if heading is not None:
+            current_h2 = heading.group(1)
+        if not line.strip().startswith("- 관련 역량:"):
+            continue
+        if current_h2 != "관련 기록":
+            errors.append(
+                f"{path}:{line_number}: related target provenance belongs under 관련 기록"
+            )
+        if RELATED_TARGET_RE.fullmatch(line.strip()) is None:
+            errors.append(
+                f"{path}:{line_number}: use exactly '- 관련 역량: `CC-...`'"
+            )
+    return errors
+
+
 def validate_file(path: Path) -> list[str]:
     try:
         text = path.read_text(encoding="utf-8")
@@ -290,6 +318,8 @@ def validate_file(path: Path) -> list[str]:
     errors.extend(check_math_and_emphasis(path, visible))
     errors.extend(check_links(path, visible))
     errors.extend(heading_schema(path, lines, visible, path.name == "template.md"))
+    if path.name != "template.md":
+        errors.extend(check_related_target_provenance(path, lines))
     return errors
 
 

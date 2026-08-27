@@ -1,13 +1,16 @@
 ---
 name: save-today-til
-description: Parse the canonical ignored draft til/today.md, or an explicitly named repository Markdown draft, into the Korean TIL template, enforce the current coach completeness gate for a handoff-backed draft, save or merge it at til/YYYY/MM/YYYY-MM-DD.md, commit only that dated TIL, and clean up the canonical draft after success. Use only when the user explicitly invokes $save-today-til or asks to finalize, file, or save a named rough note as a daily TIL. Do not use for tutoring feedback, factual or completeness auditing, knowledge-base synthesis, practice recommendations, or generic Markdown editing.
+description: Parse the canonical ignored draft til/today.md, or an explicitly named repository Markdown draft, into the Korean TIL template, enforce the current coach completeness gate for a handoff-backed draft, save or merge it at til/YYYY/MM/YYYY-MM-DD.md, commit only that dated TIL, and clean up the canonical draft after success. Use when the user explicitly invokes $save-today-til, asks to finalize a daily TIL, or an explicitly authorized full learning flow has reached a coach-approved save stage. Do not use for tutoring feedback, factual or completeness auditing, knowledge-base synthesis, practice recommendations, or generic Markdown editing.
 ---
 
 # Save Today TIL
 
 Turn one rough study memo into this repository's dated TIL without replacing the learner's thinking with a textbook summary.
 
-Explicit invocation of this skill authorizes exactly one path-limited commit containing the resulting dated TIL. It does not authorize committing any other path or pushing.
+Explicit invocation of this skill, or the exact save stage of an explicitly
+authorized full learning flow, authorizes exactly one path-limited commit
+containing the resulting dated TIL. It does not authorize committing any other
+path or pushing.
 
 ## Respect the review boundary
 
@@ -74,6 +77,7 @@ Follow the headings and order in `til/template.md`.
 - Put only next actions the learner actually wrote under `다음에 할 것`.
 - Put only real source, knowledge, or practice links under `관련 기록`.
 - For a source-based session, preserve each explicitly named source link. When the exact repository source is known from the draft or the reviewed learning context and exists, add or rewrite its link under `관련 기록` relative to the dated TIL.
+- For a reviewed temporary external primary, preserve its exact official HTTPS URL, provider/course, offering or edition, artifact scope, and one provenance line `- 관련 역량: \`CC-...\`` under `관련 기록`. This target ID records lesson provenance, not mastery or Curriculum coverage.
 - Before finalizing a source-based session, require at least one resolvable source link, normally under `materials/`. If the exact source cannot be determined, ask instead of guessing. This requirement does not apply to source-free study such as an independent coding reflection.
 - Keep `오늘의 학습`. Omit any other section when the draft contains no supporting content.
 - When classification is uncertain, keep the content under `오늘의 학습` instead of inventing structure.
@@ -125,8 +129,9 @@ After the commit succeeds:
 
 1. inspect the created commit and require its changed-path set to equal the one dated TIL path;
 2. reset the canonical or explicitly named legacy inbox as described above;
-3. apply the canonical handoff cleanup condition from the linked contract;
-   otherwise preserve `tmp/active-lesson-handoff.md`;
+3. apply the canonical handoff and exact lesson-cache cleanup condition from
+   the linked contract; when strict external practice provenance remains,
+   preserve both until that check succeeds;
 4. read the reset source and report the saved path, whether an existing daily note was merged, the commit hash, the exact committed path, draft and handoff cleanup, and any check that could not be completed.
 
 If validation, staging checks, a commit hook, or the commit fails, do not reset the draft or delete the handoff. Do not create an empty commit and never push.

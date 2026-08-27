@@ -18,7 +18,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from validate_practice_index import validate as validate_index
-from validate_practice_notebook import validate_notebook_v2
+from validate_practice_notebook import validate_notebook_v3
 
 
 ACTIONS = {"implement", "test", "debug", "interpret", "design"}
@@ -483,6 +483,9 @@ def validate(
     check_collection: bool = True,
     allow_legacy_bundle: bool = False,
     learner_state: bool = False,
+    strict_external_sources: bool = False,
+    completion_ready: bool = False,
+    warnings: list[Problem] | None = None,
 ) -> list[Problem]:
     repo = Path(repo_root).resolve() if repo_root is not None else _repo_root()
     target = Path(artifact)
@@ -498,6 +501,8 @@ def validate(
     if not target.exists():
         return [Problem(target, 1, "SOURCE_MISSING", "artifact does not exist")]
     if target.is_dir():
+        if strict_external_sources or completion_ready:
+            return [Problem(target, 1, "NOTEBOOK_ONLY", "external-source and completion gates require a v3 Notebook")]
         if not allow_legacy_bundle:
             return [
                 Problem(
@@ -519,10 +524,12 @@ def validate(
         problems.extend(_validate_python_bundle(target, repo=repo, check_collection=check_collection))
     elif target.suffix == ".ipynb":
         notebook = target
-        notebook_validation = validate_notebook_v2(
+        notebook_validation = validate_notebook_v3(
             notebook,
             repo,
-            learner_state=learner_state,
+            learner_state=learner_state or completion_ready,
+            strict_external_sources=strict_external_sources,
+            completion_ready=completion_ready,
         )
         problems = [
             Problem(notebook, issue.line, issue.code, issue.message)
@@ -530,6 +537,11 @@ def validate(
         ]
         links = notebook_validation.source_links
         setup_cells = notebook_validation.setup_cells
+        if warnings is not None:
+            warnings.extend(
+                Problem(notebook, issue.line, issue.code, issue.message)
+                for issue in notebook_validation.warnings
+            )
         if not any(problem.code == "SCHEMA_MIGRATION" for problem in problems):
             problems.extend(_validate_notebook_setup(notebook, setup_cells, repo=repo))
     else:
@@ -562,6 +574,28 @@ def validate(
     return problems
 
 
+def completion_commit_target(
+    artifact: Path | str,
+    *,
+    repo_root: Path | str | None = None,
+) -> str:
+    """Return the sole repository-relative path allowed for a completion commit."""
+    repo = Path(repo_root).resolve() if repo_root is not None else _repo_root()
+    target = Path(artifact)
+    if not target.is_absolute():
+        target = repo / target
+    problems = validate(
+        target,
+        repo_root=repo,
+        check_collection=False,
+        completion_ready=True,
+    )
+    if problems:
+        summary = "; ".join(f"{item.code}: {item.message}" for item in problems[:3])
+        raise ValueError(f"practice is not completion-ready: {summary}")
+    return target.resolve().relative_to(repo).as_posix()
+
+
 class ContractParser(argparse.ArgumentParser):
     def error(self, message: str) -> None:
         self.exit(2, f"ERROR <cli>:1 [ARTIFACT_SCHEMA] {message}\n")
@@ -580,16 +614,35 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="validate a learner-worked Notebook without requiring unresolved targets or empty execution state",
     )
+    parser.add_argument(
+        "--strict-external-sources",
+        action="store_true",
+        help="require every temporary external cache and receipt to be present and current",
+    )
+    parser.add_argument(
+        "--completion-ready",
+        action="store_true",
+        help="require resolved learner targets and fresh successful execution of every required cell",
+    )
     args = parser.parse_args(argv)
+    warnings: list[Problem] = []
     try:
         problems = validate(
             args.artifact,
             allow_legacy_bundle=args.allow_legacy_bundle,
             learner_state=args.learner_state,
+            strict_external_sources=args.strict_external_sources,
+            completion_ready=args.completion_ready,
+            warnings=warnings,
         )
     except Exception as exc:  # pragma: no cover
         print(f"ERROR {args.artifact}:1 [ARTIFACT_SCHEMA] internal error: {exc}", file=sys.stderr)
         return 2
+    for warning in warnings:
+        print(
+            f"WARNING {warning.path.as_posix()}:{warning.line} [{warning.code}] {warning.message}",
+            file=sys.stderr,
+        )
     for problem in problems:
         print(problem.render(), file=sys.stderr)
     if problems:

@@ -716,12 +716,12 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             handoff.write_text(text, encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "EVIDENCE_STATE")
 
-    def test_schema_v3_is_rejected_with_rebuild_error(self) -> None:
+    def test_schema_v4_is_rejected_with_rebuild_error(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
             handoff, _ = build_handoff(root)
             handoff.write_text(
-                handoff.read_text(encoding="utf-8").replace("- schema_version: 4", "- schema_version: 3"),
+                handoff.read_text(encoding="utf-8").replace("- schema_version: 5", "- schema_version: 4"),
                 encoding="utf-8",
             )
             report = validate_handoff(handoff, repo_root=root)
@@ -1088,6 +1088,9 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             )
             source_hash = sha256(source.read_bytes())
             curriculum_hash = sha256(curriculum.read_bytes())
+            roadmap = root / "ROADMAP.md"
+            roadmap.write_text("# Roadmap\n", encoding="utf-8")
+            roadmap_hash = sha256(roadmap.read_bytes())
             template = (SKILL / "assets/active-lesson-handoff-template.md").read_text(encoding="utf-8")
             raw_path = root / "tmp/raw-template.md"
             raw_path.parent.mkdir(parents=True)
@@ -1103,6 +1106,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 "",
             )
             text = text.replace("| I003 | curriculum |", "| I002 | curriculum |")
+            text = text.replace("| I004 | roadmap |", "| I003 | roadmap |")
             text = text.replace(
                 "| I001 | primary | materials/lesson.md | replace-with-file-sha256 |",
                 f"| I001 | primary | materials/lesson.md | {source_hash} |",
@@ -1111,12 +1115,17 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 "| I002 | curriculum | CURRICULUM.md | replace-with-file-sha256 |",
                 f"| I002 | curriculum | CURRICULUM.md | {curriculum_hash} |",
             )
+            text = text.replace(
+                "| I003 | roadmap | ROADMAP.md | replace-with-file-sha256 |",
+                f"| I003 | roadmap | ROADMAP.md | {roadmap_hash} |",
+            )
             manifest_hash = sha256(
                 "".join(
                     sorted(
                         [
                             f"primary\tmaterials/lesson.md\t{source_hash}\n",
                             f"curriculum\tCURRICULUM.md\t{curriculum_hash}\n",
+                            f"roadmap\tROADMAP.md\t{roadmap_hash}\n",
                         ]
                     )
                 )
@@ -1143,11 +1152,18 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             text = text.replace("materials/lesson.md", f"{relative_directory.as_posix()}/materials/lesson.md")
             source_hash = sha256((root / "materials/lesson.md").read_bytes())
             curriculum_hash = sha256((REPO / "CURRICULUM.md").read_bytes())
+            roadmap_hash = sha256((REPO / "ROADMAP.md").read_bytes())
             import re
 
             text = re.sub(
                 r"\| I002 \| curriculum \| CURRICULUM\.md \| [0-9a-f]{64} \|",
                 f"| I002 | curriculum | CURRICULUM.md | {curriculum_hash} |",
+                text,
+                count=1,
+            )
+            text = re.sub(
+                r"\| I003 \| roadmap \| ROADMAP\.md \| [0-9a-f]{64} \|",
+                f"| I003 | roadmap | ROADMAP.md | {roadmap_hash} |",
                 text,
                 count=1,
             )
@@ -1157,6 +1173,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                         [
                             f"primary\t{relative_directory.as_posix()}/materials/lesson.md\t{source_hash}\n",
                             f"curriculum\tCURRICULUM.md\t{curriculum_hash}\n",
+                            f"roadmap\tROADMAP.md\t{roadmap_hash}\n",
                         ]
                     )
                 )
