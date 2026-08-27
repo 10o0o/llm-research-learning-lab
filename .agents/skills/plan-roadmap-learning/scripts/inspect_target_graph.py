@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
-import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -19,9 +18,16 @@ CURRICULUM_VALIDATOR = (
     REPO_ROOT
     / ".agents/skills/coach-llm-research-study/scripts/validate_curriculum.py"
 )
-ENDPOINT_HEADING = "## 정적 목표 endpoint"
-ENDPOINT_HEADER = ("우선순위", "방향", "Endpoint")
-TARGET_RE = re.compile(r"(?:CC|TR)-[A-Z]+-\d{2}\Z")
+COACH_SCRIPTS = CURRICULUM_VALIDATOR.parent
+if str(COACH_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(COACH_SCRIPTS))
+
+from target_graph import (  # noqa: E402
+    PREREQUISITE_STATES,
+    build_endpoint_graph,
+    parse_roadmap_endpoints,
+    prerequisite_closure,
+)
 
 
 def _load_curriculum_validator():
@@ -36,107 +42,11 @@ def _load_curriculum_validator():
     return module
 
 
-def _split_row(line: str) -> tuple[str, ...] | None:
-    stripped = line.strip()
-    if not stripped.startswith("|") or not stripped.endswith("|"):
-        return None
-    return tuple(cell.strip() for cell in stripped[1:-1].split("|"))
-
-
-def _unwrap_code(value: str) -> str:
-    stripped = value.strip()
-    if stripped.startswith("`") and stripped.endswith("`"):
-        return stripped[1:-1].strip()
-    return stripped
-
-
-def parse_endpoints(text: str) -> list[dict[str, Any]]:
-    """Parse the one normative endpoint table from ROADMAP text."""
-    lines = text.splitlines()
-    heading_indexes = [i for i, line in enumerate(lines) if line == ENDPOINT_HEADING]
-    if len(heading_indexes) != 1:
-        raise ValueError(
-            f"{ENDPOINT_HEADING!r} must appear exactly once; found {len(heading_indexes)}"
-        )
-
-    heading_index = heading_indexes[0]
-    header_indexes = [
-        i
-        for i in range(heading_index + 1, len(lines))
-        if _split_row(lines[i]) == ENDPOINT_HEADER
-    ]
-    header_indexes = [i for i in header_indexes if not lines[i].startswith("## ")]
-    if not header_indexes:
-        raise ValueError("endpoint table is missing")
-    header_index = header_indexes[0]
-    if header_index + 1 >= len(lines):
-        raise ValueError("endpoint table separator is missing")
-
-    endpoints: list[dict[str, Any]] = []
-    cursor = header_index + 2
-    while cursor < len(lines):
-        cells = _split_row(lines[cursor])
-        if cells is None:
-            break
-        if len(cells) != 3:
-            raise ValueError(f"endpoint row {cursor + 1} must have 3 cells")
-        try:
-            priority = int(cells[0])
-        except ValueError as error:
-            raise ValueError(
-                f"endpoint row {cursor + 1} has invalid priority {cells[0]!r}"
-            ) from error
-        target_ids = tuple(
-            _unwrap_code(item) for item in cells[2].split(",") if item.strip()
-        )
-        if not target_ids or any(not TARGET_RE.fullmatch(item) for item in target_ids):
-            raise ValueError(f"endpoint row {cursor + 1} has invalid target IDs")
-        endpoints.append(
-            {
-                "priority": priority,
-                "direction": cells[1],
-                "target_ids": list(target_ids),
-                "roadmap_line": cursor + 1,
-            }
-        )
-        cursor += 1
-
-    if not endpoints:
-        raise ValueError("endpoint table has no data rows")
-    flattened = [target for row in endpoints for target in row["target_ids"]]
-    if len(flattened) != len(set(flattened)):
-        raise ValueError("an endpoint target appears more than once")
-    return endpoints
-
-
-def _closure(
-    target_id: str,
-    targets: dict[str, Any],
-    *,
-    visiting: tuple[str, ...] = (),
-) -> list[str]:
-    if target_id in visiting:
-        chain = " -> ".join((*visiting, target_id))
-        raise ValueError(f"prerequisite cycle: {chain}")
-    target = targets[target_id]
-    ordered: list[str] = []
-    for prerequisite in target.prerequisites:
-        if prerequisite not in targets:
-            raise ValueError(f"{target_id} has unknown prerequisite {prerequisite}")
-        for ancestor in _closure(
-            prerequisite, targets, visiting=(*visiting, target_id)
-        ):
-            if ancestor not in ordered:
-                ordered.append(ancestor)
-        if prerequisite not in ordered:
-            ordered.append(prerequisite)
-    return ordered
-
-
 def inspect_target_graph(
     roadmap_path: Path,
     curriculum_path: Path,
     requested_targets: list[str] | None = None,
+    target_states: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     validator = _load_curriculum_validator()
     findings = validator.validate_curriculum(curriculum_path)
@@ -147,11 +57,11 @@ def inspect_target_graph(
     snapshot = validator.curriculum_snapshot_from_text(
         curriculum_path.read_text(encoding="utf-8")
     )
-    endpoints = parse_endpoints(roadmap_path.read_text(encoding="utf-8"))
-    endpoint_ids = [target for row in endpoints for target in row["target_ids"]]
-    missing = [target for target in endpoint_ids if target not in snapshot.targets]
-    if missing:
-        raise ValueError(f"ROADMAP endpoint is absent from CURRICULUM: {', '.join(missing)}")
+    endpoints = parse_roadmap_endpoints(roadmap_path.read_text(encoding="utf-8"))
+    endpoint_ids = [row["target_id"] for row in endpoints]
+    routes, endpoint_membership = build_endpoint_graph(
+        endpoints, snapshot.targets, target_states
+    )
 
     selected_ids = requested_targets or endpoint_ids
     unknown = [target for target in selected_ids if target not in snapshot.targets]
@@ -164,7 +74,7 @@ def inspect_target_graph(
         target_details[target_id] = {
             "depth": target.depth,
             "prerequisites": list(target.prerequisites),
-            "prerequisite_closure": _closure(target_id, snapshot.targets),
+            "prerequisite_closure": prerequisite_closure(target_id, snapshot.targets),
             "required_evidence": list(target.required_evidence),
             "coverage": target.coverage,
             "gap_action": target.gap_action,
@@ -177,6 +87,8 @@ def inspect_target_graph(
         "roadmap": str(roadmap_path),
         "curriculum": str(curriculum_path),
         "endpoints": endpoints,
+        "routes": routes,
+        "endpoint_membership": endpoint_membership,
         "targets": target_details,
     }
 
@@ -185,7 +97,7 @@ def render_text(report: dict[str, Any]) -> str:
     lines = ["Static ROADMAP endpoints"]
     for row in report["endpoints"]:
         lines.append(
-            f"P{row['priority']} {row['direction']}: {', '.join(row['target_ids'])}"
+            f"{row['stage']} {row['direction']}: {row['target_id']}"
         )
     lines.append("")
     for target_id, target in report["targets"].items():
@@ -199,7 +111,44 @@ def render_text(report: dict[str, Any]) -> str:
                 f"  direct sources: {', '.join(target['direct_source_ids']) or 'none'}",
             )
         )
+    lines.append("")
+    lines.append("Endpoint routes")
+    for endpoint_id, route in report["routes"].items():
+        candidates = route["frontier_candidates"]
+        rendered_candidates = (
+            "not computed"
+            if candidates is None
+            else ", ".join(
+                f"{item['target_id']}[{item['state']}; downstream={item['downstream_count']}]"
+                for item in candidates
+            )
+            or "none"
+        )
+        lines.extend(
+            (
+                f"{route['stage']} {endpoint_id}",
+                f"  route nodes: {', '.join(route['route_nodes'])}",
+                f"  frontier candidates: {rendered_candidates}",
+                f"  unclassified: {', '.join(route['unclassified_nodes']) or 'none'}",
+            )
+        )
     return "\n".join(lines)
+
+
+def _parse_states(values: list[str]) -> dict[str, str] | None:
+    if not values:
+        return None
+    parsed: dict[str, str] = {}
+    for value in values:
+        if "=" not in value:
+            raise ValueError("--state must use TARGET=STATE")
+        target_id, state = value.split("=", 1)
+        if target_id in parsed:
+            raise ValueError(f"duplicate --state target: {target_id}")
+        if state not in PREREQUISITE_STATES:
+            raise ValueError(f"invalid prerequisite state: {value}")
+        parsed[target_id] = state
+    return parsed
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -209,6 +158,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--target", action="append", default=[], help="inspect only this target (repeatable)"
     )
+    parser.add_argument(
+        "--state",
+        action="append",
+        default=[],
+        metavar="TARGET=STATE",
+        help="supply an ephemeral prerequisite state (repeatable)",
+    )
     parser.add_argument("--json", action="store_true", help="emit JSON")
     return parser
 
@@ -217,7 +173,10 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         report = inspect_target_graph(
-            args.roadmap, args.curriculum, args.target or None
+            args.roadmap,
+            args.curriculum,
+            args.target or None,
+            _parse_states(args.state),
         )
     except (OSError, ValueError) as error:
         print(f"ERROR: {error}", file=sys.stderr)

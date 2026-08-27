@@ -57,7 +57,8 @@ class PrepareTilInputTests(unittest.TestCase):
             draft.write_text(
                 "# 오늘의 학습\n\n"
                 + draft_envelope("tensor-shape-lesson", "E001", content)
-                + f"\n## 남은 질문\n\n{question}\n",
+                + f"\n## 남은 질문\n\n{question}\n"
+                + "\n## 관련 기록\n\n- 관련 역량: `CC-DL-01`\n",
                 encoding="utf-8",
             )
             handoff, _ = build_handoff(

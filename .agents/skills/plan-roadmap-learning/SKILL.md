@@ -18,12 +18,13 @@ Read and follow [`references/planner-contract.md`](references/planner-contract.m
 
 ## Produce a bounded recommendation
 
-1. Run `scripts/inspect_target_graph.py` for the relevant endpoint or user-named target, then inspect only the evidence needed to classify its prerequisites and missing evidence.
+1. Run `scripts/inspect_target_graph.py` for the relevant ordered endpoint stage or user-named target. Inspect the route, downstream counts, and membership, then inspect only the evidence needed to classify prerequisite states. Re-run it with ephemeral `--state TARGET=STATE` values when deterministic frontier candidates would resolve a tie or expose an unknown.
 2. Inspect only evidence relevant to the candidate targets: current learner-authored answers, current `knowledge/`, finalized TIL, executed/interpreted practice, and explicitly linked challenge work.
 3. Select exactly one primary target and at most one bridge using the contract. Do not use source availability or chapter order to choose the target.
-4. When several prerequisites are missing, choose an actionable frontier
-   blocker by graph impact before looking at practice. A narrow bridgeable gap
-   may be taught inline; it must not hide a deeper blocking prerequisite.
+4. Keep the ROADMAP endpoint separate from the current target. An actionable
+   frontier blocker is the primary target; one narrow, mostly satisfied
+   prerequisite may be its inline bridge. Multiple assessed gaps are not
+   bundled as bridges.
 5. After target selection, reuse only a directly linked, valuable practice with required execution evidence and no blocker. Otherwise resolve a current local source or one exact official external artifact.
 6. Return all four decision axes and the observable completion evidence required by the contract. State uncertainty instead of inferring progress from file presence or completion signals.
 

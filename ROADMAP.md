@@ -22,10 +22,13 @@ Modeling과 Computer Vision은 별도 주력 트랙이 아니라 위 전문화�
 
 아래 표는 전문화 방향의 도착점을 고정할 뿐, 완료 여부나 현재 진도를 기록하지 않습니다. 실제 다음 목표는 `CURRICULUM.md`의 선수 그래프와 학습자가 직접 남긴 근거를 함께 보고 정합니다.
 
-| 우선순위 | 방향 | Endpoint |
-|---:|---|---|
-| 1 | Systems·Inference | `TR-SYS-03`, `TR-SYS-04` |
-| 2 | Post-training·Evaluation | `TR-MOD-03`, `TR-EVAL-02`, `TR-EVAL-04` |
+| 우선순위 | 단계 | 방향 | Endpoint |
+|---:|---:|---|---|
+| 1 | `1A` | Systems·Inference | `TR-SYS-03` |
+| 1 | `1B` | Systems·Inference | `TR-SYS-04` |
+| 2 | `2A` | Post-training·Evaluation | `TR-MOD-03` |
+| 2 | `2B` | Post-training·Evaluation | `TR-EVAL-02` |
+| 2 | `2C` | Post-training·Evaluation | `TR-EVAL-04` |
 
 Modeling과 Computer Vision은 이 endpoint에 필요한 선수개념 또는 연결 학습으로만 선택합니다.
 

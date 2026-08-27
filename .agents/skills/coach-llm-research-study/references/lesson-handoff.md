@@ -55,9 +55,10 @@ validator never edits the handoff.
    strict practice provenance validation; delete only that lesson cache
    directory afterward. Preserve both on interruption or validation failure.
 
-Schema version 5 has no in-place migration from version 4. Rebuild an older
-handoff from the current template; do not guess how old target, external
-identity, or ROADMAP state maps to the new contract.
+Schema version 6 has no in-place migration from version 5 or earlier. Rebuild
+an older handoff from the current template; do not reinterpret the old
+endpoint-as-primary semantics or guess how target, external identity, or
+ROADMAP state maps to the new contract.
 
 Resume an existing handoff only when the named primary input path and hash are
 unchanged. A source, curriculum, manifest, or lesson-contract change makes a
@@ -72,7 +73,7 @@ to discard learner content.
 
 Metadata is a Markdown bullet list with exactly these keys:
 
-- `schema_version`: currently `5`.
+- `schema_version`: currently `6`.
 - `lesson_id`: stable lowercase identifier matching
   `[a-z0-9][a-z0-9-]{2,63}`.
 - `title`: one non-empty line.
@@ -101,7 +102,9 @@ ID | Role | Path | SHA-256
   `CURRICULUM.md` and `ROADMAP.md`.
 - External rows live only under
   `tmp/active-lesson-sources/<lesson-id>/`. Create them with
-  `cache_external_source.py`; every redirect remains HTTPS, credentials and
+  `cache_external_source.py` after the agent has selected and audited one exact
+  official URL. The helper does not search for a source or start work in the
+  background. Every redirect remains HTTPS, credentials and
   cookies are not stored, local or non-public network destinations are rejected,
   and unsupported, authenticated, paid, archive,
   dataset, weight, or over-100-MiB access returns `AWAIT_SOURCE_APPROVAL`.
@@ -190,12 +193,22 @@ why_now
 ```
 
 Selection mode is `planner`, `user-named-target`, or `user-named-source`.
-Target state uses the planner contract. Curriculum Targets is exactly the one
-primary target followed by its optional prerequisite bridge. Evidence gap is
-`none` or unique required-evidence tokens from the primary Curriculum row.
-When a bridge exists it must be in the primary target's prerequisite closure.
-Source convenience, chapter order, or this handoff never changes that target
-decision.
+Handoffs accept only actionable planner states: `START_TARGET`,
+`CONTINUE_TARGET`, or `BRIDGE_PREREQUISITE`. Resolve `NEED_DIAGNOSTIC` before
+building a lesson and never build one for `NO_ACTIONABLE_TARGET`.
+
+`endpoint` is the long-term ordered ROADMAP destination while `primary_target`
+is the target whose evidence this lesson advances. A blocking prerequisite is
+therefore the primary, not the bridge. In planner mode, endpoint is an exact
+ROADMAP endpoint and primary belongs to its prerequisite closure or is that
+endpoint itself. A user-named target or source may use an exact containing
+endpoint or `user-directed`; planner mode may not use that sentinel.
+
+Curriculum Targets is exactly the primary target followed by its optional
+prerequisite bridge. The bridge is one mostly satisfied prerequisite closed
+inline and exists only with `BRIDGE_PREREQUISITE`. Evidence gap is `none` or
+unique required-evidence tokens from the primary Curriculum row. Source
+convenience, chapter order, or this handoff never changes that target decision.
 
 Curriculum Treatment Map has these exact columns and exactly one ordered row
 per selected target:
@@ -246,13 +259,27 @@ primary linked by a target treatment needs its own row. For mixed lessons,
 every linked local and external primary must independently satisfy its direct
 relation; one matching source cannot hide an unrelated source.
 
-Before `--til-ready` can pass for a temporary external lesson, the reviewed
-draft's `## 관련 기록` section must contain each primary's exact Official URL,
-Offering/Edition, and Scope plus an exact provenance line
-`- 관련 역량: \`CC-...\`` for every directly related competency target. The
-line records lesson provenance only; it does not establish mastery or durable
-Curriculum coverage. A track endpoint therefore needs a directly related
-`CC-*` treatment as well when the external lesson is going to be finalized.
+Before `--til-ready` can pass for any handoff-backed local or external lesson,
+the reviewed draft's `## 관련 기록` section contains exactly this line, with a
+`CC-*` or `TR-*` value:
+
+```markdown
+- 관련 역량: `<primary_target>`
+```
+
+When the selected bridge has at least one delivered Objective, add exactly
+this line; omit it when that bridge was not delivered:
+
+```markdown
+- 보충 선수 역량: `<bridge_target>`
+```
+
+These lines record routing provenance only and do not establish mastery or
+durable Curriculum coverage.
+
+A temporary external lesson additionally preserves each external primary's
+exact Official URL, Offering/Edition, and Scope. External identity validation
+does not redefine which target provenance lines are required.
 
 Coverage Mode contains exactly one of:
 

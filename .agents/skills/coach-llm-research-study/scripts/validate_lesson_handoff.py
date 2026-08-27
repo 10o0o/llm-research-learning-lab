@@ -24,9 +24,14 @@ from validate_curriculum import (  # noqa: E402
     curriculum_snapshot_from_text,
     validate_lesson_slice_freshness,
 )
+from target_graph import (  # noqa: E402
+    parse_roadmap_endpoints,
+    prerequisite_closure,
+)
+from pdf_utils import pdf_page_count as _pdf_page_count  # noqa: E402
 
 
-SCHEMA_VERSION = "5"
+SCHEMA_VERSION = "6"
 STATUSES = {"preparing", "review_pending", "active", "paused", "blocked", "completed"}
 MANIFEST_ROLES = {
     "primary",
@@ -96,6 +101,11 @@ TARGET_STATES = {
     "BRIDGE_PREREQUISITE",
     "NEED_DIAGNOSTIC",
     "NO_ACTIONABLE_TARGET",
+}
+ACTIONABLE_TARGET_STATES = {
+    "START_TARGET",
+    "CONTINUE_TARGET",
+    "BRIDGE_PREREQUISITE",
 }
 EXTERNAL_RELATIONS = {"primary", "supporting"}
 EVIDENCE_TOKENS = {
@@ -725,24 +735,6 @@ class _VisibleTextParser(HTMLParser):
             self.parts.append(data)
 
 
-def _pdf_page_count(path: Path) -> int | None:
-    try:
-        from pypdf import PdfReader  # type: ignore[import-not-found]
-    except ImportError:
-        PdfReader = None
-    if PdfReader is not None:
-        try:
-            return len(PdfReader(str(path), strict=False).pages)
-        except Exception:  # pypdf exposes several parser and encryption errors.
-            pass
-    try:
-        data = path.read_bytes()
-    except OSError:
-        return None
-    count = len(re.findall(rb"/Type\s*/Page(?!s)\b", data))
-    return count or None
-
-
 def _location_exists(location: str, repo_root: Path) -> bool:
     path = _location_path(location)
     if path is None:
@@ -1009,6 +1001,14 @@ def _parse_target_decision(
         errors.append(ValidationError(line_no, "SCHEMA", f"invalid target selection mode: {selection_mode}"))
     if target_state not in TARGET_STATES:
         errors.append(ValidationError(line_no, "SCHEMA", f"invalid target state: {target_state}"))
+    elif target_state not in ACTIONABLE_TARGET_STATES:
+        errors.append(
+            ValidationError(
+                line_no,
+                "TARGET_DECISION",
+                "lesson handoff requires START_TARGET, CONTINUE_TARGET, or BRIDGE_PREREQUISITE; return diagnostic and no-action results to the planner",
+            )
+        )
     if not CURRICULUM_ID_RE.fullmatch(primary_target):
         errors.append(ValidationError(line_no, "SCHEMA", f"invalid primary target: {primary_target}"))
     if bridge_target != "none" and not CURRICULUM_ID_RE.fullmatch(bridge_target):
@@ -1034,6 +1034,84 @@ def _parse_target_decision(
         values["why_now"],
         line_no,
     )
+
+
+def _validate_target_endpoint_relation(
+    doc: HandoffDocument,
+    curriculum_snapshot: Any,
+    errors: list[ValidationError],
+) -> None:
+    decision = doc.target_decision
+    if decision is None:
+        return
+    if decision.endpoint == "user-directed":
+        if decision.selection_mode == "planner":
+            errors.append(
+                ValidationError(
+                    decision.line,
+                    "TARGET_DECISION",
+                    "planner selection requires an exact ordered ROADMAP endpoint, not user-directed",
+                )
+            )
+        return
+
+    roadmap_entry = next(
+        (
+            entry
+            for entry in doc.manifest
+            if entry.role == "roadmap" and entry.path == "ROADMAP.md"
+        ),
+        None,
+    )
+    if roadmap_entry is None:
+        return
+    roadmap_path, path_error = _safe_repo_path(roadmap_entry.path, doc.repo_root)
+    if path_error is not None or roadmap_path is None or not roadmap_path.is_file():
+        return
+    try:
+        endpoints = parse_roadmap_endpoints(roadmap_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
+        errors.append(
+            ValidationError(
+                roadmap_entry.line,
+                "TARGET_DECISION",
+                f"ROADMAP endpoint table is invalid: {error}",
+            )
+        )
+        return
+    endpoint_ids = {entry["target_id"] for entry in endpoints}
+    if decision.endpoint not in endpoint_ids:
+        errors.append(
+            ValidationError(
+                decision.line,
+                "TARGET_DECISION",
+                f"endpoint is not an ordered ROADMAP endpoint: {decision.endpoint}",
+            )
+        )
+        return
+    if decision.primary_target not in curriculum_snapshot.targets:
+        return
+    try:
+        route = set(
+            prerequisite_closure(decision.endpoint, curriculum_snapshot.targets)
+        ) | {decision.endpoint}
+    except ValueError as error:
+        errors.append(
+            ValidationError(
+                decision.line,
+                "TARGET_DECISION",
+                f"cannot resolve endpoint route: {error}",
+            )
+        )
+        return
+    if decision.primary_target not in route:
+        errors.append(
+            ValidationError(
+                decision.line,
+                "TARGET_DECISION",
+                f"primary_target {decision.primary_target} is outside endpoint route {decision.endpoint}",
+            )
+        )
 
 
 def _parse_external_identities(
@@ -1901,6 +1979,7 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
                 curriculum_rows = _curriculum_target_rows(curriculum_text)
                 curriculum_snapshot = curriculum_snapshot_from_text(curriculum_text)
                 decision = doc.target_decision
+                _validate_target_endpoint_relation(doc, curriculum_snapshot, errors)
                 if decision is not None and decision.primary_target in curriculum_snapshot.targets:
                     primary_snapshot = curriculum_snapshot.targets[decision.primary_target]
                     unknown_evidence = set(decision.evidence_gap) - set(primary_snapshot.required_evidence)
@@ -1914,16 +1993,15 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
                             )
                         )
                     if decision.bridge_target != "none":
-                        frontier = list(primary_snapshot.prerequisites)
-                        closure: set[str] = set()
-                        while frontier:
-                            prerequisite = frontier.pop()
-                            if prerequisite in closure:
-                                continue
-                            closure.add(prerequisite)
-                            nested = curriculum_snapshot.targets.get(prerequisite)
-                            if nested is not None:
-                                frontier.extend(nested.prerequisites)
+                        try:
+                            closure = set(
+                                prerequisite_closure(
+                                    decision.primary_target,
+                                    curriculum_snapshot.targets,
+                                )
+                            )
+                        except ValueError:
+                            closure = set()
                         if decision.bridge_target not in closure:
                             errors.append(
                                 ValidationError(
@@ -2766,6 +2844,7 @@ def _validate_til_readiness(doc: HandoffDocument, errors: list[ValidationError])
     remaining_questions = _markdown_h2_body(draft_text, "남은 질문") if draft_text is not None else None
 
     if draft_text is not None:
+        _validate_target_til_provenance(doc, draft_text, errors)
         _validate_external_til_provenance(doc, draft_text, errors)
 
     for row in doc.learning_coverage.values():
@@ -2791,12 +2870,78 @@ def _validate_til_readiness(doc: HandoffDocument, errors: list[ValidationError])
             errors.append(ValidationError(row.line, "TIL_COVERAGE", f"deferred {row.concept_id} must be not-required"))
 
 
+def _validate_target_til_provenance(
+    doc: HandoffDocument,
+    draft_text: str,
+    errors: list[ValidationError],
+) -> None:
+    """Require the exact lesson target and only an actually delivered bridge."""
+    decision = doc.target_decision
+    if decision is None:
+        return
+    related = _markdown_h2_body(draft_text, "관련 기록")
+    if related is None:
+        errors.append(
+            ValidationError(
+                decision.line,
+                "TIL_TARGET_PROVENANCE",
+                "a handoff-backed TIL requires a non-empty ## 관련 기록 section",
+            )
+        )
+        return
+    related_lines = [line.strip() for line in related.splitlines()]
+    primary_lines = [line for line in related_lines if line.startswith("- 관련 역량:")]
+    expected_primary = f"- 관련 역량: `{decision.primary_target}`"
+    if primary_lines != [expected_primary]:
+        errors.append(
+            ValidationError(
+                decision.line,
+                "TIL_TARGET_PROVENANCE",
+                f"## 관련 기록 must contain exactly one primary provenance line: {expected_primary!r}",
+            )
+        )
+
+    bridge_lines = [
+        line for line in related_lines if line.startswith("- 보충 선수 역량:")
+    ]
+    bridge_delivered = False
+    if decision.bridge_target != "none":
+        treatment = doc.curriculum_treatments.get(decision.bridge_target)
+        if treatment is not None:
+            bridge_delivered = any(
+                doc.objective_delivery.get(objective_id) is not None
+                and doc.objective_delivery[objective_id].state == "delivered"
+                for objective_id in treatment.objective_ids
+            )
+    expected_bridge = (
+        f"- 보충 선수 역량: `{decision.bridge_target}`"
+        if bridge_delivered
+        else None
+    )
+    if expected_bridge is not None and bridge_lines != [expected_bridge]:
+        errors.append(
+            ValidationError(
+                doc.curriculum_treatments[decision.bridge_target].line,
+                "TIL_TARGET_PROVENANCE",
+                f"a delivered bridge requires exactly {expected_bridge!r}",
+            )
+        )
+    elif expected_bridge is None and bridge_lines:
+        errors.append(
+            ValidationError(
+                decision.line,
+                "TIL_TARGET_PROVENANCE",
+                "## 관련 기록 must not claim a bridge that was not delivered",
+            )
+        )
+
+
 def _validate_external_til_provenance(
     doc: HandoffDocument,
     draft_text: str,
     errors: list[ValidationError],
 ) -> None:
-    """Require exact lesson provenance before an external-source TIL can save."""
+    """Require exact external identity before an external-source TIL can save."""
     if not doc.external_identities:
         return
     related = _markdown_h2_body(draft_text, "관련 기록")
@@ -2825,40 +2970,6 @@ def _validate_external_til_provenance(
                         f"## 관련 기록 is missing the exact external {label}: {exact_value}",
                     )
                 )
-
-    related_lines = {line.strip() for line in related.splitlines()}
-    competency_targets = sorted(
-        {
-            relation.target_id
-            for relation in doc.external_relations.values()
-            if relation.target_id.startswith("CC-")
-        }
-    )
-    if not competency_targets:
-        errors.append(
-            ValidationError(
-                1,
-                "EXTERNAL_TIL_PROVENANCE",
-                "a temporary external lesson needs at least one directly related CC target for TIL provenance",
-            )
-        )
-        return
-    for target_id in competency_targets:
-        expected = f"- 관련 역량: `{target_id}`"
-        if expected not in related_lines:
-            relation_line = next(
-                relation.line
-                for relation in doc.external_relations.values()
-                if relation.target_id == target_id
-            )
-            errors.append(
-                ValidationError(
-                    relation_line,
-                    "EXTERNAL_TIL_PROVENANCE",
-                    f"## 관련 기록 must contain exactly {expected!r}",
-                )
-            )
-
 
 def _validate_declared_hashes(doc: HandoffDocument, metadata_lines: dict[str, int], errors: list[ValidationError]) -> None:
     declared_manifest = doc.metadata.get("input_manifest_sha256")

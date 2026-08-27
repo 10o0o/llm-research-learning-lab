@@ -77,7 +77,7 @@ Follow the headings and order in `til/template.md`.
 - Put only next actions the learner actually wrote under `다음에 할 것`.
 - Put only real source, knowledge, or practice links under `관련 기록`.
 - For a source-based session, preserve each explicitly named source link. When the exact repository source is known from the draft or the reviewed learning context and exists, add or rewrite its link under `관련 기록` relative to the dated TIL.
-- For a reviewed temporary external primary, preserve its exact official HTTPS URL, provider/course, offering or edition, artifact scope, and one provenance line `- 관련 역량: \`CC-...\`` under `관련 기록`. This target ID records lesson provenance, not mastery or Curriculum coverage.
+- For every reviewed handoff-backed lesson, preserve exactly one `관련 역량` bullet whose backticked value is the exact primary `CC-*` or `TR-*` target under `관련 기록`. Preserve one `보충 선수 역량` bullet only when that exact bridge was delivered. A temporary external primary also preserves its exact official HTTPS URL, provider/course, offering or edition, and artifact scope. These target IDs record routing provenance, not mastery or Curriculum coverage.
 - Before finalizing a source-based session, require at least one resolvable source link, normally under `materials/`. If the exact source cannot be determined, ask instead of guessing. This requirement does not apply to source-free study such as an independent coding reflection.
 - Keep `오늘의 학습`. Omit any other section when the draft contains no supporting content.
 - When classification is uncertain, keep the content under `오늘의 학습` instead of inventing structure.

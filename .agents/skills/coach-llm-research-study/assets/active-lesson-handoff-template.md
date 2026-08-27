@@ -5,7 +5,7 @@
 
 ## Metadata
 
-- schema_version: 5
+- schema_version: 6
 - lesson_id: replace-with-stable-lesson-id
 - title: Replace with lesson title
 - status: preparing

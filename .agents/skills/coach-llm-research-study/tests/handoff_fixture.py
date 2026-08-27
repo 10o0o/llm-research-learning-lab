@@ -179,7 +179,8 @@ def build_handoff(
             "# Curriculum\n\n"
             "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
             "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
-            "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 충분 | 그대로 사용 | Fixture row. |\n\n"
+            "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 충분 | 그대로 사용 | Fixture row. |\n"
+            "| TR-SYS-03 | Systems endpoint | D3 | CC-DL-01 | design | — | 없음 | 트랙 선택 시 확보 | Fixture endpoint. |\n\n"
             "| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |\n"
             "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
             f"| SRC-TEST-00-01 | `{primary_path}` | HTML 토글 펼침 Markdown | `{source_hash}` | complete | complete | 2026-08-20 | Fixture source. |\n",
@@ -190,9 +191,9 @@ def build_handoff(
     if not roadmap.exists():
         roadmap.write_text(
             "# Roadmap\n\n## 정적 목표 endpoint\n\n"
-            "| 우선순위 | 방향 | Endpoint |\n"
-            "| ---: | --- | --- |\n"
-            "| 1 | Systems | `TR-SYS-03` |\n",
+            "| 우선순위 | 단계 | 방향 | Endpoint |\n"
+            "| ---: | ---: | --- | --- |\n"
+            "| 1 | `1A` | Systems | `TR-SYS-03` |\n",
             encoding="utf-8",
         )
     roadmap_hash = sha256(roadmap.read_bytes())
@@ -338,7 +339,7 @@ def build_handoff(
 
 ## Metadata
 
-- schema_version: 5
+- schema_version: 6
 - lesson_id: {lesson_id}
 - title: Tensor shape lesson
 - status: {status}

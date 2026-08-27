@@ -20,11 +20,11 @@ Use these scenarios only after changing planner policy. Give a fresh read-only r
 - Fixture variants: unrelated, low-value, paused, and legacy-without-target-metadata artifacts; then one unfinished artifact directly linked to the selected target with needed execution evidence and no conceptual blocker.
 - Expected invariants: reject automatic priority for the first group; reuse only the directly linked valuable artifact in the second variant and keep the same target decision.
 
-## F04 Blocking frontier and unknown prerequisites
+## F04 Blocking frontier, inline bridge, and unknown prerequisites
 
 - Prompt: "최우선 endpoint를 향해 지금 무엇을 해야 해?"
-- Fixture variants: several prerequisite branches are incomplete, including a nearly completed bridgeable branch with an unfinished practice and one actionable blocking frontier; in the other, evidence is insufficient to distinguish blocking from satisfied.
-- Expected invariants: keep the endpoint as `primary_target` and return the actionable blocker, not the convenient bridgeable practice, as `bridge_target` with `BRIDGE_PREREQUISITE`; for the unknown variant use `NEED_DIAGNOSTIC`, `NO_NEW_SOURCE_NEEDED`, and `source_persistence: NONE` without guessing.
+- Fixture variants: several prerequisite branches are incomplete, including one actionable blocking frontier whose single prerequisite is bridgeable; in the other, evidence is insufficient to distinguish blocking from satisfied.
+- Expected invariants: keep the long-term destination in `endpoint`, select the actionable blocker as `primary_target`, and use the mostly satisfied prerequisite as `bridge_target` only when it can be closed inline; for the unknown variant use `NEED_DIAGNOSTIC`, `NO_NEW_SOURCE_NEEDED`, and `source_persistence: NONE` without guessing.
 
 ## F05 Challenge pass is not prerequisite evidence
 
@@ -37,3 +37,9 @@ Use these scenarios only after changing planner policy. Give a fresh read-only r
 - Prompt: Test both "CC-PROB-01을 다음 목표로 공부할 자료를 정해줘." and "Systems endpoint로 갈 다음 목표를 정해줘."
 - Fixture facts: `SRC-HARV-STAT110-2E-00-01` is registered and fresh at `materials/private/harvard-stat110-probability/00-01_introduction_to_probability_2e.pdf`.
 - Expected invariants: only the `CC-PROB-01` variant uses Harvard Stat110, Second Edition, the exact source ID/path, and Chapters 1–4 with `CONTINUE_LOCAL_SOURCE`; the Systems variant does not choose probability because Stat110 is available.
+
+## F07 Ordered endpoint stages and multiple gaps
+
+- Prompt: "Systems·Inference의 다음 목표를 정해줘. 1A는 아직 blocker가 있고 1B 자료는 이미 준비돼 있어."
+- Fixture variants: stage 1A has two prerequisite gaps that require separate assessed work; stage 1B has a fresh audited source and unfinished practice.
+- Expected invariants: remain on endpoint stage 1A, choose the highest-impact actionable gap as `primary_target`, use no bridge for multiple independent gaps, and do not advance to 1B because its source or practice is convenient.

@@ -25,7 +25,13 @@ BOLD_BEFORE_KOREAN_RE = re.compile(r"\*\*(?!\s)(?:(?!\*\*).)+?\*\*(?=[가-힣])"
 PROHIBITED_MACRO_RE = re.compile(
     r"\\(?:operatorname|DeclareMathOperator|newcommand|renewcommand|def|require)\b"
 )
-RELATED_TARGET_RE = re.compile(r"^- 관련 역량: `CC-[A-Z]+-\d{2}`$")
+CURRICULUM_TARGET_PATTERN = r"(?:CC|TR)-[A-Z]+-\d{2}"
+RELATED_TARGET_RE = re.compile(
+    rf"^- 관련 역량: `(?P<target>{CURRICULUM_TARGET_PATTERN})`$"
+)
+BRIDGE_TARGET_RE = re.compile(
+    rf"^- 보충 선수 역량: `(?P<target>{CURRICULUM_TARGET_PATTERN})`$"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -276,10 +282,12 @@ def heading_schema(
 
 
 def check_related_target_provenance(path: Path, lines: list[str]) -> list[str]:
-    """Keep temporary-source target provenance exact and non-mastery-shaped."""
+    """Keep optional target routing provenance exact and non-mastery-shaped."""
     errors: list[str] = []
     current_h2: str | None = None
     in_fence = False
+    related_targets: dict[str, int] = {}
+    bridge_targets: dict[str, int] = {}
     for line_number, line in enumerate(lines, start=1):
         if line.lstrip().startswith("```"):
             in_fence = not in_fence
@@ -289,16 +297,40 @@ def check_related_target_provenance(path: Path, lines: list[str]) -> list[str]:
         heading = re.fullmatch(r"##(?!#)\s+(.+?)\s*", line)
         if heading is not None:
             current_h2 = heading.group(1)
-        if not line.strip().startswith("- 관련 역량:"):
+        stripped = line.strip()
+        is_related = stripped.startswith("- 관련 역량:")
+        is_bridge = stripped.startswith("- 보충 선수 역량:")
+        if not is_related and not is_bridge:
             continue
         if current_h2 != "관련 기록":
             errors.append(
-                f"{path}:{line_number}: related target provenance belongs under 관련 기록"
+                f"{path}:{line_number}: target provenance belongs under 관련 기록"
             )
-        if RELATED_TARGET_RE.fullmatch(line.strip()) is None:
+        pattern = RELATED_TARGET_RE if is_related else BRIDGE_TARGET_RE
+        match = pattern.fullmatch(stripped)
+        if match is None:
+            expected = (
+                "- 관련 역량: `CC-...|TR-...`"
+                if is_related
+                else "- 보충 선수 역량: `CC-...|TR-...`"
+            )
             errors.append(
-                f"{path}:{line_number}: use exactly '- 관련 역량: `CC-...`'"
+                f"{path}:{line_number}: use exactly '{expected}'"
             )
+            continue
+        target_id = match.group("target")
+        seen = related_targets if is_related else bridge_targets
+        if target_id in seen:
+            errors.append(
+                f"{path}:{line_number}: duplicate target provenance for {target_id}"
+            )
+        else:
+            seen[target_id] = line_number
+    if bridge_targets and not related_targets:
+        first_line = min(bridge_targets.values())
+        errors.append(
+            f"{path}:{first_line}: bridge target provenance requires a related primary target"
+        )
     return errors
 
 

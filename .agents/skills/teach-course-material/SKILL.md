@@ -67,6 +67,10 @@ the sole normative schema and lifecycle. This skill owns execution of the
 reviewed teaching sequence and its mutable delivery state; it does not approve,
 rebuild, replace, or clean up the contract on its own. If the user asks to
 continue without a resolvable current lesson, ask for the exact source.
+Treat the handoff endpoint only as long-term route context. Teach the exact
+primary target and include a bridge target only when the reviewed contract
+names that one inline prerequisite. Diagnostic and no-action planner results
+are not teachable handoffs.
 
 Teach a reviewed temporary official source exactly like a reviewed local
 primary, using only its cached bytes, exact locator, scope, and target relation.

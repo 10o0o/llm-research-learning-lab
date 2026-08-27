@@ -32,7 +32,7 @@ VS Code에서 Notebook을 실행할 때는 `/home/jake/llm-research-learning-lab
 
 1. `$plan-roadmap-learning`으로 정확히 하나의 primary target과 필요한 경우 하나의 bridge prerequisite를 정합니다.
 2. 선택된 target을 감사된 로컬 자료로 해결할지, 이번 수업에만 쓸 공식 외부 자료로 해결할지 판단합니다. 자료 유무는 target 순위를 바꾸지 않습니다.
-3. `$coach-llm-research-study`가 선택한 자료와 target 관계를 감사하고 schema v5 handoff를 준비합니다.
+3. `$coach-llm-research-study`가 선택한 자료와 target 관계를 감사하고 schema v6 handoff를 준비합니다.
 4. 수업 계약이 fresh reviewer의 검토를 통과하면 `$teach-course-material`로 기술 개념 단위 학습을 진행합니다.
 5. 형식 없는 메모는 `til/today.md`에 직접 쓰고, 확인된 자신의 답변만 같은 파일에 누적합니다.
 6. `$coach-llm-research-study`로 오늘 실제로 다룬 핵심이 이해 또는 불확실성의 형태로 초안에 모두 있는지 검토합니다.
@@ -56,7 +56,7 @@ materials/private/<course>/NN-NN_주제.pdf
 
 파일을 옮긴 뒤 전체 페이지와 수식·표·코드·그림이 읽히는지 확인합니다. Notion에서 내보낸 자료라면 접힌 내용도 포함되어야 합니다. 과정 `INDEX.md`에는 정확히 한 번 `- source_namespace: <대문자 namespace>`를 선언하고 새 파일명과 원본 위치를 함께 갱신합니다. Registry ID는 `SRC-<source_namespace>-<NN-NN>`으로 만들며 같은 namespace를 다른 과정 폴더에서 재사용하지 않습니다.
 
-현재 수업에 필요한 자료가 아직 등록되지 않았더라도 공개 HTTPS 공식 자료라면 reviewed handoff 안에서만 임시 캐시할 수 있습니다. 이때 provider, course, offering 또는 edition, artifact, 정확한 scope, 원본·최종 URL, retrieval 시각과 hash를 보존합니다. 로그인·결제·100 MiB 초과·archive·dataset·weight는 자동으로 받지 않습니다. 임시 사용은 `CURRICULUM.md` coverage를 바꾸지 않으며, 두 번째 독립 수업에서 재사용하거나 장기 route의 핵심 자료가 되면 별도 등록을 권고하고 승인을 기다립니다.
+현재 수업에 필요한 자료가 아직 등록되지 않았더라도 공개 HTTPS 공식 자료라면 reviewed handoff 안에서만 임시 캐시할 수 있습니다. Agent가 먼저 공식 자료를 검색·감사해 exact URL을 선택하며, `cache_external_source.py` 자체는 자료를 발견하거나 백그라운드 학습을 시작하지 않습니다. Cache에는 provider, course, offering 또는 edition, artifact, 정확한 scope, 원본·최종 URL, retrieval 시각과 hash를 보존합니다. 로그인·결제·100 MiB 초과·archive·dataset·weight는 자동으로 받지 않습니다. 임시 사용은 `CURRICULUM.md` coverage를 바꾸지 않으며, 두 번째 독립 수업에서 재사용하거나 장기 route의 핵심 자료가 되면 별도 등록을 권고하고 승인을 기다립니다.
 
 ## TIL 작성
 
@@ -80,7 +80,7 @@ til/2026/09/2026-09-01.md
 
 검토를 마치면 [`til/template.md`](./til/template.md)의 순서에 맞게 저장됩니다. `오늘의 학습`은 항상 남기고, 나머지 항목은 실제 내용이 있을 때만 남깁니다. 라이브 수업과 GPT 보충 학습을 구분해서 썼다면 `오늘의 학습` 안에서 그 구분을 유지합니다.
 
-강의자료를 보고 공부했다면 `관련 기록`에 그 자료의 정확한 링크가 들어갑니다. 임시 공식 외부 자료를 사용했다면 official URL, provider/course, offering 또는 edition, artifact와 exact scope를 함께 쓰고 바로 아래에 `- 관련 역량: \`CC-...\``를 남깁니다. 이 ID는 수업 provenance이지 숙련도 표기가 아닙니다. 이후 실습 스킬은 날짜별 TIL을 필수 입력으로 받고 이 링크를 따라 자료를 확인하므로, 자료명을 추측해서 링크하지 않습니다.
+강의자료를 보고 공부했다면 `관련 기록`에 그 자료의 정확한 링크가 들어갑니다. Reviewed handoff를 사용한 local·external 수업은 모두 `관련 역량` bullet의 backticked 값으로 정확한 primary `CC-*` 또는 `TR-*` target을 남기고, 실제로 전달한 inline bridge가 있을 때만 같은 형식의 `보충 선수 역량` bullet을 추가합니다. 임시 공식 외부 자료라면 official URL, provider/course, offering 또는 edition, artifact와 exact scope도 함께 씁니다. 이 ID들은 routing provenance이지 숙련도 표기가 아닙니다. 이후 실습 스킬은 날짜별 TIL을 필수 입력으로 받고 이 링크를 따라 자료를 확인하므로, 자료명을 추측해서 링크하지 않습니다.
 
 TIL은 그날의 생각을 보존하는 기록입니다. 나중에 이해가 바뀌어도 과거 글 전체를 교과서처럼 다시 쓰지 않습니다. 짧게 정정하거나 새로운 날의 TIL에 남기고, 현재의 정확한 이해는 `knowledge/`에 반영합니다.
 
@@ -125,7 +125,7 @@ practice/deep-learning/tiny-image-classifier-contracts.ipynb
 
 ### 1. 다음 학습 방향 계획
 
-[`plan-roadmap-learning`](./.agents/skills/plan-roadmap-learning/SKILL.md)은 `ROADMAP.md` endpoint, `CURRICULUM.md`의 depth·prerequisites·required evidence, 실제 학습자 근거를 함께 읽고 정확히 하나의 primary target과 선택적 bridge target을 정합니다. 사용자가 target을 명시하지 않았다면 최우선 endpoint의 blocking prerequisite, 같은 target의 부족한 evidence, 가장 많은 후속 target을 여는 frontier 순으로 고릅니다. 자료나 다음 chapter가 target 순위를 대신하지 않습니다. 파일을 수정하거나 자료를 내려받고 등록하지 않습니다.
+[`plan-roadmap-learning`](./.agents/skills/plan-roadmap-learning/SKILL.md)은 `ROADMAP.md`의 `1A`~`2C` endpoint 단계, `CURRICULUM.md`의 depth·prerequisites·required evidence, 실제 학습자 근거를 함께 읽습니다. endpoint는 장기 도착점으로 남기고, 해당 경로의 blocking frontier를 이번 사이클의 primary target으로 정합니다. 거의 충족된 선수역량 하나만 inline bridge가 될 수 있으며, 독립적인 학습이 필요한 blocker는 bridge로 축소하지 않습니다. 자료나 다음 chapter가 target 순위를 대신하지 않습니다. 파일을 수정하거나 자료를 내려받고 등록하지 않습니다.
 
 다음 학습 방향을 고르는 요청에서는 이 planner를 자료 감사와 대화형 수업보다 먼저 사용합니다. 새 자료가 필요하다는 결과가 나온 뒤에만 별도 승인 아래 source 등록·감사를 진행하고, 감사된 범위를 수업으로 넘깁니다.
 
@@ -143,7 +143,7 @@ CC-PROB-01을 채울 다음 자료와 범위를 제안해줘.
 외부 자료가 필요하면 정확한 edition과 artifact만 알려주고 등록은 기다려줘.
 ```
 
-추천 결과는 `target_state`, `registry_action`, `learning_action`, `source_persistence`를 분리해 표시합니다. 기존 practice는 현재 target 또는 blocking prerequisite와 직접 연결되고 필요한 실행 evidence가 남아 있으며 가치가 있고 보류·개념 blocker가 없을 때만 재사용합니다. 자료를 고쳤다는 사실이나 platform challenge 통과만으로 이해가 확인되었다고 판단하지 않습니다.
+추천 결과는 `target_state`, `registry_action`, `learning_action`, `source_persistence`를 분리하고 endpoint와 actual primary target도 별도로 표시합니다. 기존 practice는 현재 primary 또는 실제 inline bridge와 직접 연결되고 필요한 실행 evidence가 남아 있으며 가치가 있고 보류·개념 blocker가 없을 때만 재사용합니다. 자료를 고쳤다는 사실이나 platform challenge 통과만으로 이해가 확인되었다고 판단하지 않습니다.
 
 ### 2. 강의자료와 지식 개념 맞춤 학습
 

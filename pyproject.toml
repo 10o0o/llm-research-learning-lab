@@ -16,6 +16,7 @@ package = false
 
 [dependency-groups]
 dev = [
+    "pypdf>=6.16.2",
     "pytest>=9.1.1",
     "pyyaml>=6.0.3",
 ]

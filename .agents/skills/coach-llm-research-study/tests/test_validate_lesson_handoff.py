@@ -37,14 +37,20 @@ class LessonHandoffValidatorTests(unittest.TestCase):
     def assert_code(self, report, code: str) -> None:
         self.assertIn(code, {error.code for error in report.errors}, report.errors)
 
-    def build_til_ready_handoff(self, root: Path) -> Path:
+    def build_til_ready_handoff(
+        self,
+        root: Path,
+        *,
+        provenance: str = "- 관련 역량: `CC-DL-01`",
+    ) -> Path:
         content = "배치 축과 특성 축을 구분해 결과 shape를 설명했다."
         draft = root / "til/today.md"
         draft.parent.mkdir(parents=True, exist_ok=True)
         draft.write_text(
             "# 오늘의 학습\n\n"
             + draft_envelope("tensor-shape-lesson", "E001", content)
-            + "\n\n## 남은 질문\n\nBroadcasting에서 오른쪽 축부터 비교하는 이유는 무엇인가?\n",
+            + "\n\n## 남은 질문\n\nBroadcasting에서 오른쪽 축부터 비교하는 이유는 무엇인가?\n"
+            + (f"\n## 관련 기록\n\n{provenance}\n" if provenance else ""),
             encoding="utf-8",
         )
         handoff, _ = build_handoff(
@@ -102,12 +108,184 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             report = validate_handoff(handoff, repo_root=root, ready=True)
             self.assertTrue(report.ok, report.errors)
 
+    def test_non_actionable_planner_states_never_form_a_lesson_handoff(self) -> None:
+        for target_state in ("NEED_DIAGNOSTIC", "NO_ACTIONABLE_TARGET"):
+            with self.subTest(target_state=target_state), self.make_root() as directory:
+                root = Path(directory)
+                contract = CONTRACT.replace(
+                    "- target_state: START_TARGET",
+                    f"- target_state: {target_state}",
+                )
+                handoff, _ = build_handoff(
+                    root,
+                    contract=contract,
+                    status="active",
+                    reviews=[("pass", "fresh-reviewer")],
+                )
+                for mode in ({}, {"ready": True}, {"til_ready": True}):
+                    report = validate_handoff(handoff, repo_root=root, **mode)
+                    self.assertFalse(report.ok)
+                    self.assert_code(report, "TARGET_DECISION")
+
+    def test_endpoint_must_be_ordered_and_contain_the_primary_target(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            contract = CONTRACT.replace(
+                "- endpoint: TR-SYS-03",
+                "- endpoint: NOT-A-ROADMAP-ENDPOINT",
+            )
+            handoff, _ = build_handoff(root, contract=contract)
+            self.assert_code(validate_handoff(handoff, repo_root=root), "TARGET_DECISION")
+
+        with self.make_root() as directory:
+            root = Path(directory)
+            (root / "CURRICULUM.md").write_text(
+                "# Curriculum\n\n"
+                "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
+                "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+                "| CC-DL-01 | Tensor contracts | D2 | — | explain | — | 없음 | 별도 자료 확보 | Fixture. |\n"
+                "| TR-EVAL-02 | Evaluation endpoint | D3 | — | design | — | 없음 | 트랙 선택 시 확보 | Fixture. |\n",
+                encoding="utf-8",
+            )
+            (root / "ROADMAP.md").write_text(
+                "# Roadmap\n\n## 정적 목표 endpoint\n\n"
+                "| 우선순위 | 단계 | 방향 | Endpoint |\n"
+                "| ---: | ---: | --- | --- |\n"
+                "| 2 | `2B` | Evaluation | `TR-EVAL-02` |\n",
+                encoding="utf-8",
+            )
+            contract = CONTRACT.replace(
+                "- endpoint: TR-SYS-03",
+                "- endpoint: TR-EVAL-02",
+            )
+            handoff, _ = build_handoff(root, contract=contract)
+            report = validate_handoff(handoff, repo_root=root)
+            self.assert_code(report, "TARGET_DECISION")
+            self.assertTrue(
+                any("outside endpoint route" in error.message for error in report.errors)
+            )
+
+    def test_user_directed_is_for_user_modes_only(self) -> None:
+        for selection_mode in ("user-named-target", "user-named-source"):
+            with self.subTest(selection_mode=selection_mode), self.make_root() as directory:
+                root = Path(directory)
+                user_contract = CONTRACT.replace(
+                    "- selection_mode: user-named-target",
+                    f"- selection_mode: {selection_mode}",
+                ).replace("- endpoint: TR-SYS-03", "- endpoint: user-directed")
+                handoff, _ = build_handoff(root, contract=user_contract)
+                self.assertTrue(validate_handoff(handoff, repo_root=root).ok)
+
+        with self.make_root() as directory:
+            root = Path(directory)
+            user_contract = CONTRACT.replace(
+                "- endpoint: TR-SYS-03", "- endpoint: user-directed"
+            )
+            planner_contract = user_contract.replace(
+                "- selection_mode: user-named-target", "- selection_mode: planner"
+            )
+            handoff, _ = build_handoff(root, contract=planner_contract)
+            self.assert_code(
+                validate_handoff(handoff, repo_root=root), "TARGET_DECISION"
+            )
+
+    def test_planner_mode_accepts_an_exact_endpoint_route(self) -> None:
+        for selection_mode in ("planner", "user-named-target", "user-named-source"):
+            with self.subTest(selection_mode=selection_mode), self.make_root() as directory:
+                root = Path(directory)
+                contract = CONTRACT.replace(
+                    "- selection_mode: user-named-target",
+                    f"- selection_mode: {selection_mode}",
+                )
+                handoff, _ = build_handoff(root, contract=contract)
+                self.assertTrue(validate_handoff(handoff, repo_root=root).ok)
+
+    def test_bridge_must_belong_to_the_primary_prerequisite_closure(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            contract = CONTRACT.replace(
+                "- target_state: START_TARGET",
+                "- target_state: BRIDGE_PREREQUISITE",
+            ).replace("- bridge_target: none", "- bridge_target: TR-SYS-03")
+            handoff, _ = build_handoff(root, contract=contract)
+            report = validate_handoff(handoff, repo_root=root)
+            self.assert_code(report, "TARGET_DECISION")
+            self.assertTrue(
+                any("is not a prerequisite" in error.message for error in report.errors)
+            )
+
     def test_til_ready_accepts_complete_learning_and_uncertainty_inventory(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
             handoff = self.build_til_ready_handoff(root)
             report = validate_handoff(handoff, repo_root=root, til_ready=True)
             self.assertTrue(report.ok, report.errors)
+
+    def test_til_ready_requires_exact_common_primary_provenance(self) -> None:
+        for provenance in (
+            "",
+            "- 관련 역량: `CC-ML-01`",
+            "- 관련 역량: `CC-DL-01`\n- 관련 역량: `CC-DL-01`",
+        ):
+            with self.subTest(provenance=provenance), self.make_root() as directory:
+                root = Path(directory)
+                handoff = self.build_til_ready_handoff(root, provenance=provenance)
+                report = validate_handoff(handoff, repo_root=root, til_ready=True)
+                self.assertFalse(report.ok)
+                self.assert_code(report, "TIL_TARGET_PROVENANCE")
+
+    def test_common_target_provenance_accepts_tr_and_only_a_delivered_bridge(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff, _ = build_handoff(root)
+            report = validate_handoff(handoff, repo_root=root)
+            self.assertTrue(report.ok, report.errors)
+            document = report.document
+            assert document is not None and document.target_decision is not None
+
+            document.target_decision.primary_target = "TR-SYS-03"
+            errors = []
+            handoff_validator._validate_target_til_provenance(
+                document,
+                "# 오늘\n\n## 관련 기록\n\n- 관련 역량: `TR-SYS-03`\n",
+                errors,
+            )
+            self.assertEqual(errors, [])
+
+            document.target_decision.primary_target = "CC-DL-01"
+            document.target_decision.bridge_target = "CC-MATH-01"
+            document.curriculum_treatments["CC-MATH-01"] = (
+                handoff_validator.CurriculumTreatment(
+                    "CC-MATH-01",
+                    "부분",
+                    "수업 내 보충",
+                    "supplement-now",
+                    ["O003"],
+                    "Inline bridge fixture.",
+                    1,
+                )
+            )
+            document.objective_delivery["O003"].state = "delivered"
+            errors = []
+            handoff_validator._validate_target_til_provenance(
+                document,
+                "# 오늘\n\n## 관련 기록\n\n"
+                "- 관련 역량: `CC-DL-01`\n"
+                "- 보충 선수 역량: `CC-MATH-01`\n",
+                errors,
+            )
+            self.assertEqual(errors, [])
+
+            document.objective_delivery["O003"].state = "pending"
+            errors = []
+            handoff_validator._validate_target_til_provenance(
+                document,
+                "# 오늘\n\n## 관련 기록\n\n"
+                "- 관련 역량: `CC-DL-01`\n"
+                "- 보충 선수 역량: `CC-MATH-01`\n",
+                errors,
+            )
+            self.assertIn("TIL_TARGET_PROVENANCE", {error.code for error in errors})
 
     def test_confirmed_concept_requires_evidence_for_every_delivered_objective(self) -> None:
         contract = CONTRACT.replace(
@@ -187,7 +365,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 "# 오늘의 학습\n\n"
                 + draft_envelope("tensor-shape-lesson", "E001", first)
                 + "\n"
-                + draft_envelope("tensor-shape-lesson", "E002", second),
+                + draft_envelope("tensor-shape-lesson", "E002", second)
+                + "\n\n## 관련 기록\n\n- 관련 역량: `CC-DL-01`\n",
                 encoding="utf-8",
             )
             handoff, _ = build_handoff(
@@ -464,7 +643,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             curriculum.write_text(
                 "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
                 "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
-                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 부분 | 수업 내 보충 | Fixture row. |\n",
+                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 부분 | 수업 내 보충 | Fixture row. |\n"
+                "| TR-SYS-03 | Systems endpoint | D3 | CC-DL-01 | design | — | 없음 | 트랙 선택 시 확보 | Fixture endpoint. |\n",
                 encoding="utf-8",
             )
             invalid_contract = CONTRACT.replace(
@@ -583,7 +763,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 (root / "CURRICULUM.md").write_text(
                     "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
                     "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
-                    f"| CC-DL-01 | Tensor contracts | D2 | — | explain | {relation} | 충분 | 그대로 사용 | Fixture row. |\n\n"
+                    f"| CC-DL-01 | Tensor contracts | D2 | — | explain | {relation} | 충분 | 그대로 사용 | Fixture row. |\n"
+                    "| TR-SYS-03 | Systems endpoint | D3 | CC-DL-01 | design | — | 없음 | 트랙 선택 시 확보 | Fixture endpoint. |\n\n"
                     "| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |\n"
                     "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
                     f"| SRC-TEST-00-01 | `{primary_path}` | HTML 토글 펼침 Markdown | `{sha256(primary.read_bytes())}` | complete | complete | 2026-08-20 | selected |\n"
@@ -716,17 +897,25 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             handoff.write_text(text, encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "EVIDENCE_STATE")
 
-    def test_schema_v4_is_rejected_with_rebuild_error(self) -> None:
-        with self.make_root() as directory:
-            root = Path(directory)
-            handoff, _ = build_handoff(root)
-            handoff.write_text(
-                handoff.read_text(encoding="utf-8").replace("- schema_version: 5", "- schema_version: 4"),
-                encoding="utf-8",
-            )
-            report = validate_handoff(handoff, repo_root=root)
-            self.assert_code(report, "SCHEMA")
-            self.assertTrue(any("rebuild older handoffs" in error.message for error in report.errors))
+    def test_schema_v5_and_earlier_are_rejected_with_rebuild_error(self) -> None:
+        for old_version in ("5", "4"):
+            with self.subTest(old_version=old_version), self.make_root() as directory:
+                root = Path(directory)
+                handoff, _ = build_handoff(root)
+                handoff.write_text(
+                    handoff.read_text(encoding="utf-8").replace(
+                        "- schema_version: 6", f"- schema_version: {old_version}"
+                    ),
+                    encoding="utf-8",
+                )
+                report = validate_handoff(handoff, repo_root=root)
+                self.assert_code(report, "SCHEMA")
+                self.assertTrue(
+                    any(
+                        "rebuild older handoffs" in error.message
+                        for error in report.errors
+                    )
+                )
 
     def test_source_coverage_requires_every_primary_in_manifest_order(self) -> None:
         with self.make_root() as directory:
@@ -792,7 +981,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             (root / "CURRICULUM.md").write_text(
                 "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
                 "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
-                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 부분 | 별도 자료 확보 | Fixture row. |\n",
+                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 부분 | 별도 자료 확보 | Fixture row. |\n"
+                "| TR-SYS-03 | Systems endpoint | D3 | CC-DL-01 | design | — | 없음 | 트랙 선택 시 확보 | Fixture endpoint. |\n",
                 encoding="utf-8",
             )
             contract = CONTRACT.replace(
@@ -1082,14 +1272,21 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 "# curriculum\n\n"
                 "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
                 "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
-                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 충분 | 그대로 사용 | Fixture row. |\n\n"
+                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 충분 | 그대로 사용 | Fixture row. |\n"
+                "| TR-SYS-03 | Systems endpoint | D3 | CC-DL-01 | design | — | 없음 | 트랙 선택 시 확보 | Fixture endpoint. |\n\n"
                 "## exact-location\n",
                 encoding="utf-8",
             )
             source_hash = sha256(source.read_bytes())
             curriculum_hash = sha256(curriculum.read_bytes())
             roadmap = root / "ROADMAP.md"
-            roadmap.write_text("# Roadmap\n", encoding="utf-8")
+            roadmap.write_text(
+                "# Roadmap\n\n## 정적 목표 endpoint\n\n"
+                "| 우선순위 | 단계 | 방향 | Endpoint |\n"
+                "| ---: | ---: | --- | --- |\n"
+                "| 1 | `1A` | Systems | `TR-SYS-03` |\n",
+                encoding="utf-8",
+            )
             roadmap_hash = sha256(roadmap.read_bytes())
             template = (SKILL / "assets/active-lesson-handoff-template.md").read_text(encoding="utf-8")
             raw_path = root / "tmp/raw-template.md"

@@ -7,13 +7,19 @@ import argparse
 import datetime as dt
 import hashlib
 import re
-import subprocess
 import sys
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 from xml.etree import ElementTree
+
+
+SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+
+from pdf_utils import pdf_page_count as _pdf_page_count  # noqa: E402
 
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -878,35 +884,6 @@ def _index_namespace(
             f"invalid source_namespace {namespace!r}",
         )]
     return namespace, []
-
-
-def _pdf_page_count(path: Path) -> int | None:
-    try:
-        from pypdf import PdfReader  # type: ignore[import-not-found]
-    except ImportError:
-        PdfReader = None
-    if PdfReader is not None:
-        try:
-            return len(PdfReader(str(path), strict=False).pages)
-        except Exception:  # pypdf exposes several parser and encryption errors.
-            pass
-    try:
-        completed = subprocess.run(
-            ["pdfinfo", str(path)],
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-    except (OSError, subprocess.TimeoutExpired):
-        return None
-    if completed.returncode != 0:
-        return None
-    match = re.search(r"^Pages:\s+(\d+)\s*$", completed.stdout, re.MULTILINE)
-    if match is None:
-        return None
-    page_count = int(match.group(1))
-    return page_count if page_count > 0 else None
 
 
 def _local_link_target(raw_target: str) -> str | None:

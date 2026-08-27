@@ -35,27 +35,35 @@ does not satisfy `debug`, `implement`, or `interpret` across the whole target.
 Choose exactly one primary target and at most one bridge target in this order:
 
 1. an exact target named by the user;
-2. a blocking prerequisite on the path to the highest-priority ROADMAP endpoint;
+2. a blocking prerequisite on the path to the earliest still-needed ROADMAP stage;
 3. the active target when it still lacks required learner evidence;
 4. the current frontier target that unlocks the greatest number of downstream targets;
 5. only for a tie, expected time, compute, access cost, and explicit user constraints.
 
-Before step 2, classify the relevant prerequisite closure. A frontier
-prerequisite is one whose own prerequisites are already `satisfied` or can be
-closed by a short inline `bridgeable` explanation. If any frontier prerequisite
-is `blocking`, retain the endpoint as `primary_target`, select exactly one such
-blocker as `bridge_target`, and teach and evidence it first. Do not select a
-merely `bridgeable` prerequisite or a nearly finished practice while a frontier
-blocker remains. Among multiple frontier blockers, choose the one that unlocks
-the most remaining nodes on the selected endpoint route; only then use time,
-compute, access cost, and explicit user constraints. If those are still
-identical, use Curriculum row order only as a reproducible final ordering, not
-as a learning preference. If an unknown state could change this choice, return
-`NEED_DIAGNOSTIC` instead of choosing.
+`endpoint` is the ordered ROADMAP destination, never a synonym for the current
+lesson target. Before step 2, classify its prerequisite closure. Use the graph
+inspector's route edges, downstream counts, endpoint membership, and optional
+state-derived frontier candidates as deterministic facts; learner evidence
+still determines each state.
 
-`bridgeable` does not replace the primary target; close it inside the selected
-target or blocker lesson. A chapter number, source order, local source
-availability, or unfinished artifact cannot independently select a target.
+A frontier target is one whose own prerequisites are `satisfied` or can be
+closed by one short inline `bridgeable` treatment. An actionable `blocking`
+frontier becomes `primary_target`. It is not a bridge. Among multiple blockers,
+choose the one with the largest route-local downstream count; only then use
+time, compute, access cost, explicit user constraints, and finally Curriculum
+row order as a reproducible last tie-breaker. When no blocker remains but the
+endpoint still lacks required evidence, the endpoint itself becomes
+`primary_target`.
+
+`bridge_target` is reserved for exactly one mostly satisfied prerequisite of
+the selected primary target that can be closed inside that lesson. When two or
+more prerequisite gaps need materially distinct assessed treatment, promote
+the highest-impact gap to `primary_target` and use no bridge instead of hiding
+several lessons behind one target. If an `unknown` state could change the
+primary choice, return `NEED_DIAGNOSTIC` before source resolution.
+
+A chapter number, source order, local source availability, or unfinished
+artifact cannot independently select a target.
 
 After selecting the target, reuse an existing practice only when all are true:
 
@@ -95,7 +103,9 @@ Then report:
 
 - exactly one `primary_target`, or `none` only with `NO_ACTIONABLE_TARGET`;
 - optional `bridge_target` and each relevant prerequisite state;
-- the target-first selection reason, including the endpoint it advances;
+- the exact ordered ROADMAP `endpoint` it advances, or `user-directed` for an
+  explicitly named target outside every endpoint route;
+- the target-first selection reason, keeping endpoint and current target distinct;
 - evidence consulted, its limitations, and exact missing evidence tokens;
 - observable target completion evidence;
 - the exact next artifact and range, plus explicit excluded scope;
@@ -106,6 +116,9 @@ Then report:
 `BRIDGE_PREREQUISITE`. `NEED_DIAGNOSTIC` retains the tentative
 `primary_target` but uses `bridge_target: none` until the missing evidence makes
 the route decidable. `NO_ACTIONABLE_TARGET` alone uses `primary_target: none`.
+`START_TARGET` and `CONTINUE_TARGET` use no bridge. A lesson handoff may consume
+only the three actionable states; diagnostic and no-action results must return
+to the planner before source audit or teaching.
 
 When registry repair is required, state whether learning can continue from already verified bytes or must wait. Repair and source completion are never learner evidence.
 

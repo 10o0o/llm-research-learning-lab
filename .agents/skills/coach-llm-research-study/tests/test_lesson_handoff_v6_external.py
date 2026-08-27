@@ -11,7 +11,7 @@ from handoff_fixture import CONTRACT, build_handoff, sha256
 
 SKILL = Path(__file__).resolve().parents[1]
 SCRIPT = SKILL / "scripts/validate_lesson_handoff.py"
-SPEC = importlib.util.spec_from_file_location("handoff_v5_external_under_test", SCRIPT)
+SPEC = importlib.util.spec_from_file_location("handoff_v6_external_under_test", SCRIPT)
 assert SPEC and SPEC.loader
 validator = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = validator
@@ -47,6 +47,7 @@ def _write_curriculum(root: Path, *, local_path: str | None = None, related: boo
         "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
         f"| CC-DL-01 | Tensor contracts | D2 | — | explain | {relation} | 없음 | 별도 자료 확보 | Fixture row. |\n"
+        "| TR-SYS-03 | Systems endpoint | D3 | CC-DL-01 | design | — | 없음 | 트랙 선택 시 확보 | Fixture endpoint. |\n"
         + source_table,
         encoding="utf-8",
     )
@@ -337,7 +338,7 @@ def test_external_asset_receipt_is_required_and_identity_checked() -> None:
         assert "EXTERNAL_CACHE_IDENTITY" in _codes(report)
 
 
-def test_external_til_provenance_requires_exact_identity_scope_and_cc_relation() -> None:
+def test_external_til_provenance_separates_identity_from_common_target_relation() -> None:
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         handoff, _, _, _ = _build_external(root)
@@ -355,6 +356,7 @@ def test_external_til_provenance_requires_exact_identity_scope_and_cc_relation()
         )
         errors = []
         validator._validate_external_til_provenance(document, valid, errors)
+        validator._validate_target_til_provenance(document, valid, errors)
         assert errors == []
 
         missing_scope = valid.replace("- scope: axes and broadcasting\n", "")
@@ -366,7 +368,5 @@ def test_external_til_provenance_requires_exact_identity_scope_and_cc_relation()
             "- 관련 역량: `CC-DL-01`", "- 관련 역량: CC-DL-01"
         )
         errors = []
-        validator._validate_external_til_provenance(
-            document, wrong_target_format, errors
-        )
-        assert "EXTERNAL_TIL_PROVENANCE" in {error.code for error in errors}
+        validator._validate_target_til_provenance(document, wrong_target_format, errors)
+        assert "TIL_TARGET_PROVENANCE" in {error.code for error in errors}

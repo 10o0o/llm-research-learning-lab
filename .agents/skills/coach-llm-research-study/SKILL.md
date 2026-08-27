@@ -69,6 +69,9 @@ relation. This temporary relation is lesson-local and never changes durable
 Curriculum coverage. Require approval instead for permanent registration,
 paid or authenticated access, an oversized or unsupported artifact, or a
 material source substitution.
+The agent must identify and select the exact official URL before invoking the
+cache helper. The helper only validates and retrieves that supplied URL; it
+does not discover sources, choose a target, or start background learning.
 
 ## Gate an interactive lesson contract
 
@@ -79,6 +82,10 @@ lesson. Read and follow
 normative schema and lifecycle. Hand teaching to `$teach-course-material` only
 after the canonical readiness gate passes; hand canonical saving to
 `$save-today-til` only after the canonical TIL-readiness gate passes.
+Keep the ordered ROADMAP endpoint as route context, the actionable frontier as
+the lesson's primary target, and at most one short prerequisite as its bridge.
+Never instantiate a handoff from `NEED_DIAGNOSTIC` or
+`NO_ACTIONABLE_TARGET`; return those states to the planner first.
 Those lesson gates use the handoff contract's semantic-slice freshness rule:
 selected local or external source problems and any missing direct target
 relation block, while unrelated same-course source problems warn. Keep the

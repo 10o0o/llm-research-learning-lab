@@ -56,7 +56,7 @@ def test_target_selection_is_source_independent_and_stat110_is_conditional() -> 
 def test_forward_scenarios_are_complete_and_non_persistent() -> None:
     text = SCENARIOS.read_text(encoding="utf-8")
     headings = re.findall(r"^## (F\d{2}) ", text, re.MULTILINE)
-    assert headings == ["F01", "F02", "F03", "F04", "F05", "F06"]
+    assert headings == ["F01", "F02", "F03", "F04", "F05", "F06", "F07"]
     for scenario_id in headings:
         start = text.index(f"## {scenario_id} ")
         next_match = re.search(r"^## F\d{2} ", text[start + 1 :], re.MULTILINE)
@@ -69,7 +69,7 @@ def test_forward_scenarios_are_complete_and_non_persistent() -> None:
 
 
 def test_target_first_ranking_and_practice_reuse_invariants_are_explicit() -> None:
-    text = CONTRACT.read_text(encoding="utf-8")
+    text = re.sub(r"\s+", " ", CONTRACT.read_text(encoding="utf-8"))
     ranking = [
         "an exact target named by the user",
         "a blocking prerequisite on the path",
@@ -83,9 +83,9 @@ def test_target_first_ranking_and_practice_reuse_invariants_are_explicit() -> No
         "still-required execution evidence token",
         "not paused or explicitly deferred",
         "no unresolved conceptual blocker",
-        "frontier prerequisite",
-        "merely `bridgeable` prerequisite",
-        "Curriculum row order only as a reproducible final ordering",
+        "An actionable `blocking` frontier becomes `primary_target`",
+        "`bridge_target` is reserved for exactly one mostly satisfied prerequisite",
+        "Curriculum row order as a reproducible last tie-breaker",
     ):
         assert condition in text
 
@@ -100,9 +100,19 @@ def test_diagnostic_action_and_evidence_aggregation_are_unambiguous() -> None:
     assert "materially distinct behaviors named by that target row" in text
 
 
+def test_endpoint_primary_and_bridge_have_non_overlapping_meanings() -> None:
+    text = re.sub(r"\s+", " ", CONTRACT.read_text(encoding="utf-8"))
+    scenarios = SCENARIOS.read_text(encoding="utf-8")
+    assert "`endpoint` is the ordered ROADMAP destination" in text
+    assert "It is not a bridge" in text
+    assert "the endpoint itself becomes `primary_target`" in text
+    assert "keep the long-term destination in `endpoint`" in scenarios
+    assert "use no bridge for multiple independent gaps" in scenarios
+
+
 def test_repository_rules_keep_planner_target_first_and_read_only() -> None:
     text = (REPO / "AGENTS.md").read_text(encoding="utf-8")
     assert "select one primary Curriculum target" in text
-    assert "one blocking bridge" in text
+    assert "A blocking prerequisite becomes the primary target, never a bridge" in text
     assert "Source availability affects executability after selection, not target priority" in text
     assert "The planner remains read-only" in text
