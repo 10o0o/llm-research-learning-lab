@@ -100,9 +100,11 @@ ID | Role | Path | SHA-256
   `--ready` and `--til-ready` apply blocking freshness checks to the lesson's
   semantic slice: each selected primary, its directly referenced local assets,
   every supporting source actually manifested for the lesson, the selected
-  Curriculum targets and treatments, and the exact registry and INDEX rows for
-  those sources. Missing, stale, unregistered, or mismatched inputs inside that
-  slice block readiness. Unrelated source problems in the same course are
+  Curriculum targets and treatments, the target's direct `primary` or
+  `supporting` relation to manifested source-core primary paths, and the exact
+  registry and INDEX rows for those sources. A `context` relation is not direct
+  support. Missing, stale, unregistered, duplicated, or mismatched inputs inside
+  that slice block readiness. Unrelated source problems in the same course are
   reported as warnings and do not block the lesson gate. The standalone
   `validate_curriculum.py --strict-sources` command remains the course-wide
   parity and freshness gate.

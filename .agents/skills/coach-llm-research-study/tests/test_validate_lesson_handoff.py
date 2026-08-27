@@ -464,7 +464,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             curriculum.write_text(
                 "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
                 "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
-                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-01 | 부분 | 수업 내 보충 | Fixture row. |\n",
+                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 부분 | 수업 내 보충 | Fixture row. |\n",
                 encoding="utf-8",
             )
             invalid_contract = CONTRACT.replace(
@@ -547,6 +547,62 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             self.assertEqual(report.exit_code, 0)
             self.assertEqual(1, len(report.warnings))
             self.assertIn("unrelated stale source", report.as_json()["warnings"][0]["message"])
+
+    def test_ready_requires_target_relation_to_manifested_source_core_primary(self) -> None:
+        primary_path = "materials/private/example-course/00-01_lesson.md"
+        index_path = "materials/private/example-course/INDEX.md"
+        private_contract = CONTRACT.replace("materials/lesson.md", primary_path)
+        cases = {
+            "primary": ("primary:SRC-TEST-00-01", True),
+            "supporting": ("supporting:SRC-TEST-00-01", True),
+            "unrelated": ("primary:SRC-TEST-00-02", False),
+            "context-only": ("context:SRC-TEST-00-01", False),
+            "registry-missing": ("primary:SRC-TEST-00-03", False),
+        }
+        for name, (relation, should_pass) in cases.items():
+            with self.subTest(case=name), self.make_root() as directory:
+                root = Path(directory)
+                index = root / index_path
+                index.parent.mkdir(parents=True)
+                index.write_text(
+                    "# Index\n\n- source_namespace: TEST\n\n## 강의 자료\n\n"
+                    "| 파일 | 설명 |\n| --- | --- |\n"
+                    "| `00-01_lesson.md` | selected |\n"
+                    "| `00-02_other.md` | unrelated |\n",
+                    encoding="utf-8",
+                )
+                build_handoff(
+                    root,
+                    contract=private_contract,
+                    primary_path=primary_path,
+                    course_index_path=index_path,
+                )
+                primary = root / primary_path
+                other = primary.parent / "00-02_other.md"
+                other.write_text("# Other\n", encoding="utf-8")
+                (root / "CURRICULUM.md").write_text(
+                    "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
+                    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+                    f"| CC-DL-01 | Tensor contracts | D2 | — | explain | {relation} | 충분 | 그대로 사용 | Fixture row. |\n\n"
+                    "| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |\n"
+                    "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
+                    f"| SRC-TEST-00-01 | `{primary_path}` | HTML 토글 펼침 Markdown | `{sha256(primary.read_bytes())}` | complete | complete | 2026-08-20 | selected |\n"
+                    f"| SRC-TEST-00-02 | `materials/private/example-course/00-02_other.md` | HTML 토글 펼침 Markdown | `{sha256(other.read_bytes())}` | complete | complete | 2026-08-20 | unrelated |\n",
+                    encoding="utf-8",
+                )
+                handoff, _ = build_handoff(
+                    root,
+                    contract=private_contract,
+                    primary_path=primary_path,
+                    course_index_path=index_path,
+                    status="active",
+                    reviews=[("pass", "fresh-reviewer")],
+                )
+                report = validate_handoff(handoff, repo_root=root, ready=True)
+                if should_pass:
+                    self.assertTrue(report.ok, report.errors)
+                else:
+                    self.assert_code(report, "CURRICULUM_SOURCE_RELATION")
 
     def test_warning_only_cli_prints_warning_and_exits_zero(self) -> None:
         report = ValidationReport(
@@ -736,7 +792,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             (root / "CURRICULUM.md").write_text(
                 "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
                 "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
-                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-01 | 부분 | 별도 자료 확보 | Fixture row. |\n",
+                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 부분 | 별도 자료 확보 | Fixture row. |\n",
                 encoding="utf-8",
             )
             contract = CONTRACT.replace(
@@ -1026,7 +1082,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 "# curriculum\n\n"
                 "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
                 "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
-                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-01 | 충분 | 그대로 사용 | Fixture row. |\n\n"
+                "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 충분 | 그대로 사용 | Fixture row. |\n\n"
                 "## exact-location\n",
                 encoding="utf-8",
             )

@@ -19,7 +19,8 @@ This is a lightweight personal TIL repository for studying toward an LLM Researc
 The normal flow is:
 
 ```text
-register source material -> audit it against CURRICULUM.md
+when the next target or source is undecided, narrow it with plan-roadmap-learning
+-> register a newly approved source only when needed -> audit it against CURRICULUM.md
 -> prepare and independently review one temporary lesson handoff
 -> teach at the learner's level -> append only confirmed learner answers to til/today.md
 -> review the draft for every core concept actually studied today
@@ -55,13 +56,14 @@ is required.
 - Do not relocate, delete, or rewrite existing `archive/` notes in bulk.
 - Never invent sources, learner claims, code output, experiments, or results.
 - Verify current recommendations such as Kaggle competitions, libraries, models, and tools.
-- Register private course PDFs under `materials/private/<course>/` with a stable lesson-prefixed filename such as `NN-NN_title.pdf`; verify that the whole file is readable and update that course's local `INDEX.md` when one exists.
+- Register private course PDFs under `materials/private/<course>/` with a stable lesson-prefixed filename such as `NN-NN_title.pdf`; verify that the whole file is readable and update that course's local `INDEX.md`. Every course INDEX declares exactly one uppercase `source_namespace`, and each source ID uses `SRC-<source_namespace>-<NN-NN>`.
 - Store instructor-provided practice under `materials/private/<course>/course-provided-practice/`; it is source material and must not be mixed with learner or agent-generated work under top-level `practice/`. Map every such file explicitly in that course `INDEX.md` with `Practice path`, `Related lesson path`, `Variant`, `Format`, and `Original`; never infer a relationship from numbering.
 - When normalizing a saved Notion HTML page for long-term use, write an expanded Markdown copy with a stable lesson-prefixed name. Preserve headings, toggle children, exact code indentation, output, tables, links, formulas, captions, and content images; discard browser UI assets only after the Markdown package passes a source-to-output integrity check.
 - When replacing a PDF with Markdown, preserve every page as a readable lossless page render alongside searchable extracted text. Delete the PDF only after page counts, image links, render dimensions, text extraction, and visual inspection all pass; keep the source whenever conversion is incomplete or questionable.
 
 ## Tutoring
 
+- Use `$plan-roadmap-learning` first only when the learner asks what to study next or requests a source for an unresolved target. It recommends read-only and hands an approved source choice to the separate registration and audit workflow.
 - Keep source and understanding evaluation in `$coach-llm-research-study`, adaptive teaching in `$teach-course-material`, hands-on decisions in `$suggest-learning-practice`, and durable concept writing in `$update-learning-knowledge`.
 - When teaching a named source, read it completely, inspect relevant `knowledge/` and learner-authored evidence, reorder concepts for understanding, and teach a meaningful chunk. Check understanding only at a knowledge or skill boundary where the answer changes the next teaching move.
 - Before first using an essential concept, check for demonstrated understanding in the current conversation, relevant `knowledge/`, learner-authored TIL, and interpreted practice. Treat missing evidence as unconfirmed understanding even when the source introduces the concept; archived notes and tutor-authored prose may provide context but do not establish mastery on their own.

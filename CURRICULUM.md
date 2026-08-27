@@ -42,8 +42,8 @@
 | CC-MATH-02 | rank·최소제곱·고윳값·SVD를 계산하고 해의 존재·유일성, 저랭크 근사, 수치적 선택을 해석한다. | D2 | CC-MATH-01 | explain, calculate, shape, implement, interpret | primary:SRC-KBM-02-02,SRC-KBM-02-03,SRC-KBM-03-01,SRC-KBM-03-03,SRC-KBM-04-01; supporting:SRC-KBM-03-02,SRC-KBM-04-02,SRC-KBM-04-03 | 부분 | 수업 내 보충 | rank-deficient 최소제곱, full SVD의 기저 범위, solver별 수치 차이를 보충한다. |
 | CC-MATH-03 | 미분·chain rule·gradient·autodiff를 손계산, 계산 그래프, 코드의 gradient 흐름으로 연결한다. | D2 | CC-MATH-01 | explain, calculate, shape, implement, debug | primary:SRC-KBM-07-01,SRC-KBM-07-02,SRC-KDL-06-01,SRC-KDL-06-02,SRC-KDL-06-03; supporting:SRC-KDL-01-04,SRC-KDL-06-04,SRC-KDL-06-05 | 충분 | 그대로 사용 | scalar chain rule 손계산부터 gradient shape·누적·graph 단절 디버깅까지 직접 다룬다. Jacobian·VJP·gradcheck는 후속 심화다. |
 | CC-MATH-04 | 부동소수점, overflow·underflow, conditioning과 안정적인 연산 선택을 계산·디버깅에 적용한다. | D2 | CC-MATH-02, CC-MATH-03 | explain, calculate, implement, debug, interpret | supporting:SRC-KBM-01-04,SRC-KBM-02-03,SRC-KBM-04-01,SRC-KBM-04-02,SRC-KBM-06-02,SRC-KBM-07-01,SRC-KDL-02-03,SRC-KDL-06-05 | 부분 | 수업 내 보충 | 안정적 softmax·finite gradient 점검은 있으나 conditioning·precision·오차 전파의 통합 설명이 없다. |
-| CC-PROB-01 | 확률분포·조건부확률·기댓값·분산·sampling을 계산하고 실험 출력과 연결한다. | D2 | CC-MATH-01 | explain, calculate, implement, interpret | context:SRC-KAM-02-01 | 없음 | 별도 자료 확보 | bootstrap sampling은 등장하지만 확률 기초를 가르치지 않는다. |
-| CC-PROB-02 | likelihood·MLE·Bayes와 불확실성의 의미를 계산하고 모델 추정에 적용한다. | D2 | CC-PROB-01, CC-MATH-03 | explain, calculate, implement, interpret | context:SRC-KBM-06-02 | 없음 | 별도 자료 확보 | negative log-likelihood 언급만으로 추정 원리를 충족하지 못한다. |
+| CC-PROB-01 | 확률분포·조건부확률·기댓값·분산·sampling을 계산하고 실험 출력과 연결한다. | D2 | CC-MATH-01 | explain, calculate, implement, interpret | primary:SRC-HARV-STAT110-2E-00-01; context:SRC-KAM-02-01 | 충분 | 그대로 사용 | Stat110 2판 Chapter 1~4가 counting·조건부확률·이산분포·기댓값·분산과 R simulation을 직접 연결한다. 첫 학습 범위도 Chapter 1~4로 제한한다. |
+| CC-PROB-02 | likelihood·MLE·Bayes와 불확실성의 의미를 계산하고 모델 추정에 적용한다. | D2 | CC-PROB-01, CC-MATH-03 | explain, calculate, implement, interpret | supporting:SRC-HARV-STAT110-2E-00-01; context:SRC-KBM-06-02 | 부분 | 수업 내 보충 | 이번 연결 범위의 Chapter 2가 Bayes rule·prior/posterior·likelihood ratio를 직접 다룬다. 교재 후반의 MLE·Bayesian inference까지 이번 coverage로 채택하지 않았으므로 likelihood·MLE·모델 적용은 보충한다. |
 | CC-PROB-03 | entropy·cross entropy·KL divergence·mutual information을 계산하고 분포 차이와 학습 목적을 해석한다. | D2 | CC-PROB-01 | explain, calculate, implement, interpret | supporting:SRC-KBM-06-02 | 부분 | 수업 내 보충 | cross entropy는 직접 다루지만 entropy·KL·mutual information은 없다. |
 | CC-STAT-01 | 추정량·신뢰구간·bootstrap의 가정과 불확실성을 계산하고 보고한다. | D2 | CC-PROB-01, CC-PROB-02 | explain, calculate, implement, interpret | context:SRC-KAM-02-01,SRC-KAM-05-01 | 없음 | 별도 자료 확보 | resampling과 fold 평균·표준편차는 쓰지만 통계적 추론을 가르치지 않는다. |
 | CC-STAT-02 | 가설검정·효과크기·다중검정의 한계를 적용해 비교 결론을 평가한다. | D2 | CC-STAT-01 | explain, calculate, interpret, design | context:SRC-KAM-05-01 | 없음 | 별도 자료 확보 | 후보 비교는 있으나 유의성·효과크기·다중 비교 통제가 없다. |
@@ -105,7 +105,11 @@
 
 ## 5. 현재 강의자료 Registry
 
-감사 범위는 세 과정 `INDEX.md`의 `강의 자료` 표에 있는 파일만이며 `course-provided-practice/`는 제외한다. 2026-08-27 기준 Markdown 본문 전체, 모든 로컬 그림 링크, 각 raster·SVG를 검사했고 PDF는 18쪽 전부 렌더해 육안 확인했다. 총 70개 자료, Markdown 참조 자산 241개(래스터 204개, SVG 37개), PDF 18쪽에서 누락되거나 열리지 않는 현재 파일은 없었다. 다만 아래 `limited` 세 건은 원본·변환 제약 때문에 내용 복구가 필요하다.
+감사 범위는 각 과정 `INDEX.md`의 `강의 자료` 표에 있는 파일만이며 `course-provided-practice/`는 제외한다. 2026-08-27 기준 Markdown 본문 전체, 모든 로컬 그림 링크, 각 자산을 검사했고 PDF는 전 페이지를 렌더해 육안 확인했다. 아래 요약은 registry 구조와 full strict private-source 검증으로 대조한다. 현재 누락되거나 열리지 않는 파일은 없지만 `limited` 자료는 원본·변환 제약 때문에 내용 복구가 필요하다.
+
+| 과정 수 | Source 수 | Markdown 자산 | Raster | SVG | 기타 자산 | PDF 페이지 | Limited source |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 4 | 71 | 241 | 204 | 37 | 0 | 648 | 3 |
 
 | Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |
 |---|---|---|---|---|---|---|---|
@@ -179,6 +183,7 @@
 | SRC-KDL-08-06 | `materials/private/kant-deep-learning-basics/08-06_accuracy와_metric_누적.md` | HTML 토글 펼침 Markdown | `2ce49b778769c5e93f13305945d8febdc902b8c2a96f88c6625f25d433d0c026` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; sample-weighted accuracy와 불균형 경계를 포함 |
 | SRC-KDL-08-07 | `materials/private/kant-deep-learning-basics/08-07_epoch_단위_로그와_시각화.md` | HTML 토글 펼침 Markdown | `941935259715349c8e5a81cb4b149956a04fba4e27417aaa96530d81d0fa808d` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; 왼쪽이 잘린 개요 raster의 정보는 본문·코드·SVG로 보존됨 |
 | SRC-KDL-08-08 | `materials/private/kant-deep-learning-basics/08-08_MLP_종합_실습.md` | HTML 토글 펼침 Markdown | `61e45f90bc6a396c3b8dc784fdd7f9095cc1d18e3c3ff658efa2a34a2ce19d6d` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; `best_state`는 메모리 내 model weight 보존이며 checkpoint/resume은 아님 |
+| SRC-HARV-STAT110-2E-00-01 | `materials/private/harvard-stat110-probability/00-01_introduction_to_probability_2e.pdf` | PDF | `65d94135d05322b3892b49473a397998adf8a305de19844b5c8403f76f40d681` | complete | complete | 2026-08-27 | 사용자 제공 2판 PDF의 전체 내용·텍스트·630쪽 렌더 확인; 본문 쪽수 1~619와 13개 장·부록·참고문헌·색인 완결; 로컬 PDF 630쪽과 출판사 인쇄본 서지 634쪽을 구분 |
 
 ## 6. 감사 중 발견된 주요 오류와 공백
 
@@ -209,20 +214,21 @@
 - `SRC-KDL-06-02`의 `detach()` 설명은 graph 분리는 정확하지만 원본과 storage를 공유한다는 경계를 생략한다. 독립 복사가 필요할 때는 `detach().clone()`을 사용한다고 수업에서 보충한다.
 - `SRC-KDL-06-05`의 anomaly detection 예시는 backward만 context로 감싼다. 실패 연산의 forward traceback까지 필요하면 forward와 loss 계산도 같은 context에서 실행한다고 보충한다.
 - Chapter 6·7·8의 “주차 시작에 PDF를 올렸다”는 문장은 별도 로컬 PDF 링크를 제공하지 않는다. 현재 Markdown·자산 패키지는 완전하게 감사했지만, 그 문장이 가리키는 추가 원본의 존재 여부는 별도로 확인되기 전 provenance 근거로 세지 않는다.
+- `SRC-HARV-STAT110-2E-00-01`은 사용자가 제공한 압축 PDF이므로 공식 배포 파일과 byte-identical이라고 주장하지 않는다. 표제·판권·목차·13개 장·부록·참고문헌·색인, 연속된 본문 쪽수 1~619, 전체 텍스트와 630개 페이지 렌더를 확인했다. 출판사 인쇄본 서지는 634쪽이지만 로컬 온라인 레이아웃은 PDF 630쪽이며 이를 누락이나 634쪽 파일로 기록하지 않는다.
 
 ### 커리큘럼 공백
 
-- 현재 70강의 강점은 선형대수·tensor shape·MLP와 activation·손실·optimizer·autodiff·기본 데이터 파이프라인·train-validation-test 루프·기본 attention·전통 ML 평가와 leakage 방지다.
-- 확률·통계 추론, NLP 전처리와 tokenizer, 완전한 Transformer·causal LM, pretraining·post-training, LLM 평가, 분산·추론 시스템, 논문 읽기·실험 설계·재현 보고는 직접 자료가 없거나 맥락 언급뿐이다.
+- 현재 71개 자료의 강점은 선형대수·확률 기초·tensor shape·MLP와 activation·손실·optimizer·autodiff·기본 데이터 파이프라인·train-validation-test 루프·기본 attention·전통 ML 평가와 leakage 방지다.
+- likelihood·MLE를 포함한 통계 추론, NLP 전처리와 tokenizer, 완전한 Transformer·causal LM, pretraining·post-training, LLM 평가, 분산·추론 시스템, 논문 읽기·실험 설계·재현 보고는 직접 자료가 없거나 현재 채택한 범위로는 부분 충족·맥락 언급뿐이다.
 - 딥러닝 기초 `SRC-KDL-01-00`은 14개 장의 향후 구성을 제시하지만 현재 registry에는 8개 장 40강만 있다. 등록되지 않은 미래 계획은 현재 자료 충족 근거로 세지 않는다.
 - 전문 트랙은 모두 D3가 목표이며 현재 과정은 어떤 트랙도 직접 충족하지 않는다. 트랙을 선택한 뒤 해당 자료를 확보한다.
 
 ## 7. 갱신 규칙
 
 1. ID는 의미를 바꾸거나 재사용하지 않는다. 성과가 새로 필요하면 새 ID를 추가한다.
-2. 자료를 추가·교체하면 정확한 상대 경로와 SHA-256을 registry에 기록하고 해당 과정 `INDEX.md`와 양방향 일치를 확인한다.
+2. 자료를 추가·교체하면 정확한 상대 경로와 SHA-256을 registry에 기록하고 해당 과정 `INDEX.md`와 양방향 일치를 확인한다. 각 INDEX는 `source_namespace`를 정확히 한 번 선언하며 모든 source ID가 그 namespace를 사용하고 다른 과정과 공유하지 않게 한다.
 3. 본문 전체, Markdown의 모든 로컬 자산, PDF의 모든 페이지를 확인하기 전에는 감사 상태를 `complete`로 두지 않는다.
 4. 원본 누락 또는 변환 훼손이 있으면 무결성을 `limited`나 `blocked`로 두고 `충분` 판정의 단독 근거로 쓰지 않는다.
 5. 역량 연결은 `primary`, `supporting`, `context` 중 하나로 명시한다. `context`만으로 `충분`을 부여하지 않는다.
 6. 목표 깊이와 실제로 만들 수 있는 요구 근거를 비교해 충족도를 정한다. 자료가 바뀌면 관련 매핑과 오류·공백을 다시 감사한다.
-7. 기본 구조 검증은 `python3 .agents/skills/coach-llm-research-study/scripts/validate_curriculum.py`로, 모든 private 자료·hash·INDEX parity를 포함한 검증은 같은 명령에 `--strict-sources`를 붙여 실행한다. 한 과정만 readiness 관점에서 검사할 때는 `--strict-sources --course-index materials/private/<course>/INDEX.md`를 함께 쓴다.
+7. Registry 감사 요약 표의 과정·자료·자산·PDF 페이지·`limited` 개수는 validator 계산값과 일치시킨다. 기본 구조 검증은 `python3 .agents/skills/coach-llm-research-study/scripts/validate_curriculum.py`로, 모든 private 자료·hash·INDEX parity와 감사 요약을 포함한 검증은 같은 명령에 `--strict-sources`를 붙여 실행한다. 한 과정만 readiness 관점에서 검사할 때는 `--strict-sources --course-index materials/private/<course>/INDEX.md`를 함께 쓴다.

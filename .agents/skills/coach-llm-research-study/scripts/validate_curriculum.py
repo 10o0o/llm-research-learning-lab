@@ -7,6 +7,7 @@ import argparse
 import datetime as dt
 import hashlib
 import re
+import subprocess
 import sys
 from collections import Counter
 from dataclasses import dataclass
@@ -38,6 +39,16 @@ SOURCE_HEADER = (
     "감사 상태",
     "감사일",
     "비고",
+)
+REGISTRY_SUMMARY_HEADER = (
+    "과정 수",
+    "Source 수",
+    "Markdown 자산",
+    "Raster",
+    "SVG",
+    "기타 자산",
+    "PDF 페이지",
+    "Limited source",
 )
 
 REQUIRED_SECTIONS = (
@@ -100,9 +111,13 @@ COMPETENCY_ID_RE = re.compile(r"(?:CC-[A-Z]+-\d{2}|TR-[A-Z]+-\d{2})\Z")
 SOURCE_ID_RE = re.compile(
     r"SRC-([A-Z0-9]+(?:-[A-Z0-9]+)*)-(\d{2}-\d{2})\Z"
 )
+SOURCE_NAMESPACE_RE = re.compile(r"[A-Z0-9]+(?:-[A-Z0-9]+)*\Z")
 LESSON_FILENAME_RE = re.compile(r"(\d{2}-\d{2})_.+\Z")
 SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
+RASTER_SUFFIXES = {
+    ".avif", ".bmp", ".gif", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".webp",
+}
 
 
 @dataclass(frozen=True)
@@ -111,6 +126,7 @@ class Finding:
     line: int
     code: str
     message: str
+    affected_source_paths: tuple[str, ...] = ()
 
     def render(self) -> str:
         return f"ERROR {self.path}:{self.line} [{self.code}] {self.message}"
@@ -126,6 +142,40 @@ class LessonSliceFreshness:
 class TableRow:
     line: int
     cells: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class IndexLesson:
+    filename: str
+    line: int
+
+
+@dataclass(frozen=True)
+class RegistrySummary:
+    courses: int
+    sources: int
+    markdown_assets: int
+    raster_assets: int
+    svg_assets: int
+    other_assets: int
+    pdf_pages: int
+    limited_sources: int
+
+
+@dataclass(frozen=True)
+class CurriculumTargetSnapshot:
+    coverage: str
+    gap_action: str
+    line: int
+    direct_source_ids: tuple[str, ...]
+    direct_source_paths: frozenset[str]
+
+
+@dataclass(frozen=True)
+class CurriculumSnapshot:
+    targets: dict[str, CurriculumTargetSnapshot]
+    source_paths_by_id: dict[str, tuple[str, ...]]
+    source_ids_by_path: dict[str, tuple[str, ...]]
 
 
 @dataclass
@@ -345,6 +395,144 @@ def _parse_sources(
     return sources
 
 
+def curriculum_snapshot_from_text(text: str) -> CurriculumSnapshot:
+    """Return target/source relations without requiring private source bytes."""
+    lines = text.splitlines()
+    ignored_findings: list[Finding] = []
+    competency_rows, _ = _extract_tables(
+        lines, COMPETENCY_HEADER, "CURRICULUM.md", ignored_findings,
+    )
+    source_rows, _ = _extract_tables(
+        lines, SOURCE_HEADER, "CURRICULUM.md", ignored_findings,
+    )
+    competencies = _parse_competencies(
+        competency_rows, "CURRICULUM.md", ignored_findings,
+    )
+    sources = _parse_sources(source_rows, "CURRICULUM.md", ignored_findings)
+
+    paths_by_id: dict[str, list[str]] = {}
+    ids_by_path: dict[str, list[str]] = {}
+    for source in sources:
+        paths_by_id.setdefault(source.identifier, []).append(source.relative_path)
+        ids_by_path.setdefault(source.relative_path, []).append(source.identifier)
+
+    targets: dict[str, CurriculumTargetSnapshot] = {}
+    for competency in competencies:
+        direct_ids = tuple(
+            competency.relations.get("primary", [])
+            + competency.relations.get("supporting", [])
+        )
+        direct_paths = frozenset(
+            path
+            for source_id in direct_ids
+            for path in paths_by_id.get(source_id, [])
+        )
+        targets[competency.identifier] = CurriculumTargetSnapshot(
+            coverage=competency.coverage,
+            gap_action=competency.gap_action,
+            line=competency.line,
+            direct_source_ids=direct_ids,
+            direct_source_paths=direct_paths,
+        )
+
+    return CurriculumSnapshot(
+        targets=targets,
+        source_paths_by_id={
+            source_id: tuple(paths) for source_id, paths in paths_by_id.items()
+        },
+        source_ids_by_path={
+            path: tuple(source_ids) for path, source_ids in ids_by_path.items()
+        },
+    )
+
+
+def _parse_registry_summary(
+    rows: list[TableRow],
+    occurrences: int,
+    document_path: str,
+    findings: list[Finding],
+) -> RegistrySummary | None:
+    if occurrences != 1:
+        findings.append(Finding(
+            document_path,
+            1,
+            "REGISTRY_SUMMARY_COUNT",
+            f"found {occurrences} registry summary tables; expected 1",
+        ))
+        return None
+    if len(rows) != 1:
+        findings.append(Finding(
+            document_path,
+            rows[0].line if rows else 1,
+            "REGISTRY_SUMMARY_COUNT",
+            f"registry summary must contain exactly one data row; found {len(rows)}",
+        ))
+        return None
+    row = rows[0]
+    values: list[int] = []
+    for label, cell in zip(REGISTRY_SUMMARY_HEADER, row.cells, strict=True):
+        value = _unwrap_code(cell)
+        if not re.fullmatch(r"\d+", value):
+            findings.append(Finding(
+                document_path,
+                row.line,
+                "REGISTRY_SUMMARY_VALUE",
+                f"{label} must be a non-negative integer; got {value!r}",
+            ))
+            return None
+        values.append(int(value))
+    summary = RegistrySummary(*values)
+    classified_assets = (
+        summary.raster_assets + summary.svg_assets + summary.other_assets
+    )
+    if summary.markdown_assets != classified_assets:
+        findings.append(Finding(
+            document_path,
+            row.line,
+            "REGISTRY_SUMMARY_VALUE",
+            "Markdown 자산 must equal Raster + SVG + 기타 자산",
+        ))
+    return summary
+
+
+def _registry_structure_summary(sources: list[Source]) -> RegistrySummary:
+    return RegistrySummary(
+        courses=len({
+            directory
+            for source in sources
+            if (directory := _source_course_directory(source)) is not None
+        }),
+        sources=len(sources),
+        markdown_assets=0,
+        raster_assets=0,
+        svg_assets=0,
+        other_assets=0,
+        pdf_pages=0,
+        limited_sources=sum(source.integrity == "limited" for source in sources),
+    )
+
+
+def _validate_registry_structure_summary(
+    declared: RegistrySummary | None,
+    sources: list[Source],
+    document_path: str,
+    findings: list[Finding],
+) -> None:
+    if declared is None:
+        return
+    actual = _registry_structure_summary(sources)
+    expected = (actual.courses, actual.sources, actual.limited_sources)
+    recorded = (declared.courses, declared.sources, declared.limited_sources)
+    if recorded != expected:
+        findings.append(Finding(
+            document_path,
+            1,
+            "REGISTRY_SUMMARY_MISMATCH",
+            "registry summary courses/sources/limited values "
+            f"{recorded} do not match registry-derived values {expected}",
+        ))
+
+
 def _duplicate_values(values: list[str]) -> list[str]:
     return sorted(value for value, count in Counter(values).items() if count > 1)
 
@@ -524,35 +712,49 @@ def _validate_competencies(
 def _validate_sources(
     sources: list[Source], document_path: str, findings: list[Finding]
 ) -> None:
-    identifiers = [source.identifier for source in sources]
-    line_by_id = {source.identifier: source.line for source in sources}
-    for duplicate in _duplicate_values(identifiers):
+    def add_source_finding(source: Source, code: str, message: str) -> None:
         findings.append(Finding(
-            document_path, line_by_id[duplicate], "SOURCE_DUPLICATE",
+            document_path,
+            source.line,
+            code,
+            message,
+            (source.relative_path,),
+        ))
+
+    identifiers = [source.identifier for source in sources]
+    for duplicate in _duplicate_values(identifiers):
+        duplicate_sources = [
+            source for source in sources if source.identifier == duplicate
+        ]
+        findings.append(Finding(
+            document_path, duplicate_sources[1].line, "SOURCE_DUPLICATE",
             f"duplicate source ID {duplicate}",
+            tuple(source.relative_path for source in duplicate_sources),
         ))
     paths = [source.relative_path for source in sources]
     for duplicate in _duplicate_values(paths):
-        source = next(item for item in sources if item.relative_path == duplicate)
+        duplicate_sources = [
+            source for source in sources if source.relative_path == duplicate
+        ]
         findings.append(Finding(
-            document_path, source.line, "SOURCE_PATH_DUPLICATE",
+            document_path, duplicate_sources[1].line, "SOURCE_PATH_DUPLICATE",
             f"source path is registered more than once: {duplicate}",
+            (duplicate,),
         ))
 
     for source in sources:
         match = SOURCE_ID_RE.fullmatch(source.identifier)
         if not match:
-            findings.append(Finding(
-                document_path, source.line, "SOURCE_ID", f"invalid source ID {source.identifier!r}",
-            ))
+            add_source_finding(source, "SOURCE_ID", f"invalid source ID {source.identifier!r}")
         else:
             _, lesson = match.groups()
             filename = Path(source.relative_path).name
             if not filename.startswith(lesson + "_"):
-                findings.append(Finding(
-                    document_path, source.line, "SOURCE_PATH_ID_MISMATCH",
+                add_source_finding(
+                    source,
+                    "SOURCE_PATH_ID_MISMATCH",
                     f"path does not match {source.identifier}: {source.relative_path}",
-                ))
+                )
         path_object = Path(source.relative_path)
         path_parts = path_object.parts
         if (
@@ -565,54 +767,48 @@ def _validate_sources(
             or path_parts[3] == "INDEX.md"
             or "course-provided-practice" in path_parts
         ):
-            findings.append(Finding(
-                document_path, source.line, "SOURCE_PATH_SCOPE",
+            add_source_finding(
+                source,
+                "SOURCE_PATH_SCOPE",
                 "source path must be a direct, safe lesson file under "
                 f"materials/private/<course>/: {source.relative_path}",
-            ))
+            )
         if source.material_format not in ALLOWED_FORMATS:
-            findings.append(Finding(
-                document_path, source.line, "SOURCE_FORMAT_ENUM",
-                f"unsupported source format {source.material_format!r}",
-            ))
+            add_source_finding(
+                source, "SOURCE_FORMAT_ENUM", f"unsupported source format {source.material_format!r}"
+            )
         if source.material_format == "PDF" and path_object.suffix.lower() != ".pdf":
-            findings.append(Finding(
-                document_path, source.line, "SOURCE_FORMAT_SUFFIX", "PDF format requires a .pdf path",
-            ))
+            add_source_finding(source, "SOURCE_FORMAT_SUFFIX", "PDF format requires a .pdf path")
         if source.material_format.endswith("Markdown") and path_object.suffix.lower() != ".md":
-            findings.append(Finding(
-                document_path, source.line, "SOURCE_FORMAT_SUFFIX", "Markdown format requires a .md path",
-            ))
+            add_source_finding(
+                source, "SOURCE_FORMAT_SUFFIX", "Markdown format requires a .md path"
+            )
         if not SHA256_RE.fullmatch(source.digest):
-            findings.append(Finding(
-                document_path, source.line, "SOURCE_HASH", "SHA-256 must be 64 lowercase hex characters",
-            ))
+            add_source_finding(
+                source, "SOURCE_HASH", "SHA-256 must be 64 lowercase hex characters"
+            )
         if source.integrity not in ALLOWED_INTEGRITY:
-            findings.append(Finding(
-                document_path, source.line, "INTEGRITY_ENUM",
-                f"unsupported integrity value {source.integrity!r}",
-            ))
+            add_source_finding(
+                source, "INTEGRITY_ENUM", f"unsupported integrity value {source.integrity!r}"
+            )
         if source.audit_status not in ALLOWED_AUDIT_STATUS:
-            findings.append(Finding(
-                document_path, source.line, "AUDIT_STATUS_ENUM",
-                f"unsupported audit status {source.audit_status!r}",
-            ))
+            add_source_finding(
+                source, "AUDIT_STATUS_ENUM", f"unsupported audit status {source.audit_status!r}"
+            )
         if source.audit_status == "complete" and source.integrity == "unverified":
-            findings.append(Finding(
-                document_path, source.line, "COMPLETE_UNVERIFIED",
-                "complete audit cannot have unverified integrity",
-            ))
+            add_source_finding(
+                source, "COMPLETE_UNVERIFIED", "complete audit cannot have unverified integrity"
+            )
         if source.audit_status == "blocked" and not source.note.strip():
-            findings.append(Finding(
-                document_path, source.line, "BLOCKED_WITHOUT_NOTE",
-                "blocked source requires a reason in 비고",
-            ))
+            add_source_finding(
+                source, "BLOCKED_WITHOUT_NOTE", "blocked source requires a reason in 비고"
+            )
         try:
             dt.date.fromisoformat(source.audit_date)
         except ValueError:
-            findings.append(Finding(
-                document_path, source.line, "AUDIT_DATE", f"invalid ISO audit date {source.audit_date!r}",
-            ))
+            add_source_finding(
+                source, "AUDIT_DATE", f"invalid ISO audit date {source.audit_date!r}"
+            )
 
 
 def sha256_file(path: Path) -> str:
@@ -623,14 +819,88 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _extract_index_lessons(index_path: Path) -> list[str]:
+def _extract_index_lessons(index_path: Path) -> list[IndexLesson]:
     text = index_path.read_text(encoding="utf-8")
     try:
         lesson_section = text.split("## 강의 자료", 1)[1]
     except IndexError:
         return []
-    lesson_section = re.split(r"^## ", lesson_section, maxsplit=1, flags=re.MULTILINE)[0]
-    return re.findall(r"^\| `([^`]+)` \|", lesson_section, flags=re.MULTILINE)
+    section_start = text.index("## 강의 자료") + len("## 강의 자료")
+    lesson_section = re.split(
+        r"^## ", lesson_section, maxsplit=1, flags=re.MULTILINE,
+    )[0]
+    start_line = text.count("\n", 0, section_start)
+    lessons: list[IndexLesson] = []
+    for offset, line in enumerate(lesson_section.splitlines(), start=1):
+        match = re.match(r"^\| `([^`]+)` \|", line)
+        if match:
+            lessons.append(IndexLesson(match.group(1), start_line + offset))
+    return lessons
+
+
+def _index_namespace(
+    index_path: Path,
+    repo_root: Path,
+) -> tuple[str | None, list[Finding]]:
+    display = _display_path(index_path, repo_root)
+    try:
+        lines = index_path.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return None, [Finding(display, 1, "INDEX_MISSING", "course index is missing")]
+    except UnicodeDecodeError as exc:
+        return None, [Finding(
+            display, 1, "INDEX_NAMESPACE_FORMAT", f"course index is not UTF-8: {exc}",
+        )]
+    matches = [
+        (line_no, match.group(1).strip())
+        for line_no, line in enumerate(lines, start=1)
+        if (match := re.fullmatch(r"- source_namespace:\s*(.*?)\s*", line)) is not None
+    ]
+    if len(matches) != 1:
+        return None, [Finding(
+            display,
+            matches[0][0] if matches else 1,
+            "INDEX_NAMESPACE_COUNT",
+            f"course INDEX must declare source_namespace exactly once; found {len(matches)}",
+        )]
+    line_no, namespace = matches[0]
+    if SOURCE_NAMESPACE_RE.fullmatch(namespace) is None:
+        return None, [Finding(
+            display,
+            line_no,
+            "INDEX_NAMESPACE_FORMAT",
+            f"invalid source_namespace {namespace!r}",
+        )]
+    return namespace, []
+
+
+def _pdf_page_count(path: Path) -> int | None:
+    try:
+        from pypdf import PdfReader  # type: ignore[import-not-found]
+    except ImportError:
+        PdfReader = None
+    if PdfReader is not None:
+        try:
+            return len(PdfReader(str(path), strict=False).pages)
+        except Exception:  # pypdf exposes several parser and encryption errors.
+            pass
+    try:
+        completed = subprocess.run(
+            ["pdfinfo", str(path)],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if completed.returncode != 0:
+        return None
+    match = re.search(r"^Pages:\s+(\d+)\s*$", completed.stdout, re.MULTILINE)
+    if match is None:
+        return None
+    page_count = int(match.group(1))
+    return page_count if page_count > 0 else None
 
 
 def _local_link_target(raw_target: str) -> str | None:
@@ -665,6 +935,107 @@ def _check_asset_signature(path: Path) -> str | None:
         if not root.tag.endswith("svg"):
             return "SVG root element is not <svg>"
     return None
+
+
+def _private_registry_summary(
+    sources: list[Source],
+    repo_root: Path,
+) -> tuple[RegistrySummary | None, list[str]]:
+    root = repo_root.resolve()
+    assets: set[Path] = set()
+    pdf_pages = 0
+    unreadable: list[str] = []
+    for source in sources:
+        source_path = repo_root / source.relative_path
+        try:
+            resolved = source_path.resolve(strict=True)
+            resolved.relative_to(root)
+        except (FileNotFoundError, ValueError):
+            unreadable.append(source.relative_path)
+            continue
+        if not resolved.is_file():
+            unreadable.append(source.relative_path)
+            continue
+        if source.material_format == "PDF":
+            page_count = _pdf_page_count(resolved)
+            if page_count is None:
+                unreadable.append(source.relative_path)
+            else:
+                pdf_pages += page_count
+            continue
+        if not source.material_format.endswith("Markdown"):
+            continue
+        try:
+            text = resolved.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            unreadable.append(source.relative_path)
+            continue
+        in_fence = False
+        for line in text.splitlines():
+            if line.lstrip().startswith("```"):
+                in_fence = not in_fence
+                continue
+            if in_fence:
+                continue
+            for match in MARKDOWN_LINK_RE.finditer(line):
+                if not match.group(0).startswith("!"):
+                    continue
+                local = _local_link_target(match.group(1))
+                if local is None:
+                    continue
+                try:
+                    linked = (resolved.parent / local).resolve(strict=True)
+                    linked.relative_to(root)
+                except (FileNotFoundError, ValueError):
+                    unreadable.append(f"{source.relative_path} -> {local}")
+                    continue
+                if not linked.is_file():
+                    unreadable.append(f"{source.relative_path} -> {local}")
+                    continue
+                assets.add(linked)
+
+    if unreadable:
+        return None, sorted(set(unreadable))
+    raster = sum(path.suffix.lower() in RASTER_SUFFIXES for path in assets)
+    svg = sum(path.suffix.lower() == ".svg" for path in assets)
+    structure = _registry_structure_summary(sources)
+    return RegistrySummary(
+        courses=structure.courses,
+        sources=structure.sources,
+        markdown_assets=len(assets),
+        raster_assets=raster,
+        svg_assets=svg,
+        other_assets=len(assets) - raster - svg,
+        pdf_pages=pdf_pages,
+        limited_sources=structure.limited_sources,
+    ), []
+
+
+def _validate_private_registry_summary(
+    declared: RegistrySummary | None,
+    sources: list[Source],
+    repo_root: Path,
+    document_path: str,
+    findings: list[Finding],
+) -> None:
+    if declared is None:
+        return
+    actual, unreadable = _private_registry_summary(sources, repo_root)
+    if actual is None:
+        findings.append(Finding(
+            document_path,
+            1,
+            "REGISTRY_SUMMARY_UNREADABLE",
+            "cannot compute registry summary from: " + ", ".join(unreadable),
+        ))
+        return
+    if actual != declared:
+        findings.append(Finding(
+            document_path,
+            1,
+            "REGISTRY_SUMMARY_MISMATCH",
+            f"declared registry summary {declared} does not match private sources {actual}",
+        ))
 
 
 def _course_directory_for_index(
@@ -723,6 +1094,51 @@ def _strict_source_checks(
                 "--course-index must name materials/private/<course>/INDEX.md",
             ))
             return
+    registered_directories = {
+        directory
+        for source in sources
+        if (directory := _source_course_directory(source)) is not None
+    }
+    discovered_directories = _discover_course_directories(repo_root)
+    namespace_directories = registered_directories | discovered_directories
+    namespace_by_directory: dict[str, str] = {}
+    for directory in sorted(namespace_directories):
+        index_path = repo_root / "materials" / "private" / directory / "INDEX.md"
+        if not index_path.is_file():
+            continue
+        namespace, namespace_findings = _index_namespace(index_path, repo_root)
+        if selected_directory is None or directory == selected_directory:
+            findings.extend(namespace_findings)
+        if namespace is not None:
+            namespace_by_directory[directory] = namespace
+
+    directories_by_namespace: dict[str, list[str]] = {}
+    for directory, namespace in namespace_by_directory.items():
+        directories_by_namespace.setdefault(namespace, []).append(directory)
+    for namespace, directories in sorted(directories_by_namespace.items()):
+        if len(directories) < 2:
+            continue
+        affected_paths = tuple(
+            source.relative_path
+            for source in sources
+            if _source_course_directory(source) in directories
+        )
+        report_directories = (
+            directories
+            if selected_directory is None
+            else [selected_directory] if selected_directory in directories else []
+        )
+        for directory in report_directories:
+            index_path = repo_root / "materials" / "private" / directory / "INDEX.md"
+            findings.append(Finding(
+                _display_path(index_path, repo_root),
+                1,
+                "INDEX_NAMESPACE_COLLISION",
+                f"source_namespace {namespace} is declared by multiple course directories: "
+                + ", ".join(directories),
+                affected_paths,
+            ))
+
     scoped_sources = [
         source
         for source in sources
@@ -734,6 +1150,24 @@ def _strict_source_checks(
         source_path = repo_root / source.relative_path
         display = source.relative_path
         registered_paths.add(source.relative_path)
+        directory = _source_course_directory(source)
+        namespace_match = SOURCE_ID_RE.fullmatch(source.identifier)
+        expected_namespace = (
+            namespace_by_directory.get(directory) if directory is not None else None
+        )
+        if (
+            namespace_match is not None
+            and expected_namespace is not None
+            and namespace_match.group(1) != expected_namespace
+        ):
+            findings.append(Finding(
+                display,
+                1,
+                "SOURCE_NAMESPACE_MISMATCH",
+                f"source ID namespace {namespace_match.group(1)} does not match "
+                f"course INDEX namespace {expected_namespace}",
+                (source.relative_path,),
+            ))
         if source.audit_status != "complete":
             findings.append(Finding(
                 display,
@@ -806,15 +1240,10 @@ def _strict_source_checks(
                         ))
 
     indexed_paths: set[str] = set()
-    registered_directories = {
-        directory
-        for source in sources
-        if (directory := _source_course_directory(source)) is not None
-    }
     course_directories = (
         {selected_directory}
         if selected_directory is not None
-        else registered_directories | _discover_course_directories(repo_root)
+        else registered_directories | discovered_directories
     )
     for directory in sorted(course_directories):
         index_path = repo_root / "materials" / "private" / directory / "INDEX.md"
@@ -822,18 +1251,32 @@ def _strict_source_checks(
         if not index_path.is_file():
             findings.append(Finding(display, 1, "INDEX_MISSING", "course index is missing"))
             continue
-        filenames = _extract_index_lessons(index_path)
+        lessons = _extract_index_lessons(index_path)
+        filenames = [lesson.filename for lesson in lessons]
         for duplicate in _duplicate_values(filenames):
-            findings.append(Finding(display, 1, "INDEX_DUPLICATE", f"duplicate lesson path {duplicate}"))
-        for filename in filenames:
+            duplicate_rows = [lesson for lesson in lessons if lesson.filename == duplicate]
+            affected = f"materials/private/{directory}/{duplicate}"
+            for duplicate_row in duplicate_rows[1:]:
+                findings.append(Finding(
+                    display,
+                    duplicate_row.line,
+                    "INDEX_DUPLICATE",
+                    f"duplicate lesson path {duplicate}",
+                    (affected,),
+                ))
+        for lesson in lessons:
+            filename = lesson.filename
             if "/" in filename or "\\" in filename or filename.startswith("course-provided-practice"):
                 findings.append(Finding(
-                    display, 1, "INDEX_SCOPE", f"강의 자료 contains an out-of-scope path: {filename}",
+                    display,
+                    lesson.line,
+                    "INDEX_SCOPE",
+                    f"강의 자료 contains an out-of-scope path: {filename}",
                 ))
                 continue
             if not LESSON_FILENAME_RE.fullmatch(filename):
                 findings.append(Finding(
-                    display, 1, "INDEX_LESSON_ID",
+                    display, lesson.line, "INDEX_LESSON_ID",
                     f"강의 자료 filename must start with NN-NN_: {filename}",
                 ))
                 continue
@@ -905,9 +1348,17 @@ def validate_lesson_slice_freshness(
         "SOURCE_TABLE_COUNT",
         "INDEX_SCOPE",
         "INDEX_MISSING",
+        "INDEX_NAMESPACE_COUNT",
+        "INDEX_NAMESPACE_FORMAT",
+        "INDEX_NAMESPACE_COLLISION",
     }
     for finding in whole_course:
-        target = errors if finding.path in selected or finding.code in critical_codes else warnings
+        affects_selected = bool(selected.intersection(finding.affected_source_paths))
+        target = (
+            errors
+            if finding.path in selected or affects_selected or finding.code in critical_codes
+            else warnings
+        )
         target.append(finding)
 
     directory = _course_directory_for_index(course_index, repo_root)
@@ -935,17 +1386,20 @@ def validate_lesson_slice_freshness(
     if source_tables != 1:
         return LessonSliceFreshness(_deduplicate_findings(errors), _deduplicate_findings(warnings))
     sources = _parse_sources(source_rows, document_path, parse_findings)
-    selected_sources = [source for source in sources if source.relative_path in selected]
-    selected_lines = {source.line for source in selected_sources}
     structural_findings: list[Finding] = []
     _validate_sources(sources, document_path, structural_findings)
     for finding in parse_findings + structural_findings:
-        target = errors if finding.line in selected_lines else warnings
+        affects_selected = bool(selected.intersection(finding.affected_source_paths))
+        target = errors if finding.path in selected or affects_selected else warnings
         target.append(finding)
 
     source_by_path = {source.relative_path: source for source in sources}
     index_path = repo_root / "materials" / "private" / directory / "INDEX.md"
-    indexed_filenames = set(_extract_index_lessons(index_path)) if index_path.is_file() else set()
+    indexed_filenames = (
+        {lesson.filename for lesson in _extract_index_lessons(index_path)}
+        if index_path.is_file()
+        else set()
+    )
     for selected_path in sorted(selected):
         parts = Path(selected_path).parts
         if (
@@ -1017,6 +1471,9 @@ def validate_curriculum(
     source_rows, source_tables = _extract_tables(
         lines, SOURCE_HEADER, document_path, findings,
     )
+    summary_rows, summary_tables = _extract_tables(
+        lines, REGISTRY_SUMMARY_HEADER, document_path, findings,
+    )
     if competency_tables != 2:
         findings.append(Finding(
             document_path, 1, "COMPETENCY_TABLE_COUNT",
@@ -1030,8 +1487,14 @@ def validate_curriculum(
 
     competencies = _parse_competencies(competency_rows, document_path, findings)
     sources = _parse_sources(source_rows, document_path, findings)
+    registry_summary = _parse_registry_summary(
+        summary_rows, summary_tables, document_path, findings,
+    )
     _validate_sources(sources, document_path, findings)
     _validate_competencies(competencies, sources, document_path, findings)
+    _validate_registry_structure_summary(
+        registry_summary, sources, document_path, findings,
+    )
     if strict_sources:
         _strict_source_checks(
             sources,
@@ -1039,6 +1502,14 @@ def validate_curriculum(
             findings,
             course_index=course_index,
         )
+        if course_index is None:
+            _validate_private_registry_summary(
+                registry_summary,
+                sources,
+                repo_root,
+                document_path,
+                findings,
+            )
     return findings
 
 

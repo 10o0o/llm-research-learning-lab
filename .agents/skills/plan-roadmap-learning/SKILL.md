@@ -25,3 +25,12 @@ Read and follow [`references/planner-contract.md`](references/planner-contract.m
 5. Return the two action axes and the observable next step required by the contract. State uncertainty instead of inferring progress from file presence or completion signals.
 
 Do not persist a planner snapshot, daily status, mastery checkbox, score, or completion percentage.
+
+## Maintain this skill
+
+After changing ranking, evidence, prerequisite, or source-state behavior, read
+[`references/forward-test-scenarios.md`](references/forward-test-scenarios.md)
+and run its prompts through a fresh read-only reviewer. Give the reviewer this
+skill, the planner contract, and raw repository evidence, but do not expose the
+scenario file or its expected invariants. Compare the result afterward and do
+not save generated answers as repository state.

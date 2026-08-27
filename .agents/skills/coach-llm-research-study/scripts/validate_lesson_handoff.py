@@ -18,7 +18,10 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-from validate_curriculum import validate_lesson_slice_freshness  # noqa: E402
+from validate_curriculum import (  # noqa: E402
+    curriculum_snapshot_from_text,
+    validate_lesson_slice_freshness,
+)
 
 
 SCHEMA_VERSION = "4"
@@ -694,13 +697,11 @@ def _locations(raw: str) -> list[str]:
 
 def _curriculum_target_rows(text: str) -> dict[str, tuple[str, str, int]]:
     """Return target -> (coverage, gap action, line) from competency tables."""
-    rows: dict[str, tuple[str, str, int]] = {}
-    for line_no, line in enumerate(text.splitlines(), start=1):
-        cells = _split_table_row(line)
-        if cells is None or len(cells) != 9 or CURRICULUM_ID_RE.fullmatch(cells[0]) is None:
-            continue
-        rows[cells[0]] = (cells[6], cells[7], line_no)
-    return rows
+    snapshot = curriculum_snapshot_from_text(text)
+    return {
+        target_id: (target.coverage, target.gap_action, target.line)
+        for target_id, target in snapshot.targets.items()
+    }
 
 
 def _parse_manifest(
@@ -2244,6 +2245,46 @@ def _validate_declared_hashes(doc: HandoffDocument, metadata_lines: dict[str, in
         errors.append(ValidationError(metadata_lines.get("contract_sha256", 1), "CONTRACT_HASH", f"contract hash mismatch: got {doc.computed_contract_sha256}"))
 
 
+def _validate_curriculum_source_relations(
+    doc: HandoffDocument,
+    curriculum_text: str,
+    errors: list[ValidationError],
+) -> None:
+    snapshot = curriculum_snapshot_from_text(curriculum_text)
+    manifested_primary_paths = {
+        entry.path for entry in doc.manifest if entry.role == "primary"
+    }
+    for target_id, treatment in doc.curriculum_treatments.items():
+        if treatment.lesson_treatment == "defer-track":
+            continue
+        source_core_paths = {
+            path
+            for objective_id in treatment.objective_ids
+            if (objective := doc.objectives.get(objective_id)) is not None
+            and objective.requirement == "source-core"
+            if (path := _location_path(objective.source_location)) is not None
+        }
+        if not source_core_paths:
+            continue
+        target = snapshot.targets.get(target_id)
+        if target is None:
+            continue
+        eligible_paths = (
+            source_core_paths
+            & manifested_primary_paths
+            & set(target.direct_source_paths)
+        )
+        if eligible_paths:
+            continue
+        errors.append(ValidationError(
+            treatment.line,
+            "CURRICULUM_SOURCE_RELATION",
+            f"Curriculum Treatment {target_id} has source-core objectives but none of "
+            "their manifested primary paths is registered as primary or supporting "
+            "for that target",
+        ))
+
+
 def _validate_course_freshness(
     doc: HandoffDocument,
     errors: list[ValidationError],
@@ -2256,6 +2297,12 @@ def _validate_course_freshness(
     if curriculum is None:
         return
     curriculum_path = doc.repo_root / curriculum.path
+    try:
+        curriculum_text = curriculum_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        curriculum_text = None
+    if curriculum_text is not None:
+        _validate_curriculum_source_relations(doc, curriculum_text, errors)
     for entry in (item for item in doc.manifest if item.role == "course-index"):
         index_path = doc.repo_root / entry.path
         index_parts = PurePosixPath(entry.path).parts

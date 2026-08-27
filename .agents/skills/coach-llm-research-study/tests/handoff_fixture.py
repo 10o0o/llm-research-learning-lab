@@ -147,16 +147,19 @@ def build_handoff(
     if not primary.exists():
         primary.parent.mkdir(parents=True, exist_ok=True)
         primary.write_bytes(primary_bytes)
+    source_hash = sha256(primary.read_bytes())
     curriculum = root / "CURRICULUM.md"
     if not curriculum.exists():
         curriculum.write_text(
             "# Curriculum\n\n"
             "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
             "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
-            "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-01 | 충분 | 그대로 사용 | Fixture row. |\n",
+            "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-TEST-00-01 | 충분 | 그대로 사용 | Fixture row. |\n\n"
+            "| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |\n"
+            "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
+            f"| SRC-TEST-00-01 | `{primary_path}` | HTML 토글 펼침 Markdown | `{source_hash}` | complete | complete | 2026-08-20 | Fixture source. |\n",
             encoding="utf-8",
         )
-    source_hash = sha256(primary.read_bytes())
     curriculum_hash = sha256(curriculum.read_bytes())
     manifest_inputs = [("primary", primary_path, source_hash)]
     if course_index_path is not None:

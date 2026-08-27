@@ -54,7 +54,7 @@ materials/private/<course>/NN-NN_주제.md
 materials/private/<course>/NN-NN_주제.pdf
 ```
 
-파일을 옮긴 뒤 전체 페이지와 수식·표·코드·그림이 읽히는지 확인합니다. Notion에서 내보낸 자료라면 접힌 내용도 포함되어야 합니다. 과정 폴더에 `INDEX.md`가 있다면 새 파일명과 원본 위치를 함께 갱신합니다.
+파일을 옮긴 뒤 전체 페이지와 수식·표·코드·그림이 읽히는지 확인합니다. Notion에서 내보낸 자료라면 접힌 내용도 포함되어야 합니다. 과정 `INDEX.md`에는 정확히 한 번 `- source_namespace: <대문자 namespace>`를 선언하고 새 파일명과 원본 위치를 함께 갱신합니다. Registry ID는 `SRC-<source_namespace>-<NN-NN>`으로 만들며 같은 namespace를 다른 과정 폴더에서 재사용하지 않습니다.
 
 ## TIL 작성
 

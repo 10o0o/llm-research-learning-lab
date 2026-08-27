@@ -45,20 +45,6 @@ Return at most three targets. Prefer one precise next artifact and range over a 
 
 External identity is the tuple `provider + course + offering or edition + artifact`. Do not combine slides, videos, assignments, or readings from different offerings as if they were one audited source. Include the official URL and exact chapter, lecture, or assignment range. Mark every download or registration as awaiting user approval.
 
-For this repository's current `CC-PROB-01` gap, preserve the already selected
-candidate identity while its bytes are pending: provider `Harvard University`,
-course `Stat 110: Introduction to Probability`, edition `Second Edition`, and
-artifact `official complete textbook PDF` intended for
-`materials/private/harvard-stat110-probability/00-01_introduction_to_probability_2e.pdf`
-as `SRC-HARV-STAT110-2E-00-01`. Recommend only Chapters 1–4 as the first
-learning range. Until the user supplies the official PDF and the coach audits
-and registers it, use `registry_action: NONE`,
-`learning_action: PROPOSE_EXTERNAL_SOURCE`, and an explicit approval state of
-waiting for the user-provided PDF. Report its URL or access location as pending
-the supplied artifact rather than searching for, downloading, substituting, or
-blending another probability course. Once that exact artifact is registered
-and fresh, it becomes a local-source candidate under the normal ranking rule.
-
 ## Output contract
 
 Always return these two independent axes first:
