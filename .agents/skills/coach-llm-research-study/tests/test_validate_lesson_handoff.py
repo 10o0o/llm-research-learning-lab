@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import os
 import re
@@ -8,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
@@ -18,7 +20,14 @@ sys.path.insert(0, str(SKILL / "scripts"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from handoff_fixture import CONTRACT, build_handoff, draft_envelope, sha256  # noqa: E402
-from validate_lesson_handoff import _comma_ids, _location_exists, validate_handoff  # noqa: E402
+import validate_lesson_handoff as handoff_validator  # noqa: E402
+from validate_lesson_handoff import (  # noqa: E402
+    ValidationReport,
+    ValidationWarning,
+    _comma_ids,
+    _location_exists,
+    validate_handoff,
+)
 
 
 class LessonHandoffValidatorTests(unittest.TestCase):
@@ -364,6 +373,40 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             self.assert_code(contract_report, "CONTRACT_HASH")
             self.assert_code(contract_report, "REVIEW_STALE")
 
+    def test_index_and_curriculum_changes_stale_an_existing_handoff(self) -> None:
+        private_path = "materials/private/example-course/06-01_lesson.md"
+        private_contract = CONTRACT.replace("materials/lesson.md", private_path)
+        index_path = "materials/private/example-course/INDEX.md"
+        for changed_input in (index_path, "CURRICULUM.md"):
+            with self.subTest(changed_input=changed_input), self.make_root() as directory:
+                root = Path(directory)
+                index = root / index_path
+                index.parent.mkdir(parents=True)
+                index.write_text("# Index\n", encoding="utf-8")
+                handoff, _ = build_handoff(
+                    root,
+                    contract=private_contract,
+                    primary_path=private_path,
+                    course_index_path=index_path,
+                    status="active",
+                    reviews=[("pass", "fresh-reviewer")],
+                )
+                changed_path = root / changed_input
+                changed_path.write_text(
+                    changed_path.read_text(encoding="utf-8") + "\nchanged\n",
+                    encoding="utf-8",
+                )
+                freshness = type(
+                    "Freshness", (), {"errors": [], "warnings": []}
+                )()
+                with patch(
+                    "validate_lesson_handoff.validate_lesson_slice_freshness",
+                    return_value=freshness,
+                ):
+                    report = validate_handoff(handoff, repo_root=root, ready=True)
+                self.assert_code(report, "SOURCE_HASH")
+                self.assert_code(report, "REVIEW_STALE")
+
     def test_review_attempt_count_cannot_exceed_two(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
@@ -465,9 +508,66 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 reviews=[("pass", "fresh-reviewer")],
             )
             stale = type("Finding", (), {"code": "SOURCE_HASH_STALE", "path": private_path, "line": 1, "message": "stale source"})()
-            with patch("validate_lesson_handoff.validate_course_index_freshness", return_value=[stale]):
+            freshness = type("Freshness", (), {"errors": [stale], "warnings": []})()
+            with patch("validate_lesson_handoff.validate_lesson_slice_freshness", return_value=freshness):
                 report = validate_handoff(handoff, repo_root=root, ready=True)
             self.assert_code(report, "CURRICULUM_FRESHNESS")
+
+    def test_unrelated_course_drift_is_a_non_blocking_ready_warning(self) -> None:
+        private_path = "materials/private/kant-deep-learning-basics/06-01_lesson.md"
+        private_contract = CONTRACT.replace("materials/lesson.md", private_path)
+        with self.make_root() as directory:
+            root = Path(directory)
+            index_path = "materials/private/kant-deep-learning-basics/INDEX.md"
+            index = root / index_path
+            index.parent.mkdir(parents=True)
+            index.write_text("# Index\n", encoding="utf-8")
+            handoff, _ = build_handoff(
+                root,
+                contract=private_contract,
+                primary_path=private_path,
+                course_index_path=index_path,
+                status="active",
+                reviews=[("pass", "fresh-reviewer")],
+            )
+            stale = type(
+                "Finding",
+                (),
+                {
+                    "code": "SOURCE_HASH_STALE",
+                    "path": "materials/private/kant-deep-learning-basics/08-08_unrelated.md",
+                    "line": 1,
+                    "message": "unrelated stale source",
+                },
+            )()
+            freshness = type("Freshness", (), {"errors": [], "warnings": [stale]})()
+            with patch("validate_lesson_handoff.validate_lesson_slice_freshness", return_value=freshness):
+                report = validate_handoff(handoff, repo_root=root, ready=True)
+            self.assertTrue(report.ok, report.errors)
+            self.assertEqual(report.exit_code, 0)
+            self.assertEqual(1, len(report.warnings))
+            self.assertIn("unrelated stale source", report.as_json()["warnings"][0]["message"])
+
+    def test_warning_only_cli_prints_warning_and_exits_zero(self) -> None:
+        report = ValidationReport(
+            path=Path("tmp/active-lesson-handoff.md"),
+            ready_requested=True,
+            til_ready_requested=False,
+            errors=[],
+            document=None,
+            warnings=[ValidationWarning(12, "CURRICULUM_FRESHNESS", "unrelated source drift")],
+        )
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with (
+            patch.object(handoff_validator, "validate_handoff", return_value=report),
+            redirect_stdout(stdout),
+            redirect_stderr(stderr),
+        ):
+            exit_code = handoff_validator.main(["--ready", "tmp/active-lesson-handoff.md"])
+        self.assertEqual(0, exit_code)
+        self.assertIn("OK tmp/active-lesson-handoff.md [ready]", stdout.getvalue())
+        self.assertIn("WARNING tmp/active-lesson-handoff.md:12", stderr.getvalue())
 
     def test_concept_source_path_must_be_manifested(self) -> None:
         with self.make_root() as directory:
@@ -1023,6 +1123,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
             payload = json.loads(result.stdout)
             self.assertTrue(payload["ok"])
+            self.assertEqual(payload["warnings"], [])
 
     def test_cli_usage_error_uses_validator_error_contract(self) -> None:
         result = subprocess.run(

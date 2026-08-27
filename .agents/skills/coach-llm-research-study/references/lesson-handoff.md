@@ -97,9 +97,20 @@ ID | Role | Path | SHA-256
   curriculum row path is exactly `CURRICULUM.md`.
 - Every primary under `materials/private/<course>/` requires that exact
   course's `materials/private/<course>/INDEX.md` as a `course-index` input.
-  `--ready` and `--til-ready` validate the entire indexed course against the
-  Curriculum registry, source hashes, audit states, and INDEX parity—not only
-  the selected lesson files. A stale or incomplete course blocks readiness.
+  `--ready` and `--til-ready` apply blocking freshness checks to the lesson's
+  semantic slice: each selected primary, its directly referenced local assets,
+  every supporting source actually manifested for the lesson, the selected
+  Curriculum targets and treatments, and the exact registry and INDEX rows for
+  those sources. Missing, stale, unregistered, or mismatched inputs inside that
+  slice block readiness. Unrelated source problems in the same course are
+  reported as warnings and do not block the lesson gate. The standalone
+  `validate_curriculum.py --strict-sources` command remains the course-wide
+  parity and freshness gate.
+- Keep the complete course `INDEX.md` and `CURRICULUM.md` in the manifest. Any
+  byte change to either file still makes an existing handoff and its semantic
+  review stale, so rebuild and review the handoff once. After rebuilding,
+  unrelated same-course source problems remain warnings under the semantic
+  slice rule above.
 - Include every local figure or asset referenced by the source. A PDF is one
   input hashed as file bytes.
 - Never include `draft_path` (`til/today.md`) in the manifest. The draft,
@@ -601,11 +612,16 @@ python3 .agents/skills/save-today-til/scripts/prepare_til_input.py <draft-path>
 
 Exit status `0` means success. Status `1` reports path, source, hash, review,
 evidence, or draft-state errors. Status `2` reports CLI, schema, or unexpected
-internal errors. Human-readable errors use:
+internal errors. A warning-only result keeps status `0`; human-readable
+warnings and errors use:
 
 ```text
+WARNING path:line [CODE] message
 ERROR path:line [CODE] message
 ```
+
+JSON output always contains separate `warnings` and `errors` arrays. A warning
+never changes the report's `ok` value; only an error does.
 
 Codes are `SCHEMA`, `PATH`, `SOURCE_MISSING`, `SOURCE_HASH`, `SOURCE_LOCATION`,
 `CONTRACT_HASH`, `CURRICULUM_FRESHNESS`, `REVIEW_STALE`, `REVIEW_NOT_PASS`, `OBJECTIVE_COVERAGE`, `EVIDENCE_STATE`,

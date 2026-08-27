@@ -60,7 +60,7 @@ class CurriculumValidatorTests(unittest.TestCase):
     def test_course_freshness_detects_source_and_index_drift(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
-            course = root / "materials/private/kant-deep-learning-basics"
+            course = root / "materials/private/example-deep-learning"
             course.mkdir(parents=True)
             source = course / "06-01_lesson.md"
             source.write_text("# Lesson\n", encoding="utf-8")
@@ -76,27 +76,23 @@ class CurriculumValidatorTests(unittest.TestCase):
             curriculum.write_text(
                 "| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |\n"
                 "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
-                f"| SRC-KDL-06-01 | `materials/private/kant-deep-learning-basics/06-01_lesson.md` | HTML 토글 펼침 Markdown | `{digest}` | complete | complete | 2026-08-25 | fixture |\n",
+                f"| SRC-EXAMPLE-DL-06-01 | `materials/private/example-deep-learning/06-01_lesson.md` | HTML 토글 펼침 Markdown | `{digest}` | complete | complete | 2026-08-25 | fixture |\n",
                 encoding="utf-8",
             )
-            configured = {
-                "KDL": ("kant-deep-learning-basics", ("06-01",)),
-            }
-            with mock.patch.dict(validator.COURSES, configured, clear=True):
-                self.assertEqual(
-                    [],
-                    validator.validate_course_index_freshness(
-                        curriculum,
-                        index,
-                        repo_root=root,
-                    ),
-                )
-                source.write_text("# Changed lesson\n", encoding="utf-8")
-                findings = validator.validate_course_index_freshness(
+            self.assertEqual(
+                [],
+                validator.validate_course_index_freshness(
                     curriculum,
                     index,
                     repo_root=root,
-                )
+                ),
+            )
+            source.write_text("# Changed lesson\n", encoding="utf-8")
+            findings = validator.validate_course_index_freshness(
+                curriculum,
+                index,
+                repo_root=root,
+            )
             self.assertIn("SOURCE_HASH_STALE", self.codes(findings))
 
     def test_structural_mode_does_not_require_private_sources(self) -> None:
@@ -170,38 +166,152 @@ class CurriculumValidatorTests(unittest.TestCase):
         changed = self.valid_text + "\n| 항목 | 점수 |\n|---|---|\n| 예시 | 1 |\n"
         self.assertIn("PROGRESS_FIELD", self.codes(self.validate_text(changed)))
 
-    def test_registry_requires_all_expected_sources(self) -> None:
-        changed = self.valid_text.replace(
-            next(
-                line + "\n"
-                for line in self.valid_text.splitlines()
-                if line.startswith("| SRC-KDL-05-04 |")
-            ),
-            "",
-            1,
+    def test_registry_accepts_a_data_driven_source_catalog(self) -> None:
+        row = (
+            "| SRC-HARV-STAT110-2E-00-01 | "
+            "`materials/private/harvard-stat110-probability/00-01_book.pdf` | "
+            f"PDF | `{'0' * 64}` | complete | complete | 2026-08-27 | fixture |"
         )
-        codes = self.codes(self.validate_text(changed))
-        self.assertIn("SOURCE_COUNT", codes)
-        self.assertIn("SOURCE_MISSING", codes)
+        changed = self.valid_text.replace("\n## 6. 감사 중", f"\n{row}\n\n## 6. 감사 중", 1)
+        self.assertEqual([], self.validate_text(changed))
 
-    def test_source_count_uses_current_expected_catalog_length(self) -> None:
+    def test_source_id_requires_an_uppercase_namespace_and_numeric_suffix(self) -> None:
+        changed = self.valid_text.replace("| SRC-KDL-05-04 |", "| SRC-kdl-05-04 |", 1)
+        self.assertIn("SOURCE_ID", self.codes(self.validate_text(changed)))
+
+    def test_source_filename_must_match_source_id_suffix(self) -> None:
         changed = self.valid_text.replace(
-            next(
-                line + "\n"
-                for line in self.valid_text.splitlines()
-                if line.startswith("| SRC-KDL-05-04 |")
-            ),
-            "",
+            "materials/private/kant-deep-learning-basics/05-04_파라미터_업데이트_코드_흐름.md",
+            "materials/private/kant-deep-learning-basics/05-03_파라미터_업데이트_코드_흐름.md",
             1,
         )
-        findings = self.validate_text(changed)
-        source_count = next(
-            finding for finding in findings if finding.code == "SOURCE_COUNT"
-        )
-        self.assertIn(
-            f"expected {len(validator.EXPECTED_SOURCE_IDS)}",
-            source_count.message,
-        )
+        self.assertIn("SOURCE_PATH_ID_MISMATCH", self.codes(self.validate_text(changed)))
+
+    def test_strict_mode_discovers_an_unregistered_course_index(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            course = root / "materials/private/new-course"
+            course.mkdir(parents=True)
+            (course / "00-01_lesson.md").write_text("# Lesson\n", encoding="utf-8")
+            (course / "INDEX.md").write_text(
+                "# Index\n\n## 강의 자료\n\n"
+                "| 파일 | 설명 |\n| --- | --- |\n"
+                "| `00-01_lesson.md` | fixture |\n",
+                encoding="utf-8",
+            )
+            findings = []
+            validator._strict_source_checks([], root, findings)
+            self.assertIn("INDEX_NOT_REGISTERED", self.codes(findings))
+
+    def test_strict_mode_detects_both_registry_index_parity_directions(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            course = root / "materials/private/example-course"
+            course.mkdir(parents=True)
+            registered = course / "00-01_registered.md"
+            indexed = course / "00-02_indexed.md"
+            registered.write_text("# Registered\n", encoding="utf-8")
+            indexed.write_text("# Indexed\n", encoding="utf-8")
+            (course / "INDEX.md").write_text(
+                "# Index\n\n## 강의 자료\n\n"
+                "| 파일 | 설명 |\n| --- | --- |\n"
+                "| `00-02_indexed.md` | fixture |\n",
+                encoding="utf-8",
+            )
+            sources = [
+                validator.Source(
+                    identifier="SRC-EXAMPLE-00-01",
+                    line=1,
+                    relative_path="materials/private/example-course/00-01_registered.md",
+                    material_format="HTML 토글 펼침 Markdown",
+                    digest=validator.sha256_file(registered),
+                    integrity="complete",
+                    audit_status="complete",
+                    audit_date="2026-08-27",
+                    note="fixture",
+                )
+            ]
+            findings = []
+            validator._strict_source_checks(sources, root, findings)
+            self.assertIn("INDEX_NOT_REGISTERED", self.codes(findings))
+            self.assertIn("REGISTRY_NOT_INDEXED", self.codes(findings))
+
+    def test_lesson_slice_blocks_selected_drift_and_warns_on_unrelated_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            course = root / "materials/private/example-course"
+            course.mkdir(parents=True)
+            selected = course / "00-01_selected.md"
+            unrelated = course / "00-02_unrelated.md"
+            selected.write_text("# Selected\n", encoding="utf-8")
+            unrelated.write_text("# Unrelated\n", encoding="utf-8")
+            selected_digest = validator.sha256_file(selected)
+            index = course / "INDEX.md"
+            index.write_text(
+                "# Index\n\n## 강의 자료\n\n"
+                "| 파일 | 설명 |\n| --- | --- |\n"
+                "| `00-01_selected.md` | selected |\n"
+                "| `00-02_unrelated.md` | unrelated |\n",
+                encoding="utf-8",
+            )
+            curriculum = root / "CURRICULUM.md"
+            curriculum.write_text(
+                "| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |\n"
+                "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
+                f"| SRC-EXAMPLE-00-01 | `materials/private/example-course/00-01_selected.md` | HTML 토글 펼침 Markdown | `{selected_digest}` | complete | complete | 2026-08-27 | selected |\n"
+                f"| SRC-EXAMPLE-00-02 | `materials/private/example-course/00-02_unrelated.md` | HTML 토글 펼침 Markdown | `{'0' * 64}` | complete | complete | 2026-08-27 | unrelated |\n",
+                encoding="utf-8",
+            )
+
+            slice_report = validator.validate_lesson_slice_freshness(
+                curriculum,
+                index,
+                {"materials/private/example-course/00-01_selected.md"},
+                repo_root=root,
+            )
+            self.assertEqual([], slice_report.errors)
+            self.assertIn("SOURCE_HASH_STALE", self.codes(slice_report.warnings))
+            self.assertIn(
+                "SOURCE_HASH_STALE",
+                self.codes(validator.validate_course_index_freshness(curriculum, index, repo_root=root)),
+            )
+
+            selected.write_text("# Selected changed\n", encoding="utf-8")
+            selected_report = validator.validate_lesson_slice_freshness(
+                curriculum,
+                index,
+                {"materials/private/example-course/00-01_selected.md"},
+                repo_root=root,
+            )
+            self.assertIn("SOURCE_HASH_STALE", self.codes(selected_report.errors))
+
+    def test_lesson_slice_requires_selected_source_registry_and_index_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            course = root / "materials/private/example-course"
+            course.mkdir(parents=True)
+            selected = course / "00-01_selected.md"
+            selected.write_text("# Selected\n", encoding="utf-8")
+            index = course / "INDEX.md"
+            index.write_text(
+                "# Index\n\n## 강의 자료\n\n"
+                "| 파일 | 설명 |\n| --- | --- |\n"
+                "| `00-01_selected.md` | selected |\n",
+                encoding="utf-8",
+            )
+            curriculum = root / "CURRICULUM.md"
+            curriculum.write_text(
+                "| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |\n"
+                "| --- | --- | --- | --- | --- | --- | --- | --- |\n",
+                encoding="utf-8",
+            )
+            report = validator.validate_lesson_slice_freshness(
+                curriculum,
+                index,
+                {"materials/private/example-course/00-01_selected.md"},
+                repo_root=root,
+            )
+            self.assertIn("LESSON_SLICE_REGISTRY", self.codes(report.errors))
 
     def test_invalid_hash_shape_is_rejected(self) -> None:
         changed = self.valid_text.replace(

@@ -119,7 +119,29 @@ practice/deep-learning/tiny-image-classifier-contracts.ipynb
 
 ## GPT 스킬
 
-### 1. 강의자료와 지식 개념 맞춤 학습
+### 1. 다음 학습 방향 계획
+
+[`plan-roadmap-learning`](./.agents/skills/plan-roadmap-learning/SKILL.md)은 `ROADMAP.md`의 큰 방향, `CURRICULUM.md`의 선수 관계와 자료 공백, 실제 학습자 근거를 함께 읽고 바로 이어갈 목표를 1~3개로 좁힙니다. 기존 실습이나 감사된 로컬 자료를 먼저 재사용하고, 필요한 경우에만 정확한 외부 자료 하나를 승인 대기 상태로 제안합니다. 파일을 수정하거나 자료를 내려받고 등록하지 않습니다.
+
+다음 학습 방향을 고르는 요청에서는 이 planner를 자료 감사와 대화형 수업보다 먼저 사용합니다. 새 자료가 필요하다는 결과가 나온 뒤에만 별도 승인 아래 source 등록·감사를 진행하고, 감사된 범위를 수업으로 넘깁니다.
+
+```text
+$plan-roadmap-learning을 사용해
+현재 practice, knowledge, 날짜별 TIL과 자료 freshness를 확인하고
+ROADMAP 기준으로 다음에 학습할 정확한 강의나 실습을 제안해줘.
+```
+
+특정 공백에서 시작할 수도 있습니다.
+
+```text
+$plan-roadmap-learning을 사용해
+CC-PROB-01을 채울 다음 자료와 범위를 제안해줘.
+외부 자료가 필요하면 정확한 edition과 artifact만 알려주고 등록은 기다려줘.
+```
+
+추천 결과의 `registry_action`은 자료 정합성 조치이고 `learning_action`은 실제 다음 학습 행동입니다. 자료를 고쳤다는 사실이나 platform 문제 통과만으로 이해가 확인되었다고 판단하지 않습니다.
+
+### 2. 강의자료와 지식 개념 맞춤 학습
 
 [`teach-course-material`](./.agents/skills/teach-course-material/SKILL.md)은 관련 `knowledge/`, 최근 TIL과 현재 대화에서 확인되는 이해 수준을 바탕으로 강의를 재구성합니다. 이미 이해한 내용은 짧게 연결하고, 부족한 선수개념은 보충합니다. 이 압축은 설명의 깊이와 반복을 줄이는 것이며, “모두”, “전부”, “1~4강 전체”처럼 요청한 범위의 핵심 학습목표를 삭제하는 뜻이 아닙니다. 생각할 가치가 있는 문제는 작은 힌트부터 시작하지만, 정의나 막힌 선수개념은 바로 설명합니다.
 
@@ -149,7 +171,7 @@ knowledge/math/vector.md에서 내가 이해한 범위를 먼저 확인하고,
 관련 강의자료와 연결해 부족한 부분을 대화형으로 가르쳐줘.
 ```
 
-### 2. til/today.md 저장 전 검토
+### 3. til/today.md 저장 전 검토
 
 [`coach-llm-research-study`](./.agents/skills/coach-llm-research-study/SKILL.md)는 `til/today.md`를 오늘 본 강의자료와 학습 대화에 대조해 다음을 구분합니다.
 
@@ -182,7 +204,7 @@ $teach-course-material을 사용해
 
 평가 코치는 오개념이나 빠진 내용을 정답 문장으로 몰래 바꾸지 않습니다. 작은 확인 질문에 내가 다시 설명한 내용만 학습으로 반영하고, 해결되지 않은 부분은 `남은 질문`에 둡니다. 모든 강의 내용을 추가하는 것이 아니라 오늘 실제로 학습한 핵심의 경계를 빠짐없이 기록하는 것이 목표입니다. Handoff 기반 수업은 저장 전에 현재 초안에 대한 readiness를 자동 확인합니다.
 
-### 3. 오늘의 TIL 저장
+### 4. 오늘의 TIL 저장
 
 [`save-today-til`](./.agents/skills/save-today-til/SKILL.md)은 검토를 마친 `til/today.md`를 적당히 분류하고 다듬어 `til/YYYY/MM/YYYY-MM-DD.md`에 저장합니다.
 
@@ -200,7 +222,7 @@ $save-today-til을 사용해 rough.md를 2026-08-13 TIL로 저장해줘.
 
 나중에 새로운 오류를 발견했거나 자료가 바뀌었다면 완성된 TIL을 평가 코치로 다시 검토할 수 있지만, 매일 저장 후 같은 평가를 반복할 필요는 없습니다.
 
-### 4. 현업형 실습 생성과 시도 피드백
+### 5. 현업형 실습 생성과 시도 피드백
 
 [`suggest-learning-practice`](./.agents/skills/suggest-learning-practice/SKILL.md)의 생성 모드는 검토와 저장을 마친 날짜별 TIL 하나를 필수 입력으로 받습니다. 정확한 경로를 지정해야 하며, 최신 TIL이나 `til/today.md`를 추측하지 않습니다.
 
@@ -226,7 +248,7 @@ practice/<area>/<topic>.ipynb의 현재 코드와 check 실패를 보고
 
 이 모드에서는 저장된 코드와 실제 traceback을 기준으로 개념 힌트, 부분 trace, 최소 API 뼈대 순서로 돕습니다. 별도 요청 없이는 핵심 구현을 대신 완성하지 않으며, 테스트가 통과해도 parameter·gradient·Shape·metric 같은 결정적 상태 변화를 내가 설명해야 완료로 판단합니다.
 
-### 5. 확인된 이해를 knowledge에 반영
+### 6. 확인된 이해를 knowledge에 반영
 
 [`update-learning-knowledge`](./.agents/skills/update-learning-knowledge/SKILL.md)는 TIL, 현재 대화의 답변, 계산과 실행 결과 중 학습자가 직접 보여준 이해만 골라 기존 지식 문서를 갱신하거나 새로 만듭니다.
 

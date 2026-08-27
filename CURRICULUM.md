@@ -11,7 +11,7 @@
 ## 2. ID, 깊이, 자료 충족도 범례
 
 - 역량 ID: 공통 핵심은 `CC-<AREA>-NN`, 선택 전문 트랙은 `TR-<TRACK>-NN`이다. ID의 의미는 한 번 부여한 뒤 바꾸거나 재사용하지 않는다.
-- 자료 ID: `SRC-<COURSE>-<LESSON>`이며 과정 코드는 `KBM`(기초수학), `KAM`(머신러닝 심화), `KDL`(딥러닝 기초)이다.
+- 자료 ID: `SRC-<대문자 namespace>-<NN-NN>` 형식이다. namespace는 숫자를 포함한 여러 대문자 토큰을 `-`로 연결할 수 있으며, 과정과 판본을 함께 식별한다. 예: `SRC-KDL-08-01`, `SRC-HARV-STAT110-2E-00-01`.
 - 자료 관계: `primary`는 학습 성과를 직접 가르치고, `supporting`은 일부 개념이나 선수를 보완하며, `context`는 언급 또는 응용 맥락만 제공한다. `context`만 연결된 역량은 `충분`이 될 수 없다.
 
 깊이는 다음 세 단계로 고정한다.
@@ -47,18 +47,18 @@
 | CC-PROB-03 | entropy·cross entropy·KL divergence·mutual information을 계산하고 분포 차이와 학습 목적을 해석한다. | D2 | CC-PROB-01 | explain, calculate, implement, interpret | supporting:SRC-KBM-06-02 | 부분 | 수업 내 보충 | cross entropy는 직접 다루지만 entropy·KL·mutual information은 없다. |
 | CC-STAT-01 | 추정량·신뢰구간·bootstrap의 가정과 불확실성을 계산하고 보고한다. | D2 | CC-PROB-01, CC-PROB-02 | explain, calculate, implement, interpret | context:SRC-KAM-02-01,SRC-KAM-05-01 | 없음 | 별도 자료 확보 | resampling과 fold 평균·표준편차는 쓰지만 통계적 추론을 가르치지 않는다. |
 | CC-STAT-02 | 가설검정·효과크기·다중검정의 한계를 적용해 비교 결론을 평가한다. | D2 | CC-STAT-01 | explain, calculate, interpret, design | context:SRC-KAM-05-01 | 없음 | 별도 자료 확보 | 후보 비교는 있으나 유의성·효과크기·다중 비교 통제가 없다. |
-| CC-ML-01 | 문제 유형을 정의하고 train·validation·test 분리와 단순 baseline을 설계한다. | D2 | CC-PROB-01 | explain, implement, interpret, design | primary:SRC-KAM-01-01,SRC-KDL-01-02,SRC-KDL-01-03,SRC-KDL-07-04; supporting:SRC-KAM-04-02 | 충분 | 그대로 사용 | 무작위·시간·그룹 데이터의 분리 선택과 train·validation·test 역할을 포함한다. |
-| CC-ML-02 | metric·threshold·calibration·불균형을 비용과 오류 유형에 맞춰 선택하고 해석한다. | D2 | CC-ML-01, CC-PROB-01 | explain, calculate, implement, interpret, design | primary:SRC-KAM-01-01,SRC-KAM-04-01; supporting:SRC-KDL-01-02,SRC-KDL-04-03,SRC-KDL-04-04 | 부분 | 수업 내 보충 | threshold와 calibration 주의는 있으나 calibration의 계산·검증이 얕다. |
+| CC-ML-01 | 문제 유형을 정의하고 train·validation·test 분리와 단순 baseline을 설계한다. | D2 | CC-PROB-01 | explain, implement, interpret, design | primary:SRC-KAM-01-01,SRC-KDL-01-02,SRC-KDL-01-03,SRC-KDL-07-04; supporting:SRC-KAM-04-02,SRC-KDL-08-05,SRC-KDL-08-08 | 충분 | 그대로 사용 | 무작위·시간·그룹 데이터의 분리 선택과 train·validation·test 역할을 포함하며, 08-08은 고정 seed 분리와 최종 test 1회 평가를 구현한다. |
+| CC-ML-02 | metric·threshold·calibration·불균형을 비용과 오류 유형에 맞춰 선택하고 해석한다. | D2 | CC-ML-01, CC-PROB-01 | explain, calculate, implement, interpret, design | primary:SRC-KAM-01-01,SRC-KAM-04-01; supporting:SRC-KDL-01-02,SRC-KDL-04-03,SRC-KDL-04-04,SRC-KDL-08-06,SRC-KDL-08-08 | 부분 | 수업 내 보충 | sample-weighted accuracy와 불균형 주의는 있으나 threshold 선택과 calibration의 계산·검증이 얕다. |
 | CC-ML-03 | 일반화·bias-variance·regularization을 진단하고 적절한 개입을 실험한다. | D2 | CC-ML-01, CC-MATH-03 | explain, calculate, implement, interpret, design | primary:SRC-KAM-03-01,SRC-KAM-03-02; supporting:SRC-KAM-02-01,SRC-KAM-02-02; context:SRC-KDL-07-04 | 부분 | 원본 복구 후 재감사 | 핵심 자료 두 개에 수식 변환 훼손 또는 신버전 원본 누락이 있다. |
 | CC-ML-04 | 선형·거리·트리·ensemble 모델 계열과 해석 도구를 데이터 조건에 맞춰 비교한다. | D2 | CC-ML-01, CC-ML-03 | explain, implement, interpret, design, transfer | primary:SRC-KAM-01-02,SRC-KAM-02-01,SRC-KAM-02-02,SRC-KAM-02-03; supporting:SRC-KDL-01-01 | 충분 | 그대로 사용 | SHAP은 예측 설명이지 인과 설명이 아님을 유지한다. |
 | CC-ML-05 | CV·search·leakage·pipeline·재현성을 하나의 공정한 선택 및 재사용 절차로 구현한다. | D2 | CC-ML-01, CC-ML-03 | explain, implement, debug, interpret, design, transfer | primary:SRC-KAM-04-02,SRC-KAM-05-01,SRC-KAM-05-02; supporting:SRC-KAM-04-01,SRC-KDL-07-03,SRC-KDL-07-04 | 충분 | 그대로 사용 | 전처리·sampler의 fit 경계, split별 transform, 재현 가능한 분리와 최종 test 1회 원칙을 포함한다. |
 | CC-DL-01 | tensor의 shape·dtype·device·broadcasting 계약을 추적하고 관련 오류를 고친다. | D2 | CC-MATH-01 | explain, calculate, shape, implement, debug | primary:SRC-KDL-02-01,SRC-KDL-02-02,SRC-KDL-02-03,SRC-KDL-02-04,SRC-KBM-05-01,SRC-KBM-05-02,SRC-KDL-07-05; supporting:SRC-KDL-03-03,SRC-KDL-03-04,SRC-KDL-03-05,SRC-KDL-05-01,SRC-KDL-05-02,SRC-KDL-06-02,SRC-KDL-06-03,SRC-KDL-07-01,SRC-KDL-07-02,SRC-KDL-07-03 | 충분 | 그대로 사용 | batch 축, gradient·label shape, dtype와 device 계약을 코드 실행 전후로 확인한다. |
-| CC-DL-02 | 데이터·모델·손실·optimizer·평가로 이어지는 학습 루프를 구현하고 출력 흐름을 해석한다. | D2 | CC-ML-01, CC-MATH-03, CC-DL-01 | explain, shape, implement, debug, interpret | primary:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KDL-06-04,SRC-KDL-06-05,SRC-KDL-07-01,SRC-KDL-07-02,SRC-KDL-07-04,SRC-KDL-07-05; supporting:SRC-KBM-07-02,SRC-KDL-03-05,SRC-KDL-04-01,SRC-KDL-04-03,SRC-KDL-04-04,SRC-KDL-05-01,SRC-KDL-05-02,SRC-KDL-05-03,SRC-KDL-05-04,SRC-KDL-06-01,SRC-KDL-06-02,SRC-KDL-06-03,SRC-KDL-07-03 | 충분 | 그대로 사용 | Dataset·DataLoader, gradient update 순서, train·validation 함수, split과 첫 batch 디버깅을 포함한 독립 실행 루프를 다룬다. |
+| CC-DL-02 | 데이터·모델·손실·optimizer·평가로 이어지는 학습 루프를 구현하고 출력 흐름을 해석한다. | D2 | CC-ML-01, CC-MATH-03, CC-DL-01 | explain, shape, implement, debug, interpret | primary:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KDL-06-04,SRC-KDL-06-05,SRC-KDL-07-01,SRC-KDL-07-02,SRC-KDL-07-04,SRC-KDL-07-05,SRC-KDL-08-03,SRC-KDL-08-04,SRC-KDL-08-05,SRC-KDL-08-08; supporting:SRC-KBM-07-02,SRC-KDL-03-05,SRC-KDL-04-01,SRC-KDL-04-03,SRC-KDL-04-04,SRC-KDL-05-01,SRC-KDL-05-02,SRC-KDL-05-03,SRC-KDL-05-04,SRC-KDL-06-01,SRC-KDL-06-02,SRC-KDL-06-03,SRC-KDL-07-03,SRC-KDL-08-01,SRC-KDL-08-02,SRC-KDL-08-06,SRC-KDL-08-07 | 충분 | 그대로 사용 | Dataset·DataLoader, model·loss·optimizer 연결, gradient update 순서, train·validation 함수, metric 누적과 통합 실행 루프를 다룬다. |
 | CC-DL-03 | autograd 그래프와 gradient를 추적하고 vanishing·exploding·detach·in-place 문제를 진단한다. | D2 | CC-MATH-03, CC-DL-01, CC-DL-02 | explain, calculate, shape, implement, debug | primary:SRC-KBM-07-02,SRC-KDL-06-01,SRC-KDL-06-02,SRC-KDL-06-03,SRC-KDL-06-05; supporting:SRC-KDL-02-04,SRC-KDL-04-01,SRC-KDL-04-02,SRC-KDL-05-01,SRC-KDL-05-04,SRC-KDL-06-04 | 부분 | 수업 내 보충 | 계산 그래프·gradient 누적·detach·graph 단절·finite gradient 점검은 직접 다루지만 vanishing/exploding 원인 진단, in-place 오류 재현·수정, 수동 gradient check가 부족하다. |
 | CC-DL-04 | activation·initialization·normalization·regularization의 상호작용을 구현하고 비교한다. | D2 | CC-DL-02, CC-ML-03 | explain, implement, debug, interpret, design | primary:SRC-KDL-04-01,SRC-KDL-04-02; supporting:SRC-KDL-04-03,SRC-KDL-04-04,SRC-KAM-03-02 | 부분 | 수업 내 보충 | 비선형성·ReLU·출력 activation은 직접 다루지만 initialization·normalization·통합 regularization 실험이 없다. |
-| CC-DL-05 | MLP·CNN·RNN·Transformer 등 주요 architecture의 inductive bias와 shape 흐름을 비교한다. | D2 | CC-DL-04 | explain, shape, implement, interpret, transfer | primary:SRC-KDL-03-01,SRC-KDL-03-02,SRC-KDL-03-03,SRC-KDL-03-04,SRC-KDL-03-05; supporting:SRC-KDL-04-01 | 부분 | 수업 내 보충 | MLP의 경계·층·shape·forward는 직접 다루지만 CNN·RNN·Transformer 비교가 없다. |
-| CC-DL-06 | loss curve·gradient·validation을 진단하고 checkpoint·mixed precision을 안전하게 운용한다. | D2 | CC-DL-02, CC-DL-03, CC-SYS-01 | explain, implement, debug, interpret, design | supporting:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KAM-02-02,SRC-KDL-02-03,SRC-KDL-05-01,SRC-KDL-05-03,SRC-KDL-05-04,SRC-KDL-06-03,SRC-KDL-06-05,SRC-KDL-07-05 | 부분 | 수업 내 보충 | validation과 gradient 유한성·norm 점검은 보강됐지만 완전한 checkpoint/resume 구현, AMP, loss-curve 중심 진단 체계가 없다. |
-| CC-DL-07 | SGD·momentum·AdamW, learning-rate schedule, weight decay·gradient clipping의 update 동역학과 trade-off를 계산·구현·비교한다. | D2 | CC-MATH-03, CC-DL-02, CC-DL-03 | explain, calculate, implement, debug, interpret, design | primary:SRC-KBM-07-01,SRC-KDL-05-03; supporting:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KDL-06-04 | 부분 | 수업 내 보충 | SGD·momentum·Adam, learning-rate 비교와 gradient update 순서는 직접 다루지만 AdamW·schedule·decoupled weight decay·clipping의 계산과 통제 비교가 없다. |
+| CC-DL-05 | MLP·CNN·RNN·Transformer 등 주요 architecture의 inductive bias와 shape 흐름을 비교한다. | D2 | CC-DL-04 | explain, shape, implement, interpret, transfer | primary:SRC-KDL-03-01,SRC-KDL-03-02,SRC-KDL-03-03,SRC-KDL-03-04,SRC-KDL-03-05,SRC-KDL-08-01,SRC-KDL-08-02; supporting:SRC-KDL-04-01,SRC-KDL-08-08 | 부분 | 수업 내 보충 | MLP의 경계·층·shape·forward와 통합 적용은 직접 다루지만 CNN·RNN·Transformer inductive bias 비교가 없다. |
+| CC-DL-06 | loss curve·gradient·validation을 진단하고 checkpoint·mixed precision을 안전하게 운용한다. | D2 | CC-DL-02, CC-DL-03, CC-SYS-01 | explain, implement, debug, interpret, design | supporting:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KAM-02-02,SRC-KDL-02-03,SRC-KDL-05-01,SRC-KDL-05-03,SRC-KDL-05-04,SRC-KDL-06-03,SRC-KDL-06-05,SRC-KDL-07-05,SRC-KDL-08-05,SRC-KDL-08-07,SRC-KDL-08-08 | 부분 | 수업 내 보충 | validation·gradient 점검·기본 curve 진단과 validation 기준 best weight 선택은 다루지만, optimizer·epoch·history·RNG까지 보존하는 checkpoint/resume와 AMP는 없다. |
+| CC-DL-07 | SGD·momentum·AdamW, learning-rate schedule, weight decay·gradient clipping의 update 동역학과 trade-off를 계산·구현·비교한다. | D2 | CC-MATH-03, CC-DL-02, CC-DL-03 | explain, calculate, implement, debug, interpret, design | primary:SRC-KBM-07-01,SRC-KDL-05-03; supporting:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KDL-06-04,SRC-KDL-08-03,SRC-KDL-08-04,SRC-KDL-08-08 | 부분 | 수업 내 보충 | SGD·momentum·Adam, 기본 learning-rate 변경과 gradient update 순서는 직접 다루지만 AdamW·scheduler·decoupled weight decay·clipping의 계산과 통제 비교가 없다. |
 | CC-NLP-01 | 텍스트 normalization·tokenization·subword vocabulary의 trade-off를 구현하고 해석한다. | D2 | CC-PROB-01 | explain, implement, debug, interpret, design | context:SRC-KBM-06-02,SRC-KDL-07-02,SRC-KDL-07-03 | 없음 | 별도 자료 확보 | token ID와 dataset·transform 맥락만 있고 tokenizer를 가르치지 않는다. |
 | CC-NLP-02 | embedding·padding·mask·sequence batching의 shape와 의미를 구현·디버깅한다. | D2 | CC-NLP-01, CC-DL-01 | explain, shape, implement, debug, interpret | supporting:SRC-KBM-06-01,SRC-KBM-06-02; context:SRC-KDL-01-03,SRC-KDL-07-03 | 부분 | 수업 내 보충 | causal mask와 transform shape는 있으나 embedding·padding mask·가변 길이 batching이 부족하다. |
 | CC-LM-01 | autoregressive objective·log-likelihood·perplexity를 계산하고 token loss와 연결한다. | D2 | CC-PROB-02, CC-PROB-03, CC-NLP-02 | explain, calculate, shape, implement, interpret | supporting:SRC-KBM-06-02 | 부분 | 수업 내 보충 | NLL·cross entropy는 있으나 sequence factorization과 perplexity가 없다. |
@@ -105,7 +105,7 @@
 
 ## 5. 현재 강의자료 Registry
 
-감사 범위는 세 과정 `INDEX.md`의 `강의 자료` 표에 있는 파일만이며 `course-provided-practice/`는 제외한다. 2026-08-25 기준 Markdown 본문 전체, 모든 로컬 그림 링크, 각 raster·SVG를 검사했고 PDF는 18쪽 전부 렌더해 육안 확인했다. 총 62개 자료, Markdown 참조 자산 231개(래스터 196개, SVG 35개), PDF 18쪽에서 누락되거나 열리지 않는 현재 파일은 없었다. 다만 아래 `limited` 세 건은 원본·변환 제약 때문에 내용 복구가 필요하다.
+감사 범위는 세 과정 `INDEX.md`의 `강의 자료` 표에 있는 파일만이며 `course-provided-practice/`는 제외한다. 2026-08-27 기준 Markdown 본문 전체, 모든 로컬 그림 링크, 각 raster·SVG를 검사했고 PDF는 18쪽 전부 렌더해 육안 확인했다. 총 70개 자료, Markdown 참조 자산 241개(래스터 204개, SVG 37개), PDF 18쪽에서 누락되거나 열리지 않는 현재 파일은 없었다. 다만 아래 `limited` 세 건은 원본·변환 제약 때문에 내용 복구가 필요하다.
 
 | Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |
 |---|---|---|---|---|---|---|---|
@@ -171,6 +171,14 @@
 | SRC-KDL-07-03 | `materials/private/kant-deep-learning-basics/07-03_transform과_전처리_흐름.md` | HTML 토글 펼침 Markdown | `2bddf6da297fde40334205726856846b3dbf522c44161a132bd1182d0f76502a` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인 |
 | SRC-KDL-07-04 | `materials/private/kant-deep-learning-basics/07-04_batch_size_shuffle_train_valid_split.md` | HTML 토글 펼침 Markdown | `f68be4afabdc00c9d6d7f71d794255f04117f93af97aed9b505aa7b45db635c4` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인 |
 | SRC-KDL-07-05 | `materials/private/kant-deep-learning-basics/07-05_데이터_파이프라인_디버깅.md` | HTML 토글 펼침 Markdown | `90eaa381eaf79f28be1f5196f4142592fa4fd15be43ba4ebddd7a251159a0eb7` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인; 첫 batch 재사용 경계는 수업에서 정정 |
+| SRC-KDL-08-01 | `materials/private/kant-deep-learning-basics/08-01_nn_Module_구조와_forward_설계.md` | HTML 토글 펼침 Markdown | `49320cf447e2ee79a203763126035271ddd826debf6790ad3394cbca0b202fc3` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; 개요 그림과 실제 `model(x) -> __call__ -> forward` 호출 순서는 본문 설명을 기준으로 사용 |
+| SRC-KDL-08-02 | `materials/private/kant-deep-learning-basics/08-02_MLP_모델_클래스_완성.md` | HTML 토글 펼침 Markdown | `926aa3df781e9983b9cbdad533ae3f902330d4b0113a653fe5dfe065a26046b0` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인 |
+| SRC-KDL-08-03 | `materials/private/kant-deep-learning-basics/08-03_loss와_optimizer_연결.md` | HTML 토글 펼침 Markdown | `9b45a84073b5e2c25c7df4dbe23682cbfb4e377ae24c44e243621a7102ddc9ab` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인 |
+| SRC-KDL-08-04 | `materials/private/kant-deep-learning-basics/08-04_train_loop_작성.md` | HTML 토글 펼침 Markdown | `2ec6a15904a1f1720c6a89e9b2ec2722fa5410a5e9f8054bf4b189318f7b9163` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인 |
+| SRC-KDL-08-05 | `materials/private/kant-deep-learning-basics/08-05_validation_loop_작성.md` | HTML 토글 펼침 Markdown | `7aad21b64f154eae3746626cbc54f53147d2d9135ab3d11e8c742c29191f7be5` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인 |
+| SRC-KDL-08-06 | `materials/private/kant-deep-learning-basics/08-06_accuracy와_metric_누적.md` | HTML 토글 펼침 Markdown | `2ce49b778769c5e93f13305945d8febdc902b8c2a96f88c6625f25d433d0c026` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; sample-weighted accuracy와 불균형 경계를 포함 |
+| SRC-KDL-08-07 | `materials/private/kant-deep-learning-basics/08-07_epoch_단위_로그와_시각화.md` | HTML 토글 펼침 Markdown | `941935259715349c8e5a81cb4b149956a04fba4e27417aaa96530d81d0fa808d` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; 왼쪽이 잘린 개요 raster의 정보는 본문·코드·SVG로 보존됨 |
+| SRC-KDL-08-08 | `materials/private/kant-deep-learning-basics/08-08_MLP_종합_실습.md` | HTML 토글 펼침 Markdown | `61e45f90bc6a396c3b8dc784fdd7f9095cc1d18e3c3ff658efa2a34a2ce19d6d` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; `best_state`는 메모리 내 model weight 보존이며 checkpoint/resume은 아님 |
 
 ## 6. 감사 중 발견된 주요 오류와 공백
 
@@ -200,13 +208,13 @@
 - `SRC-KBM-06-01`은 single-head attention까지만 다루고 multi-head, residual, normalization, FFN, positional encoding을 다음 단계로 명시적으로 보류한다. 이는 현재 강의 범위의 의도적 보류지만 `CC-TRF-01~03` 전체 충족으로 확대 해석하지 않는다.
 - `SRC-KDL-06-02`의 `detach()` 설명은 graph 분리는 정확하지만 원본과 storage를 공유한다는 경계를 생략한다. 독립 복사가 필요할 때는 `detach().clone()`을 사용한다고 수업에서 보충한다.
 - `SRC-KDL-06-05`의 anomaly detection 예시는 backward만 context로 감싼다. 실패 연산의 forward traceback까지 필요하면 forward와 loss 계산도 같은 context에서 실행한다고 보충한다.
-- Chapter 6·7의 “주차 시작에 PDF를 올렸다”는 문장은 별도 로컬 PDF 링크를 제공하지 않는다. 현재 Markdown·자산 패키지는 완전하게 감사했지만, 그 문장이 가리키는 추가 원본의 존재 여부는 별도로 확인되기 전 provenance 근거로 세지 않는다.
+- Chapter 6·7·8의 “주차 시작에 PDF를 올렸다”는 문장은 별도 로컬 PDF 링크를 제공하지 않는다. 현재 Markdown·자산 패키지는 완전하게 감사했지만, 그 문장이 가리키는 추가 원본의 존재 여부는 별도로 확인되기 전 provenance 근거로 세지 않는다.
 
 ### 커리큘럼 공백
 
-- 현재 62강의 강점은 선형대수·tensor shape·MLP와 activation·손실·optimizer·autodiff·기본 데이터 파이프라인·기본 attention·전통 ML 평가와 leakage 방지다.
+- 현재 70강의 강점은 선형대수·tensor shape·MLP와 activation·손실·optimizer·autodiff·기본 데이터 파이프라인·train-validation-test 루프·기본 attention·전통 ML 평가와 leakage 방지다.
 - 확률·통계 추론, NLP 전처리와 tokenizer, 완전한 Transformer·causal LM, pretraining·post-training, LLM 평가, 분산·추론 시스템, 논문 읽기·실험 설계·재현 보고는 직접 자료가 없거나 맥락 언급뿐이다.
-- 딥러닝 기초 `SRC-KDL-01-00`은 14개 장의 향후 구성을 제시하지만 현재 registry에는 7개 장 32강만 있다. 등록되지 않은 미래 계획은 현재 자료 충족 근거로 세지 않는다.
+- 딥러닝 기초 `SRC-KDL-01-00`은 14개 장의 향후 구성을 제시하지만 현재 registry에는 8개 장 40강만 있다. 등록되지 않은 미래 계획은 현재 자료 충족 근거로 세지 않는다.
 - 전문 트랙은 모두 D3가 목표이며 현재 과정은 어떤 트랙도 직접 충족하지 않는다. 트랙을 선택한 뒤 해당 자료를 확보한다.
 
 ## 7. 갱신 규칙

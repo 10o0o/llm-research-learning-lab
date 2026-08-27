@@ -10,6 +10,14 @@
 -> LLM Systems / Post-training / Evaluation
 ```
 
+## 전문화 우선순위
+
+현재의 1순위 전문화 방향은 **LLM Systems와 Inference Optimization**입니다. latency, throughput, memory, batching, KV cache와 quantization을 실제 측정·구현·디버깅하는 역량을 우선합니다.
+
+2순위는 **Post-training과 LLM Evaluation**입니다. SFT·LoRA·preference optimization을 평가 설계, failure analysis, contamination 점검과 연결합니다.
+
+Modeling과 Computer Vision은 별도 주력 트랙이 아니라 위 전문화를 이해하거나 검증하는 데 필요한 선수개념·연결 학습으로 다룹니다. 이 우선순위는 공통 핵심의 선수 관계를 건너뛴다는 뜻이 아닙니다. `CURRICULUM.md`에서 현재 목표의 blocking prerequisite가 확인되면 그 공백을 먼저 해소합니다.
+
 ## 1. 수학과 Tensor
 
 - 선형대수, 미분, 확률

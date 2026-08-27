@@ -77,43 +77,6 @@ EXPECTED_TRACK_IDS = {
 }
 EXPECTED_COMPETENCY_IDS = EXPECTED_CORE_IDS | EXPECTED_TRACK_IDS
 
-COURSES = {
-    "KBM": (
-        "kant-basic-math",
-        (
-            "01-01", "01-02", "01-03", "01-04",
-            "02-01", "02-02", "02-03",
-            "03-01", "03-02", "03-03",
-            "04-01", "04-02", "04-03",
-            "05-01", "05-02", "06-01", "06-02", "07-01", "07-02",
-        ),
-    ),
-    "KAM": (
-        "kant-advanced-machine-learning",
-        (
-            "01-01", "01-02", "02-01", "02-02", "02-03",
-            "03-01", "03-02", "04-01", "04-02", "05-01", "05-02",
-        ),
-    ),
-    "KDL": (
-        "kant-deep-learning-basics",
-        (
-            "01-00", "01-01", "01-02", "01-03", "01-04",
-            "02-01", "02-02", "02-03", "02-04",
-            "03-01", "03-02", "03-03", "03-04", "03-05",
-            "04-01", "04-02", "04-03", "04-04",
-            "05-01", "05-02", "05-03", "05-04",
-            "06-01", "06-02", "06-03", "06-04", "06-05",
-            "07-01", "07-02", "07-03", "07-04", "07-05",
-        ),
-    ),
-}
-EXPECTED_SOURCE_IDS = {
-    f"SRC-{course}-{lesson}"
-    for course, (_, lessons) in COURSES.items()
-    for lesson in lessons
-}
-
 ALLOWED_DEPTHS = {"D1", "D2", "D3"}
 ALLOWED_EVIDENCE = {
     "explain", "calculate", "shape", "implement",
@@ -134,7 +97,10 @@ FORBIDDEN_PROGRESS_FIELDS = {
 }
 
 COMPETENCY_ID_RE = re.compile(r"(?:CC-[A-Z]+-\d{2}|TR-[A-Z]+-\d{2})\Z")
-SOURCE_ID_RE = re.compile(r"SRC-(KBM|KAM|KDL)-(\d{2}-\d{2})\Z")
+SOURCE_ID_RE = re.compile(
+    r"SRC-([A-Z0-9]+(?:-[A-Z0-9]+)*)-(\d{2}-\d{2})\Z"
+)
+LESSON_FILENAME_RE = re.compile(r"(\d{2}-\d{2})_.+\Z")
 SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 
@@ -148,6 +114,12 @@ class Finding:
 
     def render(self) -> str:
         return f"ERROR {self.path}:{self.line} [{self.code}] {self.message}"
+
+
+@dataclass
+class LessonSliceFreshness:
+    errors: list[Finding]
+    warnings: list[Finding]
 
 
 @dataclass(frozen=True)
@@ -559,23 +531,6 @@ def _validate_sources(
             document_path, line_by_id[duplicate], "SOURCE_DUPLICATE",
             f"duplicate source ID {duplicate}",
         ))
-    actual_ids = set(identifiers)
-    for missing in sorted(EXPECTED_SOURCE_IDS - actual_ids):
-        findings.append(Finding(
-            document_path, 1, "SOURCE_MISSING", f"missing required source ID {missing}",
-        ))
-    for unexpected in sorted(actual_ids - EXPECTED_SOURCE_IDS):
-        findings.append(Finding(
-            document_path, line_by_id[unexpected], "SOURCE_UNEXPECTED",
-            f"unexpected source ID {unexpected}",
-        ))
-    expected_source_count = len(EXPECTED_SOURCE_IDS)
-    if len(sources) != expected_source_count:
-        findings.append(Finding(
-            document_path, 1, "SOURCE_COUNT",
-            f"registry has {len(sources)} rows; expected {expected_source_count}",
-        ))
-
     paths = [source.relative_path for source in sources]
     for duplicate in _duplicate_values(paths):
         source = next(item for item in sources if item.relative_path == duplicate)
@@ -591,20 +546,29 @@ def _validate_sources(
                 document_path, source.line, "SOURCE_ID", f"invalid source ID {source.identifier!r}",
             ))
         else:
-            course, lesson = match.groups()
-            course_dir = COURSES[course][0]
-            expected_prefix = f"materials/private/{course_dir}/"
+            _, lesson = match.groups()
             filename = Path(source.relative_path).name
-            if not source.relative_path.startswith(expected_prefix) or not filename.startswith(lesson + "_"):
+            if not filename.startswith(lesson + "_"):
                 findings.append(Finding(
                     document_path, source.line, "SOURCE_PATH_ID_MISMATCH",
                     f"path does not match {source.identifier}: {source.relative_path}",
                 ))
         path_object = Path(source.relative_path)
-        if path_object.is_absolute() or ".." in path_object.parts or "course-provided-practice" in path_object.parts:
+        path_parts = path_object.parts
+        if (
+            path_object.is_absolute()
+            or "\\" in source.relative_path
+            or ".." in path_parts
+            or len(path_parts) != 4
+            or path_parts[:2] != ("materials", "private")
+            or path_parts[2] in {"", ".", ".."}
+            or path_parts[3] == "INDEX.md"
+            or "course-provided-practice" in path_parts
+        ):
             findings.append(Finding(
                 document_path, source.line, "SOURCE_PATH_SCOPE",
-                f"source path must be a safe course-relative lesson path: {source.relative_path}",
+                "source path must be a direct, safe lesson file under "
+                f"materials/private/<course>/: {source.relative_path}",
             ))
         if source.material_format not in ALLOWED_FORMATS:
             findings.append(Finding(
@@ -703,19 +667,41 @@ def _check_asset_signature(path: Path) -> str | None:
     return None
 
 
-def _course_for_index(
+def _course_directory_for_index(
     course_index: Path,
     repo_root: Path,
-) -> tuple[str, str, tuple[str, ...]] | None:
+) -> str | None:
     try:
-        relative = course_index.resolve().relative_to(repo_root.resolve()).as_posix()
+        relative = course_index.resolve(strict=False).relative_to(repo_root.resolve())
     except ValueError:
         return None
-    for course, (directory, expected_lessons) in COURSES.items():
-        expected = f"materials/private/{directory}/INDEX.md"
-        if relative == expected:
-            return course, directory, expected_lessons
+    parts = relative.parts
+    if (
+        len(parts) != 4
+        or parts[:2] != ("materials", "private")
+        or parts[2] in {"", ".", ".."}
+        or parts[3] != "INDEX.md"
+    ):
+        return None
+    return parts[2]
+
+
+def _source_course_directory(source: Source) -> str | None:
+    parts = Path(source.relative_path).parts
+    if len(parts) == 4 and parts[:2] == ("materials", "private"):
+        return parts[2]
     return None
+
+
+def _discover_course_directories(repo_root: Path) -> set[str]:
+    private_root = repo_root / "materials" / "private"
+    if not private_root.is_dir():
+        return set()
+    return {
+        index_path.parent.name
+        for index_path in private_root.glob("*/INDEX.md")
+        if index_path.is_file()
+    }
 
 
 def _strict_source_checks(
@@ -726,28 +712,28 @@ def _strict_source_checks(
     course_index: Path | None = None,
 ) -> None:
     root = repo_root.resolve()
-    selected_course = None
+    selected_directory = None
     if course_index is not None:
-        selected_course = _course_for_index(course_index, repo_root)
-        if selected_course is None:
+        selected_directory = _course_directory_for_index(course_index, repo_root)
+        if selected_directory is None:
             findings.append(Finding(
                 _display_path(course_index, repo_root),
                 1,
                 "INDEX_SCOPE",
-                "--course-index must name a configured course INDEX.md",
+                "--course-index must name materials/private/<course>/INDEX.md",
             ))
             return
-    selected_directory = selected_course[1] if selected_course else None
     scoped_sources = [
         source
         for source in sources
         if selected_directory is None
-        or source.relative_path.startswith(f"materials/private/{selected_directory}/")
+        or _source_course_directory(source) == selected_directory
     ]
     registered_paths: set[str] = set()
     for source in scoped_sources:
         source_path = repo_root / source.relative_path
         display = source.relative_path
+        registered_paths.add(source.relative_path)
         if source.audit_status != "complete":
             findings.append(Finding(
                 display,
@@ -768,7 +754,6 @@ def _strict_source_checks(
         if not resolved.is_file():
             findings.append(Finding(display, 1, "SOURCE_NOT_FILE", "registered source is not a regular file"))
             continue
-        registered_paths.add(source.relative_path)
         actual_digest = sha256_file(resolved)
         if actual_digest != source.digest:
             findings.append(Finding(
@@ -821,39 +806,37 @@ def _strict_source_checks(
                         ))
 
     indexed_paths: set[str] = set()
-    course_items = (
-        [(selected_course[0], (selected_course[1], selected_course[2]))]
-        if selected_course
-        else list(COURSES.items())
+    registered_directories = {
+        directory
+        for source in sources
+        if (directory := _source_course_directory(source)) is not None
+    }
+    course_directories = (
+        {selected_directory}
+        if selected_directory is not None
+        else registered_directories | _discover_course_directories(repo_root)
     )
-    for course, (directory, expected_lessons) in course_items:
+    for directory in sorted(course_directories):
         index_path = repo_root / "materials" / "private" / directory / "INDEX.md"
         display = str(index_path.relative_to(repo_root))
         if not index_path.is_file():
-            findings.append(Finding(display, 1, "INDEX_MISSING", f"course index for {course} is missing"))
+            findings.append(Finding(display, 1, "INDEX_MISSING", "course index is missing"))
             continue
         filenames = _extract_index_lessons(index_path)
-        if len(filenames) != len(expected_lessons):
-            findings.append(Finding(
-                display, 1, "INDEX_COUNT",
-                f"강의 자료 table has {len(filenames)} rows; expected {len(expected_lessons)}",
-            ))
         for duplicate in _duplicate_values(filenames):
             findings.append(Finding(display, 1, "INDEX_DUPLICATE", f"duplicate lesson path {duplicate}"))
-        actual_lessons = {filename[:5] for filename in filenames}
-        expected_lesson_set = set(expected_lessons)
-        if actual_lessons != expected_lesson_set:
-            missing = sorted(expected_lesson_set - actual_lessons)
-            extra = sorted(actual_lessons - expected_lesson_set)
-            findings.append(Finding(
-                display, 1, "INDEX_LESSON_IDS",
-                f"lesson IDs differ; missing={missing}, extra={extra}",
-            ))
         for filename in filenames:
             if "/" in filename or "\\" in filename or filename.startswith("course-provided-practice"):
                 findings.append(Finding(
                     display, 1, "INDEX_SCOPE", f"강의 자료 contains an out-of-scope path: {filename}",
                 ))
+                continue
+            if not LESSON_FILENAME_RE.fullmatch(filename):
+                findings.append(Finding(
+                    display, 1, "INDEX_LESSON_ID",
+                    f"강의 자료 filename must start with NN-NN_: {filename}",
+                ))
+                continue
             indexed_paths.add(f"materials/private/{directory}/{filename}")
 
     for missing in sorted(indexed_paths - registered_paths):
@@ -868,7 +851,7 @@ def validate_course_index_freshness(
     *,
     repo_root: Path = REPO_ROOT,
 ) -> list[Finding]:
-    """Validate one configured course INDEX against registry rows and source bytes."""
+    """Validate one private course INDEX against registry rows and source bytes."""
     path = curriculum_path.resolve()
     document_path = _display_path(path, repo_root)
     findings: list[Finding] = []
@@ -898,6 +881,115 @@ def validate_course_index_freshness(
         course_index=course_index,
     )
     return findings
+
+
+def validate_lesson_slice_freshness(
+    curriculum_path: Path,
+    course_index: Path,
+    selected_source_paths: set[str] | list[str] | tuple[str, ...],
+    *,
+    repo_root: Path = REPO_ROOT,
+) -> LessonSliceFreshness:
+    """Validate selected lesson sources while downgrading unrelated course drift."""
+    selected = set(selected_source_paths)
+    errors: list[Finding] = []
+    warnings: list[Finding] = []
+    whole_course = validate_course_index_freshness(
+        curriculum_path,
+        course_index,
+        repo_root=repo_root,
+    )
+    critical_codes = {
+        "CURRICULUM_MISSING",
+        "CURRICULUM_ENCODING",
+        "SOURCE_TABLE_COUNT",
+        "INDEX_SCOPE",
+        "INDEX_MISSING",
+    }
+    for finding in whole_course:
+        target = errors if finding.path in selected or finding.code in critical_codes else warnings
+        target.append(finding)
+
+    directory = _course_directory_for_index(course_index, repo_root)
+    if directory is None:
+        return LessonSliceFreshness(errors, warnings)
+    if not selected:
+        errors.append(Finding(
+            _display_path(course_index, repo_root),
+            1,
+            "LESSON_SLICE_EMPTY",
+            "lesson slice requires at least one selected primary source",
+        ))
+        return LessonSliceFreshness(errors, warnings)
+
+    path = curriculum_path.resolve()
+    document_path = _display_path(path, repo_root)
+    parse_findings: list[Finding] = []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (FileNotFoundError, UnicodeDecodeError):
+        return LessonSliceFreshness(_deduplicate_findings(errors), _deduplicate_findings(warnings))
+    source_rows, source_tables = _extract_tables(
+        lines, SOURCE_HEADER, document_path, parse_findings,
+    )
+    if source_tables != 1:
+        return LessonSliceFreshness(_deduplicate_findings(errors), _deduplicate_findings(warnings))
+    sources = _parse_sources(source_rows, document_path, parse_findings)
+    selected_sources = [source for source in sources if source.relative_path in selected]
+    selected_lines = {source.line for source in selected_sources}
+    structural_findings: list[Finding] = []
+    _validate_sources(sources, document_path, structural_findings)
+    for finding in parse_findings + structural_findings:
+        target = errors if finding.line in selected_lines else warnings
+        target.append(finding)
+
+    source_by_path = {source.relative_path: source for source in sources}
+    index_path = repo_root / "materials" / "private" / directory / "INDEX.md"
+    indexed_filenames = set(_extract_index_lessons(index_path)) if index_path.is_file() else set()
+    for selected_path in sorted(selected):
+        parts = Path(selected_path).parts
+        if (
+            len(parts) != 4
+            or parts[:2] != ("materials", "private")
+            or parts[2] != directory
+        ):
+            errors.append(Finding(
+                selected_path,
+                1,
+                "LESSON_SLICE_SCOPE",
+                f"selected source does not belong to {course_index.as_posix()}",
+            ))
+            continue
+        if selected_path not in source_by_path:
+            errors.append(Finding(
+                selected_path,
+                1,
+                "LESSON_SLICE_REGISTRY",
+                "selected source is absent from the Curriculum registry",
+            ))
+        if parts[-1] not in indexed_filenames:
+            errors.append(Finding(
+                selected_path,
+                1,
+                "LESSON_SLICE_INDEX",
+                "selected source is absent from the course INDEX 강의 자료 table",
+            ))
+
+    return LessonSliceFreshness(
+        _deduplicate_findings(errors),
+        _deduplicate_findings(warnings),
+    )
+
+
+def _deduplicate_findings(findings: list[Finding]) -> list[Finding]:
+    unique: list[Finding] = []
+    seen: set[tuple[str, int, str, str]] = set()
+    for finding in findings:
+        key = (finding.path, finding.line, finding.code, finding.message)
+        if key not in seen:
+            seen.add(key)
+            unique.append(finding)
+    return unique
 
 
 def validate_curriculum(
@@ -964,7 +1056,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--course-index", type=Path,
-        help="with --strict-sources, restrict byte and parity checks to one configured course INDEX.md",
+        help="with --strict-sources, restrict byte and parity checks to one materials/private/<course>/INDEX.md",
     )
     return parser
 

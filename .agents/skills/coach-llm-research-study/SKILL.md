@@ -45,7 +45,7 @@ Apply this procedure when a source is added or replaced, when its course index c
 Keep an assessment-only request read-only: report proposed registry and competency changes without editing `CURRICULUM.md`. Persist the mapping only as part of an authorized source registration or replacement, or when the user explicitly asks to update the curriculum.
 
 1. Resolve the course `INDEX.md` and verify index-to-file and file-to-index parity. Read the entire source, inspect every linked local asset, render every PDF page, and compute the exact file SHA-256. Do not mark an unreadable or incomplete source as complete.
-2. Register or update the stable `SRC-<COURSE>-<LESSON>` row in `CURRICULUM.md`. Record the exact repository-relative path, format, hash, integrity, audit status, audit date, and a concise limitation. Preserve existing source and competency IDs; never repurpose them.
+2. Register or update the stable `SRC-<UPPERCASE-NAMESPACE>-<NN-NN>` row in `CURRICULUM.md`. Record the exact repository-relative path, format, hash, integrity, audit status, audit date, and a concise limitation. Preserve existing source and competency IDs; never repurpose them.
 3. Compare what the source can actually produce against each relevant competency's target depth and required evidence tokens. Record each relationship as `primary`, `supporting`, or `context`; a mention or use case alone is `context`, and context alone can never justify `충분`.
 4. Set coverage from the audited evidence, not topic-name overlap: `충분`, `부분`, `없음`, `판정보류`, or `미감사`. Every gap needs one allowed treatment. A damaged conversion or missing original stays `limited` or `blocked` and uses `원본 복구 후 재감사` when the damage prevents the judgment.
 5. Before finalizing any new `충분` or `부분` judgment, give the complete source, relevant assets, competency row, and proposed mapping to a fresh read-only reviewer. Incorporate concrete corrections; if complete independent review is unavailable, leave the mapping `미감사` or `판정보류` rather than self-approving it.
@@ -75,6 +75,10 @@ lesson. Read and follow
 normative schema and lifecycle. Hand teaching to `$teach-course-material` only
 after the canonical readiness gate passes; hand canonical saving to
 `$save-today-til` only after the canonical TIL-readiness gate passes.
+Those lesson gates use the handoff contract's semantic-slice freshness rule:
+selected source problems block, while unrelated same-course source problems
+warn. Keep the separate strict Curriculum validator course-wide for source
+registration and audit work.
 
 Audit-only work, direct definitions, short corrections, one-off questions, and
 knowledge-note deepening do not require this handoff. When a whole named-source

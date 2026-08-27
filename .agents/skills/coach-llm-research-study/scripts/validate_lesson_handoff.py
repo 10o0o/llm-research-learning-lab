@@ -18,7 +18,7 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-from validate_curriculum import validate_course_index_freshness  # noqa: E402
+from validate_curriculum import validate_lesson_slice_freshness  # noqa: E402
 
 
 SCHEMA_VERSION = "4"
@@ -144,6 +144,19 @@ class ValidationError:
 
     def rendered(self, path: Path) -> str:
         return f"ERROR {path.as_posix()}:{self.line} [{self.code}] {self.message}"
+
+    def as_json(self) -> dict[str, Any]:
+        return {"line": self.line, "code": self.code, "message": self.message}
+
+
+@dataclass
+class ValidationWarning:
+    line: int
+    code: str
+    message: str
+
+    def rendered(self, path: Path) -> str:
+        return f"WARNING {path.as_posix()}:{self.line} [{self.code}] {self.message}"
 
     def as_json(self) -> dict[str, Any]:
         return {"line": self.line, "code": self.code, "message": self.message}
@@ -311,6 +324,7 @@ class ValidationReport:
     til_ready_requested: bool
     errors: list[ValidationError]
     document: HandoffDocument | None
+    warnings: list[ValidationWarning] = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
@@ -336,6 +350,7 @@ class ValidationReport:
             "til_ready": self.til_ready_requested and self.ok,
             "computed": computed,
             "errors": [error.as_json() for error in self.errors],
+            "warnings": [warning.as_json() for warning in self.warnings],
         }
 
 
@@ -2229,7 +2244,11 @@ def _validate_declared_hashes(doc: HandoffDocument, metadata_lines: dict[str, in
         errors.append(ValidationError(metadata_lines.get("contract_sha256", 1), "CONTRACT_HASH", f"contract hash mismatch: got {doc.computed_contract_sha256}"))
 
 
-def _validate_course_freshness(doc: HandoffDocument, errors: list[ValidationError]) -> None:
+def _validate_course_freshness(
+    doc: HandoffDocument,
+    errors: list[ValidationError],
+    warnings: list[ValidationWarning],
+) -> None:
     curriculum = next(
         (entry for entry in doc.manifest if entry.role == "curriculum" and entry.path == "CURRICULUM.md"),
         None,
@@ -2239,13 +2258,31 @@ def _validate_course_freshness(doc: HandoffDocument, errors: list[ValidationErro
     curriculum_path = doc.repo_root / curriculum.path
     for entry in (item for item in doc.manifest if item.role == "course-index"):
         index_path = doc.repo_root / entry.path
-        for finding in validate_course_index_freshness(
+        index_parts = PurePosixPath(entry.path).parts
+        selected_paths = {
+            item.path
+            for item in doc.manifest
+            if item.role == "primary"
+            and len(PurePosixPath(item.path).parts) >= 4
+            and PurePosixPath(item.path).parts[:3] == index_parts[:3]
+        }
+        freshness = validate_lesson_slice_freshness(
             curriculum_path,
             index_path,
+            selected_paths,
             repo_root=doc.repo_root,
-        ):
+        )
+        for finding in freshness.errors:
             errors.append(
                 ValidationError(
+                    entry.line,
+                    "CURRICULUM_FRESHNESS",
+                    f"{finding.code}: {finding.path}:{finding.line}: {finding.message}",
+                )
+            )
+        for finding in freshness.warnings:
+            warnings.append(
+                ValidationWarning(
                     entry.line,
                     "CURRICULUM_FRESHNESS",
                     f"{finding.code}: {finding.path}:{finding.line}: {finding.message}",
@@ -2335,6 +2372,7 @@ def validate_handoff(
     handoff_path = Path(path)
     root = Path(repo_root).resolve() if repo_root is not None else _repo_root_from_script()
     errors: list[ValidationError] = []
+    warnings: list[ValidationWarning] = []
     if not handoff_path.is_absolute():
         handoff_path = root / handoff_path
     try:
@@ -2387,7 +2425,7 @@ def validate_handoff(
         _validate_draft(doc, errors)
 
     if ready:
-        _validate_course_freshness(doc, errors)
+        _validate_course_freshness(doc, errors, warnings)
         status = doc.metadata.get("status")
         if status not in {"active", "paused"}:
             errors.append(ValidationError(metadata_lines.get("status", 1), "REVIEW_NOT_PASS", "--ready requires active or paused status"))
@@ -2401,7 +2439,7 @@ def validate_handoff(
             errors.append(ValidationError(latest.line, "REVIEW_STALE", "--ready review hashes are stale"))
 
     if til_ready:
-        _validate_course_freshness(doc, errors)
+        _validate_course_freshness(doc, errors, warnings)
         _validate_til_readiness(doc, errors)
 
     deduplicated: list[ValidationError] = []
@@ -2411,7 +2449,21 @@ def validate_handoff(
         if key not in seen:
             seen.add(key)
             deduplicated.append(error)
-    return ValidationReport(handoff_path, ready, til_ready, deduplicated, doc)
+    deduplicated_warnings: list[ValidationWarning] = []
+    seen_warnings: set[tuple[int, str, str]] = set()
+    for warning in warnings:
+        key = (warning.line, warning.code, warning.message)
+        if key not in seen_warnings:
+            seen_warnings.add(key)
+            deduplicated_warnings.append(warning)
+    return ValidationReport(
+        handoff_path,
+        ready,
+        til_ready,
+        deduplicated,
+        doc,
+        deduplicated_warnings,
+    )
 
 
 class _ContractArgumentParser(argparse.ArgumentParser):
@@ -2448,6 +2500,7 @@ def main(argv: list[str] | None = None) -> int:
                         "til_ready": False,
                         "computed": {},
                         "errors": [{"line": 1, "code": "SCHEMA", "message": f"internal error: {exc}"}],
+                        "warnings": [],
                     },
                     ensure_ascii=False,
                     indent=2,
@@ -2458,12 +2511,15 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if args.as_json:
         print(json.dumps(report.as_json(), ensure_ascii=False, indent=2, sort_keys=True))
-    elif report.ok:
-        result_mode = "ready" if args.ready else "til-ready" if args.til_ready else "valid"
-        print(f"OK {report.path.as_posix()} [{result_mode}]")
     else:
-        for error in report.errors:
-            print(error.rendered(report.path), file=sys.stderr)
+        for warning in report.warnings:
+            print(warning.rendered(report.path), file=sys.stderr)
+        if report.ok:
+            result_mode = "ready" if args.ready else "til-ready" if args.til_ready else "valid"
+            print(f"OK {report.path.as_posix()} [{result_mode}]")
+        else:
+            for error in report.errors:
+                print(error.rendered(report.path), file=sys.stderr)
     return report.exit_code
 
 
