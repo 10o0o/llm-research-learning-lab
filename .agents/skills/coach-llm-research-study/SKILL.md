@@ -1,6 +1,6 @@
 ---
 name: coach-llm-research-study
-description: Audit AI, machine learning, deep learning, LLM, or mathematics lecture materials and assess the learner's demonstrated understanding, including whether til/today.md accurately and completely represents every core concept actually studied today before finalization. Use for source and curriculum-coverage audits, pre-save TIL completeness and factual validation, lecture PDF review, finalized TIL feedback, knowledge-note accuracy review, or questions about misconceptions, missing prerequisites, notation, inaccurate claims, misleading simplifications, and high-leverage concepts for an LLM Research Engineer. When invoked with $teach-course-material for an interactive named-source lesson, prepare and independently review its temporary lesson contract before teaching. Do not use to deliver the lesson, organize TIL files, write the knowledge base, or recommend practice.
+description: Audit AI, machine learning, deep learning, LLM, or mathematics lecture materials and assess the learner's demonstrated understanding. Use for source and curriculum-coverage audits, mixed or standalone TIL factual review, lecture PDF review, finalized TIL feedback, knowledge-note accuracy review, or questions about misconceptions, missing prerequisites, notation, inaccurate claims, misleading simplifications, and high-leverage concepts for an LLM Research Engineer. When invoked with $teach-course-material for an interactive named-source lesson, prepare and independently review its temporary lesson contract before teaching. Pure handoff-generated TIL composition does not need a second coach review. Do not use to deliver the lesson, organize TIL files, write the knowledge base, or recommend practice.
 ---
 
 # Evaluate LLM Research Study
@@ -40,7 +40,7 @@ Verify questionable claims with primary sources, papers, textbooks, or official 
 
 ## Map audited sources to the curriculum
 
-Apply this procedure when a source is added or replaced, when its course index changes, or when the user asks whether current materials cover the LLM Research Engineer curriculum. This source-and-coverage audit is separate from both the lesson-contract gate and the later TIL pre-save review.
+Apply this procedure when a source is added or replaced, when its course index changes, or when the user asks whether current materials cover the LLM Research Engineer curriculum. This source-and-coverage audit is separate from both the lesson-contract gate and any later mixed or standalone TIL review.
 
 Keep an assessment-only request read-only: report proposed registry and competency changes without editing `CURRICULUM.md`. Persist the mapping only as part of an authorized source registration or replacement, or when the user explicitly asks to update the curriculum.
 
@@ -80,8 +80,9 @@ review, repair convergence, and the TIL completeness judgment for a whole
 interactive named-source lesson. Read and follow
 [`references/lesson-handoff.md`](references/lesson-handoff.md), the sole
 normative schema and lifecycle. Hand teaching to `$teach-course-material` only
-after the canonical readiness gate passes; hand canonical saving to
-`$save-today-til` only after the canonical TIL-readiness gate passes.
+after the canonical readiness gate passes. After the session arc ends, let
+`$save-today-til` compose its evidence-linked draft first and use the canonical
+TIL-readiness gate only as the final preflight.
 Keep the ordered ROADMAP endpoint as route context, the actionable frontier as
 the lesson's primary target, and at most one short prerequisite as its bridge.
 Never instantiate a handoff from `NEED_DIAGNOSTIC` or
@@ -100,9 +101,9 @@ objective-mapping, and teaching-order findings in the same flow and request a
 targeted recheck from the same independent reviewer. Do not ask the learner to
 repeat a reset phrase or target ID. Reserve `blocked` for source integrity,
 source access, irreducible factual ambiguity, or a genuine user scope decision.
-A second repairable non-pass remains `repair_pending`; when the same lesson has
-no delivery and no learner evidence, shrink it once to a micro-slice and review
-again. If a reviewer is temporarily unavailable, try one replacement and
+A second repairable non-pass remains `repair_pending`; do not shorten the
+session merely because its source-review slice is small. If a reviewer is
+temporarily unavailable, try one replacement and
 preserve `review_pending` instead of recording a semantic blocker.
 
 Audit-only work, direct definitions, short corrections, one-off questions, and
@@ -138,9 +139,15 @@ At a draft or finalized-TIL checkpoint, separate:
 
 Keep this distinction explicit so a later practice or knowledge decision does not treat tutor prose as learner mastery.
 
-## Review a TIL draft before saving
+## Review a mixed or standalone TIL draft
 
-When the user asks to validate `til/today.md` or another rough note before saving:
+Use this path when the user explicitly asks for a read-only review, when manual
+notes or self-study prose are mixed into a handoff-generated draft, or when a
+draft is standalone. Do not repeat it for a pure v8 handoff-generated TIL: its
+review is `not-required`, because its technical claims are composed only from
+already classified learner evidence.
+
+When this review path applies:
 
 1. Resolve the exact draft and reconstruct **today's actual learning scope** in this order: the active handoff's actual delivered scope; confirmed learner answers, calculations, shape predictions, and code interpretations; the current learning conversation; an explicitly stated self-study scope with exact source paths; then the draft itself. Non-assessed guidance and the source table of contents do not prove that a technical concept was studied. If the actual scope cannot be recovered, do not guess; give `추가 확인 후 저장` and ask the smallest scope question.
 2. Read the reviewed source scope, the draft, the relevant learning exchange, and only directly related `knowledge/` or executed `practice/` evidence. For a `full-source` handoff or standalone claim whose source scope is not bounded, read the complete relevant source for factual checking; never use that wider reading to expand today's required scope.
@@ -162,11 +169,11 @@ For each blocking finding, quote only the shortest identifying draft fragment, c
 
 Do not silently rewrite a misconception or missing concept into a correct tutor answer. Ask one small confirmation question, preserve the learner's own answer when confirmed, and leave unresolved content as the learner's uncertainty. Use `$teach-course-material` when more than a direct factual correction is needed. Edit the draft only when the user asks and either demonstrates the corrected understanding or explicitly chooses to record the point as unresolved uncertainty.
 
-For a handoff-backed draft, update the canonical operational coverage and
-pre-save review state exactly as defined in the linked handoff contract. Hand
-off to `$save-today-til` only after its TIL-readiness gate passes for the exact
-current draft. A lesson-contract pass alone does not establish TIL
-completeness.
+For a mixed handoff-backed draft, update its TIL Composition review state as
+defined in the linked contract. Keep `repair_required` in the same save flow;
+pause only for a factual uncertainty that needs an actual learner decision.
+For a standalone draft, return the compact readiness verdict in the current
+conversation without creating another review log.
 
 ## Explain findings enough to act on
 
@@ -193,7 +200,7 @@ Use only non-empty parts of this structure:
 
 Lead with high-priority findings. Cite the relevant source location beside each finding and include external evidence when used. Do not pad the report with a summary of material that is already clear and correct.
 
-For a pre-save review, prefer the compact readiness verdict and finding categories above instead of the full audit structure.
+For an explicitly requested or mixed/standalone save review, prefer the compact readiness verdict and finding categories above instead of the full audit structure.
 
 ## Store the result simply
 

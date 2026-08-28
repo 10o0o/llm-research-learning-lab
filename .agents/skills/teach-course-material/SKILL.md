@@ -65,8 +65,8 @@ Read and follow
 [`../coach-llm-research-study/references/lesson-handoff.md`](../coach-llm-research-study/references/lesson-handoff.md),
 the sole normative schema and lifecycle. This skill owns execution of the
 reviewed teaching sequence and its mutable delivery state; the coach owns
-mechanical repair, targeted recheck, one evidence-free micro-slice shrink, and
-contract replacement. A `review_pending` or `repair_pending` handoff is resumed
+mechanical repair, targeted recheck, and contract replacement. A
+`review_pending` or `repair_pending` handoff is resumed
 through that coach workflow before teaching; do not ask the learner for a reset
 phrase, target ID, or exact source when the handoff already identifies the same
 lesson. If no resolvable current lesson exists, return to target planning rather
@@ -84,7 +84,9 @@ coverage into `CURRICULUM.md`, or turn retrieval into learner evidence.
 For a focused lesson, teach only source-core objectives whose audited locations
 are inside the reviewed slice. Boundary context verifies the cut but is not a
 teaching objective. Outside-scope content is neither an implicit deferral nor a
-reason to delay the first teaching move.
+reason to delay the first teaching move. The slice bounds source-review cost;
+it does not determine session length. Unless the learner explicitly requested
+`short` or `custom`, execute a `standard` session.
 
 ## Teach for connected understanding
 
@@ -151,10 +153,20 @@ Skip stages already demonstrated. If the learner can explain, calculate, and tra
 
 Use interactive teaching by default for a whole lesson:
 
-1. give the lesson goal and learning path;
-2. teach one meaningful concept chunk rather than only announcing a plan;
-3. at a reviewed adaptive breakpoint, ask one short explain-back, prediction, shape, code-reading, or calculation question whose answer selects the next explanation;
-4. at a `none` breakpoint, continue without a question.
+1. establish the motivating problem;
+2. build the connected concept model;
+3. work one concrete example;
+4. contrast a different example, limitation, or counterexample;
+5. finish with one learner-attempted transfer that combines at least two
+   concepts.
+
+Those are the five required roles of a standard session. It contains three to
+five connected concepts and at least two distinct examples. A fast answer may
+compress explanation and repetition, but it does not skip a role or the final
+integrated attempt. At a reviewed adaptive breakpoint, ask one short
+explain-back, prediction, shape, code-reading, or calculation question only
+when its answer selects the next explanation; at a `none` breakpoint, continue
+without a question.
 
 Do not ask a question after every paragraph, at the end of every chunk, or merely to make the learner restate the lesson plan. Never ask what theory, review, and practice each “confirm” unless that study-method topic is itself the explicit subject of a focused lesson. If the user asks for the whole lesson in one response, provide a cohesive full explanation and include only the reviewed checks that can still change a later explanation. On follow-up turns, continue from the current Step instead of restarting the lesson or repeating the source overview.
 
@@ -186,10 +198,19 @@ When a segment or full lesson ends, state only what is useful:
 - what their own answers actually demonstrated and any uncertainty still shown;
 - the next conceptual connection in the course, without turning it into an assignment.
 
-Do not mark a full lesson complete until the canonical delivery gate allows it.
-Delivery means the reviewed teaching move occurred; it does not imply mastery
-or require a learner quiz for every objective.
+Do not mark a full lesson complete until the canonical session-arc and delivery
+gates allow it and the learner has attempted the declared exit Step. Completion
+means the planned session ended; it does not imply target mastery or require a
+quiz for every objective. A partial exit answer may be preserved as a remaining
+question, but it cannot become confirmed evidence.
+
+At session completion, continue in the same flow: ask `$save-today-til` to
+compose a natural TIL from the classified learner evidence, run its final
+preflight, and—under the default `auto-commit` policy—merge and commit only the
+dated TIL. Do not ask for a separate “오늘 학습 내용 검토” or save request.
+Under `explicit-request`, stop at the composed draft and retain the handoff so
+`계속` or an explicit save request can resume it.
 
 After confirmed learner-authored evidence is saved into a validated dated TIL, the user may pass that exact TIL to `$suggest-learning-practice` or use it with `$update-learning-knowledge`. Never pass the temporary handoff itself as their input or treat its tutor assessment as learner evidence. Do not make either decision inside this skill.
 
-Do not automatically write the tutor's explanation into `knowledge/`; that would misrepresent it as the learner's understanding. Use `$update-learning-knowledge` only when the user separately asks, or at the evidence stage of an explicitly authorized full learning flow, and learner-authored evidence supports the content. Apart from the reviewed operational handoff and confirmed-answer append described above, this teaching skill does not create a TIL, practice file, progress tracker, or commit. `$save-today-til` alone finalizes and commits the dated TIL.
+Do not automatically write the tutor's explanation into `knowledge/`; that would misrepresent it as the learner's understanding. Use `$update-learning-knowledge` only when the user separately asks, or at the evidence stage of an explicitly authorized full learning flow, and learner-authored evidence supports the content. Apart from the reviewed operational handoff and confirmed-answer append described above, this teaching skill does not create a TIL, practice file, progress tracker, or commit. `$save-today-til` owns evidence-based composition, finalization, and the dated-TIL-only commit.

@@ -15,7 +15,7 @@ for directory in (SCRIPT_DIR, COACH_SCRIPTS):
     if str(directory) not in sys.path:
         sys.path.insert(0, str(directory))
 
-from strip_lesson_evidence_markers import MARKER_FRAGMENT, MarkerError, strip_markers  # noqa: E402
+from strip_lesson_evidence_markers import MarkerError, contains_markers, strip_markers  # noqa: E402
 from validate_lesson_handoff import validate_handoff  # noqa: E402
 
 
@@ -50,10 +50,10 @@ def prepare_til_input(
     except (OSError, UnicodeError) as error:
         raise PreflightError(f"cannot read draft: {error}") from error
 
-    has_markers = MARKER_FRAGMENT in draft_text
+    has_markers = contains_markers(draft_text)
     if draft_path != canonical:
         if has_markers:
-            raise PreflightError("standalone draft contains lesson-evidence markers")
+            raise PreflightError("standalone draft contains internal lesson markers")
         return draft_text
 
     if handoff_path.is_file():
@@ -72,7 +72,7 @@ def prepare_til_input(
             raise PreflightError(f"draft marker validation failed at line {error.line}: {error.message}") from error
 
     if has_markers:
-        raise PreflightError("canonical draft contains lesson-evidence markers but no active handoff exists")
+        raise PreflightError("canonical draft contains internal lesson markers but no active handoff exists")
     return draft_text
 
 

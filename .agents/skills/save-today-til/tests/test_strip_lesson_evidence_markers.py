@@ -26,6 +26,15 @@ def envelope(content: str, *, digest: str | None = None) -> str:
     )
 
 
+def til_item(content: str, *, digest: str | None = None) -> str:
+    content_digest = digest or hashlib.sha256(content.encode("utf-8")).hexdigest()
+    return (
+        f"<!-- lesson-til-item:lesson-one:D001:learning:E001:{content_digest} -->\n"
+        f"{content}\n"
+        "<!-- /lesson-til-item:lesson-one:D001 -->\n"
+    )
+
+
 class StripMarkersTests(unittest.TestCase):
     def test_draft_without_markers_is_byte_for_byte_unchanged(self) -> None:
         draft = "# 메모\r\n\r\n학습자 문장\r\n"
@@ -38,6 +47,15 @@ class StripMarkersTests(unittest.TestCase):
             MODULE.strip_markers(draft),
             f"앞 문단\n\n{content}\n\n뒤 문단\n",
         )
+
+    def test_valid_composed_item_removes_only_internal_comments(self) -> None:
+        content = "증거를 자연스러운 학습 문장으로 구성했다."
+        self.assertTrue(MODULE.contains_markers(til_item(content)))
+        self.assertEqual(MODULE.strip_markers(til_item(content)), content + "\n")
+
+    def test_composed_item_hash_mismatch_is_rejected(self) -> None:
+        with self.assertRaisesRegex(MODULE.MarkerError, "SHA-256 mismatch"):
+            MODULE.strip_markers(til_item("학습 문장", digest="0" * 64))
 
     def test_content_leading_and_trailing_lf_are_preserved(self) -> None:
         content = "\n학습자 답변\n"

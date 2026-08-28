@@ -39,33 +39,43 @@ validator never edits the handoff.
    `repair_pending`; the author corrects only the named findings and the same
    reviewer performs one `targeted-recheck`. Locator, wording, objective mapping,
    and teaching-order findings are repairable and never become a semantic block.
-   A second repairable non-pass remains resumable and, when nothing has been
-   taught or captured, permits one automatic reduction to a smaller slice.
-   `blocked` is reserved for source integrity or access failure, irreducible
+   A second repairable non-pass remains resumable as `repair_pending`; session
+   depth is not reduced merely to make review cheaper. `blocked` is reserved
+   for source integrity or access failure, irreducible
    factual ambiguity, or a material user scope decision.
 5. A current `pass` permits status `active`. Run `--ready` before the first
    teaching chunk and again after resuming a paused lesson.
-6. Update Current Position, Objective Delivery, learner evidence, and Daily
-   Learning Coverage without rewriting the reviewed contract. These changes do
-   not invalidate a current lesson-contract review. Delivery records that a
-   teaching move actually occurred; it never proves learner understanding.
-7. Before saving, inventory what was actually taught. Every confirmed concept
-   must be represented as learning, every unresolved taught concept as a
-   remaining question, and untouched content as deferred. Record the coach's
-   verdict and the exact draft hash, then run `--til-ready`.
-8. Set status `completed` only after every non-deferred objective has been
-   delivered. The save workflow may remove a completed local-only handoff only
-   after every confirmed evidence item is drafted, `--til-ready` passes, and
-   the dated TIL commit succeeds. When a practice artifact still needs an
-   external source receipt, preserve the handoff and exact lesson cache through
-   strict practice provenance validation; delete only that lesson cache
-   directory afterward. Preserve both on interruption or validation failure.
+6. Update Current Position, Objective Delivery, Teaching Step Delivery,
+   learner evidence, and Daily Learning Coverage without rewriting the reviewed
+   contract. These changes do not invalidate a current lesson-contract review.
+   Delivery records that a teaching move occurred; it never proves learner
+   understanding.
+7. Set status `completed` only after the planned session arc, every
+   non-deferred objective, and the required exit attempt are complete.
+   `completed` means the session contract ended, not that its target is mastered.
+8. Compose the TIL from confirmed and unresolved learner evidence. Pure
+   `handoff-generated` composition needs no second semantic review. A `mixed`
+   composition receives one same-flow coach review. Run `--til-ready` only
+   after composition; it is the final marker, hash, classification,
+   provenance, and Markdown-structure preflight rather than a prerequisite for
+   creating the draft.
+9. Under `auto-commit`, merge and path-limit commit the exact dated TIL. Under
+   `explicit-request`, retain the composed handoff until the learner asks to
+   save. A commit failure preserves the draft and handoff so `계속` retries the
+   finalization rather than rebuilding the lesson. A completed handoff may not
+   be replaced until its TIL is committed or the learner explicitly discards
+   it. When a practice artifact still needs an external source receipt,
+   preserve the handoff and exact lesson cache through strict practice
+   provenance validation; otherwise clean them after the TIL commit.
 
-Schema version 7 has no in-place migration from version 6 or earlier. Rebuild
-an older handoff from the current template. When the same target and source are
-unchanged and no Objective has been delivered and no learner evidence exists,
-an explicit lesson-start or full-flow request already authorizes that mechanical
-rebuild; never ask the learner to repeat a reset phrase.
+Schema version 8 has no general in-place migration from version 7 or earlier.
+Rebuild an older handoff from the current template. The sole exception is the
+already completed `stat110-events-naive-probability-04` recovery: the dedicated
+`migrate_completed_v7_handoff.py` helper requires fresh manifest and review
+hashes, complete delivery, exact raw evidence envelopes, and the explicit
+first-part/non-mastery boundary, then converts it once to a `short` v8 session
+without changing learner-content bytes. It refuses every other stale,
+incomplete, or already migrated state.
 
 Resume an existing handoff only when the named primary input path and hash are
 unchanged. A source, curriculum, manifest, or lesson-contract change makes a
@@ -74,21 +84,29 @@ handoff with delivery or learner evidence, with a different lesson without an
 explicit close-or-replace decision. `review_pending` and `repair_pending`
 handoffs without delivery or evidence may be repaired or narrowed automatically
 for the same target/source.
-A `completed` handoff may be replaced for a new lesson only when every
-confirmed evidence item is already `drafted`. Otherwise preserve it until the
-append helper recovers the pending evidence; completion alone is not permission
-to discard learner content.
+A `completed` handoff is retained through composition and dated-TIL commit even
+when every confirmed evidence item is already drafted. Delete or replace it
+only after its TIL Composition is `committed`, or after an explicit learner
+decision to discard the session. Completion alone is never permission to
+discard learner content.
 
 ## Metadata
 
 Metadata is a Markdown bullet list with exactly these keys:
 
-- `schema_version`: currently `7`.
+- `schema_version`: currently `8`.
 - `lesson_id`: stable lowercase identifier matching
   `[a-z0-9][a-z0-9-]{2,63}`.
 - `title`: one non-empty line.
 - `status`: `preparing`, `review_pending`, `repair_pending`, `active`, `paused`,
   `blocked`, or `completed`.
+- `session_profile`: `standard`, `short`, or `custom`. `standard` is the
+  default. `short` is allowed only for an explicit learner request or the
+  one-time completed-v7 recovery; a small source slice does not imply a short
+  lesson. `custom` records an explicit alternative session contract.
+- `til_finalize_policy`: `auto-commit` or `explicit-request`. Ordinary lesson
+  starts default to `auto-commit`; “저장과 커밋은 요청할 때만” selects the
+  latter and remains resumable across conversations.
 - `study_date`: `YYYY-MM-DD`.
 - `created_at`, `updated_at`: RFC 3339 timestamps with `Z` or an explicit UTC
   offset.
@@ -178,13 +196,16 @@ Keep the contract between its marker lines and retain these headings in order:
 7. `External Target Relation`
 8. `Learner Evidence Baseline`
 9. `Audited Findings`
-10. `Source Coverage Index`
-11. `Declared Goal Alignment`
-12. `Guidance Map`
-13. `Observable Objective Map`
-14. `Concept Path`
-15. `Prepared Teaching Steps`
-16. `Deferred`
+10. `Source Scope Map`
+11. `Source Coverage Index`
+12. `Declared Goal Alignment`
+13. `Guidance Map`
+14. `Observable Objective Map`
+15. `Concept Path`
+16. `Session Plan`
+17. `Example Map`
+18. `Prepared Teaching Steps`
+19. `Deferred`
 
 List one or two stable `CC-*` or `TR-*` curriculum IDs that actually occur in
 the manifested `CURRICULUM.md` under Curriculum Targets.
@@ -443,8 +464,10 @@ Prepared Teaching Steps use contiguous `#### T001`, `#### T002`, and so on,
 with no count limit. Each has these ordered, non-empty fields:
 
 ```text
-concept_id
+step_role
+concept_ids
 objective_ids
+example_id
 delivery_outline
 tiny_example
 check_policy
@@ -452,10 +475,29 @@ check_basis
 check_question
 ```
 
-Every non-deferred objective appears exactly once under its Concept ID. Step
-order is the actual teaching order and may differ from stable Objective audit
-order. The outline and objective-level Teaching moves must make the explanation
-observable; mentioning a filename, topic, or `lesson_scope` is not coverage.
+Before those Steps, Session Plan has the ordered fields `session_goal`,
+`exit_step`, and `exit_evidence_kind`. The exit kind is one allowed Learner
+Evidence kind. Example Map has `Example ID | Purpose | Fixture | Objective IDs`
+and contiguous `X001` IDs. Every used example must be a concrete, distinct
+fixture linked to the objectives it supports.
+
+`step_role` is `motivation`, `concept-model`, `worked-example`,
+`contrast-limit`, or `synthesis-transfer`. `concept_ids` is one or more
+Concept IDs; every listed Objective belongs to one of them. Every non-deferred
+objective appears in at least one Step, and a synthesis Step may deliberately
+revisit it. Step order is the actual teaching order and may differ from stable
+Objective audit order. The outline and objective-level Teaching moves must make
+the explanation observable; mentioning a filename, topic, or `lesson_scope` is
+not coverage.
+
+A `standard` session contains three to five connected concepts, all five roles
+in that order, at least two distinct examples, an explicit limitation or
+counterexample, and a final adaptive `synthesis-transfer` Step combining at
+least two concepts. That final Step is the Session Plan exit and always leaves
+one learner attempt. A fast correct answer may compress explanation or
+repetition, but it cannot delete an arc role. A `short` or `custom` session must
+still name an actual exit Step and exit evidence; a small focused source slice
+alone never selects `short`.
 
 `check_policy` is `adaptive` only when the learner's answer changes the next
 explanation. Its `check_basis` uses the explicit form
@@ -519,9 +561,11 @@ is not a semantic verdict: try one replacement reviewer and otherwise preserve
 A pass is current only when both reviewed hashes equal the recomputed hashes.
 The validator's JSON `workflow_action` is one of `PREPARE_CONTRACT`,
 `REQUEST_INDEPENDENT_REVIEW`, `REPAIR_CONTRACT`, `REQUEST_TARGETED_RECHECK`,
-`ACTIVATE_LESSON`, `TEACH_OR_RESUME`, `SHRINK_TO_MICRO_SLICE`,
-`RESOLVE_TRUE_BLOCKER`, or `COMPLETE`. Follow it without asking the learner for
-a reset phrase.
+`ACTIVATE_LESSON`, `TEACH_OR_RESUME`, `COMPOSE_TIL`, `REVIEW_MIXED_DRAFT`,
+`FINALIZE_TIL`, `AWAIT_TIL_SAVE`, `RESOLVE_TRUE_BLOCKER`, or `COMPLETE`.
+Follow it without asking the learner for a reset phrase. `COMPOSE_TIL` precedes
+the final TIL gate, so the workflow never requires `--til-ready` before the
+draft it validates exists.
 
 The reviewer checks source fidelity, facts, formulas, tensor shapes, code
 claims, marker classification, curriculum alignment, lesson scope, and learner
@@ -616,24 +660,33 @@ Objective Delivery answers only "was this covered in teaching?" Daily Learning
 Coverage and Learner Evidence separately answer "what did the learner
 demonstrate today?" Never turn delivery into `confirmed` evidence.
 
+## Teaching Step Delivery
+
+This mutable table has one ordered row per Prepared Teaching Step:
+
+```text
+Step ID | State | Basis/Note
+```
+
+State is `pending`, `delivered`, or `completed`. `pending` has not been taught;
+`delivered` means its teaching move occurred and an adaptive question is still
+awaiting or being remediated; `completed` means that Step's planned branch has
+ended. Current Position follows the contiguous completed prefix and cannot skip
+an unfinished Step. A lesson cannot use status `completed` or
+`next_action: complete` while any Step remains unfinished. Step completion is
+operational delivery, never learner mastery.
+
 ## Daily Learning Coverage
 
 This section records today's taught scope, not the source's whole syllabus and
-not durable progress. It contains exactly these pre-save fields:
-
-- `pre_save_verdict`: `pending`, `저장 가능`, `수정 후 저장`, or
-  `추가 확인 후 저장`;
-- `reviewed_at`: `pending` or an RFC 3339 timestamp;
-- `reviewed_draft_sha256`: `pending` or SHA-256 of the exact current
-  `til/today.md` bytes.
-
-Follow them with exactly one ordered row per Concept Path concept:
+not durable progress. It contains exactly one ordered row per Concept Path
+concept:
 
 ```markdown
 | Concept ID | Today state | Evidence IDs | TIL representation | Note |
 | --- | --- | --- | --- | --- |
 | C01 | confirmed | E001 | learning | The learner explanation is in today's learning. |
-| C02 | uncertain | E002 | remaining-question | draft-anchor: 왜 오른쪽 축부터 비교하는가? |
+| C02 | uncertain | E002 | remaining-question | The unresolved learner attempt is represented honestly. |
 | C03 | deferred | none | not-required | This concept was not taught today. |
 ```
 
@@ -645,33 +698,30 @@ delivered today; a subset leaves the Concept `uncertain`. It uses `learning`
 only after all cited confirmed evidence is drafted. During an active lesson,
 an uncertain row may use `missing`; it may cite partial, misconception, or
 narrowly confirmed evidence while broader objectives remain unestablished.
-The confirmed subset is still drafted verbatim, while the unconfirmed portion
-is linked to `남은 질문`. Before `--til-ready`, change it to
-`remaining-question` and make
-its Note `draft-anchor: <exact excerpt>`, where the non-empty excerpt occurs
-verbatim under the reviewed draft's `## 남은 질문` section. This gives
-`--til-ready` a mechanical representation check without pretending to judge the
-question's semantics. A deferred row has `none` evidence and `not-required`.
+The confirmed subset is still tracked as evidence, while the unconfirmed
+portion is composed under `남은 질문`. Before `--til-ready`, change it to
+`remaining-question` and link it to a matching TIL Composition item. A deferred
+row has `none` evidence and `not-required`.
 Do not classify an untouched source concept as missing.
 
 If any objective in a concept is delivered, that concept cannot remain
 `deferred`; use `uncertain` until matching learner evidence supports
-`confirmed`. The coach compares Concept Path, Current Position, learner evidence, the
-actual learning conversation, explicitly named self-study scope, and the draft.
-Tutor prose does not satisfy a confirmed row. After corrections, set the exact
-review timestamp, hash the current draft bytes, and record `저장 가능` only
-when every non-deferred concept is represented. Any later draft edit makes the
-review stale. `--til-ready` verifies this operational contract in addition to
-requiring a current independent lesson-contract pass and, for temporary
-external sources, the exact `관련 기록` provenance described above.
+`confirmed`. The coach compares Concept Path, Current Position, learner
+evidence, the actual learning conversation, and explicitly named self-study
+scope. Tutor prose does not satisfy a confirmed row. TIL Composition then maps
+every confirmed or uncertain taught concept into the dated-note structure.
+`--til-ready` verifies that mapping, the exact composed draft hash, the current
+independent lesson contract, and any required external provenance.
 
 ## Learner Evidence
 
 Each evidence block has a contiguous ID such as `E001` and these fields:
 
-- `concept`: a contract concept ID such as `C01`;
-- `objective_ids`: one or more comma-separated Objective IDs from that same
-  Concept. Every referenced Objective must already be `delivered`;
+- `concept_ids`: one or more comma-separated contract Concept IDs. An
+  integrated exit attempt may join several concepts in one evidence item;
+- `objective_ids`: one or more comma-separated Objective IDs whose Concept IDs
+  all occur in `concept_ids`. Every referenced Objective must already be
+  `delivered`;
 - `kind`: `explain_back`, `calculation`, `shape_prediction`,
   `code_interpretation`, `transfer`, or `limit`;
 - `provenance`: exactly `learner`;
@@ -693,7 +743,7 @@ Replace the content hash with the LF-normalized Learner Content body hash:
 <!-- learner-evidence:E001:start -->
 ### E001
 
-- concept: C01
+- concept_ids: C01
 - objective_ids: O001
 - kind: explain_back
 - provenance: learner
@@ -734,26 +784,90 @@ The helper writes this idempotency envelope to `til/today.md`:
 It writes the draft atomically before marking the evidence `drafted`. If a
 process stops between those writes, rerunning the helper finds and verifies the
 existing envelope, then repairs the handoff state without duplicating content.
-The save workflow removes only the envelope comments and preserves their body
-verbatim.
+The composition workflow consumes these raw envelopes; the final preflight no
+longer exposes them as dated-note prose automatically.
+
+## TIL Composition
+
+This section has these ordered fields:
+
+```text
+mode
+state
+review
+composed_at
+draft_sha256
+dated_til_path
+commit_sha
+```
+
+`mode` is `pending`, `handoff-generated`, or `mixed`; `state` is `pending`,
+`composed`, or `committed`; and `review` is `pending`, `not-required`, `pass`,
+or `repair_required`. A pending composition uses `pending` for every field and
+one all-`none` table row. A pure handoff composition uses
+`review: not-required`. Mixed manual or self-study prose uses one same-flow
+coach review and cannot finalize until `review: pass`.
+
+The item table has these columns:
+
+```text
+Item ID | Section | Evidence IDs | Representation | Content SHA-256
+```
+
+Item IDs are contiguous `D001`, `D002`, and so on. Section is `오늘의 학습`,
+`배운 점`, or `남은 질문`. Representation is `learning`,
+`changed-understanding`, or `remaining-question`:
+
+- `learning` cites confirmed learner evidence only;
+- `changed-understanding` cites at least one partial, misconception, or
+  unconfirmed attempt together with later confirmed evidence;
+- `remaining-question` cites unresolved evidence, or may cite no evidence only
+  in a reviewed mixed composition.
+
+Use the atomic composition helper with structured natural-language items:
+
+```bash
+python3 .agents/skills/save-today-til/scripts/compose_lesson_til.py \
+  tmp/active-lesson-handoff.md --spec <items.json>
+```
+
+It requires every confirmed evidence ID to appear, adds exact local or external
+source provenance plus the primary and actually delivered bridge target,
+writes internal `lesson-til-item` markers with body hashes, and seals the draft
+hash and dated path. It never turns tutor prose, a delivery record, or a green
+check into a learner claim. Pure composition may phrase and connect only what
+the cited evidence supports. A corrected earlier attempt is represented as
+changed understanding; an unresolved attempt remains a question.
+
+`--til-ready` checks the item table, marker bodies and hashes, evidence
+classifications, coverage, source and target provenance, current lesson review,
+and final Markdown structure. Any later byte change makes composition stale.
 
 ## Save preflight
 
-`$save-today-til` obtains its parsing input through the read-only preflight:
+After composition, `$save-today-til` obtains its final parsing input through:
 
 ```bash
 python3 .agents/skills/save-today-til/scripts/prepare_til_input.py <draft-path>
 ```
 
-- Canonical `til/today.md` plus `tmp/active-lesson-handoff.md` always requires
-  this handoff's `--til-ready` result, whether or not a marker is present.
-- After that gate passes, the preflight prints input with only validated
-  evidence envelope comments removed and learner content preserved.
+- Canonical `til/today.md` plus `tmp/active-lesson-handoff.md` requires this
+  handoff's `--til-ready` result.
+- After that gate passes, the preflight removes only validated internal
+  `lesson-til-item` comments. Its output is final: do not change its meaning or
+  sentences afterward.
 - Canonical input with a marker but no active handoff is invalid.
 - An explicitly named non-canonical draft is standalone. It may be printed
-  unchanged only when it has no lesson-evidence marker, and it never changes or
+  unchanged only when it has no internal lesson marker, and it never changes or
   deletes the active handoff.
 - Every failure leaves both draft and handoff byte-for-byte unchanged.
+
+`finalize_lesson_til.py` merges that output into the same date's canonical
+sections, deduplicates exact source and target provenance, validates the dated
+file, and commits only that path. It then records the commit SHA in the
+handoff. A hook or commit failure keeps the composed draft and handoff so a
+plain `계속` can retry. `auto-commit` runs this at session end;
+`explicit-request` returns `AWAIT_TIL_SAVE` until the learner asks.
 
 ## Validator results
 
@@ -775,5 +889,6 @@ Codes include `SCHEMA`, `PATH`, `SOURCE_MISSING`, `SOURCE_HASH`, `SOURCE_LOCATIO
 `TARGET_DECISION`, `EXTERNAL_IDENTITY`, `EXTERNAL_CACHE_MISSING`,
 `EXTERNAL_CACHE_IDENTITY`, `EXTERNAL_SOURCE_RELATION`, `REVIEW_STALE`,
 `REVIEW_NOT_PASS`, `OBJECTIVE_COVERAGE`, `EVIDENCE_STATE`,
-`ASSESSMENT_ALIGNMENT`, `DRAFT_MARKER`, `DRAFT_CONTENT`, `TIL_COVERAGE`, and
-`TIL_REVIEW_STALE`.
+`ASSESSMENT_ALIGNMENT`, `SESSION_DEPTH`, `SESSION_EXIT_EVIDENCE`,
+`DRAFT_MARKER`, `DRAFT_CONTENT`, `TIL_COVERAGE`, `TIL_COMPOSITION`, and
+`TIL_COMPOSITION_STALE`.

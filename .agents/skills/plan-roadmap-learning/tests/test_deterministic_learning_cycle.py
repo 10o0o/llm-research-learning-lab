@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 import sys
 from email.message import Message
 from pathlib import Path
@@ -11,17 +12,21 @@ SKILL = Path(__file__).resolve().parents[1]
 REPO = SKILL.parents[2]
 COACH = REPO / ".agents/skills/coach-llm-research-study"
 PRACTICE = REPO / ".agents/skills/suggest-learning-practice"
+SAVE = REPO / ".agents/skills/save-today-til"
 for path in (
     SKILL / "scripts",
     COACH / "scripts",
     COACH / "tests",
     PRACTICE / "scripts",
     PRACTICE / "tests",
+    SAVE / "scripts",
 ):
     sys.path.insert(0, str(path))
 
 from cache_external_source import cache_external_source  # noqa: E402
-from handoff_fixture import CONTRACT, build_handoff, draft_envelope, sha256  # noqa: E402
+from compose_lesson_til import compose_lesson_til  # noqa: E402
+from finalize_lesson_til import finalize_lesson_til  # noqa: E402
+from handoff_fixture import CONTRACT, build_handoff, draft_envelope  # noqa: E402
 from inspect_target_graph import inspect_target_graph  # noqa: E402
 from route_practice import route_practice  # noqa: E402
 import test_validate_practice_artifact as practice_fixture  # noqa: E402
@@ -163,6 +168,12 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
         "| 2 | `2B` | Post-training·Evaluation | `TR-EVAL-02` |\n",
         encoding="utf-8",
     )
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "config", "user.name", "Cycle Fixture"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "config", "user.email", "cycle@example.com"], cwd=tmp_path, check=True)
+    (tmp_path / ".gitignore").write_text("tmp/\ntil/today.md\npractice/\n", encoding="utf-8")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-qm", "cycle baseline"], cwd=tmp_path, check=True)
 
     states = _explicit_route_states(curriculum)
     initial_graph = inspect_target_graph(
@@ -196,23 +207,20 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
     learner_explanations = (
         "비교할 평가 질문과 그 질문에 맞는 dataset slice를 구분해 설명했다.",
         "선택한 metric이 숨길 수 있는 slice-level failure를 분류했다.",
+        "질문과 slice, metric의 한계를 함께 사용해 어떤 모델을 선택할지 전이해 설명했다.",
     )
     draft = tmp_path / "til/today.md"
     draft.parent.mkdir(parents=True)
     draft.write_text(
-        "# 오늘의 학습\n\n"
-        + draft_envelope(
+        draft_envelope(
             "deterministic-evaluation-cycle", "E001", learner_explanations[0]
         )
-        + "\n"
         + draft_envelope(
             "deterministic-evaluation-cycle", "E002", learner_explanations[1]
         )
-        + "\n## 관련 기록\n\n"
-        + f"- [공식 자료]({OFFICIAL_URL})\n"
-        + "- offering/edition: 2026 offering\n"
-        + "- scope: evaluation-data exercise\n"
-        + f"- 관련 역량: `{primary_target}`\n",
+        + draft_envelope(
+            "deterministic-evaluation-cycle", "E003", learner_explanations[2]
+        ),
         encoding="utf-8",
     )
     contract = _external_contract(receipt["path"], receipt["receipt_path"])
@@ -259,22 +267,29 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
     handoff, _ = build_handoff(
         tmp_path,
         contract=contract,
-        status="paused",
+        status="completed",
         reviews=[
             ("repair_required", "deterministic-slice-reviewer"),
             ("pass", "deterministic-slice-reviewer"),
         ],
         evidence=[
             {
-                "concept": "C01",
+                "concept_ids": "C01",
                 "objective_ids": "O001",
                 "content": learner_explanations[0],
                 "append_state": "drafted",
             },
             {
-                "concept": "C02",
+                "concept_ids": "C02",
                 "objective_ids": "O002",
                 "content": learner_explanations[1],
+                "append_state": "drafted",
+            },
+            {
+                "concept_ids": "C01, C02, C03",
+                "objective_ids": "O001, O002, O003",
+                "kind": "transfer",
+                "content": learner_explanations[2],
                 "append_state": "drafted",
             },
         ],
@@ -299,15 +314,12 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
             },
             {
                 "concept": "C03",
-                "state": "deferred",
-                "evidence_ids": "none",
-                "representation": "not-required",
-                "note": "Optional connection was not taught.",
+                "state": "confirmed",
+                "evidence_ids": "E003",
+                "representation": "learning",
+                "note": "The integrated transfer demonstrates the model-comparison connection.",
             },
         ],
-        pre_save_verdict="저장 가능",
-        reviewed_at="2026-08-27T02:00:00Z",
-        reviewed_draft_sha256=sha256(draft.read_bytes()),
         delivery=[
             {
                 "objective": "O001",
@@ -323,19 +335,54 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
             },
             {
                 "objective": "O003",
-                "state": "pending",
-                "mode": "none",
-                "note": "Optional connection was not taught.",
+                "state": "delivered",
+                "mode": "full",
+                "note": "The final transfer connection was delivered.",
             },
         ],
     )
-    ready = validate_handoff(handoff, repo_root=tmp_path, ready=True)
-    assert ready.ok, ready.errors
-    assert ready.document is not None
-    assert ready.document.target_decision.primary_target == primary_target
-    assert ready.document.target_decision.endpoint == "TR-EVAL-02"
+    compose_lesson_til(
+        handoff,
+        [
+            {
+                "section": "오늘의 학습",
+                "evidence_ids": ["E001"],
+                "representation": "learning",
+                "text": learner_explanations[0],
+            },
+            {
+                "section": "배운 점",
+                "evidence_ids": ["E002"],
+                "representation": "learning",
+                "text": learner_explanations[1],
+            },
+            {
+                "section": "배운 점",
+                "evidence_ids": ["E003"],
+                "representation": "learning",
+                "text": learner_explanations[2],
+            },
+        ],
+        repo_root=tmp_path,
+        composed_at="2026-08-27T02:00:00Z",
+    )
+    completed = validate_handoff(handoff, repo_root=tmp_path)
+    assert completed.ok, completed.errors
+    assert completed.document is not None
+    assert completed.document.target_decision.primary_target == primary_target
+    assert completed.document.target_decision.endpoint == "TR-EVAL-02"
     til_ready = validate_handoff(handoff, repo_root=tmp_path, til_ready=True)
     assert til_ready.ok, til_ready.errors
+    finalized = finalize_lesson_til(handoff, repo_root=tmp_path)
+    assert finalized["dated_til_path"] == "til/2026/08/2026-08-20.md"
+    committed_paths = subprocess.run(
+        ["git", "show", "--pretty=format:", "--name-only", "HEAD"],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        check=True,
+    ).stdout.splitlines()
+    assert committed_paths == ["til/2026/08/2026-08-20.md"]
 
     practice_decision = route_practice("evaluation-data")
     assert (

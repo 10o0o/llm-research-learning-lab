@@ -20,8 +20,10 @@ SKILL = Path(__file__).resolve().parents[1]
 REPO = SKILL.parents[2]
 sys.path.insert(0, str(SKILL / "scripts"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(REPO / ".agents/skills/save-today-til/scripts"))
 
 from handoff_fixture import CONTRACT, build_handoff, draft_envelope, sha256  # noqa: E402
+from compose_lesson_til import compose_lesson_til  # noqa: E402
 import validate_lesson_handoff as handoff_validator  # noqa: E402
 from validate_lesson_handoff import (  # noqa: E402
     ValidationReport,
@@ -31,6 +33,7 @@ from validate_lesson_handoff import (  # noqa: E402
     can_mechanically_rebuild_same_lesson,
     validate_handoff,
 )
+from migrate_completed_v7_handoff import migrate_completed_v7_handoff  # noqa: E402
 
 
 class LessonHandoffValidatorTests(unittest.TestCase):
@@ -40,6 +43,26 @@ class LessonHandoffValidatorTests(unittest.TestCase):
     def assert_code(self, report, code: str) -> None:
         self.assertIn(code, {error.code for error in report.errors}, report.errors)
 
+    def short_three_step_contract(self) -> str:
+        contract = re.sub(
+            r"\n#### T004\n.*?(?=\n### Deferred)",
+            "\n",
+            CONTRACT,
+            count=1,
+            flags=re.DOTALL,
+        )
+        contract = re.sub(r"(?m)^\| X004 \|.*\n", "", contract, count=1)
+        contract = contract.replace("- exit_step: T005", "- exit_step: T003")
+        contract = contract.replace(
+            "#### T002\n\n- step_role: concept-model\n- concept_ids: C01\n- objective_ids: O001\n- example_id: X001",
+            "#### T002\n\n- step_role: contrast-limit\n- concept_ids: C02\n- objective_ids: O002\n- example_id: X002",
+        )
+        contract = contract.replace(
+            "#### T003\n\n- step_role: worked-example\n- concept_ids: C02\n- objective_ids: O002\n- example_id: X002",
+            "#### T003\n\n- step_role: synthesis-transfer\n- concept_ids: C03\n- objective_ids: O003\n- example_id: X003",
+        )
+        return contract
+
     def build_til_ready_handoff(
         self,
         root: Path,
@@ -47,20 +70,24 @@ class LessonHandoffValidatorTests(unittest.TestCase):
         provenance: str = "- 관련 역량: `CC-DL-01`",
     ) -> Path:
         content = "배치 축과 특성 축을 구분해 결과 shape를 설명했다."
+        question = "Broadcasting에서 오른쪽 축부터 비교하는 이유는 무엇인가?"
         draft = root / "til/today.md"
         draft.parent.mkdir(parents=True, exist_ok=True)
-        draft.write_text(
-            "# 오늘의 학습\n\n"
-            + draft_envelope("tensor-shape-lesson", "E001", content)
-            + "\n\n## 남은 질문\n\nBroadcasting에서 오른쪽 축부터 비교하는 이유는 무엇인가?\n"
-            + (f"\n## 관련 기록\n\n{provenance}\n" if provenance else ""),
-            encoding="utf-8",
-        )
+        draft.write_text(draft_envelope("tensor-shape-lesson", "E001", content), encoding="utf-8")
         handoff, _ = build_handoff(
             root,
             status="paused",
             reviews=[("pass", "fresh-reviewer")],
-            evidence=[{"concept": "C01", "content": content, "append_state": "drafted"}],
+            evidence=[
+                {"concept_ids": "C01", "content": content, "append_state": "drafted"},
+                {
+                    "concept_ids": "C02",
+                    "objective_ids": "O002",
+                    "content": question,
+                    "verdict": "unconfirmed",
+                    "append_state": "not_eligible",
+                },
+            ],
             coverage=[
                 {
                     "concept": "C01",
@@ -72,9 +99,9 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 {
                     "concept": "C02",
                     "state": "uncertain",
-                    "evidence_ids": "none",
+                    "evidence_ids": "E002",
                     "representation": "remaining-question",
-                    "note": "draft-anchor: Broadcasting에서 오른쪽 축부터 비교하는 이유는 무엇인가?",
+                    "note": "The unresolved learner question is represented explicitly.",
                 },
                 {
                     "concept": "C03",
@@ -84,15 +111,49 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                     "note": "Not taught today.",
                 },
             ],
-            pre_save_verdict="저장 가능",
-            reviewed_at="2026-08-20T02:00:00Z",
-            reviewed_draft_sha256=sha256(draft.read_bytes()),
             delivery=[
                 {"objective": "O001", "state": "delivered", "mode": "full", "note": "Axis meaning was taught."},
                 {"objective": "O002", "state": "delivered", "mode": "full", "note": "Broadcasting was taught."},
                 {"objective": "O003", "state": "pending", "mode": "none", "note": "Not taught today."},
             ],
         )
+        compose_lesson_til(
+            handoff,
+            [
+                {
+                    "section": "오늘의 학습",
+                    "evidence_ids": ["E001"],
+                    "representation": "learning",
+                    "text": content,
+                },
+                {
+                    "section": "남은 질문",
+                    "evidence_ids": ["E002"],
+                    "representation": "remaining-question",
+                    "text": question,
+                },
+            ],
+            repo_root=root,
+            composed_at="2026-08-20T02:00:00Z",
+        )
+        expected = "- 관련 역량: `CC-DL-01`"
+        if provenance != expected:
+            draft_text = draft.read_text(encoding="utf-8")
+            if provenance:
+                draft_text = draft_text.replace(expected, provenance)
+            else:
+                draft_text = draft_text.replace(expected + "\n", "")
+            draft.write_text(draft_text, encoding="utf-8")
+            handoff_text = handoff.read_text(encoding="utf-8")
+            handoff.write_text(
+                re.sub(
+                    r"(?m)^- draft_sha256: [0-9a-f]{64}$",
+                    f"- draft_sha256: {sha256(draft.read_bytes())}",
+                    handoff_text,
+                    count=1,
+                ),
+                encoding="utf-8",
+            )
         return handoff
 
     def build_focused_private_handoff(self, root: Path) -> Path:
@@ -543,12 +604,12 @@ class LessonHandoffValidatorTests(unittest.TestCase):
 
     def test_til_ready_accepts_objective_complete_concept_evidence(self) -> None:
         contract = CONTRACT.replace(
-            "| C02 | full | Compare aligned dimensions from the right. | none |",
-            "| C01 | full | Compare aligned dimensions from the right. | none |",
-        ).replace(
             "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | full | Map one small tensor to an attention input. | none |",
             "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | full | Map one small tensor to an attention input. | none |\n"
             "| O004 | source-core | none | materials/lesson.md#shape-propagation | Distinguish aligned and expanded axes. | C02 | full | Label each aligned axis before broadcasting. | none |",
+        ).replace(
+            "| O002 | source-core | none | materials/lesson.md#shape-propagation | Predict the output shape of a broadcast operation. | C02 |",
+            "| O002 | source-core | none | materials/lesson.md#shape-propagation | Predict the output shape of a broadcast operation. | C01 |",
         ).replace(
             "| source-only | O001, O002 |",
             "| source-only | O001, O002, O004 |",
@@ -556,11 +617,20 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             "| I001 | D001, D002, D003 | O001, O002 |",
             "| I001 | D001, D002, D003 | O001, O002, O004 |",
         ).replace(
-            "- objective_ids: O001\n- delivery_outline:",
-            "- objective_ids: O001, O002\n- delivery_outline:",
+            "#### T003\n\n- step_role: worked-example\n- concept_ids: C02\n- objective_ids: O002",
+            "#### T003\n\n- step_role: worked-example\n- concept_ids: C01\n- objective_ids: O002",
         ).replace(
-            "- objective_ids: O002\n- delivery_outline:",
-            "- objective_ids: O004\n- delivery_outline:",
+            "- objective_ids: O002, O003\n- example_id: X003",
+            "- objective_ids: O004, O003\n- example_id: X003",
+        ).replace(
+            "- objective_ids: O001, O002, O003\n- example_id: X004",
+            "- objective_ids: O001, O002, O003, O004\n- example_id: X004",
+        ).replace(
+            "| X003 | Contrast valid and invalid alignment | A compatible pair and one mismatched pair of tensor shapes. | O002, O003 |",
+            "| X003 | Contrast valid and invalid alignment | A compatible pair and one mismatched pair of tensor shapes. | O002, O003, O004 |",
+        ).replace(
+            "| X004 | Transfer the axis contract | One batch by token by hidden attention input. | O001, O002, O003 |",
+            "| X004 | Transfer the axis contract | One batch by token by hidden attention input. | O001, O002, O003, O004 |",
         )
         first = "배치 축과 특성 축을 구분했다."
         second = "브로드캐스팅 결과 shape를 오른쪽 축부터 설명했다."
@@ -569,11 +639,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             draft = root / "til/today.md"
             draft.parent.mkdir(parents=True)
             draft.write_text(
-                "# 오늘의 학습\n\n"
-                + draft_envelope("tensor-shape-lesson", "E001", first)
-                + "\n"
-                + draft_envelope("tensor-shape-lesson", "E002", second)
-                + "\n\n## 관련 기록\n\n- 관련 역량: `CC-DL-01`\n",
+                draft_envelope("tensor-shape-lesson", "E001", first)
+                + draft_envelope("tensor-shape-lesson", "E002", second),
                 encoding="utf-8",
             )
             handoff, _ = build_handoff(
@@ -590,15 +657,25 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                     {"concept": "C02", "state": "deferred", "evidence_ids": "none", "representation": "not-required", "note": "No objective was taught."},
                     {"concept": "C03", "state": "deferred", "evidence_ids": "none", "representation": "not-required", "note": "Not taught today."},
                 ],
-                pre_save_verdict="저장 가능",
-                reviewed_at="2026-08-20T02:00:00Z",
-                reviewed_draft_sha256=sha256(draft.read_bytes()),
                 delivery=[
                     {"objective": "O001", "state": "delivered", "mode": "full", "note": "Axis meaning was taught."},
                     {"objective": "O002", "state": "delivered", "mode": "full", "note": "Broadcasting was taught."},
                     {"objective": "O003", "state": "pending", "mode": "none", "note": "Not taught today."},
                     {"objective": "O004", "state": "pending", "mode": "none", "note": "Not taught today."},
                 ],
+            )
+            compose_lesson_til(
+                handoff,
+                [
+                    {
+                        "section": "오늘의 학습",
+                        "evidence_ids": ["E001", "E002"],
+                        "representation": "learning",
+                        "text": first + " " + second,
+                    }
+                ],
+                repo_root=root,
+                composed_at="2026-08-20T02:00:00Z",
             )
             report = validate_handoff(handoff, repo_root=root, til_ready=True)
             self.assertTrue(report.ok, report.errors)
@@ -617,8 +694,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
 
             handoff = self.build_til_ready_handoff(root)
             text = handoff.read_text(encoding="utf-8").replace(
-                "| C02 | uncertain | none | remaining-question |",
-                "| C02 | uncertain | none | missing |",
+                "| C02 | uncertain | E002 | remaining-question |",
+                "| C02 | uncertain | E002 | missing |",
             )
             handoff.write_text(text, encoding="utf-8")
             report = validate_handoff(handoff, repo_root=root, til_ready=True)
@@ -629,27 +706,41 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             root = Path(directory)
             handoff = self.build_til_ready_handoff(root)
             draft = root / "til/today.md"
-            draft.write_text(
-                draft.read_text(encoding="utf-8").split("\n\n## 남은 질문", 1)[0] + "\n",
-                encoding="utf-8",
+            text = draft.read_text(encoding="utf-8")
+            text = re.sub(
+                r"\n\n## 남은 질문\n\n<!-- lesson-til-item:.*?<!-- /lesson-til-item:.*? -->",
+                "",
+                text,
+                count=1,
+                flags=re.DOTALL,
             )
+            draft.write_text(text, encoding="utf-8")
             handoff_text = handoff.read_text(encoding="utf-8")
-            old_hash = re.search(r"- reviewed_draft_sha256: ([0-9a-f]{64})", handoff_text)
-            self.assertIsNotNone(old_hash)
+            handoff_text = re.sub(
+                r"(?m)^\| D002 \| 남은 질문 \|.*\n",
+                "",
+                handoff_text,
+                count=1,
+            )
             handoff.write_text(
-                handoff_text.replace(old_hash.group(1), sha256(draft.read_bytes()), 1),
+                re.sub(
+                    r"(?m)^- draft_sha256: [0-9a-f]{64}$",
+                    f"- draft_sha256: {sha256(draft.read_bytes())}",
+                    handoff_text,
+                    count=1,
+                ),
                 encoding="utf-8",
             )
             report = validate_handoff(handoff, repo_root=root, til_ready=True)
             self.assert_code(report, "TIL_COVERAGE")
 
-    def test_til_ready_rejects_uncertain_anchor_missing_from_question(self) -> None:
+    def test_til_ready_rejects_uncertain_item_without_its_evidence(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
             handoff = self.build_til_ready_handoff(root)
             text = handoff.read_text(encoding="utf-8").replace(
-                "draft-anchor: Broadcasting에서 오른쪽 축부터 비교하는 이유는 무엇인가?",
-                "draft-anchor: 초안에 없는 질문",
+                "| D002 | 남은 질문 | E002 | remaining-question |",
+                "| D002 | 남은 질문 | E001 | remaining-question |",
             )
             handoff.write_text(text, encoding="utf-8")
             report = validate_handoff(handoff, repo_root=root, til_ready=True)
@@ -663,21 +754,23 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             self.assertTrue(report.ok, report.errors)
             self.assertEqual(report.document.learning_coverage["C03"].til_representation, "not-required")
 
-    def test_til_ready_rejects_stale_draft_and_missing_contract_review(self) -> None:
+    def test_til_ready_rejects_stale_composition_and_missing_contract_review(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
             handoff = self.build_til_ready_handoff(root)
             with (root / "til/today.md").open("a", encoding="utf-8") as stream:
-                stream.write("\nchanged after review\n")
+                stream.write("\nchanged after composition\n")
             report = validate_handoff(handoff, repo_root=root, til_ready=True)
-            self.assert_code(report, "TIL_REVIEW_STALE")
+            self.assert_code(report, "TIL_COMPOSITION_STALE")
 
-            handoff, _ = build_handoff(
-                root,
-                status="paused",
-                pre_save_verdict="저장 가능",
-                reviewed_at="2026-08-20T02:00:00Z",
-                reviewed_draft_sha256=sha256((root / "til/today.md").read_bytes()),
+            handoff = self.build_til_ready_handoff(root)
+            handoff.write_text(
+                handoff.read_text(encoding="utf-8").replace(
+                    "- verdict: pass",
+                    "- verdict: pending",
+                    1,
+                ),
+                encoding="utf-8",
             )
             report = validate_handoff(handoff, repo_root=root, til_ready=True)
             self.assert_code(report, "REVIEW_NOT_PASS")
@@ -744,7 +837,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             self.assertTrue(validate_handoff(handoff, repo_root=root).ok)
             self.assert_code(validate_handoff(handoff, repo_root=root, ready=True), "REVIEW_NOT_PASS")
             report = validate_handoff(handoff, repo_root=root)
-            self.assertEqual(report.as_json()["workflow_action"], "SHRINK_TO_MICRO_SLICE")
+            self.assertEqual(report.as_json()["workflow_action"], "REPAIR_CONTRACT")
 
     def test_reviewer_unavailability_cannot_be_recorded_as_a_semantic_blocker(self) -> None:
         with self.make_root() as directory:
@@ -1127,14 +1220,14 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             handoff.write_text(text, encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "EVIDENCE_STATE")
 
-    def test_schema_v6_and_earlier_are_rejected_with_rebuild_error(self) -> None:
-        for old_version in ("6", "5", "4"):
+    def test_schema_v7_and_earlier_are_rejected_with_rebuild_error(self) -> None:
+        for old_version in ("7", "6", "5", "4"):
             with self.subTest(old_version=old_version), self.make_root() as directory:
                 root = Path(directory)
                 handoff, _ = build_handoff(root)
                 handoff.write_text(
                     handoff.read_text(encoding="utf-8").replace(
-                        "- schema_version: 7", f"- schema_version: {old_version}"
+                        "- schema_version: 8", f"- schema_version: {old_version}"
                     ),
                     encoding="utf-8",
                 )
@@ -1145,6 +1238,152 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                         "rebuild older handoffs" in error.message
                         for error in report.errors
                     )
+                )
+
+    def test_standard_rejects_three_step_micro_but_short_accepts_it(self) -> None:
+        contract = self.short_three_step_contract()
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff, _ = build_handoff(root, contract=contract, session_profile="standard")
+            self.assert_code(validate_handoff(handoff, repo_root=root), "SESSION_DEPTH")
+
+            handoff, _ = build_handoff(root, contract=contract, session_profile="short")
+            report = validate_handoff(handoff, repo_root=root)
+            self.assertTrue(report.ok, report.errors)
+
+    def test_standard_requires_two_distinct_example_fixtures(self) -> None:
+        duplicated_fixture = "A 2 by 3 matrix with row and feature labels."
+        contract = re.sub(
+            r"(?m)^(\| X00[2-4] \| [^|]+ \| )[^|]+(?= \| O)",
+            rf"\g<1>{duplicated_fixture}",
+            CONTRACT,
+        )
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff, _ = build_handoff(root, contract=contract)
+            self.assert_code(validate_handoff(handoff, repo_root=root), "SESSION_DEPTH")
+
+    def test_completed_standard_requires_integrated_exit_attempt(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff, _ = build_handoff(root, status="completed", reviews=[("pass", "fresh-reviewer")])
+            report = validate_handoff(handoff, repo_root=root)
+            self.assertTrue(report.ok, report.errors)
+            self.assertEqual(report.document.evidence["E001"].values["concept_ids"], "C01, C02, C03")
+
+            handoff.write_text(
+                handoff.read_text(encoding="utf-8").replace("- kind: transfer", "- kind: explain_back", 1),
+                encoding="utf-8",
+            )
+            self.assert_code(validate_handoff(handoff, repo_root=root), "SESSION_EXIT_EVIDENCE")
+
+    def test_completed_v7_recovery_preserves_every_learner_content_byte(self) -> None:
+        contract = self.short_three_step_contract()
+        answers = (
+            "첫 번째 개념을 내 말로 설명했다.",
+            "두 번째 개념의 한계를 구분했다.",
+            "세 번째 개념을 새 예시에 전이했다.",
+        )
+        with self.make_root() as directory:
+            root = Path(directory)
+            draft = root / "til/today.md"
+            draft.parent.mkdir(parents=True)
+            draft.write_text(
+                "".join(
+                    draft_envelope("recovery-fixture", f"E{index:03d}", answer)
+                    for index, answer in enumerate(answers, start=1)
+                ),
+                encoding="utf-8",
+            )
+            handoff, _ = build_handoff(
+                root,
+                contract=contract,
+                lesson_id="recovery-fixture",
+                session_profile="short",
+                status="completed",
+                reviews=[("pass", "fresh-reviewer")],
+                evidence=[
+                    {"concept_ids": "C01", "objective_ids": "O001", "content": answers[0], "append_state": "drafted"},
+                    {"concept_ids": "C02", "objective_ids": "O002", "content": answers[1], "append_state": "drafted"},
+                    {"concept_ids": "C03", "objective_ids": "O003", "kind": "transfer", "content": answers[2], "append_state": "drafted"},
+                ],
+                coverage=[
+                    {"concept": "C01", "state": "confirmed", "evidence_ids": "E001", "representation": "learning", "note": "Preserved evidence."},
+                    {"concept": "C02", "state": "confirmed", "evidence_ids": "E002", "representation": "learning", "note": "Preserved evidence."},
+                    {"concept": "C03", "state": "confirmed", "evidence_ids": "E003", "representation": "learning", "note": "Preserved evidence."},
+                ],
+            )
+            self.assertTrue(validate_handoff(handoff, repo_root=root).ok)
+            text = handoff.read_text(encoding="utf-8")
+            old_contract = re.search(
+                r"(?ms)^<!-- lesson-contract:start -->\n(.*?)\n<!-- lesson-contract:end -->$",
+                text,
+            ).group(1)
+            v7_contract = re.sub(
+                r"(?ms)^### Session Plan\n.*?(?=^### Prepared Teaching Steps$)",
+                "",
+                old_contract,
+                count=1,
+            )
+            v7_contract = re.sub(r"(?m)^- step_role: .+\n", "", v7_contract)
+            v7_contract = re.sub(r"(?m)^- concept_ids: ", "- concept_id: ", v7_contract)
+            v7_contract = re.sub(r"(?m)^- example_id: .+\n", "", v7_contract)
+            v7_hash = sha256(v7_contract)
+            text = text.replace(old_contract, v7_contract, 1)
+            text = text.replace("- schema_version: 8", "- schema_version: 7", 1)
+            text = re.sub(r"(?m)^- session_profile: .+\n- til_finalize_policy: .+\n", "", text, count=1)
+            text = re.sub(
+                r"(?ms)^## Teaching Step Delivery\n.*?(?=^## Daily Learning Coverage$)",
+                "",
+                text,
+                count=1,
+            )
+            text = text.replace(
+                "## Daily Learning Coverage\n\n",
+                "## Daily Learning Coverage\n\n"
+                "- pre_save_verdict: 저장 가능\n"
+                "- reviewed_at: 2026-08-20T02:00:00Z\n"
+                f"- reviewed_draft_sha256: {sha256(draft.read_bytes())}\n\n",
+                1,
+            )
+            text = text.replace("- concept_ids: ", "- concept: ")
+            text = re.sub(r"(?ms)\n## TIL Composition\n.*\Z", "\n", text, count=1)
+            text = re.sub(r"(?m)^- contract_sha256: [0-9a-f]{64}$", f"- contract_sha256: {v7_hash}", text, count=1)
+            text = re.sub(r"(?m)^- reviewed_contract_sha256: [0-9a-f]{64}$", f"- reviewed_contract_sha256: {v7_hash}", text, count=1)
+            handoff.write_text(text, encoding="utf-8")
+            before = tuple(
+                match.group(1).encode("utf-8")
+                for match in re.finditer(
+                    r"(?ms)^<!-- learner-content:start -->\n(.*?)\n<!-- learner-content:end -->$",
+                    text,
+                )
+            )
+
+            migrate_completed_v7_handoff(
+                handoff,
+                repo_root=root,
+                expected_lesson_id="recovery-fixture",
+                updated_at="2026-08-20T03:00:00Z",
+                require_stat110_boundary=False,
+            )
+            report = validate_handoff(handoff, repo_root=root)
+            self.assertTrue(report.ok, report.errors)
+            self.assertEqual(report.document.metadata["session_profile"], "short")
+            self.assertEqual(report.as_json()["workflow_action"], "COMPOSE_TIL")
+            after = tuple(
+                match.group(1).encode("utf-8")
+                for match in re.finditer(
+                    r"(?ms)^<!-- learner-content:start -->\n(.*?)\n<!-- learner-content:end -->$",
+                    handoff.read_text(encoding="utf-8"),
+                )
+            )
+            self.assertEqual(after, before)
+            with self.assertRaisesRegex(Exception, "completed.*v7"):
+                migrate_completed_v7_handoff(
+                    handoff,
+                    repo_root=root,
+                    expected_lesson_id="recovery-fixture",
+                    require_stat110_boundary=False,
                 )
 
     def test_source_coverage_requires_every_primary_in_manifest_order(self) -> None:
@@ -1406,11 +1645,13 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             text = handoff.read_text(encoding="utf-8")
             start_one = text.index("#### T001")
             start_two = text.index("#### T002")
-            start_three = text.index("#### T003")
             block_one = text[start_one:start_two]
-            block_two = text[start_two:start_three]
-            swapped = block_two.replace("#### T002", "#### T001", 1) + block_one.replace("#### T001", "#### T002", 1)
-            text = text[:start_one] + swapped + text[start_three:]
+            reordered = (
+                block_one.replace("- concept_ids: C01", "- concept_ids: C02")
+                .replace("- objective_ids: O001", "- objective_ids: O002")
+                .replace("- example_id: X001", "- example_id: X002")
+            )
+            text = text[:start_one] + reordered + text[start_two:]
             text = text.replace("- target_objectives: O001", "- target_objectives: O002")
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
             report = validate_handoff(handoff, repo_root=root)

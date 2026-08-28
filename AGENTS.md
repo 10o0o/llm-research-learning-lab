@@ -22,10 +22,10 @@ The normal flow is:
 select one primary Curriculum target and, only when needed, one bridge target
 -> resolve an audited local source or one reviewed temporary official source
 -> prepare and independently review one temporary lesson handoff
--> teach at the learner's level -> append only confirmed learner answers to til/today.md
--> review the draft for every core concept actually studied today
--> resolve or mark important uncertainty -> finalize a dated TIL
--> choose the practice action and modality for that target and exact TIL
+-> run the standard deep-session arc -> classify learner evidence
+-> compose a natural TIL; review only mixed manual or standalone content
+-> final-preflight and path-limit commit the dated TIL
+-> only in the explicit full flow, choose practice for that exact TIL
 -> implement, execute, diagnose, and interpret the required evidence
 -> update only understanding supported by learner-authored evidence
 -> recompute the next target from the new evidence
@@ -48,9 +48,9 @@ is required.
   learner-evidence document. Its only normative schema and lifecycle are in
   [the coach handoff contract](./.agents/skills/coach-llm-research-study/references/lesson-handoff.md).
 - Preserve the top-level invariant: the coach owns source audit, contract
-  preparation, independent review, and TIL completeness; teaching and
-  canonical saving may consume the handoff only after their respective
-  validator gates pass.
+  preparation, independent review, and evidence classification; teaching
+  consumes the reviewed handoff, then saving composes the TIL before its final
+  validator gate. Never require TIL readiness before the composition exists.
 - During a multi-source curriculum audit, `tmp/curriculum-audit/` may hold disposable per-source recovery notes. Delete them after reviewed findings are integrated into `CURRICULUM.md`; they are not learner evidence or progress records.
 - Do not relocate, delete, or rewrite existing `archive/` notes in bulk.
 - Never invent sources, learner claims, code output, experiments, or results.
@@ -68,7 +68,7 @@ is required.
 
 - Use `$plan-roadmap-learning` first when the learner asks what to study next or requests a source for an unresolved target. It keeps the ordered ROADMAP endpoint as the long-term destination, chooses exactly one actual primary target, and may add one mostly satisfied inline bridge before resolving sources. A blocking prerequisite becomes the primary target, never a bridge. Source availability affects executability after selection, not target priority. The planner remains read-only. The agent selects an exact official URL when needed; the cache helper only retrieves that supplied URL and never performs discovery or background learning.
 - Keep source and understanding evaluation in `$coach-llm-research-study`, adaptive teaching in `$teach-course-material`, hands-on decisions in `$suggest-learning-practice`, and durable concept writing in `$update-learning-knowledge`.
-- For source registration, replacement, or `full-source` teaching, read the complete source. For a `focused` lesson, read and review the exact registered or ephemeral slice, its declared boundary context, direct assets, and relevant INDEX/Curriculum/ROADMAP rows; unrelated chapters, appendices, goals, and index entries are outside that lesson's completeness gate. In either mode, inspect relevant `knowledge/` and learner-authored evidence, reorder concepts for understanding, and teach a meaningful chunk. Check understanding only at a knowledge or skill boundary where the answer changes the next teaching move.
+- For source registration, replacement, or `full-source` teaching, read the complete source. For a `focused` lesson, read and review the exact registered or ephemeral slice, its declared boundary context, direct assets, and relevant INDEX/Curriculum/ROADMAP rows; unrelated chapters, appendices, goals, and index entries are outside that lesson's completeness gate. The source slice bounds review cost, not lesson length. Unless the learner explicitly requests `short` or `custom`, run a `standard` session with three to five connected concepts, motivation, concept model, a worked example, a distinct limitation or counterexample, and a final learner-attempted transfer combining at least two concepts. A fast answer may compress explanation, but cannot skip an arc role.
 - Before first using an essential concept, check for demonstrated understanding in the current conversation, relevant `knowledge/`, learner-authored TIL, and interpreted practice. Treat missing evidence as unconfirmed understanding even when the source introduces the concept; archived notes and tutor-authored prose may provide context but do not establish mastery on their own.
 - Teach an unconfirmed essential concept before building on it, starting from the problem it solves and a tiny example. Mark it `[선수개념]` when it appears in the source or is required to follow the source, reserve `[보충]` for useful material outside the source, and use `[정정]` for substantive source corrections.
 - When deepening an existing knowledge note, treat it as the learner's starting explanation rather than as an authoritative source; follow its related source when available and verify material claims as needed.
@@ -83,15 +83,14 @@ is required.
 - For difficult topics, connect intuition, a small example, formulas and shapes, code, and actual ML/LLM use.
 - In user-facing tutoring and audit responses, treat inline LaTeX as unsupported. Use inline code for short symbols such as `q_i`, `d_k`, and `QK^T`; put typeset formulas in standalone `$$` blocks with blank lines around them and the delimiters on lines by themselves. Never put LaTeX in a heading, table, bullet label, or ordinary sentence, and scan for single-dollar math delimiters before sending.
 - Do not treat tutor-generated explanations as proof of learner knowledge. Update `knowledge/` only when explicitly requested and supported by the learner's own explanation, calculation, answer, or interpreted result.
-- Before finalizing a TIL, reconstruct today's actual learning scope from the
-  canonical handoff when present, learner evidence, the current conversation,
-  explicitly named self-study scope, and the draft. Exclude non-assessed
-  guidance and distinguish factual errors, learner uncertainty, missing studied
-  concepts, optional enrichment, and tutor-supplied explanations.
+- Before composing a TIL, reconstruct today's actual learning scope from the
+  canonical handoff, learner evidence, and explicitly named self-study scope.
+  Exclude non-assessed guidance and distinguish confirmed learning, changed
+  understanding, unresolved questions, optional enrichment, and tutor prose.
 - Do not require untouched parts of the lecture. Require every core concept actually studied today to appear either as confirmed learning under `오늘의 학습` or `배운 점`, or as unresolved uncertainty under `남은 질문`. Deferred source content is not a TIL omission.
-- Give a pre-save verdict of `저장 가능`, `수정 후 저장`, or `추가 확인 후 저장`. Resolve one important misconception at a time with `$teach-course-material`; update the draft only after the learner demonstrates or explicitly confirms the corrected understanding. An unresolved point may instead remain clearly labeled as uncertainty.
-- Treat `$save-today-til` as a formatter and filer, not a factual reviewer. In the normal daily flow, run the pre-save review first. If the current conversation still has unresolved blocking findings, do not finalize them as factual claims unless the user explicitly chooses to preserve them as uncertainty.
-- After review, distinguish what the learner demonstrated from what the tutor merely corrected. Use only the former as evidence for practice and knowledge decisions.
+- For pure v8 handoff-generated content, compose technical claims only from classified learner evidence and use `review: not-required`; do not create a redundant coach-review conversation. For mixed manual or standalone content, perform one coach semantic review inside the same save request. Keep unresolved points as uncertainty and stop only for a genuine learner decision.
+- Run the TIL-readiness gate after composition, then make no semantic or sentence edits to its preflight output. Under the default `auto-commit` policy, merge and commit only the dated TIL. Preserve the draft and handoff on any failure so `계속` resumes finalization.
+- Distinguish what the learner demonstrated from what the tutor merely corrected. Use only the former as evidence for practice and knowledge decisions.
 - Keep hands-on work separate from lesson evaluation. `$suggest-learning-practice` requires one explicitly named, validated `til/YYYY/MM/YYYY-MM-DD.md`; never infer the latest note or accept `til/today.md` or the legacy root draft. Follow its exact source links and stop rather than guessing when a source-based TIL has no resolvable material.
 - `$suggest-learning-practice` first returns one practice action and modality.
   Local `NOTEBOOK`, `BENCHMARK`, and `DATASET_PROJECT` modes share exactly one
@@ -111,8 +110,8 @@ is required.
 - Only an explicit request to proceed with the **full learning flow** authorizes
   one complete cycle in the current conversation: select the target and exact
   artifact; cache a public official source when allowed; run the reviewed
-  lesson and append confirmed learner answers; after `저장 가능`, finalize and
-  path-limit commit the exact dated TIL; immediately create one unexecuted local
+  lesson and classify learner answers; compose, final-preflight, and path-limit
+  commit the exact dated TIL; immediately create one unexecuted local
   practice artifact without committing it; after the learner personally
   implements, executes, interprets, and passes `--completion-ready`, commit only
   that practice path as `practice: complete <artifact-stem>`; update and
@@ -122,8 +121,9 @@ is required.
 - The full-flow authorization never permits the agent to supply learner answers
   or perform learner-owned practice. It also excludes permanent source
   registration, paid or authenticated downloads, external participation or
-  submission, and push. A request such as `오늘 학습 시작` or `계속` resumes the
-  exact active handoff or practice only and does not grant commit authority.
+  submission, and push. `오늘 학습 시작`, `다음 목표로 수업 시작`, and
+  `계속` authorize the ordinary lesson through its dated-TIL-only auto-commit,
+  but do not authorize practice, knowledge, or next-target continuation.
 - A whole interactive named-source lesson automatically pairs
   `$coach-llm-research-study` with `$teach-course-material`, even when only the
   teaching skill is invoked. The coach-owned readiness gate must pass before
@@ -135,15 +135,16 @@ is required.
   repairable: update the contract and ask the same independent reviewer for a
   targeted recheck. Only source integrity or access failure, irreducible factual
   ambiguity, or a real user scope decision may stop the flow. A second
-  repairable non-pass remains `repair_pending`; if nothing has been delivered
-  and no learner evidence exists, shrink once to a micro-slice. `계속` resumes
-  that state without requiring a reset phrase or a target ID.
+  repairable non-pass remains `repair_pending`; do not shrink session depth
+  merely because the reviewed source slice is small. `계속` resumes that state
+  without requiring a reset phrase or a target ID.
 - During that interactive lesson, append to `til/today.md` only a learner-authored answer that has been assessed as confirmed. Keep partial answers, misconceptions, simple agreement, copied tutor wording, source summaries, and tutor assessments in the temporary handoff only; a corrected explain-back is new evidence rather than a rewrite of the earlier attempt.
 
 ## TIL, knowledge, and practice
 
 - Treat TIL files as chronological history. Preserve the learner's voice, uncertainty, and what changed that day instead of rewriting them into textbook notes.
 - Use one TIL per study day under `til/YYYY/MM/`. Final notes follow `til/template.md`; natural prose is preferred inside its sections and empty optional sections may be omitted.
+- Treat handoff `completed` as completion of the planned session arc and exit attempt, never as target mastery. Retain a completed handoff until its TIL commit succeeds or the learner explicitly discards it.
 - When the draft clearly distinguishes them, preserve `### 라이브 수업` and `### 보충 학습` under `오늘의 학습`; do not invent that distinction when it is absent.
 - For source-based study, keep an exact resolvable source link under the finalized TIL's `관련 기록`; that TIL is the required entry point for later practice. Every handoff-backed local or external lesson records exactly one `관련 역량` bullet whose backticked value is the exact primary `CC-*` or `TR-*` target, and records one `보충 선수 역량` bullet only when that exact bridge was actually delivered. A temporary external source additionally records its official URL, provider/course, offering or edition, and exact scope. These IDs are routing provenance, not mastery.
 - Treat `til/today.md` as a local inbox, not a knowledge artifact. Reset it only after `$save-today-til` has written, validated, and committed the destination. Keep it ignored and untracked.
@@ -177,4 +178,4 @@ python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py p
 
 ## Git
 
-Do not commit or push unless the user explicitly asks. A request to commit does not imply permission to push. Explicitly invoking `$save-today-til` or asking to finalize a daily TIL is the narrow exception: it authorizes exactly one path-limited commit containing only the dated `til/YYYY/MM/YYYY-MM-DD.md`, after validation. An explicitly authorized full learning flow adds only the later completion-ready practice commit and evidence-backed knowledge commit defined above. It never authorizes a push, source-registration commit, external submission, unrelated path, or cleanup before the applicable validation succeeds. Stage only exact authorized paths, review the staged diff, and never rewrite history or force-push without explicit authorization.
+Do not commit or push unless the user explicitly asks. A request to commit does not imply permission to push. An ordinary reviewed lesson started or resumed with `오늘 학습 시작`, `다음 목표로 수업 시작`, or `계속` is the narrow exception: unless its handoff records `explicit-request`, it authorizes exactly one path-limited commit containing only the composed dated `til/YYYY/MM/YYYY-MM-DD.md`. Explicitly invoking `$save-today-til` or asking to finalize a daily TIL grants the same narrow authority. An explicitly authorized full learning flow adds only the later completion-ready practice commit and evidence-backed knowledge commit defined above. None of these authorizes push, source-registration commit, external submission, unrelated paths, or cleanup before applicable validation succeeds. Stage only exact authorized paths, review the staged diff, and never rewrite history or force-push without explicit authorization.

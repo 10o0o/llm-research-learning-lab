@@ -12,6 +12,7 @@ REPO = SKILL.parents[2]
 SCRIPT = SKILL / "scripts/prepare_til_input.py"
 COACH_TESTS = REPO / ".agents/skills/coach-llm-research-study/tests"
 sys.path.insert(0, str(COACH_TESTS))
+sys.path.insert(0, str(SKILL / "scripts"))
 
 SPEC = importlib.util.spec_from_file_location("prepare_til_input_under_test", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
@@ -20,6 +21,7 @@ sys.modules[SPEC.name] = MODULE
 SPEC.loader.exec_module(MODULE)
 
 from handoff_fixture import build_handoff, draft_envelope, sha256  # noqa: E402
+from compose_lesson_til import compose_lesson_til  # noqa: E402
 
 
 class PrepareTilInputTests(unittest.TestCase):
@@ -55,30 +57,52 @@ class PrepareTilInputTests(unittest.TestCase):
             draft = root / "til/today.md"
             draft.parent.mkdir(parents=True)
             draft.write_text(
-                "# 오늘의 학습\n\n"
-                + draft_envelope("tensor-shape-lesson", "E001", content)
-                + f"\n## 남은 질문\n\n{question}\n"
-                + "\n## 관련 기록\n\n- 관련 역량: `CC-DL-01`\n",
+                draft_envelope("tensor-shape-lesson", "E001", content),
                 encoding="utf-8",
             )
             handoff, _ = build_handoff(
                 root,
                 status="paused",
                 reviews=[("pass", "fresh-reviewer")],
-                evidence=[{"concept": "C01", "objective_ids": "O001", "content": content, "append_state": "drafted"}],
+                evidence=[
+                    {"concept_ids": "C01", "objective_ids": "O001", "content": content, "append_state": "drafted"},
+                    {
+                        "concept_ids": "C02",
+                        "objective_ids": "O002",
+                        "content": question,
+                        "verdict": "unconfirmed",
+                        "append_state": "not_eligible",
+                    },
+                ],
                 coverage=[
                     {"concept": "C01", "state": "confirmed", "evidence_ids": "E001", "representation": "learning", "note": "Learner answer is drafted."},
-                    {"concept": "C02", "state": "uncertain", "evidence_ids": "none", "representation": "remaining-question", "note": f"draft-anchor: {question}"},
+                    {"concept": "C02", "state": "uncertain", "evidence_ids": "E002", "representation": "remaining-question", "note": "The unresolved learner question is represented."},
                     {"concept": "C03", "state": "deferred", "evidence_ids": "none", "representation": "not-required", "note": "Not taught today."},
                 ],
-                pre_save_verdict="저장 가능",
-                reviewed_at="2026-08-20T02:00:00Z",
-                reviewed_draft_sha256=sha256(draft.read_bytes()),
                 delivery=[
                     {"objective": "O001", "state": "delivered", "mode": "full", "note": "Axis meaning was taught."},
                     {"objective": "O002", "state": "delivered", "mode": "full", "note": "Broadcasting was taught."},
                     {"objective": "O003", "state": "pending", "mode": "none", "note": "Not taught today."},
                 ],
+            )
+            compose_lesson_til(
+                handoff,
+                [
+                    {
+                        "section": "오늘의 학습",
+                        "evidence_ids": ["E001"],
+                        "representation": "learning",
+                        "text": content,
+                    },
+                    {
+                        "section": "남은 질문",
+                        "evidence_ids": ["E002"],
+                        "representation": "remaining-question",
+                        "text": question,
+                    },
+                ],
+                repo_root=root,
+                composed_at="2026-08-20T02:00:00Z",
             )
             draft_before = draft.read_bytes()
             handoff_before = handoff.read_bytes()
@@ -91,11 +115,12 @@ class PrepareTilInputTests(unittest.TestCase):
             corrupted = draft.read_text(encoding="utf-8").replace(
                 f":{sha256(content)} -->",
                 f":{'0' * 64} -->",
+                1,
             )
             draft.write_text(corrupted, encoding="utf-8")
             handoff_text = handoff.read_text(encoding="utf-8").replace(
-                f"- reviewed_draft_sha256: {sha256(draft_before)}",
-                f"- reviewed_draft_sha256: {sha256(draft.read_bytes())}",
+                f"- draft_sha256: {sha256(draft_before)}",
+                f"- draft_sha256: {sha256(draft.read_bytes())}",
             )
             handoff.write_text(handoff_text, encoding="utf-8")
             failed_draft = draft.read_bytes()

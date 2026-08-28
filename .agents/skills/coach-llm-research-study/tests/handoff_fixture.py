@@ -103,37 +103,82 @@ Trace a tensor operation and explain its shape contract.
 2. C02 | none | Shape propagation | source: materials/lesson.md#shape-propagation
 3. C03 | [보충] | Attention connection | source: CURRICULUM.md#CC-DL-01
 
+### Session Plan
+
+- session_goal: Connect axis meaning, broadcast mechanics, a failure contrast, and one attention-shaped transfer.
+- exit_step: T005
+- exit_evidence_kind: transfer
+
+### Example Map
+
+| Example ID | Purpose | Fixture | Objective IDs |
+| --- | --- | --- | --- |
+| X001 | Motivate named axes | A 2 by 3 matrix with row and feature labels. | O001 |
+| X002 | Work one broadcast | A 2 by 1 tensor combined with a 1 by 3 tensor. | O002 |
+| X003 | Contrast valid and invalid alignment | A compatible pair and one mismatched pair of tensor shapes. | O002, O003 |
+| X004 | Transfer the axis contract | One batch by token by hidden attention input. | O001, O002, O003 |
+
 ### Prepared Teaching Steps
 
 #### T001
 
-- concept_id: C01
+- step_role: motivation
+- concept_ids: C01
 - objective_ids: O001
+- example_id: X001
 - delivery_outline: Establish axis meaning before tracing a shape-changing operation.
 - tiny_example: Trace a 2 by 3 matrix by row and column.
+- check_policy: none
+- check_basis: The labeled fixture makes the problem concrete before any branch is useful.
+- check_question: none
+
+#### T002
+
+- step_role: concept-model
+- concept_ids: C01
+- objective_ids: O001
+- example_id: X001
+- delivery_outline: Name batch and feature axes and connect each name to the fixture.
+- tiny_example: Re-read the 2 by 3 matrix as two rows with three features each.
 - check_policy: adaptive
 - check_basis: if learner identifies both axes -> continue to shape propagation; else -> reteach rows and columns with labels
 - check_question: Which axis contains the three features?
 
-#### T002
+#### T003
 
-- concept_id: C02
+- step_role: worked-example
+- concept_ids: C02
 - objective_ids: O002
+- example_id: X002
 - delivery_outline: Align dimensions from the right and explain each resulting axis.
 - tiny_example: Broadcast a 2 by 1 tensor with a 1 by 3 tensor.
 - check_policy: adaptive
 - check_basis: if learner predicts both aligned dimensions -> continue to the attention connection; else -> trace the rightmost aligned dimensions again
 - check_question: What is the result shape and why?
 
-#### T003
+#### T004
 
-- concept_id: C03
-- objective_ids: O003
+- step_role: contrast-limit
+- concept_ids: C02, C03
+- objective_ids: O002, O003
+- example_id: X003
+- delivery_outline: Contrast a valid broadcast with a mismatched pair, then connect the limitation to named attention axes.
+- tiny_example: Compare one compatible pair with one pair whose aligned dimensions are neither equal nor one.
+- check_policy: none
+- check_basis: The explicit contrast exposes the failure condition before the final transfer question.
+- check_question: none
+
+#### T005
+
+- step_role: synthesis-transfer
+- concept_ids: C01, C02, C03
+- objective_ids: O001, O002, O003
+- example_id: X004
 - delivery_outline: Reuse the same axis language for a small attention-shaped tensor.
 - tiny_example: Map batch, token, and hidden axes for one small tensor.
-- check_policy: none
-- check_basis: This optional bridge reuses already checked axis language and does not change the next explanation.
-- check_question: none
+- check_policy: adaptive
+- check_basis: if learner transfers the axis and alignment contract -> finish the session; else -> revisit the smallest mismatched axis in X003
+- check_question: Explain the batch, token, and hidden axes and predict whether one named broadcast is valid.
 
 ### Deferred
 
@@ -166,12 +211,23 @@ def build_handoff(
     additional_manifest_inputs: list[tuple[str, str, bytes]] | None = None,
     course_index_path: str | None = None,
     coverage: list[dict[str, str]] | None = None,
-    pre_save_verdict: str = "pending",
-    reviewed_at: str = "pending",
-    reviewed_draft_sha256: str = "pending",
     delivery: list[dict[str, str]] | None = None,
+    step_delivery: list[dict[str, str]] | None = None,
+    session_profile: str = "standard",
+    til_finalize_policy: str = "auto-commit",
+    composition: dict[str, str] | None = None,
+    til_items: list[dict[str, str]] | None = None,
 ) -> tuple[Path, dict[str, str]]:
     reviews = reviews or []
+    if evidence is None and status == "completed":
+        evidence = [
+            {
+                "concept_ids": "C01, C02, C03",
+                "objective_ids": "O001, O002, O003",
+                "kind": "transfer",
+                "content": "축 의미, broadcast 조건, attention-shaped transfer를 함께 설명했다.",
+            }
+        ]
     evidence = evidence or []
     (root / "materials").mkdir(parents=True, exist_ok=True)
     primary = root / primary_path
@@ -277,12 +333,19 @@ def build_handoff(
         content = item.get("content", "배치 축과 특성 축을 구분해 결과 shape를 설명했다.")
         content_hash = sha256(content)
         content_hashes[evidence_id] = content_hash
+        concept_ids = item.get("concept_ids", item.get("concept", "C01"))
+        default_objectives = {
+            "C01": "O001",
+            "C02": "O002",
+            "C03": "O003",
+            "C01, C02, C03": "O001, O002, O003",
+        }
         evidence_text += f"""
 <!-- learner-evidence:{evidence_id}:start -->
 ### {evidence_id}
 
-- concept: {item.get("concept", "C01")}
-- objective_ids: {item.get("objective_ids", {"C01": "O001", "C02": "O002", "C03": "O003"}.get(item.get("concept", "C01"), "O001"))}
+- concept_ids: {concept_ids}
+- objective_ids: {item.get("objective_ids", default_objectives.get(concept_ids, "O001"))}
 - kind: {item.get("kind", "explain_back")}
 - provenance: {item.get("provenance", "learner")}
 - verdict: {item.get("verdict", "confirmed")}
@@ -342,16 +405,25 @@ def build_handoff(
     step_objectives = {
         match.group(1): [item.strip() for item in match.group(2).split(",")]
         for match in re.finditer(
-            r"^#### (T\d{3,})\n\n(?:[^\n]*\n)*?- objective_ids: ([^\n]+)$",
+            r"^#### (T\d{3,})\n\n(?:(?!^#### ).)*?^- objective_ids: ([^\n]+)$",
             contract,
-            re.MULTILINE,
+            re.MULTILINE | re.DOTALL,
         )
     }
     step_ids = list(step_objectives)
-    current_step = next(
-        (step_id for step_id in step_ids if any(item not in delivered_objectives for item in step_objectives[step_id])),
-        "none",
+    if step_delivery is None:
+        step_delivery = [
+            {
+                "step": step_id,
+                "state": "completed" if status == "completed" else "pending",
+                "note": "Completed in the fixture." if status == "completed" else "Awaiting teaching.",
+            }
+            for step_id in step_ids
+        ]
+    step_delivery_rows = "\n".join(
+        "| {step} | {state} | {note} |".format(**row) for row in step_delivery
     )
+    current_step = next((row["step"] for row in step_delivery if row["state"] != "completed"), "none")
     if current_step == "none":
         last_completed_step = step_ids[-1]
         next_action = "complete"
@@ -361,10 +433,26 @@ def build_handoff(
         current_index = step_ids.index(current_step)
         last_completed_step = step_ids[current_index - 1] if current_index else "none"
         next_action = "teach"
-        target_objectives = ", ".join(
-            item for item in step_objectives[current_step] if item not in delivered_objectives
-        )
+        target_objectives = ", ".join(step_objectives[current_step])
         resume_note = f"Teach {current_step} from its reviewed delivery outline."
+    composition = composition or {
+        "mode": "pending",
+        "state": "pending",
+        "review": "pending",
+        "composed_at": "pending",
+        "draft_sha256": "pending",
+        "dated_til_path": "pending",
+        "commit_sha": "pending",
+    }
+    til_items = til_items or []
+    til_item_rows = (
+        "\n".join(
+            "| {item_id} | {section} | {evidence_ids} | {representation} | {content_sha256} |".format(**row)
+            for row in til_items
+        )
+        if til_items
+        else "| none | none | none | none | none |"
+    )
     rows = "\n".join(f"| {item_id} | {role} | {path} | {digest} |" for item_id, role, path, digest in manifest_rows)
     text = f"""# Active Lesson Handoff
 
@@ -373,10 +461,12 @@ def build_handoff(
 
 ## Metadata
 
-- schema_version: 7
+- schema_version: 8
 - lesson_id: {lesson_id}
 - title: Tensor shape lesson
 - status: {status}
+- session_profile: {session_profile}
+- til_finalize_policy: {til_finalize_policy}
 - study_date: 2026-08-20
 - created_at: 2026-08-20T00:00:00Z
 - updated_at: 2026-08-20T01:30:00Z
@@ -413,11 +503,13 @@ def build_handoff(
 | --- | --- | --- | --- |
 {delivery_rows}
 
-## Daily Learning Coverage
+## Teaching Step Delivery
 
-- pre_save_verdict: {pre_save_verdict}
-- reviewed_at: {reviewed_at}
-- reviewed_draft_sha256: {reviewed_draft_sha256}
+| Step ID | State | Basis/Note |
+| --- | --- | --- |
+{step_delivery_rows}
+
+## Daily Learning Coverage
 
 | Concept ID | Today state | Evidence IDs | TIL representation | Note |
 | --- | --- | --- | --- | --- |
@@ -425,6 +517,20 @@ def build_handoff(
 
 ## Learner Evidence
 {evidence_text}
+
+## TIL Composition
+
+- mode: {composition['mode']}
+- state: {composition['state']}
+- review: {composition['review']}
+- composed_at: {composition['composed_at']}
+- draft_sha256: {composition['draft_sha256']}
+- dated_til_path: {composition['dated_til_path']}
+- commit_sha: {composition['commit_sha']}
+
+| Item ID | Section | Evidence IDs | Representation | Content SHA-256 |
+| --- | --- | --- | --- | --- |
+{til_item_rows}
 """
     handoff = root / "tmp" / "active-lesson-handoff.md"
     handoff.parent.mkdir(parents=True, exist_ok=True)

@@ -16,9 +16,28 @@ target ID, 강의명, skill 이름을 미리 고르지 않고 한 사이클 전�
 
 `전체 학습 흐름으로 진행해줘`와 기존의 짧은 표현인 `전체 흐름으로 진행해줘`도 같은 요청으로 처리합니다.
 
-Agent는 먼저 저장된 학습자 근거에서 ROADMAP의 다음 primary target과 필요한 경우 하나의 bridge를 결정합니다. 그다음 자료 해결, reviewed lesson, TIL 검토·저장, 실습 판정, 학습자가 직접 수행하는 실습 단계, knowledge 갱신과 다음 target 미리보기를 기존 전문 skill에 순서대로 맡깁니다.
+Agent는 먼저 저장된 학습자 근거에서 ROADMAP의 다음 primary target과 필요한 경우 하나의 bridge를 결정합니다. 그다음 자료 해결, reviewed lesson, evidence 기반 TIL 구성·저장, 실습 판정, 학습자가 직접 수행하는 실습 단계, knowledge 갱신과 다음 target 미리보기를 기존 전문 skill에 순서대로 맡깁니다.
 
 이 문장은 현재 대화의 한 사이클에 한해 검증된 날짜별 TIL, 완료 준비가 끝난 exact practice, evidence-backed knowledge의 path-limited commit을 허용합니다. push, permanent source 등록, 유료·로그인 자료 접근, 외부 참여·제출은 허용하지 않습니다.
+
+### 기본 수업과 TIL까지 진행
+
+실습과 knowledge까지 자동으로 이어가지 않고, 다음 target의 표준 심화
+수업과 날짜별 TIL 단독 커밋까지 진행하려면 다음처럼 시작합니다.
+
+```text
+오늘 학습 시작
+```
+
+`다음 목표로 수업 시작`도 같은 뜻입니다. Agent가 target과 source를
+결정하고, source 검토는 선택 slice에 한정하되 수업은 기본적으로
+`standard` profile을 사용합니다. 동기, 개념 모형, worked example, 서로
+다른 한계·반례 예시, 둘 이상의 개념을 합치는 마지막 전이 시도까지
+끝낸 뒤 learner evidence로 TIL을 자연스럽게 구성하고 그 날짜 파일만
+커밋합니다. 별도 초안 검토나 저장 요청은 필요 없습니다.
+
+명시적으로 `짧게 하자`고 말해야 `short`가 됩니다. 작은 source slice는
+검토 비용만 제한하며 수업 길이를 자동으로 줄이지 않습니다.
 
 ### 자동 커밋 없이 새 수업 시작
 
@@ -54,7 +73,7 @@ practice/<area>/<topic>.ipynb를 이어서 하자.
 현재 저장된 코드와 실제 check 실패부터 확인해줘.
 ```
 
-`오늘 학습 시작`이나 단순 `계속`은 이미 식별된 active 수업 또는 실습을 재개하는 뜻이며, 새 전체 사이클이나 자동 커밋 권한으로 확대되지 않습니다. Active handoff가 `review_pending` 또는 `repair_pending`이어도 같은 말로 재개합니다. Locator·문구·objective mapping·teaching order처럼 고칠 수 있는 finding은 Agent가 같은 흐름에서 수정하고 targeted recheck를 요청하므로 reset 문구나 target ID를 다시 입력할 필요가 없습니다. Source 손상·접근 실패, 해결 불가능한 사실 모호성, 또는 사용자 범위 선택만 실제 block입니다. 재개할 exact 상태가 없으면 Agent는 이전 대화를 추측하지 않고 상태가 없음을 알립니다.
+단순 `계속`은 active 수업, TIL composition, mixed review, 또는 TIL commit의 정확한 다음 상태를 재개합니다. 기본 handoff의 `auto-commit` 권한도 유지되므로 수업이 끝났다면 날짜별 TIL 단독 커밋까지 이어집니다. `저장과 커밋은 요청할 때만`을 선택한 handoff는 `explicit-request`를 유지하며 자동 커밋하지 않습니다. Active handoff가 `review_pending` 또는 `repair_pending`이어도 같은 말로 재개합니다. Locator·문구·objective mapping·teaching order처럼 고칠 수 있는 finding은 Agent가 같은 흐름에서 수정하고 targeted recheck를 요청하므로 reset 문구나 target ID를 다시 입력할 필요가 없습니다. Source 손상·접근 실패, 해결 불가능한 사실 모호성, 또는 사용자 범위 선택만 실제 block입니다. 재개할 exact 상태가 없으면 `오늘 학습 시작`은 현재 파일 근거에서 새 기본 수업을 계획합니다.
 
 ### 새 대화에서 복원되는 것
 
@@ -99,16 +118,18 @@ VS Code에서 Notebook을 실행할 때는 `/home/jake/llm-research-learning-lab
 
 1. 새 사이클 요청을 받으면 Agent가 `$plan-roadmap-learning`을 사용해 정확히 하나의 primary target과 필요한 경우 하나의 bridge prerequisite를 정합니다. 사용자가 target ID를 미리 입력할 필요는 없습니다.
 2. 선택된 target을 감사된 로컬 자료로 해결할지, 이번 수업에만 쓸 공식 외부 자료로 해결할지 판단합니다. 자료 유무는 target 순위를 바꾸지 않습니다.
-3. `$coach-llm-research-study`가 선택한 자료와 target 관계를 감사하고 schema v7 handoff를 준비합니다. `focused` 수업은 등록 또는 임시 slice의 included locator, 경계 context, 직접 자산과 관련 registry 행만 의미적으로 검토합니다. 책 전체 감사는 source 등록·교체 또는 `full-source` 요청에만 필요합니다.
-4. 수업 계약이 독립 reviewer의 slice 검토를 통과하면 `$teach-course-material`로 기술 개념 단위 학습을 진행합니다. 수정 가능한 finding은 같은 reviewer의 targeted recheck로 수렴시키며, 두 번째 non-pass도 자동으로 block으로 바꾸지 않습니다.
-5. 형식 없는 메모는 `til/today.md`에 직접 쓰고, 확인된 자신의 답변만 같은 파일에 누적합니다.
-6. `$coach-llm-research-study`로 오늘 실제로 다룬 핵심이 이해 또는 불확실성의 형태로 초안에 모두 있는지 검토합니다.
-7. 오개념이나 확인이 필요한 표현은 다시 학습하고, 직접 설명해 확인된 답변만 반영합니다.
-8. `저장 가능` 판정 뒤 사용자가 저장을 요청했거나 전체 학습 흐름을 승인했다면 `$save-today-til`로 날짜별 TIL을 저장하고 그 날짜별 TIL만 path-limited commit합니다.
+3. `$coach-llm-research-study`가 선택한 자료와 target 관계를 감사하고 schema v8 handoff를 준비합니다. `focused` 수업은 등록 또는 임시 slice의 included locator, 경계 context, 직접 자산과 관련 registry 행만 의미적으로 검토합니다. 책 전체 감사는 source 등록·교체 또는 `full-source` 요청에만 필요합니다. 이 검토 범위는 수업 길이와 별개입니다.
+4. 수업 계약이 독립 reviewer의 slice 검토를 통과하면 `$teach-course-material`로 기본 표준 심화 arc를 진행합니다. 수정 가능한 finding은 같은 reviewer의 targeted recheck로 수렴시키며, 두 번째 non-pass도 자동으로 block으로 바꾸거나 수업을 micro-slice로 축소하지 않습니다.
+5. 각 Teaching Step의 실제 전달 상태를 기록하고, 질문은 다음 설명이 달라질 때만 합니다. 마지막 통합 전이에는 반드시 학습자 시도를 남깁니다.
+6. 확인된 답변과 부분·오개념·미해결 답변을 handoff evidence로 분류합니다. `completed`는 이 session arc가 끝났다는 뜻이지 target mastery가 아닙니다.
+7. `$save-today-til`이 learner evidence에서 자연스러운 TIL을 구성합니다. Pure handoff-generated 기록은 별도 coach 재검토가 없고, 수동 메모나 자율학습이 섞인 mixed 기록만 같은 저장 흐름에서 한 번 검토합니다.
+8. 구성 후에만 final preflight를 실행하고, 기본 `auto-commit`이면 같은 날짜 TIL에 병합해 그 파일만 path-limited commit합니다. `explicit-request`면 구성 상태를 보존하고 저장 요청을 기다립니다.
 9. `$suggest-learning-practice`가 exact TIL과 target에 맞춰 실습 action과 modality를 먼저 판정합니다.
 10. local mode라면 하나의 Notebook에서 핵심 로직을 직접 구현하고 검사를 실행한 뒤 결과와 상태 변화를 해석합니다. external mode라면 승인 전에는 참여하거나 제출하지 않습니다.
 11. `--completion-ready`와 학습자의 해석을 모두 확인한 뒤에만 실습을 완료 증거로 다룹니다.
 12. `$update-learning-knowledge`로 실제로 이해했다고 확인된 내용만 `knowledge/`에 반영하고, 새 evidence로 다음 target을 다시 계산합니다.
+
+일반 `오늘 학습 시작`은 8번에서 끝납니다. 9~12번은 명시적인 `전체 학습 흐름 시작`에만 이어집니다.
 
 동등한 구현·실행·해석 증거가 이미 있으면 추가 실습 없음도 가능하고, 새로 반영할 지식이 없다는 결론도 정상입니다. 영구 중복 강의록이나 학습자 진도표는 만들지 않으며, `tmp/active-lesson-handoff.md`와 `tmp/active-lesson-sources/<lesson-id>/`는 검증과 안전한 재개에만 쓰는 임시 운영 캐시입니다.
 
@@ -135,7 +156,7 @@ til/2026/08/2026-08-20.md
 til/2026/09/2026-09-01.md
 ```
 
-처음부터 정해진 목차에 맞추지 않습니다. `til/today.md`에는 다음 내용이 자연스럽게 섞여도 됩니다.
+자율학습이나 수동 메모에서는 처음부터 정해진 목차에 맞출 필요가 없습니다. `til/today.md`에는 다음 내용이 자연스럽게 섞여도 됩니다.
 
 - 오늘 본 자료와 이해한 내용
 - 처음 생각과 달라진 부분
@@ -143,9 +164,11 @@ til/2026/09/2026-09-01.md
 - 직접 계산하거나 실행해본 결과
 - 다음에 이어서 보고 싶은 것
 
-다 쓴 뒤 바로 저장하지 않고, 평가 코치가 실제 수업 범위, 확인된 학습자 답변, 학습 대화와 명시한 자율학습 범위를 기준으로 초안을 먼저 검토합니다. 원자료 전체를 요약할 필요는 없지만 **오늘 실제로 다룬 기술적 핵심은 모두** 남겨야 합니다. 이해가 확인됐으면 `오늘의 학습`이나 `배운 점`에, 아직 불확실하면 `남은 질문`에 적습니다. 오늘 다루지 않은 원자료 내용은 누락이 아닙니다.
+Reviewed lesson에서는 별도 초안 검토 대화가 없습니다. Session이 끝나면 Agent가 confirmed learner evidence만 기술적 학습 주장으로 사용하고, 정정된 이전 답변은 달라진 이해로, 미해결 답변은 남은 질문으로 분류해 자연스러운 문장을 구성합니다. Pure handoff-generated TIL은 이 evidence binding 자체가 검토 경계이므로 `review: not-required`로 final preflight를 통과합니다.
 
-검토를 마치면 [`til/template.md`](./til/template.md)의 순서에 맞게 저장됩니다. `오늘의 학습`은 항상 남기고, 나머지 항목은 실제 내용이 있을 때만 남깁니다. 라이브 수업과 GPT 보충 학습을 구분해서 썼다면 `오늘의 학습` 안에서 그 구분을 유지합니다.
+수동 메모·자율학습이 섞인 mixed draft나 standalone draft만 평가 코치가 같은 저장 요청 안에서 한 번 의미 검토합니다. 원자료 전체를 요약할 필요는 없지만 **오늘 실제로 다룬 기술적 핵심은 모두** 이해 또는 불확실성으로 남겨야 합니다. 별도의 선행 `검토해줘` 요청은 필요하지 않으며, 사용자의 사실 판단이 꼭 필요한 불확실성만 저장을 멈춥니다.
+
+구성본은 [`til/template.md`](./til/template.md)의 순서에 맞게 저장됩니다. `오늘의 학습`은 항상 남기고, 나머지 항목은 실제 내용이 있을 때만 남깁니다. 같은 날 여러 세션은 각 세션이 끝날 때 기존 날짜 파일에 병합하며 source·target provenance를 중복하지 않습니다.
 
 강의자료를 보고 공부했다면 `관련 기록`에 그 자료의 정확한 링크가 들어갑니다. Reviewed handoff를 사용한 local·external 수업은 모두 `관련 역량` bullet의 backticked 값으로 정확한 primary `CC-*` 또는 `TR-*` target을 남기고, 실제로 전달한 inline bridge가 있을 때만 같은 형식의 `보충 선수 역량` bullet을 추가합니다. 임시 공식 외부 자료라면 official URL, provider/course, offering 또는 edition, artifact와 exact scope도 함께 씁니다. 이 ID들은 routing provenance이지 숙련도 표기가 아닙니다. 이후 실습 스킬은 날짜별 TIL을 필수 입력으로 받고 이 링크를 따라 자료를 확인하므로, 자료명을 추측해서 링크하지 않습니다.
 
@@ -239,6 +262,12 @@ materials/private/kant-basic-math/01-01_벡터의_정의와_기하학적_해석.
 
 강의 파일 전체를 대화형으로 학습할 때는 teaching 스킬만 불러도 평가 코치가 자동으로 함께 동작합니다. 코치는 원문·과정 INDEX·`CURRICULUM.md`를 대조해 강의 핵심을 보존하고, `ROADMAP.md` 방향에 필요한 보충을 지금 수업할지 별도 자료로 미룰지 판단합니다. 독립 검토와 readiness 검증을 통과한 뒤에만 teaching 스킬이 수업을 시작합니다. 정의·짧은 정정·일회성 질문·기존 지식 문서 심화에는 이 절차를 만들지 않습니다.
 
+기본 수업은 `standard`이며 동기, 개념 구조, worked example, 다른
+한계·반례 예시, 마지막 통합 전이 시도를 모두 진행합니다. `focused`는
+source 검토 범위이지 micro lesson 요청이 아닙니다. 수업 arc가 끝나면
+확인된 답변으로 TIL을 자동 구성·커밋하고, `전체 학습 흐름 시작`이
+아닌 일반 수업은 거기서 종료합니다.
+
 `tmp/active-lesson-handoff.md`의 schema와 lifecycle은
 [`lesson-handoff.md`](./.agents/skills/coach-llm-research-study/references/lesson-handoff.md)만이 정의합니다. 이 파일은 컨텍스트 복구용 운영 캐시이며 영구 강의록·진도표·학습 증거가 아닙니다.
 
@@ -252,9 +281,9 @@ knowledge/math/vector.md에서 내가 이해한 범위를 먼저 확인하고,
 관련 강의자료와 연결해 부족한 부분을 대화형으로 가르쳐줘.
 ```
 
-### 3. til/today.md 저장 전 검토
+### 3. mixed·standalone TIL 검토
 
-[`coach-llm-research-study`](./.agents/skills/coach-llm-research-study/SKILL.md)는 `til/today.md`를 오늘 본 강의자료와 학습 대화에 대조해 다음을 구분합니다.
+Pure handoff-generated TIL은 이 단계를 따로 호출하지 않습니다. 수동 메모나 자율학습이 섞였거나, standalone 초안을 저장하거나, 사용자가 명시적으로 읽기 전용 검토를 요청했을 때만 [`coach-llm-research-study`](./.agents/skills/coach-llm-research-study/SKILL.md)가 다음을 구분합니다.
 
 - 정확하게 설명한 내용
 - 저장 전에 반드시 고쳐야 할 잘못된 개념
@@ -269,7 +298,7 @@ $coach-llm-research-study를 사용해
 til/today.md를 오늘 본 강의자료 기준으로 저장 전에 검토해줘.
 ```
 
-검토 결과는 다음 중 하나입니다.
+명시적인 읽기 전용 검토 결과는 다음 중 하나입니다.
 
 - `저장 가능`: 그대로 저장해도 되는 상태
 - `수정 후 저장`: 고칠 내용이 명확하며 이해를 확인한 뒤 반영해야 하는 상태
@@ -283,11 +312,11 @@ $teach-course-material을 사용해
 내가 다시 설명해서 이해가 확인되면 내 답변만 til/today.md에 반영해줘.
 ```
 
-평가 코치는 오개념이나 빠진 내용을 정답 문장으로 몰래 바꾸지 않습니다. 작은 확인 질문에 내가 다시 설명한 내용만 학습으로 반영하고, 해결되지 않은 부분은 `남은 질문`에 둡니다. 모든 강의 내용을 추가하는 것이 아니라 오늘 실제로 학습한 핵심의 경계를 빠짐없이 기록하는 것이 목표입니다. Handoff 기반 수업은 저장 전에 현재 초안에 대한 readiness를 자동 확인합니다.
+평가 코치는 오개념이나 빠진 내용을 정답 문장으로 몰래 바꾸지 않습니다. 작은 확인 질문에 내가 다시 설명한 내용만 학습으로 반영하고, 해결되지 않은 부분은 `남은 질문`에 둡니다. 저장 요청과 함께 들어온 mixed·standalone 내용은 그 흐름 안에서 한 번 검토하므로 다시 저장을 요청할 필요가 없습니다.
 
 ### 4. 오늘의 TIL 저장
 
-[`save-today-til`](./.agents/skills/save-today-til/SKILL.md)은 검토를 마친 `til/today.md`를 적당히 분류하고 다듬어 `til/YYYY/MM/YYYY-MM-DD.md`에 저장합니다.
+[`save-today-til`](./.agents/skills/save-today-til/SKILL.md)은 completed lesson의 learner evidence를 자연스러운 TIL로 구성하거나, mixed·standalone 초안을 같은 흐름에서 검토한 뒤 `til/YYYY/MM/YYYY-MM-DD.md`에 저장합니다.
 
 ```text
 $save-today-til을 사용해 til/today.md를 정리하고 날짜별 TIL로 저장해줘.
@@ -299,7 +328,7 @@ $save-today-til을 사용해 til/today.md를 정리하고 날짜별 TIL로 저�
 $save-today-til을 사용해 rough.md를 2026-08-13 TIL로 저장해줘.
 ```
 
-사용자의 말투, 질문, 계산, 코드와 실제 결과는 보존하고 맞춤법·문단·중복만 가볍게 정리합니다. 저장 스킬은 사실 검증을 반복하지 않습니다. canonical `til/today.md`와 active handoff가 함께 있으면 marker가 없어도 저장 준비 검증을 요구하고, 통과한 입력에서만 내부 marker를 제거합니다. 별도로 이름을 지정한 초안은 standalone으로 저장하며 active handoff를 건드리지 않습니다. 같은 날짜의 TIL이 있으면 기존 내용에 합치고, 날짜별 TIL 하나의 path-limited 커밋만 만들며 push하지 않습니다. 준비·검증·커밋이 실패하면 draft와 handoff를 그대로 보존합니다.
+사용자의 답변, 질문, 계산, 코드와 실제 결과는 보존합니다. Pure handoff-generated 구성은 evidence classification을 다시 의미 검토하지 않고, mixed·standalone만 coach 검토를 한 번 사용합니다. 구성된 marker와 hash를 final preflight에서 검사한 뒤에는 문장을 다시 고치지 않습니다. 같은 날짜의 TIL이 있으면 기존 내용에 합치고 source·target provenance를 중복 없이 유지하며, 날짜별 TIL 하나의 path-limited 커밋만 만들고 push하지 않습니다. 준비·검증·커밋이 실패하면 draft와 handoff를 그대로 보존합니다.
 
 나중에 새로운 오류를 발견했거나 자료가 바뀌었다면 완성된 TIL을 평가 코치로 다시 검토할 수 있지만, 매일 저장 후 같은 평가를 반복할 필요는 없습니다.
 
@@ -347,13 +376,13 @@ $update-learning-knowledge를 사용해
 
 1. target과 artifact를 선택하고, 허용되는 공식 자료라면 임시 캐시합니다.
 2. reviewed lesson을 진행하고 확인된 학습자 답변만 초안에 반영합니다.
-3. `저장 가능` 뒤 exact dated TIL만 저장하고 자동 커밋합니다.
+3. learner evidence에서 구성한 exact dated TIL만 final preflight 후 자동 커밋합니다.
 4. local mode라면 unexecuted practice 하나를 바로 생성하되 생성본은 커밋하지 않습니다.
 5. 학습자가 직접 구현·실행·해석하고 `--completion-ready`를 통과한 뒤 exact practice path만 `practice: complete <artifact-stem>`으로 커밋합니다.
 6. learner evidence가 있으면 knowledge 0~3개를 갱신하고 변경된 knowledge path만 기존 메시지 규칙으로 커밋합니다.
 7. 새 evidence로 다음 target preview를 계산하고 사이클을 종료합니다.
 
-이 권한에는 학습자 답변 대신 작성, learner-owned 구현·실행 대행, permanent source 등록, 유료·로그인 download, 외부 challenge·competition 참여나 제출, push가 포함되지 않습니다. 중간의 학습자 답변이나 실습 수행을 기다리는 것은 정상입니다. `오늘 학습 시작`이나 단순 `계속`은 정확한 active handoff 또는 사용자가 지정한 practice를 재개할 뿐 위 자동 커밋 권한으로 넓어지지 않습니다.
+이 권한에는 학습자 답변 대신 작성, learner-owned 구현·실행 대행, permanent source 등록, 유료·로그인 download, 외부 challenge·competition 참여나 제출, push가 포함되지 않습니다. 중간의 학습자 답변이나 실습 수행을 기다리는 것은 정상입니다. `오늘 학습 시작`이나 단순 `계속`도 일반 수업의 dated-TIL-only 자동 커밋은 포함하지만, practice·knowledge·다음 target까지 이어지는 전체 흐름 권한으로 넓어지지는 않습니다.
 
 ## 단계를 직접 제어하기
 
@@ -365,18 +394,16 @@ $coach-llm-research-study와 $teach-course-material을 사용해
 개념별로 진행하고 내 답변에서 확인된 이해와 불확실성을 구분해줘.
 ```
 
-`til/today.md`를 쓴 뒤에는 먼저 검토합니다.
+수동 메모나 자율학습을 `til/today.md`에 섞었다면 저장 요청 하나로 검토와 저장을 함께 진행할 수 있습니다.
 
 ```text
-$coach-llm-research-study를 사용해
-til/today.md를 오늘 본 강의자료 기준으로 저장 전에 검토해줘.
-수정이나 추가 확인이 필요하면 저장하지 말고 중요한 것부터 하나씩 해결해줘.
+$save-today-til로 til/today.md를 검토하고 저장해줘.
 ```
 
-`저장 가능` 판정을 받은 뒤 날짜별 TIL로 저장합니다.
+검토만 읽기 전용으로 먼저 보고 싶을 때만 별도로 요청합니다.
 
 ```text
-$save-today-til로 til/today.md를 저장해줘.
+$coach-llm-research-study를 사용해 til/today.md를 수정하지 말고 검토해줘.
 ```
 
 저장 스킬이 알려준 정확한 날짜별 경로를 다음 요청에 넣습니다.

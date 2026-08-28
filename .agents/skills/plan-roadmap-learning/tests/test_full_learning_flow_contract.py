@@ -39,14 +39,14 @@ def test_full_flow_never_substitutes_learner_work_or_broadens_external_authority
         "permanent source registration",
         "paid or authenticated downloads",
         "external participation or submission",
-        "does not grant commit authority",
+        "do not authorize practice, knowledge, or next-target continuation",
     ):
         assert phrase in agents
     for phrase in (
         "learner-owned 구현·실행 대행",
         "permanent source 등록",
         "외부 challenge·competition 참여나 제출",
-        "자동 커밋 권한으로 넓어지지 않습니다",
+        "전체 흐름 권한으로 넓어지지는 않습니다",
     ):
         assert phrase in usage
 

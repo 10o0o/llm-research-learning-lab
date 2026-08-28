@@ -102,6 +102,10 @@ def _external_contract(
             "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | full | Map one small tensor to an attention input. | none |\n"
             + objective_row,
         )
+        contract = contract.replace(
+            "| X002 | Work one broadcast | A 2 by 1 tensor combined with a 1 by 3 tensor. | O002 |",
+            "| X002 | Work one broadcast | A 2 by 1 tensor combined with a 1 by 3 tensor. | O002, O004 |",
+        )
         contract = contract.replace("- objective_ids: O002\n", "- objective_ids: O002, O004\n")
     return contract
 

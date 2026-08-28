@@ -5,10 +5,12 @@
 
 ## Metadata
 
-- schema_version: 7
+- schema_version: 8
 - lesson_id: replace-with-stable-lesson-id
 - title: Replace with lesson title
 - status: preparing
+- session_profile: standard
+- til_finalize_policy: auto-commit
 - study_date: YYYY-MM-DD
 - created_at: YYYY-MM-DDTHH:MM:SSZ
 - updated_at: YYYY-MM-DDTHH:MM:SSZ
@@ -117,37 +119,82 @@ Replace with one observable lesson objective.
 2. C02 | none | Second concept | source: materials/private/course/NN-NN_lesson.md#exact-location
 3. C03 | [보충] | Third concept | source: CURRICULUM.md#exact-location
 
+### Session Plan
+
+- session_goal: Connect the motivating problem, concept model, worked example, limitation, and one integrated transfer.
+- exit_step: T005
+- exit_evidence_kind: transfer
+
+### Example Map
+
+| Example ID | Purpose | Fixture | Objective IDs |
+| --- | --- | --- | --- |
+| X001 | Motivate the first concept | Replace with the concrete motivating fixture. | O001 |
+| X002 | Work the core mechanism | Replace with a different deterministic worked fixture. | O002 |
+| X003 | Expose a limitation | Replace with a failure or counterexample fixture. | O002, O003 |
+| X004 | Transfer across concepts | Replace with one integrated application fixture. | O001, O002, O003 |
+
 ### Prepared Teaching Steps
 
 #### T001
 
-- concept_id: C01
+- step_role: motivation
+- concept_ids: C01
 - objective_ids: O001
+- example_id: X001
 - delivery_outline: Replace with the ordered explanation outline for O001.
 - tiny_example: Replace with a tiny concrete example.
-- check_policy: adaptive
-- check_basis: if the answer shows the prerequisite -> continue to T002; else -> reteach the prerequisite with the tiny example
-- check_question: Replace with one diagnostic question.
+- check_policy: none
+- check_basis: The motivating fixture makes the problem concrete before a branch is useful.
+- check_question: none
 
 #### T002
 
-- concept_id: C02
+- step_role: concept-model
+- concept_ids: C01
+- objective_ids: O001
+- example_id: X001
+- delivery_outline: Replace with the concept model that explains O001.
+- tiny_example: Replace with a tiny concrete example.
+- check_policy: adaptive
+- check_basis: if the answer shows the prerequisite -> continue to T003; else -> reteach the prerequisite with the tiny example
+- check_question: Replace with one diagnostic question.
+
+#### T003
+
+- step_role: worked-example
+- concept_ids: C02
 - objective_ids: O002
-- delivery_outline: Replace with the ordered explanation outline for O002.
+- example_id: X002
+- delivery_outline: Work the core mechanism for O002 from inputs to result.
 - tiny_example: Replace with a tiny concrete example.
 - check_policy: none
 - check_basis: The worked trace exposes this outcome directly and no branch in the next explanation depends on a learner answer.
 - check_question: none
 
-#### T003
+#### T004
 
-- concept_id: C03
-- objective_ids: O003
-- delivery_outline: Replace with the ordered explanation outline for O003.
-- tiny_example: Replace with a tiny concrete example.
+- step_role: contrast-limit
+- concept_ids: C02, C03
+- objective_ids: O002, O003
+- example_id: X003
+- delivery_outline: Contrast the valid mechanism with one failure or limitation.
+- tiny_example: Replace with a distinct counterexample or boundary case.
 - check_policy: none
-- check_basis: This short supplement reuses the established axis language and does not change the next explanation.
+- check_basis: The explicit contrast prepares the final transfer without requiring a separate quiz.
 - check_question: none
+
+#### T005
+
+- step_role: synthesis-transfer
+- concept_ids: C01, C02, C03
+- objective_ids: O001, O002, O003
+- example_id: X004
+- delivery_outline: Integrate the three concepts in one small transfer task.
+- tiny_example: Replace with a new fixture that requires the learner to connect at least two concepts.
+- check_policy: adaptive
+- check_basis: if the learner integrates the concepts -> finish the session; else -> revisit the smallest failed link before retrying
+- check_question: Replace with one integrated transfer or explain-back question.
 
 ### Deferred
 
@@ -197,14 +244,17 @@ Replace with one observable lesson objective.
 | O002 | pending | none | Awaiting instruction. |
 | O003 | pending | none | Awaiting instruction. |
 
+## Teaching Step Delivery
+
+| Step ID | State | Basis/Note |
+| --- | --- | --- |
+| T001 | pending | Awaiting teaching. |
+| T002 | pending | Awaiting teaching. |
+| T003 | pending | Awaiting teaching. |
+| T004 | pending | Awaiting teaching. |
+| T005 | pending | Awaiting teaching. |
+
 ## Daily Learning Coverage
-
-- pre_save_verdict: pending
-- reviewed_at: pending
-- reviewed_draft_sha256: pending
-
-> For an `uncertain` row, write `draft-anchor: <exact excerpt>` in `Note`.
-> The excerpt must occur under the reviewed draft's non-empty `## 남은 질문`.
 
 | Concept ID | Today state | Evidence IDs | TIL representation | Note |
 | --- | --- | --- | --- | --- |
@@ -216,3 +266,17 @@ Replace with one observable lesson objective.
 
 > Add learner-evidence blocks only after the learner answers. Use the exact
 > block schema in `references/lesson-handoff.md`; do not pre-create evidence.
+
+## TIL Composition
+
+- mode: pending
+- state: pending
+- review: pending
+- composed_at: pending
+- draft_sha256: pending
+- dated_til_path: pending
+- commit_sha: pending
+
+| Item ID | Section | Evidence IDs | Representation | Content SHA-256 |
+| --- | --- | --- | --- | --- |
+| none | none | none | none | none |
