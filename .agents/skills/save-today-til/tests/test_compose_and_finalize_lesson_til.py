@@ -47,7 +47,11 @@ def _init_repository(root: Path, *, existing_til: str | None = None) -> None:
     _git(root, "commit", "-qm", "fixture baseline")
 
 
-def _completed_handoff(root: Path) -> tuple[Path, str]:
+def _completed_handoff(
+    root: Path,
+    *,
+    additional_manifest_inputs: list[tuple[str, str, bytes]] | None = None,
+) -> tuple[Path, str]:
     answer = "축 의미와 broadcast 조건을 연결하고 attention 입력으로 전이했다."
     draft = root / "til/today.md"
     draft.parent.mkdir(parents=True, exist_ok=True)
@@ -75,6 +79,7 @@ def _completed_handoff(root: Path) -> tuple[Path, str]:
             }
             for concept in ("C01", "C02", "C03")
         ],
+        additional_manifest_inputs=additional_manifest_inputs,
     )
     return handoff, answer
 
@@ -137,6 +142,58 @@ def test_same_day_session_merges_and_deduplicates_provenance(tmp_path: Path) -> 
     assert text.count("- [lesson.md](../../../materials/lesson.md)") == 1
     assert text.count("- 관련 역량: `CC-DL-01`") == 1
     assert result["merged_existing"] is True
+
+
+def test_same_day_baseline_til_manifest_rebases_only_after_terminal_merge(tmp_path: Path) -> None:
+    existing = (
+        "# 2026-08-20\n\n"
+        "## 오늘의 학습\n\n기존 세션 기록.\n\n"
+        "## 관련 기록\n\n- [lesson.md](../../../materials/lesson.md)\n"
+        "- 관련 역량: `CC-DL-01`\n"
+    )
+    dated_path = "til/2026/08/2026-08-20.md"
+    handoff, answer = _completed_handoff(
+        tmp_path,
+        additional_manifest_inputs=[("til", dated_path, existing.encode("utf-8"))],
+    )
+    _init_repository(tmp_path)
+    _compose(handoff, tmp_path, answer)
+
+    result = finalize_lesson_til(handoff, repo_root=tmp_path)
+
+    assert result["merged_existing"] is True
+    committed = validate_handoff(handoff, repo_root=tmp_path)
+    assert committed.ok, committed.errors
+    assert committed.as_json()["workflow_action"] == "COMPLETE"
+    actual_hash = hashlib.sha256((tmp_path / dated_path).read_bytes()).hexdigest()
+    handoff_text = handoff.read_text(encoding="utf-8")
+    assert f"| I002 | til | {dated_path} | {actual_hash} |" in handoff_text
+
+
+def test_same_day_til_commit_recovery_reuses_path_limited_commit(tmp_path: Path) -> None:
+    existing = (
+        "# 2026-08-20\n\n"
+        "## 오늘의 학습\n\n기존 세션 기록.\n\n"
+        "## 관련 기록\n\n- [lesson.md](../../../materials/lesson.md)\n"
+        "- 관련 역량: `CC-DL-01`\n"
+    )
+    dated_path = "til/2026/08/2026-08-20.md"
+    handoff, answer = _completed_handoff(
+        tmp_path,
+        additional_manifest_inputs=[("til", dated_path, existing.encode("utf-8"))],
+    )
+    _init_repository(tmp_path)
+    _compose(handoff, tmp_path, answer)
+    composed_handoff = handoff.read_bytes()
+
+    first = finalize_lesson_til(handoff, repo_root=tmp_path)
+    handoff.write_bytes(composed_handoff)
+
+    recovered = finalize_lesson_til(handoff, repo_root=tmp_path)
+
+    assert recovered["reused_commit"] is True
+    assert recovered["commit_sha"] == first["commit_sha"]
+    assert validate_handoff(handoff, repo_root=tmp_path).ok
 
 
 def test_commit_failure_preserves_composed_state_and_retry_succeeds(tmp_path: Path) -> None:

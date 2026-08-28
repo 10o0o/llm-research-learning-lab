@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -103,13 +104,85 @@ def merge_daily_til(existing: str | None, incoming: str, study_date: str) -> str
     return "\n\n".join(chunks).rstrip() + "\n"
 
 
-def _mark_committed(handoff: Path, root: Path, commit_sha: str) -> None:
+def _rebase_same_day_til_manifest(
+    text: str,
+    doc: object,
+    *,
+    finalized_til_path: str,
+    finalized_til_hash: str,
+) -> str:
+    """Refresh only a prior same-day TIL input after it becomes this lesson's output.
+
+    A `til` manifest entry is normally immutable lesson context.  The one
+    exception is a prior finalized TIL at the same dated destination: finalizing
+    the next session intentionally merges into that exact file.  Its changed
+    bytes must therefore update the terminal operational handoff record, while
+    source inputs and the reviewed contract remain untouched.
+    """
+
+    manifest = getattr(doc, "manifest", ())
+    matching = [
+        entry
+        for entry in manifest
+        if entry.role == "til" and entry.path == finalized_til_path
+    ]
+    if not matching:
+        return text
+    if len(matching) != 1:
+        raise FinalizationError("same-day TIL manifest input must occur exactly once")
+    entry = matching[0]
+    if entry.sha256 == finalized_til_hash:
+        return text
+
+    row_pattern = re.compile(
+        rf"(?m)^\| {re.escape(entry.item_id)} \| til \| {re.escape(entry.path)} \| {entry.sha256} \|$"
+    )
+    row_replacement = f"| {entry.item_id} | til | {entry.path} | {finalized_til_hash} |"
+    updated, row_count = row_pattern.subn(row_replacement, text, count=1)
+    if row_count != 1:
+        raise FinalizationError("cannot refresh the same-day TIL manifest row")
+
+    canonical_rows = [
+        f"{candidate.role}\t{candidate.path}\t"
+        f"{finalized_til_hash if candidate.item_id == entry.item_id else candidate.sha256}\n"
+        for candidate in manifest
+    ]
+    manifest_hash = hashlib.sha256("".join(sorted(canonical_rows)).encode("utf-8")).hexdigest()
+
+    def replace_field(payload: str, field: str, value: str) -> str:
+        pattern = re.compile(rf"(?m)^- {re.escape(field)}: [0-9a-f]{{64}}$")
+        replaced, count = pattern.subn(f"- {field}: {value}", payload, count=1)
+        if count != 1:
+            raise FinalizationError(f"cannot refresh {field} after same-day TIL merge")
+        return replaced
+
+    updated = replace_field(updated, "input_manifest_sha256", manifest_hash)
+    return replace_field(updated, "reviewed_input_manifest_sha256", manifest_hash)
+
+
+def _mark_committed(
+    handoff: Path,
+    root: Path,
+    commit_sha: str,
+    *,
+    doc: object,
+    finalized_til_path: str,
+) -> None:
     before = handoff.read_text(encoding="utf-8")
-    section_start = before.find("## TIL Composition\n")
+    final_til = root / finalized_til_path
+    if not final_til.is_file():
+        raise FinalizationError("finalized dated TIL is missing before handoff completion")
+    rebased = _rebase_same_day_til_manifest(
+        before,
+        doc,
+        finalized_til_path=finalized_til_path,
+        finalized_til_hash=hashlib.sha256(final_til.read_bytes()).hexdigest(),
+    )
+    section_start = rebased.find("## TIL Composition\n")
     if section_start < 0:
         raise FinalizationError("handoff has no TIL Composition section")
-    prefix = before[:section_start]
-    section = before[section_start:]
+    prefix = rebased[:section_start]
+    section = rebased[section_start:]
     section, state_count = re.subn(
         r"(?m)^- state: composed$", "- state: committed", section, count=1
     )
@@ -124,6 +197,57 @@ def _mark_committed(handoff: Path, root: Path, commit_sha: str) -> None:
         _atomic_write(handoff, before)
         detail = "\n".join(error.rendered(report.path) for error in report.errors)
         raise FinalizationError("committed handoff state did not validate\n" + detail)
+
+
+def _recover_same_day_til_commit(
+    handoff: Path,
+    root: Path,
+) -> None:
+    """Repair the handoff after an older finalizer committed before marking it.
+
+    This narrow recovery applies only when the current dated TIL is unchanged
+    from a path-limited `til: YYYY-MM-DD 학습 기록` commit.  It never accepts a
+    merely edited or externally committed baseline as a reviewed input.
+    """
+
+    provisional = validate_handoff(handoff, repo_root=root, check_draft=True)
+    doc = provisional.document
+    if doc is None or doc.til_composition.get("state") != "composed":
+        return
+    dated_path = doc.til_composition.get("dated_til_path", "")
+    study_date = doc.metadata.get("study_date", "")
+    if not dated_path or dated_path == "pending" or not study_date:
+        return
+    matching = [entry for entry in doc.manifest if entry.role == "til" and entry.path == dated_path]
+    if len(matching) != 1:
+        return
+    dated_til = root / dated_path
+    if not dated_til.is_file():
+        return
+    actual_hash = hashlib.sha256(dated_til.read_bytes()).hexdigest()
+    if actual_hash == matching[0].sha256:
+        return
+    subject = _run_git(root, "log", "-1", "--format=%s", "--", dated_path, check=False)
+    commit = _run_git(root, "log", "-1", "--format=%H", "--", dated_path, check=False)
+    clean = _run_git(root, "diff", "--quiet", "HEAD", "--", dated_path, check=False)
+    commit_sha = commit.stdout.strip()
+    if (
+        subject.returncode != 0
+        or subject.stdout.strip() != f"til: {study_date} 학습 기록"
+        or clean.returncode != 0
+        or not commit_sha
+        or _commit_paths(root, commit_sha) != [dated_path]
+    ):
+        return
+    before = handoff.read_text(encoding="utf-8")
+    updated = _rebase_same_day_til_manifest(
+        before,
+        doc,
+        finalized_til_path=dated_path,
+        finalized_til_hash=actual_hash,
+    )
+    if updated != before:
+        _atomic_write(handoff, updated)
 
 
 def _commit_paths(root: Path, commit_sha: str) -> list[str]:
@@ -149,6 +273,7 @@ def finalize_lesson_til(
     handoff = Path(handoff_path)
     if not handoff.is_absolute():
         handoff = root / handoff
+    _recover_same_day_til_commit(handoff, root)
     report = validate_handoff(
         handoff,
         repo_root=root,
@@ -222,7 +347,13 @@ def finalize_lesson_til(
         raise FinalizationError("the dated TIL is not the sole staged target for this save")
     if not commit_sha or _commit_paths(root, commit_sha) != [relative_text]:
         raise FinalizationError("the resulting commit is not path-limited to the dated TIL")
-    _mark_committed(handoff, root, commit_sha)
+    _mark_committed(
+        handoff,
+        root,
+        commit_sha,
+        doc=doc,
+        finalized_til_path=relative_text,
+    )
     return {
         "dated_til_path": relative_text,
         "commit_sha": commit_sha,
