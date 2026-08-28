@@ -1,5 +1,72 @@
 # 사용법
 
+## 새 Codex 대화에서 시작하기
+
+이 저장소를 작업 공간으로 연 Codex는 작업 전에 루트 [`AGENTS.md`](./AGENTS.md)를 읽고 `.agents/skills/`의 repository skill을 발견합니다. 따라서 평소에는 `$skill-name`을 직접 입력하지 않아도 요청의 의미에 맞는 skill이 선택됩니다. 명시적 `$skill-name` 호출도 가능하지만 필수는 아닙니다. 이 동작의 일반적인 기준은 [OpenAI의 AGENTS.md 안내](https://learn.chatgpt.com/docs/agent-configuration/agents-md)와 [skill 안내](https://learn.chatgpt.com/docs/build-skills)를 따릅니다.
+
+단, 새 대화가 다른 저장소나 작업 디렉터리에서 열리면 이 프로젝트의 지침과 skill을 사용할 수 없습니다. 아래 요청은 `/home/jake/llm-research-learning-lab`을 작업 공간으로 연 대화를 기준으로 합니다.
+
+### 새 학습 사이클 전체 진행
+
+target ID, 강의명, skill 이름을 미리 고르지 않고 한 사이클 전체를 맡기려면 다음 한 문장으로 시작합니다.
+
+```text
+전체 학습 흐름으로 진행해줘.
+```
+
+기존의 짧은 표현인 `전체 흐름으로 진행해줘`도 같은 요청으로 처리합니다.
+
+Agent는 먼저 저장된 학습자 근거에서 ROADMAP의 다음 primary target과 필요한 경우 하나의 bridge를 결정합니다. 그다음 자료 해결, reviewed lesson, TIL 검토·저장, 실습 판정, 학습자가 직접 수행하는 실습 단계, knowledge 갱신과 다음 target 미리보기를 기존 전문 skill에 순서대로 맡깁니다.
+
+이 문장은 현재 대화의 한 사이클에 한해 검증된 날짜별 TIL, 완료 준비가 끝난 exact practice, evidence-backed knowledge의 path-limited commit을 허용합니다. push, permanent source 등록, 유료·로그인 자료 접근, 외부 참여·제출은 허용하지 않습니다.
+
+### 자동 커밋 없이 새 수업 시작
+
+목표와 자료 선정부터 수업까지 맡기되 저장과 커밋은 나중에 결정하려면 다음과 같이 말합니다.
+
+```text
+현재 학습 근거로 다음 목표를 정해서 수업을 시작해줘.
+저장과 커밋은 내가 요청할 때만 해줘.
+```
+
+### 계획만 확인
+
+파일을 수정하거나 수업을 시작하지 않고 다음 선택만 확인하려면 다음과 같이 말합니다.
+
+```text
+현재 학습 근거를 확인해서 다음에 무엇을 공부할지 정해줘.
+```
+
+이 요청은 read-only `$plan-roadmap-learning`과 일치합니다.
+
+### 진행 중인 수업 또는 실습 재개
+
+같은 로컬 작업 공간에 `tmp/active-lesson-handoff.md`가 있으면 새 대화에서도 다음 요청으로 정확한 수업 범위를 재개할 수 있습니다.
+
+```text
+현재 진행 중인 수업을 이어서 해줘.
+```
+
+Notebook에는 별도의 canonical active-practice 포인터를 만들지 않습니다. 새 대화에서 실습을 재개할 때는 정확한 경로를 지정합니다.
+
+```text
+practice/<area>/<topic>.ipynb를 이어서 하자.
+현재 저장된 코드와 실제 check 실패부터 확인해줘.
+```
+
+`오늘 학습 시작`이나 단순 `계속`은 이미 식별된 active 수업 또는 실습을 재개하는 뜻이며, 새 전체 사이클이나 자동 커밋 권한으로 확대되지 않습니다. 재개할 exact 상태가 없으면 Agent는 이전 대화를 추측하지 않고 상태가 없음을 알립니다.
+
+### 새 대화에서 복원되는 것
+
+| 상태 | 새 대화에서 사용하는 방식 |
+|---|---|
+| `AGENTS.md`, `.agents/skills/` | 같은 저장소에서 Codex가 다시 읽는 운영 계약 |
+| 날짜별 TIL, `knowledge/`, 실행된 `practice/`, 연결된 `challenges/` | 다음 target과 evidence gap을 다시 계산하는 학습자 근거 |
+| `tmp/active-lesson-handoff.md`, `tmp/active-lesson-sources/`, `til/today.md` | 같은 로컬 작업 공간에서만 유지되는 ignored 임시 상태 |
+| 아직 파일에 반영되지 않은 이전 대화 내용 | 새 대화에서 복원된다고 가정하지 않음 |
+
+Planner의 추천 결과나 숙련도 snapshot은 따로 저장하지 않습니다. Active handoff가 없는 새 사이클에서는 현재 파일 근거로 target을 다시 계산합니다. Ignored 임시 파일과 private 자료는 Git으로 동기화되지 않으므로 다른 clone이나 컴퓨터에서는 자동으로 이어지지 않습니다.
+
 ## Python 실습 환경 준비
 
 이 저장소의 Python 패키지와 `.venv`는 uv로 관리합니다. 저장소를 처음 받았거나 의존성이 바뀌었을 때 다음 명령으로 잠금 파일과 동일한 환경을 준비합니다.
@@ -28,16 +95,16 @@ VS Code에서 Notebook을 실행할 때는 `/home/jake/llm-research-learning-lab
 
 [`ROADMAP.md`](./ROADMAP.md)는 큰 학습 방향을, [`CURRICULUM.md`](./CURRICULUM.md)는 역량별 목표 깊이·선수 관계·현재 강의자료의 충족도와 보완 기준을 담습니다. 둘 다 개인 진도율이나 점수를 기록하는 문서는 아닙니다.
 
-## 공부한 날
+## 한 학습 사이클이 진행되는 순서
 
-1. `$plan-roadmap-learning`으로 정확히 하나의 primary target과 필요한 경우 하나의 bridge prerequisite를 정합니다.
+1. 새 사이클 요청을 받으면 Agent가 `$plan-roadmap-learning`을 사용해 정확히 하나의 primary target과 필요한 경우 하나의 bridge prerequisite를 정합니다. 사용자가 target ID를 미리 입력할 필요는 없습니다.
 2. 선택된 target을 감사된 로컬 자료로 해결할지, 이번 수업에만 쓸 공식 외부 자료로 해결할지 판단합니다. 자료 유무는 target 순위를 바꾸지 않습니다.
 3. `$coach-llm-research-study`가 선택한 자료와 target 관계를 감사하고 schema v6 handoff를 준비합니다.
 4. 수업 계약이 fresh reviewer의 검토를 통과하면 `$teach-course-material`로 기술 개념 단위 학습을 진행합니다.
 5. 형식 없는 메모는 `til/today.md`에 직접 쓰고, 확인된 자신의 답변만 같은 파일에 누적합니다.
 6. `$coach-llm-research-study`로 오늘 실제로 다룬 핵심이 이해 또는 불확실성의 형태로 초안에 모두 있는지 검토합니다.
 7. 오개념이나 확인이 필요한 표현은 다시 학습하고, 직접 설명해 확인된 답변만 반영합니다.
-8. `저장 가능` 판정을 받으면 `$save-today-til`로 날짜별 TIL을 저장하고 그 날짜별 TIL만 path-limited commit합니다.
+8. `저장 가능` 판정 뒤 사용자가 저장을 요청했거나 전체 학습 흐름을 승인했다면 `$save-today-til`로 날짜별 TIL을 저장하고 그 날짜별 TIL만 path-limited commit합니다.
 9. `$suggest-learning-practice`가 exact TIL과 target에 맞춰 실습 action과 modality를 먼저 판정합니다.
 10. local mode라면 하나의 Notebook에서 핵심 로직을 직접 구현하고 검사를 실행한 뒤 결과와 상태 변화를 해석합니다. external mode라면 승인 전에는 참여하거나 제출하지 않습니다.
 11. `--completion-ready`와 학습자의 해석을 모두 확인한 뒤에만 실습을 완료 증거로 다룹니다.
@@ -121,13 +188,23 @@ practice/deep-learning/tiny-image-classifier-contracts.ipynb
 
 실행하지 않은 결과는 기록하지 않고, 데이터셋·모델 가중치·API 키·큰 출력 파일은 Git에 올리지 않습니다. Notebook 출력도 결과를 이해하는 데 필요한 것만 남깁니다.
 
-## GPT 스킬
+## 스킬을 직접 호출하고 싶을 때
+
+앞의 자연어 진입점만으로도 Agent가 필요한 skill을 선택합니다. 아래 호출은 특정 단계만 직접 실행하거나 입력 범위를 정확히 고정하고 싶을 때 사용합니다. 하나의 거대 orchestration skill은 두지 않으며, 전체 학습 흐름에서는 Agent가 각 전문 skill의 책임을 순서대로 연결합니다.
 
 ### 1. 다음 학습 방향 계획
 
 [`plan-roadmap-learning`](./.agents/skills/plan-roadmap-learning/SKILL.md)은 `ROADMAP.md`의 `1A`~`2C` endpoint 단계, `CURRICULUM.md`의 depth·prerequisites·required evidence, 실제 학습자 근거를 함께 읽습니다. endpoint는 장기 도착점으로 남기고, 해당 경로의 blocking frontier를 이번 사이클의 primary target으로 정합니다. 거의 충족된 선수역량 하나만 inline bridge가 될 수 있으며, 독립적인 학습이 필요한 blocker는 bridge로 축소하지 않습니다. 자료나 다음 chapter가 target 순위를 대신하지 않습니다. 파일을 수정하거나 자료를 내려받고 등록하지 않습니다.
 
-다음 학습 방향을 고르는 요청에서는 이 planner를 자료 감사와 대화형 수업보다 먼저 사용합니다. 새 자료가 필요하다는 결과가 나온 뒤에만 별도 승인 아래 source 등록·감사를 진행하고, 감사된 범위를 수업으로 넘깁니다.
+다음 학습 방향을 고르는 요청에서는 Agent가 이 planner를 자료 감사와 대화형 수업보다 먼저 사용합니다. 새 자료가 필요하다는 결과가 나온 뒤에만 별도 승인 아래 source 등록·감사를 진행하고, 감사된 범위를 수업으로 넘깁니다. 사용자가 `$plan-roadmap-learning`을 직접 쓰지 않아도 “다음에 무엇을 공부할지 정해줘”처럼 description과 일치하는 요청이면 implicit invocation할 수 있습니다.
+
+자연어로 계획만 확인하는 가장 짧은 요청은 다음과 같습니다.
+
+```text
+현재 학습 근거를 확인해서 다음에 무엇을 공부할지 정해줘.
+```
+
+동일한 skill을 명시적으로 고정하려면 다음처럼 호출합니다.
 
 ```text
 $plan-roadmap-learning을 사용해
@@ -266,7 +343,7 @@ $update-learning-knowledge를 사용해
 
 ## 한 사이클 전체 흐름
 
-`전체 흐름으로 진행해줘`처럼 명시적으로 요청하면 현재 대화의 한 학습 사이클에 한해 기존 스킬들이 순서대로 연결됩니다.
+`전체 학습 흐름으로 진행해줘`라고 명시적으로 요청하면 현재 대화의 한 학습 사이클에 한해 기존 skill들이 순서대로 연결됩니다. 사용자는 endpoint, primary target, bridge 또는 자료를 미리 지정하지 않습니다. Agent가 실제 learner evidence로 이를 정한 뒤 각 전문 skill에 정확한 입력을 넘깁니다.
 
 1. target과 artifact를 선택하고, 허용되는 공식 자료라면 임시 캐시합니다.
 2. reviewed lesson을 진행하고 확인된 학습자 답변만 초안에 반영합니다.
@@ -276,11 +353,11 @@ $update-learning-knowledge를 사용해
 6. learner evidence가 있으면 knowledge 0~3개를 갱신하고 변경된 knowledge path만 기존 메시지 규칙으로 커밋합니다.
 7. 새 evidence로 다음 target preview를 계산하고 사이클을 종료합니다.
 
-이 권한에는 학습자 답변 대신 작성, learner-owned 구현·실행 대행, permanent source 등록, 유료·로그인 download, 외부 challenge·competition 참여나 제출, push가 포함되지 않습니다. 중간의 학습자 답변이나 실습 수행을 기다리는 것은 정상입니다. `오늘 학습 시작`이나 단순 `계속`은 정확한 active handoff 또는 practice를 재개할 뿐 위 자동 커밋 권한으로 넓어지지 않습니다.
+이 권한에는 학습자 답변 대신 작성, learner-owned 구현·실행 대행, permanent source 등록, 유료·로그인 download, 외부 challenge·competition 참여나 제출, push가 포함되지 않습니다. 중간의 학습자 답변이나 실습 수행을 기다리는 것은 정상입니다. `오늘 학습 시작`이나 단순 `계속`은 정확한 active handoff 또는 사용자가 지정한 practice를 재개할 뿐 위 자동 커밋 권한으로 넓어지지 않습니다.
 
-## 가장 간단한 흐름
+## 단계를 직접 제어하기
 
-수업 직후에는 다음 요청으로 시작합니다.
+전체 사이클을 맡기지 않고 이미 정한 강의자료로 수업만 시작하려면 다음처럼 요청합니다.
 
 ```text
 $coach-llm-research-study와 $teach-course-material을 사용해
