@@ -9,7 +9,7 @@ Act as the learner's AI/ML/LLM evaluator. Identify what the source or learner un
 
 ## Establish the lesson context
 
-1. Read the complete source, including PDF figures, formulas, code, tables, appendices, and expanded toggle content. Render pages when extraction may have lost layout or notation.
+1. Choose the reading boundary from the task. For source registration, replacement, coverage audit, or a `full-source` lesson, read the complete source, including PDF figures, formulas, code, tables, appendices, and expanded toggle content. For a `focused` lesson, read the exact registered or ephemeral included locators, the declared boundary context, and directly referenced assets; do not expand that lesson's semantic audit to unrelated chapters, appendices, global goals, or index entries. Render inspected PDF pages when extraction may have lost layout or notation.
 2. Read the lesson objective, table of contents, adjacent lesson titles, `ROADMAP.md`, relevant competency rows in `CURRICULUM.md`, and relevant `knowledge/` notes when available.
 3. Start from the learner's rough explanation or TIL when one exists; audit the source alone when it does not.
 4. Infer what the lesson is trying to teach and what it intentionally postpones. If adjacent course context is unavailable, label uncertainty instead of claiming that a topic was definitely omitted.
@@ -76,8 +76,8 @@ does not discover sources, choose a target, or start background learning.
 ## Gate an interactive lesson contract
 
 This skill owns source auditing, contract preparation, independent semantic
-review, and the TIL completeness judgment for a whole interactive named-source
-lesson. Read and follow
+review, repair convergence, and the TIL completeness judgment for a whole
+interactive named-source lesson. Read and follow
 [`references/lesson-handoff.md`](references/lesson-handoff.md), the sole
 normative schema and lifecycle. Hand teaching to `$teach-course-material` only
 after the canonical readiness gate passes; hand canonical saving to
@@ -86,11 +86,24 @@ Keep the ordered ROADMAP endpoint as route context, the actionable frontier as
 the lesson's primary target, and at most one short prerequisite as its bridge.
 Never instantiate a handoff from `NEED_DIAGNOSTIC` or
 `NO_ACTIONABLE_TARGET`; return those states to the planner first.
-Those lesson gates use the handoff contract's semantic-slice freshness rule:
-selected local or external source problems and any missing direct target
-relation block, while unrelated same-course source problems warn. Keep the
-separate strict Curriculum validator course-wide for source registration and
-audit work.
+Those lesson gates use the handoff contract's semantic-slice freshness rule.
+A `focused` contract is bounded by its `Source Scope Map`: review included
+locators semantically, use boundary locators only to verify the cut, and ignore
+unrelated whole-source goals, examples, appendices, and index entries for lesson
+completeness. Selected local or external source integrity problems and missing
+direct target relations still block readiness, while unrelated same-course
+source problems warn. Keep the separate strict Curriculum validator
+course-wide for source registration and audit work.
+
+On an explicit learning-start or full-flow request, repair locator, wording,
+objective-mapping, and teaching-order findings in the same flow and request a
+targeted recheck from the same independent reviewer. Do not ask the learner to
+repeat a reset phrase or target ID. Reserve `blocked` for source integrity,
+source access, irreducible factual ambiguity, or a genuine user scope decision.
+A second repairable non-pass remains `repair_pending`; when the same lesson has
+no delivery and no learner evidence, shrink it once to a micro-slice and review
+again. If a reviewer is temporarily unavailable, try one replacement and
+preserve `review_pending` instead of recording a semantic blocker.
 
 Audit-only work, direct definitions, short corrections, one-off questions, and
 knowledge-note deepening do not require this handoff. When a whole named-source
@@ -130,7 +143,7 @@ Keep this distinction explicit so a later practice or knowledge decision does no
 When the user asks to validate `til/today.md` or another rough note before saving:
 
 1. Resolve the exact draft and reconstruct **today's actual learning scope** in this order: the active handoff's actual delivered scope; confirmed learner answers, calculations, shape predictions, and code interpretations; the current learning conversation; an explicitly stated self-study scope with exact source paths; then the draft itself. Non-assessed guidance and the source table of contents do not prove that a technical concept was studied. If the actual scope cannot be recovered, do not guess; give `추가 확인 후 저장` and ask the smallest scope question.
-2. Read the complete relevant source, the draft, the relevant learning exchange, and only directly related `knowledge/` or executed `practice/` evidence. Reading the whole source is for factual checking, not for expanding today's required scope.
+2. Read the reviewed source scope, the draft, the relevant learning exchange, and only directly related `knowledge/` or executed `practice/` evidence. For a `full-source` handoff or standalone claim whose source scope is not bounded, read the complete relevant source for factual checking; never use that wider reading to expand today's required scope.
 3. Build a temporary concept inventory. For a handoff-backed lesson, record it through the canonical handoff contract and its Objective-level learner evidence rules. For self-study without a handoff, hold the inventory only in working context; do not create another durable review document.
 4. Require every core concept actually studied today to appear in one of two honest forms: confirmed understanding under `오늘의 학습` or `배운 점`, and unresolved understanding under `남은 질문`. A deferred source concept is not required. Compare the learner's claims with the source and established facts; do not assume the source itself is correct.
 5. Classify findings as:

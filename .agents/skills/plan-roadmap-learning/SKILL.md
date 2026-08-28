@@ -25,7 +25,7 @@ Read and follow [`references/planner-contract.md`](references/planner-contract.m
    frontier blocker is the primary target; one narrow, mostly satisfied
    prerequisite may be its inline bridge. Multiple assessed gaps are not
    bundled as bridges.
-5. After target selection, reuse only a directly linked, valuable practice with required execution evidence and no blocker. Otherwise resolve a current local source or one exact official external artifact.
+5. After target selection, reuse only a directly linked, valuable practice with required execution evidence and no blocker. Otherwise resolve a current local source or one exact official external artifact, then identify the smallest registered or ephemeral lesson slice that can close the primary target's current evidence gap. Route-level chapter ranges are not automatically one lesson scope.
 6. Return all four decision axes and the observable completion evidence required by the contract. State uncertainty instead of inferring progress from file presence or completion signals.
 
 Do not persist a planner snapshot, daily status, mastery checkbox, score, or completion percentage.

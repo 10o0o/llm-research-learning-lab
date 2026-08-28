@@ -30,13 +30,19 @@ validator never edits the handoff.
 1. Build the manifest and lesson contract with status `preparing`.
 2. Record the computed manifest and contract hashes, change the status to
    `review_pending`, and run structural validation.
-3. Give a fresh read-only reviewer the handoff and every manifest input. The
-   reviewer must not be the contract author and must not be given an intended
-   answer.
-4. Add one semantic-review attempt. A `changes_required` verdict permits one
-   contract correction and one new fresh review. There are at most two review
-   attempts. Reviewer unavailability or a second non-pass verdict requires
-   status `blocked`; do not teach.
+3. Give a fresh read-only reviewer the handoff, the exact selected source slice,
+   its boundary context, directly used assets, and the relevant INDEX,
+   Curriculum, and ROADMAP rows. The reviewer must not be the contract author
+   and must not be given an intended answer. A focused review must not expand
+   into a new whole-source audit.
+4. Record the current semantic decision. A `repair_required` verdict uses status
+   `repair_pending`; the author corrects only the named findings and the same
+   reviewer performs one `targeted-recheck`. Locator, wording, objective mapping,
+   and teaching-order findings are repairable and never become a semantic block.
+   A second repairable non-pass remains resumable and, when nothing has been
+   taught or captured, permits one automatic reduction to a smaller slice.
+   `blocked` is reserved for source integrity or access failure, irreducible
+   factual ambiguity, or a material user scope decision.
 5. A current `pass` permits status `active`. Run `--ready` before the first
    teaching chunk and again after resuming a paused lesson.
 6. Update Current Position, Objective Delivery, learner evidence, and Daily
@@ -55,15 +61,19 @@ validator never edits the handoff.
    strict practice provenance validation; delete only that lesson cache
    directory afterward. Preserve both on interruption or validation failure.
 
-Schema version 6 has no in-place migration from version 5 or earlier. Rebuild
-an older handoff from the current template; do not reinterpret the old
-endpoint-as-primary semantics or guess how target, external identity, or
-ROADMAP state maps to the new contract.
+Schema version 7 has no in-place migration from version 6 or earlier. Rebuild
+an older handoff from the current template. When the same target and source are
+unchanged and no Objective has been delivered and no learner evidence exists,
+an explicit lesson-start or full-flow request already authorizes that mechanical
+rebuild; never ask the learner to repeat a reset phrase.
 
 Resume an existing handoff only when the named primary input path and hash are
 unchanged. A source, curriculum, manifest, or lesson-contract change makes a
-prior review stale. Never overwrite an `active`, `paused`, or `blocked` handoff
-with a different lesson without an explicit close-or-replace decision.
+prior review stale. Never overwrite an `active` or `paused` handoff, or any
+handoff with delivery or learner evidence, with a different lesson without an
+explicit close-or-replace decision. `review_pending` and `repair_pending`
+handoffs without delivery or evidence may be repaired or narrowed automatically
+for the same target/source.
 A `completed` handoff may be replaced for a new lesson only when every
 confirmed evidence item is already `drafted`. Otherwise preserve it until the
 append helper recovers the pending evidence; completion alone is not permission
@@ -73,12 +83,12 @@ to discard learner content.
 
 Metadata is a Markdown bullet list with exactly these keys:
 
-- `schema_version`: currently `6`.
+- `schema_version`: currently `7`.
 - `lesson_id`: stable lowercase identifier matching
   `[a-z0-9][a-z0-9-]{2,63}`.
 - `title`: one non-empty line.
-- `status`: `preparing`, `review_pending`, `active`, `paused`, `blocked`, or
-  `completed`.
+- `status`: `preparing`, `review_pending`, `repair_pending`, `active`, `paused`,
+  `blocked`, or `completed`.
 - `study_date`: `YYYY-MM-DD`.
 - `created_at`, `updated_at`: RFC 3339 timestamps with `Z` or an explicit UTC
   offset.
@@ -292,25 +302,50 @@ Use `full-source` when the learner requests all named sources or an entire
 range. It requires every primary source's core content, including source-body
 formulas, code, figures, examples, and embedded checks. Separate
 `course-provided-practice/` inputs stay outside this gate unless the learner
-explicitly includes them. Use `focused` only for an explicitly selected subset;
-record excluded source locations and reasons rather than silently dropping
-them.
+explicitly includes them. Use `focused` for one bounded subset. Content outside
+that subset is not part of the lesson contract, is not a deferred Objective,
+and cannot block readiness.
+
+A course INDEX may preserve a reusable logical slice without duplicating the
+source bytes. Its optional `학습 범위` table has these exact columns:
+
+```text
+Scope ID | Source ID | Title | Included locations | Boundary context | Note
+```
+
+`Scope ID` is `SCOPE-<Source ID without SRC->-<NN>`. Every included and boundary
+locator points to that source, exists, and is unique; PDF pages must be within
+the parsed page count. Boundary context is review-only and cannot become an
+Objective, Goal, Guidance item, or Finding. An unregistered one-lesson slice is
+allowed in the handoff and does not change durable Curriculum coverage.
+
+Source Scope Map has these exact columns and one ordered row per primary:
+
+```text
+Primary ID | Scope kind | Scope ID | Included locations | Boundary context | Outside-scope disposition
+```
+
+Scope kind is `entire-source`, `registered-slice`, or `ephemeral-slice`.
+`full-source` requires `entire-source`, Scope ID `none`, Included locations
+`entire-source`, and no boundary or outside disposition. `focused` requires a
+registered or ephemeral slice, one or more included locators, and one coarse
+outside-scope disposition. A registered row must exactly match the manifested
+course INDEX; an ephemeral row uses Scope ID `none`.
 
 Source Coverage Index has these exact columns and exactly one ordered row per
 primary manifest input, in manifest order:
 
 ```text
-Primary ID | Declared Goal IDs | Objective IDs | Guidance IDs | Excluded locations | Reason
+Primary ID | Declared Goal IDs | Objective IDs | Guidance IDs
 ```
 
 ID cells are comma-separated or `none`. They must exactly inventory that
-primary's declared goals, source-core objectives, and guidance items. A
+primary's declared goals, source-core objectives, and guidance items inside the
+selected scope. A
 full-source primary may be entirely guidance, but every technical source-body
-core still requires an objective. Use `none` for both exclusions and reason
-when nothing is excluded. Otherwise separate exact `path#location` entries
-with semicolons and state why each excluded part is non-core or outside the
-focused request. The index is not itself proof of completeness: the semantic
-reviewer still compares it with the entire source.
+core still requires an objective. In focused mode the reviewer compares only
+the included locations and uses boundary context solely to verify that the cut
+does not hide a definition, limitation, or continuation needed by that slice.
 
 Declared Goal Alignment has these exact columns:
 
@@ -439,53 +474,62 @@ deferred objective once in objective order. If none are deferred, use one
 
 ## Semantic Review
 
-`review_attempt` equals the number of attempt blocks and is restricted to
-`0`, `1`, or `2`. Attempt IDs are contiguous. Each block contains:
-
-- `reviewer_id`: stable identity different from `author_id` and from every
-  other reviewer in this handoff;
-- `reviewer_mode`: exactly `fresh-subagent`;
-- `reviewed_at`: RFC 3339 timestamp;
-- `verdict`: `pending`, `pass`, `changes_required`, or `unavailable`;
-- `reviewed_input_manifest_sha256` and `reviewed_contract_sha256`;
-- a separate Blocking Findings body.
-
-Use this exact block syntax immediately after the top-level
-`- review_attempt: N` field. Replace every placeholder and use the same attempt
-number in the marker and heading:
+The handoff stores the current semantic decision, not an accumulating review
+log. It contains these bullets in order:
 
 ```markdown
-<!-- semantic-review-attempt:1:start -->
-### Review Attempt 1
-
-- reviewer_id: replace-with-fresh-reviewer-id
-- reviewer_mode: fresh-subagent
+- initial_reviewer_id: replace-with-independent-reviewer-id
+- reviewer_id: replace-with-the-same-reviewer-id
+- review_iteration: 1
+- review_phase: independent-slice
+- recheck_of: none
 - reviewed_at: YYYY-MM-DDTHH:MM:SSZ
 - verdict: pass
 - reviewed_input_manifest_sha256: replace-with-current-manifest-sha256
 - reviewed_contract_sha256: replace-with-current-contract-sha256
-
-#### Blocking Findings
-
-- none
-<!-- semantic-review-attempt:1:end -->
 ```
 
-For a pass, Blocking Findings must be exactly `- none`. For
-`changes_required` or `unavailable`, replace it with at least one concrete
-non-`none` blocking finding. A second attempt uses `2` in both marker lines and
-its heading, plus a different fresh `reviewer_id`.
+`review_iteration` is `0`, `1`, or `2`. Iteration 0 uses `none`, `pending`, and
+empty finding rows exactly as the template shows. Iteration 1 uses
+`independent-slice`; its reviewer differs from `author_id`. Iteration 2 uses
+`targeted-recheck`, keeps that same reviewer, and lists the repaired `R###` IDs
+under `recheck_of`.
 
-Only the latest attempt controls readiness. The first attempt may be followed
-by another only when its verdict was `changes_required`. A pass is current only
-when both reviewed hashes equal the handoff's recomputed hashes. An unavailable
-reviewer ends the review flow immediately.
+Verdict is `pending`, `pass`, `repair_required`, or `blocked`. Repair Findings
+uses:
+
+```text
+Finding ID | Location | Detail
+```
+
+Blocking Findings uses:
+
+```text
+Finding ID | Kind | Location | Detail
+```
+
+Repair IDs are unique `R###`. Blocker IDs are unique `B###`, and Kind is exactly
+`source-integrity`, `source-access`, `irreducible-factual-ambiguity`, or
+`user-scope-decision`. A pass has no current findings. `repair_required` has
+only Repair Findings and requires status `repair_pending`; `blocked` has only
+true Blocking Findings and requires status `blocked`. Reviewer unavailability
+is not a semantic verdict: try one replacement reviewer and otherwise preserve
+`review_pending` without manufacturing a blocker.
+
+A pass is current only when both reviewed hashes equal the recomputed hashes.
+The validator's JSON `workflow_action` is one of `PREPARE_CONTRACT`,
+`REQUEST_INDEPENDENT_REVIEW`, `REPAIR_CONTRACT`, `REQUEST_TARGETED_RECHECK`,
+`ACTIVATE_LESSON`, `TEACH_OR_RESUME`, `SHRINK_TO_MICRO_SLICE`,
+`RESOLVE_TRUE_BLOCKER`, or `COMPLETE`. Follow it without asking the learner for
+a reset phrase.
 
 The reviewer checks source fidelity, facts, formulas, tensor shapes, code
 claims, marker classification, curriculum alignment, lesson scope, and learner
-evidence provenance. For every primary file, compare every explicit goal with
-Declared Goal Alignment, then compare essential source-native formulas, code,
-figures, examples, and checks with the Objective Map. Verify that guidance is
+evidence provenance. In `full-source`, compare the entire primary. In `focused`,
+compare only Included locations and use Boundary context only to verify the
+cut. Within that review scope, compare every explicit goal with Declared Goal
+Alignment and compare essential source-native formulas, code, figures,
+examples, and checks with the Objective Map. Verify that guidance is
 preserved without becoming an assessment target and that each Objective has an
 aligned Teaching Step. A path, goal sentence, or topic name alone is never body
 support or teaching coverage. Also verify that corrections use authoritative
@@ -498,11 +542,10 @@ topic-name overlap:
 - If a multiclass lesson names its source, logits shape, and
   `CrossEntropyLoss` but never assigns a teaching move for Softmax's operation,
   class axis, normalized output meaning, and per-sample sum of one, return
-  `changes_required`.
-- For at least one primary file with multiple explicit learning goals, match
-  each goal independently to learning, guidance, or source-gap. If only a
-  subset was extracted, return `changes_required` even when the file appears in
-  Source Coverage Index.
+  `repair_required`.
+- For each explicit learning goal inside the review scope, match it independently
+  to learning, guidance, or source-gap. Goals outside a focused slice are not
+  contract inputs and must not be requested as exclusions or mappings.
 - Reject a `learning` goal whose Body support is merely its own goal wording,
   a source-gap represented as source-core, or any mechanism invented to fill
   absent body prose. Reject guidance promoted into an Objective, Teaching Step,
@@ -516,12 +559,11 @@ topic-name overlap:
   subject of a focused lesson. In particular, a 01-00 Step must fail if it asks
   “flatten 같은 개념에서 이론·복습·실습은 각각 무엇을 확인하게 해 주나요?”
   rather than checking a technical Objective.
-- Audit technical body sections independently of declared goals. Reject a
+- Audit included technical body independently of declared goals. Reject a
   contract that covers the listed goals but omits a source-native limitation,
   decision rule, API comparison, threshold rule, worked example, or embedded
-  check needed to understand the lesson. If a parent section contains both a
-  basic comparison and a nested optional implementation detail, only the exact
-  nested locator may be intentionally deferred.
+  check needed to understand that slice. Do not inspect unrelated chapters,
+  appendices, references, indexes, or book-wide goals during a focused review.
 
 ## Current Position
 

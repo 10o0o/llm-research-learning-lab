@@ -83,9 +83,14 @@ def _external_contract(
             f"| CC-DL-01 | 없음 | 별도 자료 확보 | resolved-external | {objective_order} |",
         )
         contract = contract.replace(
-            "| I001 | D001, D002, D003 | O001, O002 | G001 | none | none |",
-            "| I001 | D001, D002, D003 | O001, O002 | G001 | none | none |\n"
-            "| I002 | none | O004 | none | none | none |",
+            "| I001 | entire-source | none | entire-source | none | none |",
+            "| I001 | entire-source | none | entire-source | none | none |\n"
+            "| I002 | entire-source | none | entire-source | none | none |",
+        )
+        contract = contract.replace(
+            "| I001 | D001, D002, D003 | O001, O002 | G001 |",
+            "| I001 | D001, D002, D003 | O001, O002 | G001 |\n"
+            "| I002 | none | O004 | none |",
         )
         objective_row = (
             f"| O004 | source-core | none | {mixed_local_path}#local-core | "

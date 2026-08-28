@@ -11,10 +11,10 @@
 target ID, 강의명, skill 이름을 미리 고르지 않고 한 사이클 전체를 맡기려면 다음 한 문장으로 시작합니다.
 
 ```text
-전체 학습 흐름으로 진행해줘.
+전체 학습 흐름 시작
 ```
 
-기존의 짧은 표현인 `전체 흐름으로 진행해줘`도 같은 요청으로 처리합니다.
+`전체 학습 흐름으로 진행해줘`와 기존의 짧은 표현인 `전체 흐름으로 진행해줘`도 같은 요청으로 처리합니다.
 
 Agent는 먼저 저장된 학습자 근거에서 ROADMAP의 다음 primary target과 필요한 경우 하나의 bridge를 결정합니다. 그다음 자료 해결, reviewed lesson, TIL 검토·저장, 실습 판정, 학습자가 직접 수행하는 실습 단계, knowledge 갱신과 다음 target 미리보기를 기존 전문 skill에 순서대로 맡깁니다.
 
@@ -54,7 +54,7 @@ practice/<area>/<topic>.ipynb를 이어서 하자.
 현재 저장된 코드와 실제 check 실패부터 확인해줘.
 ```
 
-`오늘 학습 시작`이나 단순 `계속`은 이미 식별된 active 수업 또는 실습을 재개하는 뜻이며, 새 전체 사이클이나 자동 커밋 권한으로 확대되지 않습니다. 재개할 exact 상태가 없으면 Agent는 이전 대화를 추측하지 않고 상태가 없음을 알립니다.
+`오늘 학습 시작`이나 단순 `계속`은 이미 식별된 active 수업 또는 실습을 재개하는 뜻이며, 새 전체 사이클이나 자동 커밋 권한으로 확대되지 않습니다. Active handoff가 `review_pending` 또는 `repair_pending`이어도 같은 말로 재개합니다. Locator·문구·objective mapping·teaching order처럼 고칠 수 있는 finding은 Agent가 같은 흐름에서 수정하고 targeted recheck를 요청하므로 reset 문구나 target ID를 다시 입력할 필요가 없습니다. Source 손상·접근 실패, 해결 불가능한 사실 모호성, 또는 사용자 범위 선택만 실제 block입니다. 재개할 exact 상태가 없으면 Agent는 이전 대화를 추측하지 않고 상태가 없음을 알립니다.
 
 ### 새 대화에서 복원되는 것
 
@@ -99,8 +99,8 @@ VS Code에서 Notebook을 실행할 때는 `/home/jake/llm-research-learning-lab
 
 1. 새 사이클 요청을 받으면 Agent가 `$plan-roadmap-learning`을 사용해 정확히 하나의 primary target과 필요한 경우 하나의 bridge prerequisite를 정합니다. 사용자가 target ID를 미리 입력할 필요는 없습니다.
 2. 선택된 target을 감사된 로컬 자료로 해결할지, 이번 수업에만 쓸 공식 외부 자료로 해결할지 판단합니다. 자료 유무는 target 순위를 바꾸지 않습니다.
-3. `$coach-llm-research-study`가 선택한 자료와 target 관계를 감사하고 schema v6 handoff를 준비합니다.
-4. 수업 계약이 fresh reviewer의 검토를 통과하면 `$teach-course-material`로 기술 개념 단위 학습을 진행합니다.
+3. `$coach-llm-research-study`가 선택한 자료와 target 관계를 감사하고 schema v7 handoff를 준비합니다. `focused` 수업은 등록 또는 임시 slice의 included locator, 경계 context, 직접 자산과 관련 registry 행만 의미적으로 검토합니다. 책 전체 감사는 source 등록·교체 또는 `full-source` 요청에만 필요합니다.
+4. 수업 계약이 독립 reviewer의 slice 검토를 통과하면 `$teach-course-material`로 기술 개념 단위 학습을 진행합니다. 수정 가능한 finding은 같은 reviewer의 targeted recheck로 수렴시키며, 두 번째 non-pass도 자동으로 block으로 바꾸지 않습니다.
 5. 형식 없는 메모는 `til/today.md`에 직접 쓰고, 확인된 자신의 답변만 같은 파일에 누적합니다.
 6. `$coach-llm-research-study`로 오늘 실제로 다룬 핵심이 이해 또는 불확실성의 형태로 초안에 모두 있는지 검토합니다.
 7. 오개념이나 확인이 필요한 표현은 다시 학습하고, 직접 설명해 확인된 답변만 반영합니다.
@@ -121,7 +121,7 @@ materials/private/<course>/NN-NN_주제.md
 materials/private/<course>/NN-NN_주제.pdf
 ```
 
-파일을 옮긴 뒤 전체 페이지와 수식·표·코드·그림이 읽히는지 확인합니다. Notion에서 내보낸 자료라면 접힌 내용도 포함되어야 합니다. 과정 `INDEX.md`에는 정확히 한 번 `- source_namespace: <대문자 namespace>`를 선언하고 새 파일명과 원본 위치를 함께 갱신합니다. Registry ID는 `SRC-<source_namespace>-<NN-NN>`으로 만들며 같은 namespace를 다른 과정 폴더에서 재사용하지 않습니다.
+파일을 옮긴 뒤 전체 페이지와 수식·표·코드·그림이 읽히는지 확인합니다. Notion에서 내보낸 자료라면 접힌 내용도 포함되어야 합니다. 과정 `INDEX.md`에는 정확히 한 번 `- source_namespace: <대문자 namespace>`를 선언하고 새 파일명과 원본 위치를 함께 갱신합니다. Registry ID는 `SRC-<source_namespace>-<NN-NN>`으로 만들며 같은 namespace를 다른 과정 폴더에서 재사용하지 않습니다. 반복해서 사용할 bounded lesson 범위는 선택적인 `학습 범위` 표에 `Scope ID`, source, included locator, boundary context를 등록할 수 있습니다. 이 범위는 수업 라우팅 정보이며 Curriculum coverage나 learner mastery를 올리지 않습니다.
 
 현재 수업에 필요한 자료가 아직 등록되지 않았더라도 공개 HTTPS 공식 자료라면 reviewed handoff 안에서만 임시 캐시할 수 있습니다. Agent가 먼저 공식 자료를 검색·감사해 exact URL을 선택하며, `cache_external_source.py` 자체는 자료를 발견하거나 백그라운드 학습을 시작하지 않습니다. Cache에는 provider, course, offering 또는 edition, artifact, 정확한 scope, 원본·최종 URL, retrieval 시각과 hash를 보존합니다. 로그인·결제·100 MiB 초과·archive·dataset·weight는 자동으로 받지 않습니다. 임시 사용은 `CURRICULUM.md` coverage를 바꾸지 않으며, 두 번째 독립 수업에서 재사용하거나 장기 route의 핵심 자료가 되면 별도 등록을 권고하고 승인을 기다립니다.
 

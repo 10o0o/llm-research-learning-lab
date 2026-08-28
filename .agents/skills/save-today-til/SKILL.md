@@ -28,6 +28,10 @@ redefine or bypass it here.
   handoff requires its current TIL-readiness gate even when the draft contains
   no evidence marker. A separately named draft remains standalone and must not
   alter or remove the active handoff.
+- Treat `review_pending`, `repair_pending`, and `blocked` as unfinished lesson
+  states. Preserve the draft, handoff, and lesson cache while the coach resumes
+  review or repair; never turn a repairable lesson-contract finding into a TIL
+  save decision.
 - If the current conversation contains a pre-save verdict with unresolved `반드시 수정` or `추가 확인` findings, do not finalize those statements as established facts. Continue only after the learner resolves them, asks to express them explicitly as uncertainty, or knowingly asks to preserve the unverified draft.
 - Never treat a `저장 가능` verdict as evidence for `knowledge/`; it only means the draft is suitable as a chronological TIL.
 

@@ -20,6 +20,7 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 from pdf_utils import pdf_page_count as _pdf_page_count  # noqa: E402
+from source_scopes import validate_course_scopes  # noqa: E402
 
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -1228,6 +1229,14 @@ def _strict_source_checks(
         if selected_directory is not None
         else registered_directories | discovered_directories
     )
+    source_paths_by_id = {
+        source.identifier: tuple(
+            candidate.relative_path
+            for candidate in sources
+            if candidate.identifier == source.identifier
+        )
+        for source in sources
+    }
     for directory in sorted(course_directories):
         index_path = repo_root / "materials" / "private" / directory / "INDEX.md"
         display = str(index_path.relative_to(repo_root))
@@ -1264,6 +1273,27 @@ def _strict_source_checks(
                 ))
                 continue
             indexed_paths.add(f"materials/private/{directory}/{filename}")
+
+        _, scope_findings = validate_course_scopes(
+            index_path,
+            repo_root=repo_root,
+            source_paths_by_id=source_paths_by_id,
+        )
+        for finding in scope_findings:
+            affected_paths = {
+                path
+                for source_id in finding.affected_source_ids
+                for path in source_paths_by_id.get(source_id, ())
+            }
+            findings.append(
+                Finding(
+                    display,
+                    finding.line,
+                    finding.code,
+                    finding.message,
+                    tuple(sorted(affected_paths)),
+                )
+            )
 
     for missing in sorted(indexed_paths - registered_paths):
         findings.append(Finding(missing, 1, "INDEX_NOT_REGISTERED", "indexed lesson is absent from registry"))

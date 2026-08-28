@@ -1,4 +1,4 @@
 interface:
   display_name: "LLM 학습 평가 코치"
   short_description: "강의자료·커리큘럼과 오늘 실제 학습 범위의 정확성·완전성을 검토합니다"
-  default_prompt: "$coach-llm-research-study를 사용해 til/today.md를 오늘 실제로 다룬 범위와 대조하고, 확인된 이해와 남은 불확실성이 빠짐없이 표현됐는지 저장 전에 검토해줘."
+  default_prompt: "$coach-llm-research-study를 사용해 focused 수업이면 등록된 slice와 경계만 검토하고 수정 가능한 finding은 같은 흐름에서 수리한 뒤, til/today.md가 오늘 실제로 다룬 범위를 빠짐없이 표현하는지 저장 전에 검토해줘."

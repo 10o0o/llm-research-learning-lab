@@ -7,6 +7,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from pypdf import PdfWriter
+
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 SCRIPT = REPO_ROOT / ".agents/skills/coach-llm-research-study/scripts/validate_curriculum.py"
@@ -120,6 +122,140 @@ class CurriculumValidatorTests(unittest.TestCase):
                 repo_root=root,
             )
             self.assertIn("SOURCE_HASH_STALE", self.codes(findings))
+
+    def test_course_scope_registry_validates_identity_source_and_pdf_pages(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            course = root / "materials/private/example-probability"
+            course.mkdir(parents=True)
+            source = course / "00-01_probability.pdf"
+            writer = PdfWriter()
+            for _ in range(3):
+                writer.add_blank_page(width=612, height=792)
+            with source.open("wb") as handle:
+                writer.write(handle)
+            digest = validator.sha256_file(source)
+            index = course / "INDEX.md"
+            valid_scope_row = (
+                "| SCOPE-EXAMPLE-PROB-00-01-01 | SRC-EXAMPLE-PROB-00-01 | First concept | "
+                "materials/private/example-probability/00-01_probability.pdf#page-2: selected definition | "
+                "materials/private/example-probability/00-01_probability.pdf#page-1; "
+                "materials/private/example-probability/00-01_probability.pdf#page-3 | focused fixture |"
+            )
+            index.write_text(
+                "# Index\n\n- source_namespace: EXAMPLE-PROB\n\n## 강의 자료\n\n"
+                "| 파일 | 설명 |\n| --- | --- |\n"
+                "| `00-01_probability.pdf` | fixture |\n\n"
+                "## 학습 범위\n\n"
+                "| Scope ID | Source ID | Title | Included locations | Boundary context | Note |\n"
+                "| --- | --- | --- | --- | --- | --- |\n"
+                + valid_scope_row
+                + "\n",
+                encoding="utf-8",
+            )
+            curriculum = root / "CURRICULUM.md"
+            curriculum.write_text(
+                "| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |\n"
+                "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
+                f"| SRC-EXAMPLE-PROB-00-01 | `materials/private/example-probability/00-01_probability.pdf` | PDF | `{digest}` | complete | complete | 2026-08-28 | fixture |\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                [],
+                validator.validate_course_index_freshness(
+                    curriculum, index, repo_root=root
+                ),
+            )
+
+            index.write_text(index.read_text(encoding="utf-8") + valid_scope_row + "\n", encoding="utf-8")
+            self.assertIn(
+                "INDEX_SCOPE_DUPLICATE",
+                self.codes(
+                    validator.validate_course_index_freshness(
+                        curriculum, index, repo_root=root
+                    )
+                ),
+            )
+            index.write_text(
+                index.read_text(encoding="utf-8").replace("#page-2: selected definition", "#page-9: selected definition"),
+                encoding="utf-8",
+            )
+            self.assertIn(
+                "INDEX_SCOPE_LOCATION",
+                self.codes(
+                    validator.validate_course_index_freshness(
+                        curriculum, index, repo_root=root
+                    )
+                ),
+            )
+            index.write_text(
+                index.read_text(encoding="utf-8")
+                .replace(valid_scope_row + "\n" + valid_scope_row, valid_scope_row)
+                .replace("#page-9: selected definition", "#page-2: selected definition")
+                .replace("SRC-EXAMPLE-PROB-00-01", "SRC-EXAMPLE-PROB-99-99"),
+                encoding="utf-8",
+            )
+            self.assertIn(
+                "INDEX_SCOPE_SOURCE",
+                self.codes(
+                    validator.validate_course_index_freshness(
+                        curriculum, index, repo_root=root
+                    )
+                ),
+            )
+
+    def test_unrelated_scope_drift_is_a_lesson_warning_but_strict_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            course = root / "materials/private/two-source-course"
+            course.mkdir(parents=True)
+            paths = []
+            digests = []
+            for lesson in ("00-01", "00-02"):
+                source = course / f"{lesson}_lesson.pdf"
+                writer = PdfWriter()
+                writer.add_blank_page(width=612, height=792)
+                with source.open("wb") as handle:
+                    writer.write(handle)
+                paths.append(source.relative_to(root).as_posix())
+                digests.append(validator.sha256_file(source))
+
+            index = course / "INDEX.md"
+            index.write_text(
+                "# Index\n\n- source_namespace: TWO\n\n## 강의 자료\n\n"
+                "| 파일 | 설명 |\n| --- | --- |\n"
+                "| `00-01_lesson.pdf` | selected |\n"
+                "| `00-02_lesson.pdf` | unrelated |\n\n"
+                "## 학습 범위\n\n"
+                "| Scope ID | Source ID | Title | Included locations | Boundary context | Note |\n"
+                "| --- | --- | --- | --- | --- | --- |\n"
+                f"| SCOPE-TWO-00-01-01 | SRC-TWO-00-01 | Selected | {paths[0]}#page-1 | none | valid selected scope |\n"
+                f"| SCOPE-TWO-00-02-01 | SRC-TWO-00-02 | Unrelated | {paths[1]}#page-9 | none | stale unrelated scope |\n",
+                encoding="utf-8",
+            )
+            curriculum = root / "CURRICULUM.md"
+            curriculum.write_text(
+                "| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |\n"
+                "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
+                f"| SRC-TWO-00-01 | `{paths[0]}` | PDF | `{digests[0]}` | complete | complete | 2026-08-28 | selected |\n"
+                f"| SRC-TWO-00-02 | `{paths[1]}` | PDF | `{digests[1]}` | complete | complete | 2026-08-28 | unrelated |\n",
+                encoding="utf-8",
+            )
+
+            strict = validator.validate_course_index_freshness(
+                curriculum,
+                index,
+                repo_root=root,
+            )
+            self.assertIn("INDEX_SCOPE_LOCATION", self.codes(strict))
+            lesson = validator.validate_lesson_slice_freshness(
+                curriculum,
+                index,
+                {paths[0]},
+                repo_root=root,
+            )
+            self.assertEqual([], lesson.errors)
+            self.assertIn("INDEX_SCOPE_LOCATION", self.codes(lesson.warnings))
 
     def test_structural_mode_does_not_require_private_sources(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

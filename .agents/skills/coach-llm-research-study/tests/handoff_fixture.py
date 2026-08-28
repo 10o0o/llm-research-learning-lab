@@ -63,11 +63,17 @@ Trace a tensor operation and explain its shape contract.
 | F001 | prerequisite | materials/lesson.md#axes | O001 | Axis meaning is required before shape propagation. |
 | F002 | supplement | CURRICULUM.md#CC-DL-01 | O003 | The attention-axis connection is optional roadmap enrichment. |
 
+### Source Scope Map
+
+| Primary ID | Scope kind | Scope ID | Included locations | Boundary context | Outside-scope disposition |
+| --- | --- | --- | --- | --- | --- |
+| I001 | entire-source | none | entire-source | none | none |
+
 ### Source Coverage Index
 
-| Primary ID | Declared Goal IDs | Objective IDs | Guidance IDs | Excluded locations | Reason |
-| --- | --- | --- | --- | --- | --- |
-| I001 | D001, D002, D003 | O001, O002 | G001 | none | none |
+| Primary ID | Declared Goal IDs | Objective IDs | Guidance IDs |
+| --- | --- | --- | --- |
+| I001 | D001, D002, D003 | O001, O002 | G001 |
 
 ### Declared Goal Alignment
 
@@ -217,23 +223,51 @@ def build_handoff(
     )
     contract_hash = sha256(contract)
 
-    review_text = ""
-    for attempt, (verdict, reviewer_id) in enumerate(reviews, start=1):
-        review_text += f"""
-<!-- semantic-review-attempt:{attempt}:start -->
-### Review Attempt {attempt}
+    review_iteration = len(reviews)
+    latest_verdict, latest_reviewer = reviews[-1] if reviews else ("pending", "none")
+    initial_reviewer = reviews[0][1] if reviews else "none"
+    review_phase = (
+        "none"
+        if review_iteration == 0
+        else "independent-slice"
+        if review_iteration == 1
+        else "targeted-recheck"
+    )
+    review_recheck = "R001" if review_iteration >= 2 else "none"
+    review_time = "pending" if review_iteration == 0 else f"2026-08-20T01:00:0{min(review_iteration, 9)}Z"
+    review_manifest = "pending" if review_iteration == 0 else manifest_hash
+    review_contract = "pending" if review_iteration == 0 else contract_hash
+    repair_row = (
+        "| R001 | lesson-contract | Revise the named contract point. |"
+        if latest_verdict == "repair_required"
+        else "| none | none | none |"
+    )
+    blocker_row = (
+        "| B001 | source-access | materials/lesson.md | Required source is unavailable. |"
+        if latest_verdict == "blocked"
+        else "| none | none | none | none |"
+    )
+    review_text = f"""- initial_reviewer_id: {initial_reviewer}
+- reviewer_id: {latest_reviewer}
+- review_iteration: {review_iteration}
+- review_phase: {review_phase}
+- recheck_of: {review_recheck}
+- reviewed_at: {review_time}
+- verdict: {latest_verdict}
+- reviewed_input_manifest_sha256: {review_manifest}
+- reviewed_contract_sha256: {review_contract}
 
-- reviewer_id: {reviewer_id}
-- reviewer_mode: fresh-subagent
-- reviewed_at: 2026-08-20T01:00:0{attempt}Z
-- verdict: {verdict}
-- reviewed_input_manifest_sha256: {manifest_hash}
-- reviewed_contract_sha256: {contract_hash}
+### Repair Findings
 
-#### Blocking Findings
+| Finding ID | Location | Detail |
+| --- | --- | --- |
+{repair_row}
 
-- {"none" if verdict == "pass" else "Revise the named contract point."}
-<!-- semantic-review-attempt:{attempt}:end -->
+### Blocking Findings
+
+| Finding ID | Kind | Location | Detail |
+| --- | --- | --- | --- |
+{blocker_row}
 """
 
     evidence_text = ""
@@ -339,7 +373,7 @@ def build_handoff(
 
 ## Metadata
 
-- schema_version: 6
+- schema_version: 7
 - lesson_id: {lesson_id}
 - title: Tensor shape lesson
 - status: {status}
@@ -363,7 +397,6 @@ def build_handoff(
 
 ## Semantic Review
 
-- review_attempt: {len(reviews)}
 {review_text}
 ## Current Position
 

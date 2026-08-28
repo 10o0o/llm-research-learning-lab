@@ -8,13 +8,13 @@ LLM Research Engineer를 목표로 **학습 목표 → 검토된 자료 → 대�
 
 ## 가장 빠른 시작
 
-이 저장소를 작업 공간으로 연 Codex의 새 대화에서 target ID나 skill 이름을 직접 고를 필요는 없습니다. 한 사이클 전체를 시작하려면 다음과 같이 말합니다.
+이 저장소를 작업 공간으로 연 Codex의 새 대화에서 target ID나 skill 이름을 직접 고를 필요는 없습니다. 한 사이클 전체를 시작하려면 다음처럼 짧게 말하면 됩니다.
 
 ```text
-전체 학습 흐름으로 진행해줘.
+전체 학습 흐름 시작
 ```
 
-그러면 저장된 TIL·knowledge·실행된 practice를 바탕으로 다음 primary target과 자료를 정하고, 수업부터 실습·다음 target 미리보기까지 기존 전문 skill을 순서대로 연결합니다. 이 요청은 검증된 TIL·완료된 practice·evidence-backed knowledge의 제한된 자동 커밋을 포함하지만 push는 포함하지 않습니다.
+`전체 학습 흐름으로 진행해줘`도 같은 뜻입니다. 그러면 저장된 TIL·knowledge·실행된 practice를 바탕으로 다음 primary target과 자료를 정하고, 수업부터 실습·다음 target 미리보기까지 기존 전문 skill을 순서대로 연결합니다. 이 요청은 검증된 TIL·완료된 practice·evidence-backed knowledge의 제한된 자동 커밋을 포함하지만 push는 포함하지 않습니다.
 
 자동 커밋 없이 수업부터 시작하고 싶다면 다음과 같이 요청합니다.
 
@@ -28,6 +28,8 @@ LLM Research Engineer를 목표로 **학습 목표 → 검토된 자료 → 대�
 ```text
 현재 진행 중인 수업을 이어서 해줘.
 ```
+
+단순히 `계속`이라고 해도 같은 active 수업을 재개합니다. 검토 중 수정 가능한 문제가 발견되면 Agent가 같은 흐름에서 계약을 고치고 targeted recheck를 거치므로, 사용자가 reset 문구나 target ID를 다시 입력할 필요가 없습니다. 실제로 멈추는 경우는 source 손상·접근 실패, 해결 불가능한 사실 모호성, 또는 사용자의 범위 선택이 필요한 때뿐입니다.
 
 새 대화에서 Notebook 실습을 재개할 때는 추측을 막기 위해 정확한 경로를 함께 줍니다.
 
@@ -46,7 +48,7 @@ ROADMAP endpoint와 실제 학습자 근거
         ↓
 등록된 로컬 자료 또는 검토된 임시 공식 자료 해결
         ↓
-reviewed lesson handoff → 대화형 수업
+선택 범위만 검토한 lesson handoff → 대화형 수업
         ↓
 확인된 학습자 답변만 TIL에 반영
         ↓

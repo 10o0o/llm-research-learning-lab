@@ -10,10 +10,10 @@ Act as the learner's personal AI/ML/LLM tutor. Optimize for connected understand
 ## Establish the source
 
 1. Resolve the exact source or `knowledge/` note named by the user. If no target is named and more than one candidate exists, ask which lesson or concept to use.
-2. Read the complete source before teaching. For PDFs, inspect figures, formulas, code, tables, footnotes, and appendices; render pages whenever extraction can lose layout or notation.
+2. Read the boundary selected by the reviewed contract before teaching. A `full-source` lesson requires the complete source. A `focused` lesson requires every included locator, its boundary context, and directly referenced assets, but not unrelated chapters, appendices, global goals, or index entries. For inspected PDF pages, render whenever extraction can lose layout or notation.
 3. Read the course `INDEX.md`, nearby lesson titles, `ROADMAP.md`, and relevant competency rows in `CURRICULUM.md` only as needed to understand what comes before and after the lesson.
 4. Preserve private course files as read-only sources. Never edit or publish them.
-5. If a source cannot be read completely, identify the missing pages or elements before relying on it.
+5. If any required source location or boundary context cannot be read, identify the missing pages or elements before relying on it. Do not treat an unread unrelated page as a focused-lesson defect.
 
 When a `knowledge/` note is the target, treat it as the learner's current explanation and evidence, not as an authoritative source. Follow its related source link when available, inspect only the material needed for the question, and verify uncertain claims. Continue the current lesson without requiring another source when the question can be answered accurately from established concepts.
 
@@ -64,9 +64,13 @@ only after the canonical readiness gate passes.
 Read and follow
 [`../coach-llm-research-study/references/lesson-handoff.md`](../coach-llm-research-study/references/lesson-handoff.md),
 the sole normative schema and lifecycle. This skill owns execution of the
-reviewed teaching sequence and its mutable delivery state; it does not approve,
-rebuild, replace, or clean up the contract on its own. If the user asks to
-continue without a resolvable current lesson, ask for the exact source.
+reviewed teaching sequence and its mutable delivery state; the coach owns
+mechanical repair, targeted recheck, one evidence-free micro-slice shrink, and
+contract replacement. A `review_pending` or `repair_pending` handoff is resumed
+through that coach workflow before teaching; do not ask the learner for a reset
+phrase, target ID, or exact source when the handoff already identifies the same
+lesson. If no resolvable current lesson exists, return to target planning rather
+than guessing from a prior conversation.
 Treat the handoff endpoint only as long-term route context. Teach the exact
 primary target and include a bridge target only when the reviewed contract
 names that one inline prerequisite. Diagnostic and no-action planner results
@@ -76,6 +80,11 @@ Teach a reviewed temporary official source exactly like a reviewed local
 primary, using only its cached bytes, exact locator, scope, and target relation.
 Do not silently refresh changed bytes, combine offerings, promote temporary
 coverage into `CURRICULUM.md`, or turn retrieval into learner evidence.
+
+For a focused lesson, teach only source-core objectives whose audited locations
+are inside the reviewed slice. Boundary context verifies the cut but is not a
+teaching objective. Outside-scope content is neither an implicit deferral nor a
+reason to delay the first teaching move.
 
 ## Teach for connected understanding
 

@@ -5,7 +5,7 @@
 
 ## Metadata
 
-- schema_version: 6
+- schema_version: 7
 - lesson_id: replace-with-stable-lesson-id
 - title: Replace with lesson title
 - status: preparing
@@ -79,11 +79,17 @@ Replace with one observable lesson objective.
 | F001 | prerequisite | materials/private/course/NN-NN_lesson.md#exact-location | O001 | Replace with the exact prerequisite finding. |
 | F002 | supplement | CURRICULUM.md#exact-location | O003 | Replace with the exact roadmap-linked supplement finding. |
 
+### Source Scope Map
+
+| Primary ID | Scope kind | Scope ID | Included locations | Boundary context | Outside-scope disposition |
+| --- | --- | --- | --- | --- | --- |
+| I001 | entire-source | none | entire-source | none | none |
+
 ### Source Coverage Index
 
-| Primary ID | Declared Goal IDs | Objective IDs | Guidance IDs | Excluded locations | Reason |
-| --- | --- | --- | --- | --- | --- |
-| I001 | none | O001, O002 | none | none | none |
+| Primary ID | Declared Goal IDs | Objective IDs | Guidance IDs |
+| --- | --- | --- | --- |
+| I001 | none | O001, O002 | none |
 
 ### Declared Goal Alignment
 
@@ -152,11 +158,27 @@ Replace with one observable lesson objective.
 
 ## Semantic Review
 
-- review_attempt: 0
+- initial_reviewer_id: none
+- reviewer_id: none
+- review_iteration: 0
+- review_phase: none
+- recheck_of: none
+- reviewed_at: pending
+- verdict: pending
+- reviewed_input_manifest_sha256: pending
+- reviewed_contract_sha256: pending
 
-> Add at most two contiguous semantic-review attempt blocks using the schema in
-> `references/lesson-handoff.md`. Do not leave an example block in the live
-> handoff because marker-looking examples are parsed as operational state.
+### Repair Findings
+
+| Finding ID | Location | Detail |
+| --- | --- | --- |
+| none | none | none |
+
+### Blocking Findings
+
+| Finding ID | Kind | Location | Detail |
+| --- | --- | --- | --- |
+| none | none | none | none |
 
 ## Current Position
 

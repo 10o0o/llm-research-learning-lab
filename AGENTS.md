@@ -59,7 +59,7 @@ is required.
   lesson under `tmp/active-lesson-sources/<lesson-id>/`. The handoff owns its
   exact identity, hash, scope, target relation, and cleanup. This temporary use
   never changes durable `CURRICULUM.md` coverage or silently registers a source.
-- Register private course PDFs under `materials/private/<course>/` with a stable lesson-prefixed filename such as `NN-NN_title.pdf`; verify that the whole file is readable and update that course's local `INDEX.md`. Every course INDEX declares exactly one uppercase `source_namespace`, and each source ID uses `SRC-<source_namespace>-<NN-NN>`.
+- Register private course PDFs under `materials/private/<course>/` with a stable lesson-prefixed filename such as `NN-NN_title.pdf`; verify that the whole file is readable and update that course's local `INDEX.md`. Every course INDEX declares exactly one uppercase `source_namespace`, and each source ID uses `SRC-<source_namespace>-<NN-NN>`. An INDEX may additionally register bounded lesson slices in its `학습 범위` table; those rows route a reviewed lesson to exact included locators and boundary context, but do not establish coverage or mastery.
 - Store instructor-provided practice under `materials/private/<course>/course-provided-practice/`; it is source material and must not be mixed with learner or agent-generated work under top-level `practice/`. Map every such file explicitly in that course `INDEX.md` with `Practice path`, `Related lesson path`, `Variant`, `Format`, and `Original`; never infer a relationship from numbering.
 - When normalizing a saved Notion HTML page for long-term use, write an expanded Markdown copy with a stable lesson-prefixed name. Preserve headings, toggle children, exact code indentation, output, tables, links, formulas, captions, and content images; discard browser UI assets only after the Markdown package passes a source-to-output integrity check.
 - When replacing a PDF with Markdown, preserve every page as a readable lossless page render alongside searchable extracted text. Delete the PDF only after page counts, image links, render dimensions, text extraction, and visual inspection all pass; keep the source whenever conversion is incomplete or questionable.
@@ -68,7 +68,7 @@ is required.
 
 - Use `$plan-roadmap-learning` first when the learner asks what to study next or requests a source for an unresolved target. It keeps the ordered ROADMAP endpoint as the long-term destination, chooses exactly one actual primary target, and may add one mostly satisfied inline bridge before resolving sources. A blocking prerequisite becomes the primary target, never a bridge. Source availability affects executability after selection, not target priority. The planner remains read-only. The agent selects an exact official URL when needed; the cache helper only retrieves that supplied URL and never performs discovery or background learning.
 - Keep source and understanding evaluation in `$coach-llm-research-study`, adaptive teaching in `$teach-course-material`, hands-on decisions in `$suggest-learning-practice`, and durable concept writing in `$update-learning-knowledge`.
-- When teaching a named source, read it completely, inspect relevant `knowledge/` and learner-authored evidence, reorder concepts for understanding, and teach a meaningful chunk. Check understanding only at a knowledge or skill boundary where the answer changes the next teaching move.
+- For source registration, replacement, or `full-source` teaching, read the complete source. For a `focused` lesson, read and review the exact registered or ephemeral slice, its declared boundary context, direct assets, and relevant INDEX/Curriculum/ROADMAP rows; unrelated chapters, appendices, goals, and index entries are outside that lesson's completeness gate. In either mode, inspect relevant `knowledge/` and learner-authored evidence, reorder concepts for understanding, and teach a meaningful chunk. Check understanding only at a knowledge or skill boundary where the answer changes the next teaching move.
 - Before first using an essential concept, check for demonstrated understanding in the current conversation, relevant `knowledge/`, learner-authored TIL, and interpreted practice. Treat missing evidence as unconfirmed understanding even when the source introduces the concept; archived notes and tutor-authored prose may provide context but do not establish mastery on their own.
 - Teach an unconfirmed essential concept before building on it, starting from the problem it solves and a tiny example. Mark it `[선수개념]` when it appears in the source or is required to follow the source, reserve `[보충]` for useful material outside the source, and use `[정정]` for substantive source corrections.
 - When deepening an existing knowledge note, treat it as the learner's starting explanation rather than as an authoritative source; follow its related source when available and verify material claims as needed.
@@ -129,6 +129,15 @@ is required.
   teaching skill is invoked. The coach-owned readiness gate must pass before
   teaching starts; direct definitions, short corrections, one-off questions,
   and knowledge-note deepening remain handoff-free.
+- For an explicit learning-start or full-flow request, keep repairing an
+  evidence-free handoff for the same target and source within that request.
+  Locator, wording, objective mapping, and teaching-order findings are
+  repairable: update the contract and ask the same independent reviewer for a
+  targeted recheck. Only source integrity or access failure, irreducible factual
+  ambiguity, or a real user scope decision may stop the flow. A second
+  repairable non-pass remains `repair_pending`; if nothing has been delivered
+  and no learner evidence exists, shrink once to a micro-slice. `계속` resumes
+  that state without requiring a reset phrase or a target ID.
 - During that interactive lesson, append to `til/today.md` only a learner-authored answer that has been assessed as confirmed. Keep partial answers, misconceptions, simple agreement, copied tutor wording, source summaries, and tutor assessments in the temporary handoff only; a corrected explain-back is new evidence rather than a rewrite of the earlier attempt.
 
 ## TIL, knowledge, and practice

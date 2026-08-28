@@ -82,13 +82,13 @@ Keep registry health separate from the learning move:
 - `registry_action: REPAIR_REQUIRED` when a selected local source is missing, stale, incompletely audited, or inconsistent with its INDEX;
 - `registry_action: NONE` when the selected slice is current or no local source is used.
 
-Prefer a current registered local source when it directly supports the selected target. Otherwise identify one exact official external primary source as `provider + course + offering/edition + artifact + scope`.
+Prefer a current registered local source when it directly supports the selected target. Otherwise identify one exact official external primary source as `provider + course + offering/edition + artifact + scope`. After choosing the artifact, resolve the smallest registered or ephemeral slice that can close the actual `primary_target` evidence gap. A route or chapter range may describe where later lessons will come from; it does not authorize one lesson to audit or teach the whole range.
 
 Use `learning_action: USE_TEMPORARY_EXTERNAL_SOURCE` when a public official HTTPS artifact can be safely cached and audited for this lesson. Use `AWAIT_SOURCE_APPROVAL` for login, payment, more than 100 MiB, an archive, dataset, model weight, non-HTTPS access, permanent registration, or a user decision that materially changes scope. Never combine artifacts from different offerings or editions as one source.
 
 Use `source_persistence: EPHEMERAL` for the first temporary lesson. Change the recommendation to `REGISTRATION_RECOMMENDED` when the same exact source is needed for a second independent lesson or is becoming a central long-term route. Do not register it automatically. Registered sources use `LOCAL_REGISTERED`; no source need uses `NONE`.
 
-The registered Harvard Stat110 source is normal local material. Recommend its exact Second Edition PDF and Chapters 1–4 only when `CC-PROB-01` is the selected target; its mere availability never changes target selection.
+The registered Harvard Stat110 source is normal local material. Resolve its exact Second Edition PDF only when `CC-PROB-01` is the selected target; its mere availability never changes target selection. Chapters 1–4 are the broader target route, not one lesson scope. Each lesson must use an exact registered or ephemeral slice such as the currently relevant pages and boundary context.
 
 ## Output contract
 

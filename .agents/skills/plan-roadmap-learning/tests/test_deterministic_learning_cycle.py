@@ -216,11 +216,54 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
         encoding="utf-8",
     )
     contract = _external_contract(receipt["path"], receipt["receipt_path"])
+    repair_handoff, _ = build_handoff(
+        tmp_path,
+        contract=contract,
+        status="repair_pending",
+        reviews=[("repair_required", "deterministic-slice-reviewer")],
+        lesson_id="deterministic-evaluation-cycle",
+        primary_role="external-primary",
+        primary_path=receipt["path"],
+        primary_bytes=EXTERNAL_BYTES,
+    )
+    repair_report = validate_handoff(
+        repair_handoff,
+        repo_root=tmp_path,
+        check_draft=False,
+    )
+    assert repair_report.ok, repair_report.errors
+    assert repair_report.as_json()["workflow_action"] == "REPAIR_CONTRACT"
+
+    reviewed_handoff, _ = build_handoff(
+        tmp_path,
+        contract=contract,
+        status="active",
+        reviews=[
+            ("repair_required", "deterministic-slice-reviewer"),
+            ("pass", "deterministic-slice-reviewer"),
+        ],
+        lesson_id="deterministic-evaluation-cycle",
+        primary_role="external-primary",
+        primary_path=receipt["path"],
+        primary_bytes=EXTERNAL_BYTES,
+    )
+    reviewed_report = validate_handoff(
+        reviewed_handoff,
+        repo_root=tmp_path,
+        ready=True,
+        check_draft=False,
+    )
+    assert reviewed_report.ok, reviewed_report.errors
+    assert reviewed_report.as_json()["workflow_action"] == "TEACH_OR_RESUME"
+
     handoff, _ = build_handoff(
         tmp_path,
         contract=contract,
         status="paused",
-        reviews=[("pass", "fresh-deterministic-reviewer")],
+        reviews=[
+            ("repair_required", "deterministic-slice-reviewer"),
+            ("pass", "deterministic-slice-reviewer"),
+        ],
         evidence=[
             {
                 "concept": "C01",

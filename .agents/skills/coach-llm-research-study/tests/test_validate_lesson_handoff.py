@@ -13,6 +13,8 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
+from pypdf import PdfWriter
+
 
 SKILL = Path(__file__).resolve().parents[1]
 REPO = SKILL.parents[2]
@@ -26,6 +28,7 @@ from validate_lesson_handoff import (  # noqa: E402
     ValidationWarning,
     _comma_ids,
     _location_exists,
+    can_mechanically_rebuild_same_lesson,
     validate_handoff,
 )
 
@@ -92,6 +95,161 @@ class LessonHandoffValidatorTests(unittest.TestCase):
         )
         return handoff
 
+    def build_focused_private_handoff(self, root: Path) -> Path:
+        source_path = "materials/private/example-course/00-01_lesson.md"
+        source = root / source_path
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_bytes(
+            b"# Lesson\n\n"
+            b"## learning-goals\n\n"
+            b"- Identify the batch and feature axes.\n"
+            b"- Predict the output shape of a broadcast operation.\n"
+            b"- Review the course map only when it affects the current path.\n\n"
+            b"## book-goal\n\nA global source goal outside this lesson.\n\n"
+            b"## axes\n\nTensor axes.\n\n"
+            b"## shape-propagation\n\nBroadcast shapes.\n\n"
+            b"## orientation\n\nUse the course map when navigation is needed.\n\n"
+            b"## appendix\n\nGlobal reference material outside this lesson.\n"
+        )
+        index_path = "materials/private/example-course/INDEX.md"
+        (root / index_path).write_text(
+            "# Example course\n\n- source_namespace: TEST\n\n"
+            "## 강의 자료\n\n"
+            "| 파일 | 설명 |\n| --- | --- |\n"
+            "| `00-01_lesson.md` | fixture |\n\n"
+            "## 학습 범위\n\n"
+            "| Scope ID | Source ID | Title | Included locations | Boundary context | Note |\n"
+            "| --- | --- | --- | --- | --- | --- |\n"
+            f"| SCOPE-TEST-00-01-01 | SRC-TEST-00-01 | Tensor slice | {source_path}#axes; {source_path}#shape-propagation | {source_path}#orientation | Only the selected mechanism is reviewed. |\n",
+            encoding="utf-8",
+        )
+        contract = CONTRACT.replace("materials/lesson.md", source_path)
+        contract = contract.replace("- mode: full-source", "- mode: focused")
+        contract = contract.replace(
+            "| I001 | entire-source | none | entire-source | none | none |",
+            f"| I001 | registered-slice | SCOPE-TEST-00-01-01 | {source_path}#axes; {source_path}#shape-propagation | {source_path}#orientation | The rest of the source is outside this micro-lesson. |",
+        )
+        contract = contract.replace(
+            "| I001 | D001, D002, D003 | O001, O002 | G001 |",
+            "| I001 | none | O001, O002 | none |",
+        )
+        contract = contract.replace(
+            "| D001 | I001 | "
+            + source_path
+            + "#Identify the batch and feature axes. | learning | O001 | "
+            + source_path
+            + "#axes | none |",
+            "| none | none | none | none | none | none | This focused slice contains no explicit declared goal sentence. |",
+        )
+        contract = contract.replace(
+            "| D002 | I001 | "
+            + source_path
+            + "#Predict the output shape of a broadcast operation. | learning | O002 | "
+            + source_path
+            + "#shape-propagation | none |\n",
+            "",
+        )
+        contract = contract.replace(
+            "| D003 | I001 | "
+            + source_path
+            + "#Review the course map only when it affects the current path. | guidance | G001 | "
+            + source_path
+            + "#orientation | It is navigation guidance, not learner knowledge or skill. |\n",
+            "",
+        )
+        contract = contract.replace(
+            "| G001 | reference | "
+            + source_path
+            + "#orientation | The course map is an on-demand navigation reference. | The learner asks where this tensor topic fits in the course. |",
+            "| none | none | none | none | none |",
+        )
+        handoff, _ = build_handoff(
+            root,
+            contract=contract,
+            status="active",
+            reviews=[("pass", "focused-reviewer")],
+            primary_path=source_path,
+            primary_bytes=source.read_bytes(),
+            course_index_path=index_path,
+        )
+        return handoff
+
+    def build_large_pdf_focused_handoff(self, root: Path) -> Path:
+        source_path = "materials/private/large-course/00-01_large.pdf"
+        source = root / source_path
+        source.parent.mkdir(parents=True, exist_ok=True)
+        writer = PdfWriter()
+        for _ in range(630):
+            writer.add_blank_page(width=612, height=792)
+        with source.open("wb") as handle:
+            writer.write(handle)
+        source_hash = sha256(source.read_bytes())
+        index_path = "materials/private/large-course/INDEX.md"
+        (root / index_path).write_text(
+            "# Large course\n\n- source_namespace: LARGE\n\n"
+            "## 강의 자료\n\n"
+            "| 파일 | 설명 |\n| --- | --- |\n"
+            "| `00-01_large.pdf` | 630-page fixture |\n\n"
+            "## 학습 범위\n\n"
+            "| Scope ID | Source ID | Title | Included locations | Boundary context | Note |\n"
+            "| --- | --- | --- | --- | --- | --- |\n"
+            f"| SCOPE-LARGE-00-01-01 | SRC-LARGE-00-01 | Three-page concept slice | {source_path}#page-14; {source_path}#page-17; {source_path}#page-18 | {source_path}#page-13; {source_path}#page-15; {source_path}#page-16; {source_path}#page-19 | Bound the lesson without a whole-book exclusion inventory. |\n",
+            encoding="utf-8",
+        )
+        (root / "CURRICULUM.md").write_text(
+            "# Curriculum\n\n"
+            "| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |\n"
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+            "| CC-DL-01 | Tensor contracts | D2 | — | explain | primary:SRC-LARGE-00-01 | 충분 | 그대로 사용 | Fixture row. |\n"
+            "| TR-SYS-03 | Systems endpoint | D3 | CC-DL-01 | design | — | 없음 | 트랙 선택 시 확보 | Fixture endpoint. |\n\n"
+            "| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |\n"
+            "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
+            f"| SRC-LARGE-00-01 | `{source_path}` | PDF | `{source_hash}` | complete | complete | 2026-08-28 | Fixture source. |\n",
+            encoding="utf-8",
+        )
+        contract = CONTRACT.replace("materials/lesson.md", source_path)
+        contract = contract.replace("- mode: full-source", "- mode: focused")
+        contract = contract.replace("#axes", "#page-14")
+        contract = contract.replace("#shape-propagation", "#page-17")
+        contract = contract.replace("#orientation", "#page-18")
+        contract = contract.replace(
+            "| I001 | entire-source | none | entire-source | none | none |",
+            f"| I001 | registered-slice | SCOPE-LARGE-00-01-01 | {source_path}#page-14; {source_path}#page-17; {source_path}#page-18 | {source_path}#page-13; {source_path}#page-15; {source_path}#page-16; {source_path}#page-19 | The other 627 pages are outside this micro-lesson. |",
+        )
+        contract = contract.replace(
+            "| I001 | D001, D002, D003 | O001, O002 | G001 |",
+            "| I001 | none | O001, O002 | none |",
+        )
+        start = contract.index("### Declared Goal Alignment")
+        end = contract.index("### Guidance Map")
+        contract = (
+            contract[:start]
+            + "### Declared Goal Alignment\n\n"
+            + "| Goal ID | Primary ID | Goal location | Disposition | Linked IDs | Body support | Reason |\n"
+            + "| --- | --- | --- | --- | --- | --- | --- |\n"
+            + "| none | none | none | none | none | none | This focused slice contains no declared goal sentence. |\n\n"
+            + contract[end:]
+        )
+        guidance_start = contract.index("### Guidance Map")
+        guidance_end = contract.index("### Observable Objective Map")
+        contract = (
+            contract[:guidance_start]
+            + "### Guidance Map\n\n"
+            + "| Guidance ID | Kind | Source location | Summary | Trigger |\n"
+            + "| --- | --- | --- | --- | --- |\n"
+            + "| none | none | none | none | none |\n\n"
+            + contract[guidance_end:]
+        )
+        return build_handoff(
+            root,
+            contract=contract,
+            status="active",
+            reviews=[("pass", "large-slice-reviewer")],
+            primary_path=source_path,
+            primary_bytes=source.read_bytes(),
+            course_index_path=index_path,
+        )[0]
+
     def test_preparing_handoff_is_structurally_valid_but_not_ready(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
@@ -100,6 +258,55 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             ready = validate_handoff(handoff, repo_root=root, ready=True)
             self.assertFalse(ready.ok)
             self.assert_code(ready, "REVIEW_NOT_PASS")
+
+    def test_same_lesson_rebuild_requires_no_delivery_or_evidence(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff, _ = build_handoff(
+                root,
+                status="repair_pending",
+                reviews=[("repair_required", "reviewer-one")],
+            )
+            report = validate_handoff(handoff, repo_root=root)
+            self.assertTrue(report.ok, report.errors)
+            self.assertIsNotNone(report.document)
+            assert report.document is not None
+            self.assertTrue(
+                can_mechanically_rebuild_same_lesson(
+                    report.document,
+                    primary_target="CC-DL-01",
+                    primary_paths={"materials/lesson.md"},
+                )
+            )
+            self.assertFalse(
+                can_mechanically_rebuild_same_lesson(
+                    report.document,
+                    primary_target="CC-PROB-01",
+                    primary_paths={"materials/lesson.md"},
+                )
+            )
+
+            handoff, _ = build_handoff(
+                root,
+                status="paused",
+                reviews=[("pass", "reviewer-one")],
+                evidence=[{"concept": "C01"}],
+                delivery=[
+                    {"objective": "O001", "state": "delivered", "mode": "full", "note": "Taught."},
+                    {"objective": "O002", "state": "pending", "mode": "none", "note": "Pending."},
+                    {"objective": "O003", "state": "pending", "mode": "none", "note": "Pending."},
+                ],
+            )
+            report = validate_handoff(handoff, repo_root=root, check_draft=False)
+            self.assertIsNotNone(report.document)
+            assert report.document is not None
+            self.assertFalse(
+                can_mechanically_rebuild_same_lesson(
+                    report.document,
+                    primary_target="CC-DL-01",
+                    primary_paths={"materials/lesson.md"},
+                )
+            )
 
     def test_active_pass_with_current_hashes_is_ready(self) -> None:
         with self.make_root() as directory:
@@ -505,34 +712,57 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             self.assertFalse(report.ok)
             self.assert_code(report, "REVIEW_NOT_PASS")
 
-    def test_second_attempt_requires_changes_and_a_new_reviewer(self) -> None:
+    def test_targeted_recheck_requires_the_original_reviewer(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
             handoff, _ = build_handoff(
                 root,
                 status="active",
-                reviews=[("changes_required", "reviewer-one"), ("pass", "reviewer-two")],
+                reviews=[("repair_required", "reviewer-one"), ("pass", "reviewer-one")],
             )
             self.assertTrue(validate_handoff(handoff, repo_root=root, ready=True).ok)
-            text = handoff.read_text(encoding="utf-8").replace("reviewer-two", "reviewer-one")
+            text = handoff.read_text(encoding="utf-8").replace(
+                "- reviewer_id: reviewer-one",
+                "- reviewer_id: reviewer-two",
+            )
             handoff.write_text(text, encoding="utf-8")
             report = validate_handoff(handoff, repo_root=root)
             self.assert_code(report, "REVIEW_NOT_PASS")
 
-    def test_unavailable_or_second_nonpass_must_block_teaching(self) -> None:
+    def test_true_blocker_blocks_but_second_repair_remains_resumable(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
-            handoff, _ = build_handoff(root, status="blocked", reviews=[("unavailable", "reviewer-one")])
+            handoff, _ = build_handoff(root, status="blocked", reviews=[("blocked", "reviewer-one")])
             self.assertTrue(validate_handoff(handoff, repo_root=root).ok)
             self.assert_code(validate_handoff(handoff, repo_root=root, ready=True), "REVIEW_NOT_PASS")
 
             handoff, _ = build_handoff(
                 root,
-                status="blocked",
-                reviews=[("changes_required", "reviewer-one"), ("changes_required", "reviewer-two")],
+                status="repair_pending",
+                reviews=[("repair_required", "reviewer-one"), ("repair_required", "reviewer-one")],
             )
             self.assertTrue(validate_handoff(handoff, repo_root=root).ok)
             self.assert_code(validate_handoff(handoff, repo_root=root, ready=True), "REVIEW_NOT_PASS")
+            report = validate_handoff(handoff, repo_root=root)
+            self.assertEqual(report.as_json()["workflow_action"], "SHRINK_TO_MICRO_SLICE")
+
+    def test_reviewer_unavailability_cannot_be_recorded_as_a_semantic_blocker(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff, _ = build_handoff(
+                root,
+                status="blocked",
+                reviews=[("blocked", "reviewer-one")],
+            )
+            text = handoff.read_text(encoding="utf-8").replace(
+                "| B001 | source-access | materials/lesson.md | Required source is unavailable. |",
+                "| B001 | reviewer-unavailable | semantic-reviewer | Required reviewer is unavailable. |",
+            )
+            handoff.write_text(text, encoding="utf-8")
+            self.assert_code(
+                validate_handoff(handoff, repo_root=root),
+                "REVIEW_NOT_PASS",
+            )
 
     def test_source_mutation_and_contract_mutation_are_detected(self) -> None:
         with self.make_root() as directory:
@@ -586,15 +816,15 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 self.assert_code(report, "SOURCE_HASH")
                 self.assert_code(report, "REVIEW_STALE")
 
-    def test_review_attempt_count_cannot_exceed_two(self) -> None:
+    def test_review_iteration_cannot_exceed_two(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
             handoff, _ = build_handoff(
                 root,
                 status="blocked",
                 reviews=[
-                    ("changes_required", "reviewer-one"),
-                    ("changes_required", "reviewer-two"),
+                    ("repair_required", "reviewer-one"),
+                    ("repair_required", "reviewer-one"),
                     ("pass", "reviewer-three"),
                 ],
             )
@@ -825,24 +1055,24 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             root = Path(directory)
             handoff, _ = build_handoff(root, status="active", reviews=[("pass", "fresh-reviewer")])
             text = handoff.read_text(encoding="utf-8").replace(
-                "- none\n<!-- semantic-review-attempt:1:end -->",
-                "- Softmax mechanics are missing.\n<!-- semantic-review-attempt:1:end -->",
+                "### Repair Findings\n\n| Finding ID | Location | Detail |\n| --- | --- | --- |\n| none | none | none |",
+                "### Repair Findings\n\n| Finding ID | Location | Detail |\n| --- | --- | --- |\n| R001 | lesson-contract | Softmax mechanics are missing. |",
             )
             handoff.write_text(text, encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "REVIEW_NOT_PASS")
 
-            handoff, _ = build_handoff(root, status="review_pending", reviews=[("changes_required", "another-reviewer")])
+            handoff, _ = build_handoff(root, status="repair_pending", reviews=[("repair_required", "another-reviewer")])
             text = handoff.read_text(encoding="utf-8").replace(
-                "- Revise the named contract point.\n<!-- semantic-review-attempt:1:end -->",
-                "- none\n<!-- semantic-review-attempt:1:end -->",
+                "| R001 | lesson-contract | Revise the named contract point. |",
+                "| none | none | none |",
             )
             handoff.write_text(text, encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "REVIEW_NOT_PASS")
 
-            handoff, _ = build_handoff(root, status="review_pending", reviews=[("changes_required", "mixed-reviewer")])
+            handoff, _ = build_handoff(root, status="repair_pending", reviews=[("repair_required", "mixed-reviewer")])
             text = handoff.read_text(encoding="utf-8").replace(
-                "- Revise the named contract point.\n<!-- semantic-review-attempt:1:end -->",
-                "- none\n- Revise the named contract point.\n<!-- semantic-review-attempt:1:end -->",
+                "| none | none | none | none |",
+                "| B001 | source-access | reviewer | Unexpected blocker. |",
             )
             handoff.write_text(text, encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "REVIEW_NOT_PASS")
@@ -897,14 +1127,14 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             handoff.write_text(text, encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "EVIDENCE_STATE")
 
-    def test_schema_v5_and_earlier_are_rejected_with_rebuild_error(self) -> None:
-        for old_version in ("5", "4"):
+    def test_schema_v6_and_earlier_are_rejected_with_rebuild_error(self) -> None:
+        for old_version in ("6", "5", "4"):
             with self.subTest(old_version=old_version), self.make_root() as directory:
                 root = Path(directory)
                 handoff, _ = build_handoff(root)
                 handoff.write_text(
                     handoff.read_text(encoding="utf-8").replace(
-                        "- schema_version: 6", f"- schema_version: {old_version}"
+                        "- schema_version: 7", f"- schema_version: {old_version}"
                     ),
                     encoding="utf-8",
                 )
@@ -922,11 +1152,89 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             root = Path(directory)
             handoff, _ = build_handoff(root)
             text = handoff.read_text(encoding="utf-8").replace(
-                "| I001 | D001, D002, D003 | O001, O002 | G001 | none | none |",
-                "| I999 | D001, D002, D003 | O001, O002 | G001 | none | none |",
+                "| I001 | D001, D002, D003 | O001, O002 | G001 |",
+                "| I999 | D001, D002, D003 | O001, O002 | G001 |",
             )
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "OBJECTIVE_COVERAGE")
+
+    def test_registered_focused_slice_ignores_global_goals_and_backmatter(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff = self.build_focused_private_handoff(root)
+            report = validate_handoff(handoff, repo_root=root, ready=True)
+            self.assertTrue(report.ok, report.errors)
+            self.assertEqual(
+                report.document.lesson_source_scopes["I001"].scope_id,
+                "SCOPE-TEST-00-01-01",
+            )
+            self.assertNotIn("book-goal", report.document.contract)
+            self.assertNotIn("appendix", report.document.contract)
+
+    def test_focused_slice_rejects_boundary_and_outside_objectives(self) -> None:
+        for anchor, expected in (
+            ("orientation", "LESSON_SCOPE_BOUNDARY"),
+            ("book-goal", "LESSON_SCOPE_RELATION"),
+        ):
+            with self.subTest(anchor=anchor), self.make_root() as directory:
+                root = Path(directory)
+                handoff = self.build_focused_private_handoff(root)
+                text = handoff.read_text(encoding="utf-8").replace(
+                    "#shape-propagation | Predict the output shape",
+                    f"#{anchor} | Predict the output shape",
+                    1,
+                )
+                handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
+                self.assert_code(validate_handoff(handoff, repo_root=root), expected)
+
+    def test_registered_scope_must_exactly_match_index_row(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff = self.build_focused_private_handoff(root)
+            text = handoff.read_text(encoding="utf-8").replace(
+                "#axes; materials/private/example-course/00-01_lesson.md#shape-propagation",
+                "#axes",
+                1,
+            )
+            handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
+            self.assert_code(validate_handoff(handoff, repo_root=root), "LESSON_SCOPE")
+
+    def test_ephemeral_focused_slice_is_valid_without_a_registered_scope_id(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff = self.build_focused_private_handoff(root)
+            text = handoff.read_text(encoding="utf-8").replace(
+                "| I001 | registered-slice | SCOPE-TEST-00-01-01 |",
+                "| I001 | ephemeral-slice | none |",
+                1,
+            )
+            text = refresh_contract_hash(text)
+            contract_start = text.index("<!-- lesson-contract:start -->") + len(
+                "<!-- lesson-contract:start -->\n"
+            )
+            contract_end = text.index("\n<!-- lesson-contract:end -->")
+            text = re_sub_field(
+                text,
+                "reviewed_contract_sha256",
+                sha256(text[contract_start:contract_end]),
+            )
+            handoff.write_text(text, encoding="utf-8")
+            report = validate_handoff(handoff, repo_root=root, ready=True)
+            self.assertTrue(report.ok, report.errors)
+
+    def test_large_pdf_focused_review_stays_bounded_to_the_selected_pages(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff = self.build_large_pdf_focused_handoff(root)
+            report = validate_handoff(handoff, repo_root=root, ready=True)
+            self.assertTrue(report.ok, report.errors)
+            assert report.document is not None
+            scope = report.document.lesson_source_scopes["I001"]
+            self.assertEqual(3, len(scope.included_locations))
+            self.assertEqual(4, len(scope.boundary_locations))
+            self.assertNotIn("page-630", report.document.contract)
+            self.assertNotIn("appendix", report.document.contract.lower())
+            self.assertLess(len(report.document.contract), 15_000)
 
     def test_full_source_can_separate_learning_goals_and_guidance(self) -> None:
         with self.make_root() as directory:
@@ -1336,7 +1644,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             ready_path.write_text(text, encoding="utf-8")
             report = validate_handoff(ready_path, repo_root=root)
             self.assertTrue(report.ok, report.errors)
-            self.assertEqual(report.document.review_attempt_count, 0)
+            self.assertIsNotNone(report.document.semantic_review)
+            self.assertEqual(report.document.semantic_review.iteration, 0)
             self.assertEqual(report.document.evidence, {})
 
     def test_json_cli_and_error_format(self) -> None:

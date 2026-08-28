@@ -29,10 +29,25 @@ from target_graph import (  # noqa: E402
     prerequisite_closure,
 )
 from pdf_utils import pdf_page_count as _pdf_page_count  # noqa: E402
+from source_scopes import (  # noqa: E402
+    CourseScope,
+    location_is_boundary,
+    location_is_included,
+    parse_course_scopes,
+    split_locations,
+)
 
 
-SCHEMA_VERSION = "6"
-STATUSES = {"preparing", "review_pending", "active", "paused", "blocked", "completed"}
+SCHEMA_VERSION = "7"
+STATUSES = {
+    "preparing",
+    "review_pending",
+    "repair_pending",
+    "active",
+    "paused",
+    "blocked",
+    "completed",
+}
 MANIFEST_ROLES = {
     "primary",
     "external-primary",
@@ -45,7 +60,17 @@ MANIFEST_ROLES = {
     "til",
     "practice",
 }
-REVIEW_VERDICTS = {"pending", "pass", "changes_required", "unavailable"}
+REVIEW_VERDICTS = {"pending", "pass", "repair_required", "blocked"}
+REVIEW_PHASES = {"none", "independent-slice", "targeted-recheck"}
+REPAIR_FINDING_RE = re.compile(r"R\d{3}\Z")
+BLOCKER_FINDING_RE = re.compile(r"B\d{3}\Z")
+TRUE_BLOCKER_KINDS = {
+    "source-integrity",
+    "source-access",
+    "irreducible-factual-ambiguity",
+    "user-scope-decision",
+}
+SCOPE_KINDS = {"entire-source", "registered-slice", "ephemeral-slice"}
 EVIDENCE_KINDS = {
     "explain_back",
     "calculation",
@@ -146,8 +171,11 @@ CURRENT_POSITION_KEYS = (
 )
 TIL_REVIEW_KEYS = ("pre_save_verdict", "reviewed_at", "reviewed_draft_sha256")
 REVIEW_KEYS = (
+    "initial_reviewer_id",
     "reviewer_id",
-    "reviewer_mode",
+    "review_iteration",
+    "review_phase",
+    "recheck_of",
     "reviewed_at",
     "verdict",
     "reviewed_input_manifest_sha256",
@@ -173,6 +201,7 @@ CONTRACT_HEADINGS = (
     "External Target Relation",
     "Learner Evidence Baseline",
     "Audited Findings",
+    "Source Scope Map",
     "Source Coverage Index",
     "Declared Goal Alignment",
     "Guidance Map",
@@ -258,8 +287,8 @@ class ExternalTargetRelation:
 
 
 @dataclass
-class ReviewAttempt:
-    attempt: int
+class SemanticReviewRecord:
+    iteration: int
     values: dict[str, str]
     line: int
 
@@ -301,8 +330,18 @@ class SourceCoverage:
     goal_ids: list[str]
     objective_ids: list[str]
     guidance_ids: list[str]
-    excluded_locations: list[str]
-    reason: str
+    line: int
+
+
+@dataclass
+class LessonSourceScope:
+    primary_id: str
+    scope_kind: str
+    scope_id: str
+    included_locations: tuple[str, ...]
+    boundary_locations: tuple[str, ...]
+    outside_disposition: str
+    registered_scope: CourseScope | None
     line: int
 
 
@@ -385,6 +424,7 @@ class HandoffDocument:
     coverage_mode: str = ""
     contract_concepts: list[str] = field(default_factory=list)
     source_coverage: dict[str, SourceCoverage] = field(default_factory=dict)
+    lesson_source_scopes: dict[str, LessonSourceScope] = field(default_factory=dict)
     declared_goals: dict[str, DeclaredGoal] = field(default_factory=dict)
     guidance: dict[str, GuidanceItem] = field(default_factory=dict)
     findings: dict[str, AuditedFinding] = field(default_factory=dict)
@@ -395,8 +435,7 @@ class HandoffDocument:
     target_decision: TargetDecision | None = None
     external_identities: dict[str, ExternalSourceIdentity] = field(default_factory=dict)
     external_relations: dict[tuple[str, str], ExternalTargetRelation] = field(default_factory=dict)
-    review_attempt_count: int | None = None
-    reviews: list[ReviewAttempt] = field(default_factory=list)
+    semantic_review: SemanticReviewRecord | None = None
     current_position: dict[str, str] = field(default_factory=dict)
     objective_delivery: dict[str, ObjectiveDelivery] = field(default_factory=dict)
     evidence: dict[str, Evidence] = field(default_factory=dict)
@@ -437,10 +476,70 @@ class ValidationReport:
             "path": self.path.as_posix(),
             "ready": self.ready_requested and self.ok,
             "til_ready": self.til_ready_requested and self.ok,
+            "workflow_action": _workflow_action(self.document),
             "computed": computed,
             "errors": [error.as_json() for error in self.errors],
             "warnings": [warning.as_json() for warning in self.warnings],
         }
+
+
+def _workflow_action(doc: HandoffDocument | None) -> str:
+    if doc is None:
+        return "PREPARE_CONTRACT"
+    status = doc.metadata.get("status")
+    if status == "completed":
+        return "COMPLETE"
+    if status == "blocked":
+        return "RESOLVE_TRUE_BLOCKER"
+    if status in {"active", "paused"}:
+        return "TEACH_OR_RESUME"
+    if status == "preparing":
+        return "PREPARE_CONTRACT"
+    current = doc.semantic_review
+    if current is None:
+        return "REQUEST_INDEPENDENT_REVIEW"
+    verdict = current.values.get("verdict")
+    if verdict == "pass":
+        return "ACTIVATE_LESSON"
+    if verdict == "blocked":
+        return "RESOLVE_TRUE_BLOCKER"
+    if verdict == "repair_required":
+        no_delivery = all(item.state == "pending" for item in doc.objective_delivery.values())
+        if current.iteration >= 2 and no_delivery and not doc.evidence:
+            return "SHRINK_TO_MICRO_SLICE"
+        reviewed_current = (
+            current.values.get("reviewed_input_manifest_sha256") == doc.computed_manifest_sha256
+            and current.values.get("reviewed_contract_sha256") == doc.computed_contract_sha256
+        )
+        return "REPAIR_CONTRACT" if reviewed_current else "REQUEST_TARGETED_RECHECK"
+    return "REQUEST_INDEPENDENT_REVIEW"
+
+
+def can_mechanically_rebuild_same_lesson(
+    doc: HandoffDocument,
+    *,
+    primary_target: str,
+    primary_paths: set[str],
+) -> bool:
+    """Return whether an explicit start/resume request may replace this handoff.
+
+    This is intentionally narrower than schema migration: the caller must
+    already have established the intended target and source identity. Learner
+    evidence or delivered objectives make the current handoff non-replaceable.
+    """
+
+    if doc.metadata.get("status") in {"blocked", "completed"}:
+        return False
+    if doc.target_decision is None or doc.target_decision.primary_target != primary_target:
+        return False
+    manifested_primary_paths = {
+        entry.path for entry in doc.manifest if entry.role in PRIMARY_ROLES
+    }
+    if manifested_primary_paths != primary_paths:
+        return False
+    if doc.evidence:
+        return False
+    return all(item.state == "pending" for item in doc.objective_delivery.values())
 
 
 def _normalize_newlines(text: str) -> str:
@@ -1382,6 +1481,182 @@ def _parse_external_relations(
     doc.external_relations = relations
 
 
+def _parse_source_scope_map(
+    doc: HandoffDocument,
+    section: str,
+    body_start: int,
+    errors: list[ValidationError],
+) -> None:
+    rows = _contract_table_rows(
+        section,
+        [
+            "Primary ID",
+            "Scope kind",
+            "Scope ID",
+            "Included locations",
+            "Boundary context",
+            "Outside-scope disposition",
+        ],
+        doc,
+        body_start,
+        errors,
+        context="Source Scope Map",
+    )
+    primary_entries = [entry for entry in doc.manifest if entry.role in PRIMARY_ROLES]
+    primary_by_id = {entry.item_id: entry for entry in primary_entries}
+    curriculum_entry = next(
+        (entry for entry in doc.manifest if entry.role == "curriculum"), None
+    )
+    source_paths_by_id: dict[str, tuple[str, ...]] = {}
+    if curriculum_entry is not None:
+        curriculum_path, path_error = _safe_repo_path(curriculum_entry.path, doc.repo_root)
+        if path_error is None and curriculum_path is not None and curriculum_path.is_file():
+            try:
+                source_paths_by_id = dict(
+                    curriculum_snapshot_from_text(
+                        curriculum_path.read_text(encoding="utf-8")
+                    ).source_paths_by_id
+                )
+            except UnicodeDecodeError:
+                pass
+
+    scopes: dict[str, LessonSourceScope] = {}
+    for cells, line_no in rows:
+        (
+            primary_id,
+            scope_kind,
+            scope_id,
+            raw_included,
+            raw_boundary,
+            outside_disposition,
+        ) = cells
+        if primary_id in scopes:
+            errors.append(ValidationError(line_no, "SCHEMA", f"duplicate Source Scope primary: {primary_id}"))
+            continue
+        primary = primary_by_id.get(primary_id)
+        if primary is None:
+            errors.append(ValidationError(line_no, "SCHEMA", f"Source Scope references an unknown primary ID: {primary_id}"))
+            continue
+        if scope_kind not in SCOPE_KINDS:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid scope kind: {scope_kind}"))
+        included = split_locations(raw_included)
+        boundary = split_locations(raw_boundary)
+        registered_scope: CourseScope | None = None
+
+        if scope_kind == "entire-source":
+            if doc.coverage_mode != "full-source":
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", "entire-source is allowed only in full-source mode"))
+            if scope_id != "none" or raw_included != "entire-source" or boundary or outside_disposition != "none":
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", "entire-source requires Scope ID none, Included locations entire-source, Boundary context none, and disposition none"))
+            included = ()
+        else:
+            if doc.coverage_mode != "focused":
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", f"{scope_kind} is allowed only in focused mode"))
+            if not included:
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", f"{scope_kind} requires Included locations"))
+            if not outside_disposition or outside_disposition == "none":
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", "focused source scope requires one coarse outside-scope disposition"))
+            overlap = set(included).intersection(boundary)
+            if overlap:
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", "Included locations and Boundary context overlap: " + ", ".join(sorted(overlap))))
+            for location in included + boundary:
+                if _location_path(location) != primary.path:
+                    errors.append(ValidationError(line_no, "LESSON_SCOPE", f"scope location must point to {primary.path}: {location}"))
+                elif not _location_exists(location, doc.repo_root):
+                    errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"scope location is absent: {location}"))
+
+        if scope_kind == "registered-slice":
+            if primary.role != "primary" or scope_id == "none":
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", "registered-slice requires a local primary and concrete Scope ID"))
+            parts = PurePosixPath(primary.path).parts
+            expected_index = (
+                f"materials/private/{parts[2]}/INDEX.md"
+                if len(parts) == 4 and parts[:2] == ("materials", "private")
+                else None
+            )
+            index_entry = next(
+                (entry for entry in doc.manifest if entry.role == "course-index" and entry.path == expected_index),
+                None,
+            )
+            if index_entry is None:
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", "registered-slice requires the matching course INDEX manifest input"))
+            else:
+                index_path, path_error = _safe_repo_path(index_entry.path, doc.repo_root)
+                if path_error is None and index_path is not None and index_path.is_file():
+                    parsed_scopes, scope_findings = parse_course_scopes(index_path)
+                    for finding in scope_findings:
+                        errors.append(ValidationError(finding.line, finding.code, finding.message))
+                    matches = [scope for scope in parsed_scopes if scope.scope_id == scope_id]
+                    if len(matches) != 1:
+                        errors.append(ValidationError(line_no, "LESSON_SCOPE", f"registered Scope ID must occur exactly once in the course INDEX: {scope_id}"))
+                    else:
+                        registered_scope = matches[0]
+                        if source_paths_by_id.get(registered_scope.source_id, ()) != (primary.path,):
+                            errors.append(ValidationError(line_no, "LESSON_SCOPE", f"registered scope {scope_id} does not resolve to {primary.path}"))
+                        if included != registered_scope.included_locations or boundary != registered_scope.boundary_locations:
+                            errors.append(ValidationError(line_no, "LESSON_SCOPE", f"registered scope {scope_id} locations must exactly match the course INDEX row"))
+        elif scope_kind == "ephemeral-slice":
+            if scope_id != "none":
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", "ephemeral-slice must use Scope ID none"))
+
+        scopes[primary_id] = LessonSourceScope(
+            primary_id,
+            scope_kind,
+            scope_id,
+            included,
+            boundary,
+            outside_disposition,
+            registered_scope,
+            line_no,
+        )
+    doc.lesson_source_scopes = scopes
+    if list(scopes) != [entry.item_id for entry in primary_entries]:
+        errors.append(ValidationError(_line_number(doc.text, body_start), "LESSON_SCOPE", "Source Scope Map must contain one ordered row per primary input"))
+
+
+def _validate_contract_locations_against_scopes(
+    doc: HandoffDocument,
+    errors: list[ValidationError],
+) -> None:
+    primary_by_path = {
+        entry.path: entry for entry in doc.manifest if entry.role in PRIMARY_ROLES
+    }
+
+    def check(location: str, line: int, label: str) -> None:
+        path = _location_path(location)
+        primary = primary_by_path.get(path or "")
+        if primary is None:
+            return
+        scope = doc.lesson_source_scopes.get(primary.item_id)
+        if scope is None or scope.scope_kind == "entire-source":
+            return
+        effective = scope.registered_scope or CourseScope(
+            scope.scope_id,
+            "none",
+            "ephemeral",
+            scope.included_locations,
+            scope.boundary_locations,
+            scope.outside_disposition,
+            scope.line,
+        )
+        if location_is_boundary(location, effective):
+            errors.append(ValidationError(line, "LESSON_SCOPE_BOUNDARY", f"{label} may not use boundary-only context: {location}"))
+        elif not location_is_included(location, effective):
+            errors.append(ValidationError(line, "LESSON_SCOPE_RELATION", f"{label} lies outside the selected lesson slice: {location}"))
+
+    for item in doc.guidance.values():
+        check(item.source_location, item.line, item.guidance_id)
+    for item in doc.objectives.values():
+        if item.requirement == "source-core":
+            check(item.source_location, item.line, item.objective_id)
+    for item in doc.declared_goals.values():
+        check(item.goal_location, item.line, item.goal_id)
+        for support in item.body_support:
+            check(support, item.line, f"{item.goal_id} body support")
+    for item in doc.findings.values():
+        check(item.source_location, item.line, item.finding_id)
+
+
 def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None:
     marked = _marker_body(doc.text, "<!-- lesson-contract:start -->", "<!-- lesson-contract:end -->", errors)
     if marked is None:
@@ -1479,6 +1754,13 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
     manifest_paths = {entry.path: entry for entry in doc.manifest}
     primary_entries = [entry for entry in doc.manifest if entry.role in PRIMARY_ROLES]
     primary_by_id = {entry.item_id: entry for entry in primary_entries}
+
+    _parse_source_scope_map(
+        doc,
+        sections["Source Scope Map"],
+        body_start,
+        errors,
+    )
 
     guidance_rows = _contract_table_rows(
         sections["Guidance Map"],
@@ -1896,7 +2178,7 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
 
     coverage_rows = _contract_table_rows(
         sections["Source Coverage Index"],
-        ["Primary ID", "Declared Goal IDs", "Objective IDs", "Guidance IDs", "Excluded locations", "Reason"],
+        ["Primary ID", "Declared Goal IDs", "Objective IDs", "Guidance IDs"],
         doc,
         body_start,
         errors,
@@ -1904,7 +2186,7 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
     )
     source_coverage: dict[str, SourceCoverage] = {}
     for cells, line_no in coverage_rows:
-        primary_id, raw_goals, raw_objectives, raw_guidance, raw_exclusions, reason = cells
+        primary_id, raw_goals, raw_objectives, raw_guidance = cells
         if primary_id in source_coverage:
             errors.append(ValidationError(line_no, "SCHEMA", f"duplicate Source Coverage primary: {primary_id}"))
             continue
@@ -1917,33 +2199,18 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
         goal_ids = goal_ids or []
         objective_ids = objective_ids or []
         guidance_ids = guidance_ids or []
-        excluded_locations = _locations(raw_exclusions)
         primary_entry = primary_by_id.get(primary_id)
         if primary_entry is None:
             errors.append(ValidationError(line_no, "SCHEMA", f"Source Coverage references an unknown primary ID: {primary_id}"))
-        if raw_exclusions == "none":
-            if reason != "none":
-                errors.append(ValidationError(line_no, "SCHEMA", f"{primary_id} without exclusions must use Reason none"))
-        else:
-            if not excluded_locations or not reason or reason == "none":
-                errors.append(ValidationError(line_no, "SCHEMA", f"{primary_id} exclusions require exact locations and a reason"))
-            if primary_entry is not None:
-                for location in excluded_locations:
-                    if _location_path(location) != primary_entry.path:
-                        errors.append(ValidationError(line_no, "SCHEMA", f"{primary_id} excluded location must point to its primary path: {location}"))
-                    elif not _location_exists(location, doc.repo_root):
-                        errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"{primary_id} excluded location is absent: {location}"))
         if doc.coverage_mode == "full-source" and not (goal_ids or objective_ids or guidance_ids):
             errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"full-source primary requires a declared goal, technical objective, or guidance item: {primary_id}"))
-        if doc.coverage_mode == "focused" and not (goal_ids or objective_ids or guidance_ids or excluded_locations):
-            errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"focused primary without mapped content requires explicit exclusions: {primary_id}"))
+        if doc.coverage_mode == "focused" and not (goal_ids or objective_ids or guidance_ids):
+            errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"focused primary requires mapped content inside its selected slice: {primary_id}"))
         source_coverage[primary_id] = SourceCoverage(
             primary_id,
             goal_ids,
             objective_ids,
             guidance_ids,
-            excluded_locations,
-            reason,
             line_no,
         )
     doc.source_coverage = source_coverage
@@ -1966,6 +2233,8 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             errors.append(ValidationError(row.line, "OBJECTIVE_COVERAGE", f"{entry.item_id} Objective IDs must exactly match its source-core objectives"))
         if row.guidance_ids != expected_guidance:
             errors.append(ValidationError(row.line, "OBJECTIVE_COVERAGE", f"{entry.item_id} Guidance IDs must exactly match its guidance items"))
+
+    _validate_contract_locations_against_scopes(doc, errors)
 
     curriculum_entry = next((entry for entry in doc.manifest if entry.role == "curriculum" and entry.path == "CURRICULUM.md"), None)
     if curriculum_entry is not None:
@@ -2188,7 +2457,7 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             errors.append(ValidationError(_line_number(doc.text, body_start), "OBJECTIVE_COVERAGE", "Deferred must list every deferred objective once in objective order"))
 
 
-def _parse_review_attempts(
+def _parse_semantic_review(
     doc: HandoffDocument,
     section: tuple[int, int, int] | None,
     errors: list[ValidationError],
@@ -2197,108 +2466,149 @@ def _parse_review_attempts(
         return
     start, end, _ = section
     region = doc.text[start:end]
-    top_match = re.search(r"^- review_attempt:[ \t]*(\S+)[ \t]*$", region, re.MULTILINE)
-    if top_match is None:
-        errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "Semantic Review requires review_attempt"))
-    else:
-        try:
-            doc.review_attempt_count = int(top_match.group(1))
-        except ValueError:
-            errors.append(ValidationError(_line_number(doc.text, start + top_match.start()), "SCHEMA", "review_attempt must be 0, 1, or 2"))
-
-    start_matches = list(re.finditer(r"^<!-- semantic-review-attempt:(\d+):start -->[ \t]*$", region, re.MULTILINE))
-    end_matches = list(re.finditer(r"^<!-- semantic-review-attempt:(\d+):end -->[ \t]*$", region, re.MULTILINE))
-    if len(start_matches) != len(end_matches):
-        errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "semantic-review attempt markers are unbalanced"))
+    repair_heading = re.search(r"^### Repair Findings\s*$", region, re.MULTILINE)
+    blocker_heading = re.search(r"^### Blocking Findings\s*$", region, re.MULTILINE)
+    if repair_heading is None or blocker_heading is None or repair_heading.start() > blocker_heading.start():
+        errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "Semantic Review requires ordered Repair Findings and Blocking Findings tables"))
         return
-    attempts: list[ReviewAttempt] = []
-    for index, start_match in enumerate(start_matches):
-        attempt = int(start_match.group(1))
-        end_match = next((candidate for candidate in end_matches if int(candidate.group(1)) == attempt and candidate.start() > start_match.end()), None)
-        if end_match is None:
-            errors.append(ValidationError(_line_number(doc.text, start + start_match.start()), "SCHEMA", f"missing end marker for review attempt {attempt}"))
-            continue
-        body_start = start + start_match.end()
-        if doc.text[body_start : body_start + 1] == "\n":
-            body_start += 1
-        body_end = start + end_match.start()
-        body = doc.text[body_start:body_end]
-        heading = re.search(rf"^### Review Attempt {attempt}$", body, re.MULTILINE)
-        findings = re.search(r"^#### Blocking Findings$", body, re.MULTILINE)
-        if heading is None or findings is None or heading.start() > findings.start():
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", f"review attempt {attempt} structure is invalid"))
-            continue
-        values_start = body_start + heading.end()
-        values_end = body_start + findings.start()
-        values, lines, _ = _parse_bullets(doc.text, values_start, values_end, REVIEW_KEYS, errors, context=f"review attempt {attempt}")
-        findings_start = body_start + findings.end()
-        findings_lines = [line.strip() for line in doc.text[findings_start:body_end].splitlines() if line.strip()]
-        if not findings_lines:
-            errors.append(ValidationError(_line_number(doc.text, findings_start), "SCHEMA", f"review attempt {attempt} Blocking Findings must not be empty"))
-        elif values.get("verdict") == "pass" and findings_lines != ["- none"]:
-            errors.append(ValidationError(_line_number(doc.text, findings_start), "REVIEW_NOT_PASS", f"pass review attempt {attempt} must use exactly '- none' for Blocking Findings"))
-        elif values.get("verdict") in {"changes_required", "unavailable"} and (
-            "- none" in findings_lines
-            or not any(line.startswith("- ") and line != "- none" for line in findings_lines)
+
+    values, lines, _ = _parse_bullets(
+        doc.text,
+        start,
+        start + repair_heading.start(),
+        REVIEW_KEYS,
+        errors,
+        context="Semantic Review",
+    )
+    try:
+        iteration = int(values.get("review_iteration", ""))
+    except ValueError:
+        iteration = -1
+    if iteration not in {0, 1, 2}:
+        errors.append(ValidationError(lines.get("review_iteration", _line_number(doc.text, start)), "SCHEMA", "review_iteration must be 0, 1, or 2"))
+
+    repair_rows = _contract_table_rows(
+        region[repair_heading.end() : blocker_heading.start()],
+        ["Finding ID", "Location", "Detail"],
+        doc,
+        start + repair_heading.end(),
+        errors,
+        context="Repair Findings",
+    )
+    blocker_rows = _contract_table_rows(
+        region[blocker_heading.end() :],
+        ["Finding ID", "Kind", "Location", "Detail"],
+        doc,
+        start + blocker_heading.end(),
+        errors,
+        context="Blocking Findings",
+    )
+    if len(repair_rows) == 1 and repair_rows[0][0] == ["none", "none", "none"]:
+        repair_rows = []
+    if len(blocker_rows) == 1 and blocker_rows[0][0] == ["none", "none", "none", "none"]:
+        blocker_rows = []
+    repair_ids: list[str] = []
+    for cells, line_no in repair_rows:
+        finding_id, location, detail = cells
+        if not REPAIR_FINDING_RE.fullmatch(finding_id) or finding_id in repair_ids:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid or duplicate repair Finding ID: {finding_id}"))
+        repair_ids.append(finding_id)
+        if location == "none" or detail == "none" or not location or not detail:
+            errors.append(ValidationError(line_no, "SCHEMA", f"repair finding {finding_id} requires a concrete location and detail"))
+    blocker_ids: list[str] = []
+    for cells, line_no in blocker_rows:
+        finding_id, kind, location, detail = cells
+        if not BLOCKER_FINDING_RE.fullmatch(finding_id) or finding_id in blocker_ids:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid or duplicate blocker Finding ID: {finding_id}"))
+        blocker_ids.append(finding_id)
+        if kind not in TRUE_BLOCKER_KINDS:
+            errors.append(ValidationError(line_no, "REVIEW_NOT_PASS", f"{finding_id} uses a repairable or unsupported blocker kind: {kind}"))
+        if location == "none" or detail == "none" or not location or not detail:
+            errors.append(ValidationError(line_no, "SCHEMA", f"blocker {finding_id} requires a concrete location and detail"))
+    values["repair_finding_ids"] = ",".join(repair_ids)
+    values["blocker_finding_ids"] = ",".join(blocker_ids)
+
+    phase = values.get("review_phase")
+    verdict = values.get("verdict")
+    recheck_ids = _comma_ids(values.get("recheck_of", "none"), r"R\d{3}")
+    if phase not in REVIEW_PHASES:
+        errors.append(ValidationError(lines.get("review_phase", _line_number(doc.text, start)), "SCHEMA", "review_phase is not allowed"))
+    if verdict not in REVIEW_VERDICTS:
+        errors.append(ValidationError(lines.get("verdict", _line_number(doc.text, start)), "SCHEMA", "review verdict is not allowed"))
+    if recheck_ids is None or len(recheck_ids) != len(set(recheck_ids)):
+        errors.append(ValidationError(lines.get("recheck_of", _line_number(doc.text, start)), "SCHEMA", "recheck_of must be none or unique R### IDs"))
+        recheck_ids = []
+    initial_reviewer_id = values.get("initial_reviewer_id", "")
+    reviewer_id = values.get("reviewer_id", "")
+    if iteration == 0:
+        expected_pending = {
+            "initial_reviewer_id": "none",
+            "reviewer_id": "none",
+            "review_phase": "none",
+            "recheck_of": "none",
+            "reviewed_at": "pending",
+            "verdict": "pending",
+            "reviewed_input_manifest_sha256": "pending",
+            "reviewed_contract_sha256": "pending",
+        }
+        for key, expected in expected_pending.items():
+            if values.get(key) != expected:
+                errors.append(ValidationError(lines.get(key, _line_number(doc.text, start)), "SCHEMA", f"review_iteration 0 requires {key}: {expected}"))
+        if repair_rows or blocker_rows:
+            errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "pending review must not contain findings"))
+        doc.semantic_review = SemanticReviewRecord(
+            iteration, values, _line_number(doc.text, start)
+        )
+    else:
+        if (
+            not AGENT_ID_RE.fullmatch(initial_reviewer_id)
+            or not AGENT_ID_RE.fullmatch(reviewer_id)
+            or reviewer_id != initial_reviewer_id
+            or reviewer_id == doc.metadata.get("author_id")
         ):
-            errors.append(ValidationError(_line_number(doc.text, findings_start), "REVIEW_NOT_PASS", f"non-pass review attempt {attempt} requires concrete Blocking Findings without '- none'"))
-        if values.get("reviewer_mode") != "fresh-subagent":
-            errors.append(ValidationError(lines.get("reviewer_mode", _line_number(doc.text, body_start)), "REVIEW_NOT_PASS", "reviewer_mode must be fresh-subagent"))
-        if "reviewer_id" in values and not AGENT_ID_RE.fullmatch(values["reviewer_id"]):
-            errors.append(ValidationError(lines["reviewer_id"], "SCHEMA", "reviewer_id has an invalid format"))
-        if "reviewed_at" in values and not _is_rfc3339(values["reviewed_at"]):
-            errors.append(ValidationError(lines["reviewed_at"], "SCHEMA", "reviewed_at must be an RFC 3339 timestamp with a timezone"))
-        if values.get("verdict") not in REVIEW_VERDICTS:
-            errors.append(ValidationError(lines.get("verdict", _line_number(doc.text, body_start)), "SCHEMA", "review verdict is not allowed"))
+            errors.append(ValidationError(lines.get("reviewer_id", _line_number(doc.text, start)), "REVIEW_NOT_PASS", "semantic reviewer must have a valid ID different from the contract author"))
+        if not _is_rfc3339(values.get("reviewed_at", "")):
+            errors.append(ValidationError(lines.get("reviewed_at", _line_number(doc.text, start)), "SCHEMA", "reviewed_at must be an RFC 3339 timestamp with a timezone"))
         for key in ("reviewed_input_manifest_sha256", "reviewed_contract_sha256"):
-            if key in values and not HASH_RE.fullmatch(values[key]):
-                errors.append(ValidationError(lines[key], "SCHEMA", f"{key} must be 64 lowercase hexadecimal characters"))
-        attempts.append(ReviewAttempt(attempt, values, _line_number(doc.text, start + start_match.start())))
-
-    attempts.sort(key=lambda item: item.attempt)
-    doc.reviews = attempts
-    expected_numbers = list(range(1, len(attempts) + 1))
-    if [item.attempt for item in attempts] != expected_numbers:
-        errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "review attempt IDs must be contiguous from 1"))
-    if len(attempts) > 2 or doc.review_attempt_count not in {0, 1, 2}:
-        errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "review_attempt is limited to 2"))
-    if doc.review_attempt_count is not None and doc.review_attempt_count != len(attempts):
-        errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "review_attempt must equal the number of attempt blocks"))
-
-    author_id = doc.metadata.get("author_id")
-    reviewer_ids = [attempt.values.get("reviewer_id", "") for attempt in attempts]
-    for attempt, reviewer_id in zip(attempts, reviewer_ids):
-        if reviewer_id and reviewer_id == author_id:
-            errors.append(ValidationError(attempt.line, "REVIEW_NOT_PASS", "fresh reviewer must differ from contract author"))
-    if len(reviewer_ids) != len(set(reviewer_ids)):
-        errors.append(ValidationError(attempts[-1].line if attempts else 1, "REVIEW_NOT_PASS", "each semantic review attempt requires a different fresh reviewer"))
-    if len(attempts) == 2 and attempts[0].values.get("verdict") != "changes_required":
-        errors.append(ValidationError(attempts[1].line, "REVIEW_NOT_PASS", "a second review is allowed only after changes_required"))
+            if not HASH_RE.fullmatch(values.get(key, "")):
+                errors.append(ValidationError(lines.get(key, _line_number(doc.text, start)), "SCHEMA", f"{key} must be 64 lowercase hexadecimal characters"))
+        if iteration == 1 and (phase != "independent-slice" or recheck_ids):
+            errors.append(ValidationError(lines.get("review_phase", _line_number(doc.text, start)), "REVIEW_NOT_PASS", "review_iteration 1 requires independent-slice and recheck_of none"))
+        if iteration == 2 and (phase != "targeted-recheck" or not recheck_ids):
+            errors.append(ValidationError(lines.get("review_phase", _line_number(doc.text, start)), "REVIEW_NOT_PASS", "review_iteration 2 requires targeted-recheck and one or more recheck_of IDs"))
+        if verdict == "pass" and (repair_rows or blocker_rows):
+            errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "pass review must not contain current findings"))
+        if verdict == "repair_required" and (not repair_rows or blocker_rows):
+            errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "repair_required requires only repair findings"))
+        if verdict == "blocked" and (repair_rows or not blocker_rows):
+            errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "blocked verdict requires only true blocking findings"))
+        doc.semantic_review = SemanticReviewRecord(
+            iteration, values, _line_number(doc.text, start)
+        )
 
     status = doc.metadata.get("status")
-    if status == "preparing" and attempts:
-        errors.append(ValidationError(attempts[0].line, "REVIEW_NOT_PASS", "preparing status cannot contain review attempts"))
-    if attempts:
-        latest = attempts[-1]
-        verdict = latest.values.get("verdict")
-        if verdict == "unavailable" and status != "blocked":
-            errors.append(ValidationError(latest.line, "REVIEW_NOT_PASS", "unavailable reviewer requires blocked status"))
-        if latest.attempt == 2 and verdict != "pass" and status != "blocked":
-            errors.append(ValidationError(latest.line, "REVIEW_NOT_PASS", "a second non-pass review requires blocked status"))
-        reviewed_manifest = latest.values.get("reviewed_input_manifest_sha256")
-        reviewed_contract = latest.values.get("reviewed_contract_sha256")
-        if verdict == "pass" and (
-            reviewed_manifest != doc.computed_manifest_sha256
-            or reviewed_contract != doc.computed_contract_sha256
-        ):
-            errors.append(ValidationError(latest.line, "REVIEW_STALE", "pass verdict hashes do not match the current manifest and contract"))
-        if verdict == "pass" and any(
-            error.code in {"SOURCE_MISSING", "SOURCE_HASH", "SOURCE_LOCATION", "PATH"} for error in errors
-        ):
-            errors.append(ValidationError(latest.line, "REVIEW_STALE", "pass verdict is stale because a manifested input is unavailable or changed"))
+    current = doc.semantic_review
+    if status == "preparing" and iteration != 0:
+        errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "preparing status requires a pending review record"))
+    if status == "repair_pending" and (current is None or current.values.get("verdict") != "repair_required"):
+        errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "repair_pending requires a repair_required verdict"))
+    if current is not None and current.values.get("verdict") == "repair_required" and status != "repair_pending":
+        errors.append(ValidationError(current.line, "REVIEW_NOT_PASS", "repair_required verdict requires repair_pending status"))
+    if status == "blocked" and (current is None or current.values.get("verdict") != "blocked"):
+        errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "blocked status requires a true blocked verdict"))
+    if current is not None and current.values.get("verdict") == "blocked" and status != "blocked":
+        errors.append(ValidationError(current.line, "REVIEW_NOT_PASS", "true blocked verdict requires blocked status"))
     if status in {"active", "paused", "completed"}:
-        if not attempts or attempts[-1].values.get("verdict") != "pass":
-            errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", f"{status} status requires a latest pass verdict"))
+        if current is None or current.values.get("verdict") != "pass":
+            errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", f"{status} status requires a current pass verdict"))
+    if current is not None and current.values.get("verdict") == "pass":
+        if (
+            current.values.get("reviewed_input_manifest_sha256") != doc.computed_manifest_sha256
+            or current.values.get("reviewed_contract_sha256") != doc.computed_contract_sha256
+        ):
+            errors.append(ValidationError(current.line, "REVIEW_STALE", "pass verdict hashes do not match the current manifest and contract"))
+        if any(error.code in {"SOURCE_MISSING", "SOURCE_HASH", "SOURCE_LOCATION", "PATH"} for error in errors):
+            errors.append(ValidationError(current.line, "REVIEW_STALE", "pass verdict is stale because a manifested input is unavailable or changed"))
 
 
 def _parse_current_position(
@@ -2804,7 +3114,7 @@ def _validate_til_readiness(doc: HandoffDocument, errors: list[ValidationError])
     status = doc.metadata.get("status")
     if status not in {"paused", "completed"}:
         errors.append(ValidationError(1, "TIL_COVERAGE", "--til-ready requires paused or completed status"))
-    latest = doc.reviews[-1] if doc.reviews else None
+    latest = doc.semantic_review
     if latest is None or latest.values.get("verdict") != "pass":
         errors.append(
             ValidationError(
@@ -3234,7 +3544,7 @@ def validate_handoff(
     _parse_manifest(doc, sections.get("Input Manifest"), errors)
     _parse_contract(doc, errors)
     _validate_declared_hashes(doc, metadata_lines, errors)
-    _parse_review_attempts(doc, sections.get("Semantic Review"), errors)
+    _parse_semantic_review(doc, sections.get("Semantic Review"), errors)
     _parse_current_position(doc, sections.get("Current Position"), errors)
     _parse_objective_delivery(doc, sections.get("Objective Delivery"), errors)
     _parse_evidence(doc, sections.get("Learner Evidence"), errors)
@@ -3249,7 +3559,7 @@ def validate_handoff(
         status = doc.metadata.get("status")
         if status not in {"active", "paused"}:
             errors.append(ValidationError(metadata_lines.get("status", 1), "REVIEW_NOT_PASS", "--ready requires active or paused status"))
-        latest = doc.reviews[-1] if doc.reviews else None
+        latest = doc.semantic_review
         if latest is None or latest.values.get("verdict") != "pass":
             errors.append(ValidationError(latest.line if latest else 1, "REVIEW_NOT_PASS", "--ready requires a latest pass verdict"))
         elif (
@@ -3319,6 +3629,7 @@ def main(argv: list[str] | None = None) -> int:
                         "path": args.handoff.as_posix(),
                         "ready": False,
                         "til_ready": False,
+                        "workflow_action": "PREPARE_CONTRACT",
                         "computed": {},
                         "errors": [{"line": 1, "code": "SCHEMA", "message": f"internal error: {exc}"}],
                         "warnings": [],

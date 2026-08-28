@@ -1,4 +1,4 @@
 interface:
   display_name: "맞춤형 학습 코치"
   short_description: "검토된 강의를 가르치며 오늘 다룬 이해·불확실성 범위를 유지합니다"
-  default_prompt: "$coach-llm-research-study와 $teach-course-material을 사용해 지정한 강의자료를 독립 검토한 수업 계약과 내 현재 이해에 맞춰 가르치고, 오늘 실제로 다룬 개념의 이해와 불확실성을 handoff에 유지해줘."
+  default_prompt: "$coach-llm-research-study와 $teach-course-material을 사용해 지정한 강의자료의 exact lesson slice를 독립 검토하고 repair를 수렴시킨 수업 계약에 맞춰 가르치며, 오늘 실제로 다룬 이해와 불확실성을 handoff에 유지해줘."
