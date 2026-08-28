@@ -347,7 +347,7 @@ def test_external_asset_receipt_is_required_and_identity_checked() -> None:
         assert "EXTERNAL_CACHE_IDENTITY" in _codes(report)
 
 
-def test_external_til_provenance_separates_identity_from_common_target_relation() -> None:
+def test_external_identity_is_separate_from_common_target_relation() -> None:
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         handoff, _, _, _ = _build_external(root)
@@ -355,27 +355,11 @@ def test_external_til_provenance_separates_identity_from_common_target_relation(
         assert report.ok, report.errors
         document = report.document
         assert document is not None
-        valid = (
-            "# 오늘의 학습\n\n학습자 설명.\n\n"
-            "## 관련 기록\n\n"
-            f"- [공식 자료]({OFFICIAL_URL})\n"
-            "- offering/edition: 2026 offering\n"
-            "- scope: axes and broadcasting\n"
-            "- 관련 역량: `CC-DL-01`\n"
-        )
-        errors = []
-        validator._validate_external_til_provenance(document, valid, errors)
-        validator._validate_target_til_provenance(document, valid, errors)
-        assert errors == []
-
-        missing_scope = valid.replace("- scope: axes and broadcasting\n", "")
-        errors = []
-        validator._validate_external_til_provenance(document, missing_scope, errors)
-        assert "EXTERNAL_TIL_PROVENANCE" in {error.code for error in errors}
-
-        wrong_target_format = valid.replace(
-            "- 관련 역량: `CC-DL-01`", "- 관련 역량: CC-DL-01"
-        )
-        errors = []
-        validator._validate_target_til_provenance(document, wrong_target_format, errors)
-        assert "TIL_TARGET_PROVENANCE" in {error.code for error in errors}
+        identity = document.external_identities["I001"]
+        relation = document.external_relations[("CC-DL-01", "I001")]
+        assert identity.official_url == OFFICIAL_URL
+        assert identity.offering_or_edition == "2026 offering"
+        assert identity.scope == "axes and broadcasting"
+        assert relation.target_id == document.target_decision.primary_target
+        assert relation.relation == "primary"
+        assert relation.objective_ids == ["O001", "O002"]

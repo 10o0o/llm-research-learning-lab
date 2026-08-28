@@ -1,4 +1,4 @@
 interface:
   display_name: "맞춤형 학습 코치"
-  short_description: "검토된 표준 심화 수업을 진행하고 학습자 증거를 유지합니다"
-  default_prompt: "$coach-llm-research-study와 $teach-course-material을 사용해 exact source slice를 검토하되 기본 standard session의 동기·개념모형·예시·한계·통합 전이 arc를 모두 가르치고, 마지막 learner attempt까지 handoff에 유지해줘."
+  short_description: "검토된 60~90분 수업을 진행하고 cursor에 증거를 보존합니다"
+  default_prompt: "$coach-llm-research-study와 $teach-course-material을 사용해 exact source slice를 검토하고 표준 60~90분 Module Plan의 동기·개념모형·서로 다른 예시·한계·학습자 적용·통합 전이를 가르쳐줘. 확인된 내 답변만 daily-flow cursor에 보존하고 불확실하면 pause해줘."

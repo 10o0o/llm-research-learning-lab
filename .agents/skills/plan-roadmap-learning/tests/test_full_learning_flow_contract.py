@@ -11,42 +11,44 @@ def _text(path: Path) -> str:
     return re.sub(r"\s+", " ", path.read_text(encoding="utf-8"))
 
 
-def test_full_flow_is_one_explicit_cycle_with_exact_commit_boundaries() -> None:
+def test_full_day_flow_repeats_cycles_with_exact_commit_boundaries() -> None:
     agents = _text(REPO / "AGENTS.md")
     usage = _text(REPO / "USAGE.md")
     for phrase in (
-        "full learning flow",
-        "one complete cycle",
-        "practice: complete <artifact-stem>",
-        "zero to three evidence-backed knowledge notes",
-        "preview the next target",
+        "same-Asia/Seoul-day sequence of cycles",
+        "exact completion-ready practice commit",
+        "zero to three knowledge updates or `NO_CHANGE`",
+        "next-target calculation",
+        "preparation of the next reviewed lesson",
     ):
         assert phrase in agents
     for phrase in (
-        "전체 흐름으로 진행해줘",
-        "현재 대화의 한 학습 사이클",
-        "practice: complete <artifact-stem>",
-        "다음 target preview",
+        "오늘 전체 학습 흐름 시작",
+        "60~90분 표준 수업",
+        "학습자가 직접 구현·실행·해석",
+        "knowledge를 0~3개 갱신",
+        "다음 target을 계산",
     ):
         assert phrase in usage
 
 
-def test_full_flow_never_substitutes_learner_work_or_broadens_external_authority() -> None:
+def test_full_day_flow_never_substitutes_learner_work_or_broadens_external_authority() -> None:
     agents = _text(REPO / "AGENTS.md")
     usage = _text(REPO / "USAGE.md")
     for phrase in (
-        "never permits the agent to supply learner answers",
+        "Full-day authorization never permits learner answers",
+        "learner-owned practice",
         "permanent source registration",
-        "paid or authenticated downloads",
+        "paid/authenticated downloads",
         "external participation or submission",
-        "do not authorize practice, knowledge, or next-target continuation",
+        "TIL saving, or push",
     ):
         assert phrase in agents
     for phrase in (
-        "learner-owned 구현·실행 대행",
+        "학습자 대신 답하거나 learner-owned practice를 구현하는 일",
         "permanent source 등록",
-        "외부 challenge·competition 참여나 제출",
-        "전체 흐름 권한으로 넓어지지는 않습니다",
+        "외부 계정 접근, 대회 참여 또는 제출",
+        "TIL 자동 저장",
     ):
         assert phrase in usage
 
@@ -58,4 +60,6 @@ def test_no_new_orchestration_skill_or_progress_snapshot_contract() -> None:
     }
     assert not any("orchestrat" in name or "full-flow" in name for name in skill_names)
     agents = _text(REPO / "AGENTS.md")
-    assert "do not create an orchestration skill, snapshot, or progress database" in agents
+    usage = _text(REPO / "USAGE.md")
+    assert "Do not create an orchestration skill, snapshot, or progress database" in agents
+    assert "하나의 거대 orchestration skill이나 별도 progress DB는 두지 않습니다" in usage

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the ignored active-lesson handoff and its source/draft state."""
+"""Validate the ignored active-lesson handoff and session-capture state."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ from source_scopes import (  # noqa: E402
 )
 
 
-SCHEMA_VERSION = "8"
+SCHEMA_VERSION = "9"
 STATUSES = {
     "preparing",
     "review_pending",
@@ -80,7 +80,7 @@ EVIDENCE_KINDS = {
     "limit",
 }
 EVIDENCE_VERDICTS = {"confirmed", "partial", "misconception", "unconfirmed"}
-APPEND_STATES = {"pending", "drafted", "not_eligible"}
+CAPTURE_STATES = {"pending", "captured", "not_eligible"}
 CONCEPT_MARKERS = {"none", "[선수개념]", "[정정]", "[보충]"}
 COVERAGE_MODES = {"full-source", "focused"}
 OBJECTIVE_REQUIREMENTS = {"source-core", "required-added", "optional-added"}
@@ -98,7 +98,7 @@ FINDING_TYPES = {
 }
 CHECK_POLICIES = {"adaptive", "none"}
 SESSION_PROFILES = {"standard", "short", "custom"}
-TIL_FINALIZE_POLICIES = {"auto-commit", "explicit-request"}
+FLOW_MODES = {"day-full", "single-lesson"}
 STEP_ROLES = {
     "motivation",
     "concept-model",
@@ -117,13 +117,7 @@ POSITION_ACTIONS = {"teach", "await-answer", "remediate", "complete"}
 DELIVERY_STATES = {"pending", "delivered"}
 DELIVERY_MODES = {"none", "full", "bridge"}
 STEP_DELIVERY_STATES = {"pending", "delivered", "completed"}
-TODAY_STATES = {"confirmed", "uncertain", "deferred"}
-TIL_REPRESENTATIONS = {"learning", "remaining-question", "missing", "not-required"}
-TIL_COMPOSITION_MODES = {"pending", "handoff-generated", "mixed"}
-TIL_COMPOSITION_STATES = {"pending", "composed", "committed"}
-TIL_COMPOSITION_REVIEWS = {"pending", "not-required", "pass", "repair_required"}
-TIL_ITEM_SECTIONS = {"오늘의 학습", "배운 점", "남은 질문"}
-TIL_ITEM_REPRESENTATIONS = {"learning", "changed-understanding", "remaining-question"}
+SESSION_CONCEPT_STATES = {"confirmed", "uncertain", "deferred"}
 CURRICULUM_COVERAGE = {"미감사", "충분", "부분", "없음", "판정보류"}
 CURRICULUM_GAP_ACTIONS = {
     "그대로 사용",
@@ -166,21 +160,22 @@ EVIDENCE_TOKENS = {
 }
 HASH_RE = re.compile(r"[0-9a-f]{64}\Z")
 LESSON_ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{2,63}\Z")
+CYCLE_ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{2,95}\Z")
 AGENT_ID_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/@-]{1,127}\Z")
 CURRICULUM_ID_RE = re.compile(r"(?:CC|TR)-[A-Z]+-\d{2}\Z")
 
 METADATA_KEYS = (
     "schema_version",
+    "cycle_id",
     "lesson_id",
     "title",
     "status",
     "session_profile",
-    "til_finalize_policy",
+    "flow_mode",
     "study_date",
     "created_at",
     "updated_at",
     "author_id",
-    "draft_path",
     "input_manifest_sha256",
     "contract_sha256",
 )
@@ -193,15 +188,6 @@ CURRENT_POSITION_KEYS = (
     "resume_note",
 )
 SESSION_PLAN_KEYS = ("session_goal", "exit_step", "exit_evidence_kind")
-TIL_COMPOSITION_KEYS = (
-    "mode",
-    "state",
-    "review",
-    "composed_at",
-    "draft_sha256",
-    "dated_til_path",
-    "commit_sha",
-)
 REVIEW_KEYS = (
     "initial_reviewer_id",
     "reviewer_id",
@@ -219,7 +205,7 @@ EVIDENCE_KEYS = (
     "kind",
     "provenance",
     "verdict",
-    "append_state",
+    "capture_state",
     "captured_at",
     "content_sha256",
 )
@@ -239,6 +225,7 @@ CONTRACT_HEADINGS = (
     "Guidance Map",
     "Observable Objective Map",
     "Concept Path",
+    "Module Plan",
     "Session Plan",
     "Example Map",
     "Prepared Teaching Steps",
@@ -334,7 +321,7 @@ class Evidence:
     content: str
     assessment: str
     line: int
-    append_value_span: tuple[int, int]
+    capture_value_span: tuple[int, int]
 
 
 @dataclass
@@ -342,8 +329,18 @@ class LearningCoverage:
     concept_id: str
     today_state: str
     evidence_ids: list[str]
-    til_representation: str
     note: str
+    line: int
+
+
+@dataclass
+class LessonModule:
+    module_id: str
+    topic: str
+    concept_ids: list[str]
+    source_locations: list[str]
+    application_step: str
+    expected_minutes: int
     line: int
 
 
@@ -482,6 +479,7 @@ class HandoffDocument:
     guidance: dict[str, GuidanceItem] = field(default_factory=dict)
     findings: dict[str, AuditedFinding] = field(default_factory=dict)
     objectives: dict[str, Objective] = field(default_factory=dict)
+    modules: dict[str, LessonModule] = field(default_factory=dict)
     session_plan: dict[str, str] = field(default_factory=dict)
     examples: dict[str, LessonExample] = field(default_factory=dict)
     teaching_steps: dict[str, TeachingStep] = field(default_factory=dict)
@@ -495,8 +493,6 @@ class HandoffDocument:
     objective_delivery: dict[str, ObjectiveDelivery] = field(default_factory=dict)
     step_delivery: dict[str, TeachingStepDelivery] = field(default_factory=dict)
     evidence: dict[str, Evidence] = field(default_factory=dict)
-    til_composition: dict[str, str] = field(default_factory=dict)
-    til_items: dict[str, dict[str, Any]] = field(default_factory=dict)
     learning_coverage: dict[str, LearningCoverage] = field(default_factory=dict)
     computed_manifest_sha256: str = ""
     computed_contract_sha256: str = ""
@@ -506,7 +502,7 @@ class HandoffDocument:
 class ValidationReport:
     path: Path
     ready_requested: bool
-    til_ready_requested: bool
+    capture_ready_requested: bool
     errors: list[ValidationError]
     document: HandoffDocument | None
     warnings: list[ValidationWarning] = field(default_factory=list)
@@ -532,7 +528,7 @@ class ValidationReport:
             "ok": self.ok,
             "path": self.path.as_posix(),
             "ready": self.ready_requested and self.ok,
-            "til_ready": self.til_ready_requested and self.ok,
+            "capture_ready": self.capture_ready_requested and self.ok,
             "workflow_action": _workflow_action(self.document),
             "computed": computed,
             "errors": [error.as_json() for error in self.errors],
@@ -544,21 +540,10 @@ def _workflow_action(doc: HandoffDocument | None) -> str:
     if doc is None:
         return "PREPARE_CONTRACT"
     status = doc.metadata.get("status")
-    if status in {"paused", "completed"}:
-        composition_state = doc.til_composition.get("state", "pending")
-        composition_mode = doc.til_composition.get("mode", "pending")
-        composition_review = doc.til_composition.get("review", "pending")
-        if composition_state == "pending":
-            return "COMPOSE_TIL" if status == "completed" else "TEACH_OR_RESUME"
-        if composition_mode == "mixed" and composition_review != "pass":
-            return "REVIEW_MIXED_DRAFT"
-        if composition_state == "composed":
-            if doc.metadata.get("til_finalize_policy") == "auto-commit":
-                return "FINALIZE_TIL"
-            return "AWAIT_TIL_SAVE"
-        if composition_state == "committed":
-            return "COMPLETE"
-        return "COMPOSE_TIL"
+    if status == "completed":
+        return "CAPTURE_SESSION"
+    if status == "paused":
+        return "TEACH_OR_RESUME"
     if status == "blocked":
         return "RESOLVE_TRUE_BLOCKER"
     if status == "active":
@@ -616,16 +601,17 @@ def can_replace_with_new_lesson(
 ) -> bool:
     """Return whether the current operational handoff may be retired.
 
-    A finished lesson remains resumable save state until its dated TIL commit
-    has been recorded.  Any other replacement requires an explicit learner
-    decision to discard the current session.
+    A finished lesson may be retired only after every confirmed evidence item
+    has been captured into the daily-flow cursor. Any other replacement
+    requires an explicit learner decision to discard the current session.
     """
 
     if explicit_discard:
         return True
-    return (
-        doc.metadata.get("status") in {"paused", "completed"}
-        and doc.til_composition.get("state") == "committed"
+    return doc.metadata.get("status") == "completed" and all(
+        evidence.values.get("verdict") != "confirmed"
+        or evidence.values.get("capture_state") == "captured"
+        for evidence in doc.evidence.values()
     )
 
 
@@ -639,17 +625,6 @@ def _sha256_bytes(data: bytes) -> str:
 
 def _line_number(text: str, offset: int) -> int:
     return text.count("\n", 0, offset) + 1
-
-
-def _markdown_h2_body(text: str, heading: str) -> str | None:
-    """Return one level-two Markdown section body without guessing semantics."""
-    match = re.search(rf"^## {re.escape(heading)}[ \t]*$", text, re.MULTILINE)
-    if match is None:
-        return None
-    body_start = match.end()
-    next_heading = re.search(r"^## [^#]", text[body_start:], re.MULTILINE)
-    body_end = body_start + next_heading.start() if next_heading else len(text)
-    return text[body_start:body_end].strip()
 
 
 def _repo_root_from_script() -> Path:
@@ -684,9 +659,8 @@ def _section_ranges(text: str, errors: list[ValidationError]) -> dict[str, tuple
         "Current Position",
         "Objective Delivery",
         "Teaching Step Delivery",
-        "Daily Learning Coverage",
+        "Session Concept Coverage",
         "Learner Evidence",
-        "TIL Composition",
     )
     headings = list(re.finditer(r"^## ([^\n]+)$", text, re.MULTILINE))
     found = [match.group(1) for match in headings]
@@ -810,6 +784,8 @@ def _parse_metadata(
                 f"schema_version must be {SCHEMA_VERSION}; rebuild older handoffs from the current template",
             )
         )
+    if "cycle_id" in values and not CYCLE_ID_RE.fullmatch(values["cycle_id"]):
+        errors.append(ValidationError(lines["cycle_id"], "SCHEMA", "cycle_id has an invalid format"))
     if "lesson_id" in values and not LESSON_ID_RE.fullmatch(values["lesson_id"]):
         errors.append(ValidationError(lines["lesson_id"], "SCHEMA", "lesson_id has an invalid format"))
     if not values.get("title"):
@@ -818,8 +794,8 @@ def _parse_metadata(
         errors.append(ValidationError(lines.get("status", 1), "SCHEMA", "status is not allowed"))
     if values.get("session_profile") not in SESSION_PROFILES:
         errors.append(ValidationError(lines.get("session_profile", 1), "SCHEMA", "session_profile must be standard, short, or custom"))
-    if values.get("til_finalize_policy") not in TIL_FINALIZE_POLICIES:
-        errors.append(ValidationError(lines.get("til_finalize_policy", 1), "SCHEMA", "til_finalize_policy must be auto-commit or explicit-request"))
+    if values.get("flow_mode") not in FLOW_MODES:
+        errors.append(ValidationError(lines.get("flow_mode", 1), "SCHEMA", "flow_mode must be day-full or single-lesson"))
     if "study_date" in values and not _is_date(values["study_date"]):
         errors.append(ValidationError(lines["study_date"], "SCHEMA", "study_date must be YYYY-MM-DD"))
     for key in ("created_at", "updated_at"):
@@ -827,8 +803,6 @@ def _parse_metadata(
             errors.append(ValidationError(lines[key], "SCHEMA", f"{key} must be an RFC 3339 timestamp with a timezone"))
     if "author_id" in values and not AGENT_ID_RE.fullmatch(values["author_id"]):
         errors.append(ValidationError(lines["author_id"], "SCHEMA", "author_id has an invalid format"))
-    if values.get("draft_path") != "til/today.md":
-        errors.append(ValidationError(lines.get("draft_path", 1), "PATH", "draft_path must be til/today.md"))
     for key in ("input_manifest_sha256", "contract_sha256"):
         if key in values and not HASH_RE.fullmatch(values[key]):
             errors.append(ValidationError(lines[key], "SCHEMA", f"{key} must be 64 lowercase hexadecimal characters"))
@@ -1054,6 +1028,18 @@ def _parse_manifest(
     if sum(entry.role == "roadmap" for entry in entries) != 1:
         errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "manifest requires exactly one roadmap input"))
     for entry in entries:
+        if entry.path in {
+            "til/today.md",
+            "tmp/active-learning-flow.json",
+            "tmp/active-lesson-handoff.md",
+        }:
+            errors.append(
+                ValidationError(
+                    entry.line,
+                    "PATH",
+                    f"mutable operational state must not be a lesson manifest input: {entry.path}",
+                )
+            )
         if entry.role == "curriculum" and entry.path != "CURRICULUM.md":
             errors.append(ValidationError(entry.line, "PATH", "the curriculum manifest path must be exactly CURRICULUM.md"))
         if entry.role == "roadmap" and entry.path != "ROADMAP.md":
@@ -1082,8 +1068,6 @@ def _parse_manifest(
                         f"{entry.role} path must use its SHA-256 filename and an allowed media suffix",
                     )
                 )
-        if entry.path == doc.metadata.get("draft_path"):
-            errors.append(ValidationError(entry.line, "PATH", "the mutable draft_path must not be included in the Input Manifest"))
 
     manifested_indexes = {entry.path: entry for entry in entries if entry.role == "course-index"}
     required_indexes: set[str] = set()
@@ -1748,6 +1732,9 @@ def _validate_contract_locations_against_scopes(
             check(support, item.line, f"{item.goal_id} body support")
     for item in doc.findings.values():
         check(item.source_location, item.line, item.finding_id)
+    for module in doc.modules.values():
+        for location in module.source_locations:
+            check(location, module.line, module.module_id)
 
 
 def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None:
@@ -2327,8 +2314,6 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
         if row.guidance_ids != expected_guidance:
             errors.append(ValidationError(row.line, "OBJECTIVE_COVERAGE", f"{entry.item_id} Guidance IDs must exactly match its guidance items"))
 
-    _validate_contract_locations_against_scopes(doc, errors)
-
     curriculum_entry = next((entry for entry in doc.manifest if entry.role == "curriculum" and entry.path == "CURRICULUM.md"), None)
     if curriculum_entry is not None:
         curriculum_path, path_error = _safe_repo_path(curriculum_entry.path, doc.repo_root)
@@ -2394,6 +2379,66 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
                                     f"Curriculum Treatment {target} is stale: expected {actual_coverage} / {actual_gap_action}",
                                 )
                             )
+
+    module_rows = _contract_table_rows(
+        sections["Module Plan"],
+        [
+            "Module ID",
+            "Topic",
+            "Concept IDs",
+            "Source locators",
+            "Application step",
+            "Expected minutes",
+        ],
+        doc,
+        body_start,
+        errors,
+        context="Module Plan",
+    )
+    modules: dict[str, LessonModule] = {}
+    for index, (cells, line_no) in enumerate(module_rows, start=1):
+        module_id, topic, raw_concepts, raw_locations, application_step, raw_minutes = cells
+        expected_id = f"M{index:02d}"
+        if module_id != expected_id or module_id in modules:
+            errors.append(ValidationError(line_no, "SCHEMA", f"Module ID must be unique and contiguous: {expected_id}"))
+            continue
+        concept_ids = _comma_ids(raw_concepts, r"C\d{2}")
+        if concept_ids is None or not concept_ids or len(concept_ids) != len(set(concept_ids)):
+            errors.append(ValidationError(line_no, "SESSION_DEPTH", f"{module_id} requires unique Concept IDs"))
+            concept_ids = []
+        unknown_concepts = [item for item in concept_ids if item not in doc.contract_concepts]
+        if unknown_concepts:
+            errors.append(ValidationError(line_no, "SESSION_DEPTH", f"{module_id} references unknown concepts: {', '.join(unknown_concepts)}"))
+        locations = [item.strip() for item in raw_locations.split(";") if item.strip()]
+        if not locations or len(locations) != len(set(locations)):
+            errors.append(ValidationError(line_no, "SESSION_DEPTH", f"{module_id} requires unique source locators"))
+        for location in locations:
+            path = _location_path(location)
+            if path is None or path not in manifest_paths:
+                errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"{module_id} locator is not manifested: {location}"))
+            elif not _location_exists(location, doc.repo_root):
+                errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"{module_id} locator does not exist: {location}"))
+        if application_step != "none" and re.fullmatch(r"T\d{3,}", application_step) is None:
+            errors.append(ValidationError(line_no, "SESSION_DEPTH", f"{module_id} Application step must be T### or none"))
+        try:
+            minutes = int(raw_minutes)
+        except ValueError:
+            minutes = 0
+        if minutes <= 0:
+            errors.append(ValidationError(line_no, "SESSION_DEPTH", f"{module_id} Expected minutes must be positive"))
+        if not topic or topic == "none":
+            errors.append(ValidationError(line_no, "SESSION_DEPTH", f"{module_id} requires a substantive topic"))
+        modules[module_id] = LessonModule(
+            module_id,
+            topic,
+            concept_ids,
+            locations,
+            application_step,
+            minutes,
+            line_no,
+        )
+    doc.modules = modules
+    _validate_contract_locations_against_scopes(doc, errors)
 
     session_fields = re.findall(
         r"^- (session_goal|exit_step|exit_evidence_kind):[ \t]*(.*)$",
@@ -2598,6 +2643,39 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
     if profile == "standard":
         if not 3 <= len(doc.contract_concepts) <= 5:
             errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard sessions require three to five connected Concept Path entries"))
+        if not 3 <= len(doc.modules) <= 5:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard sessions require three to five substantive Module Plan rows"))
+        total_minutes = sum(module.expected_minutes for module in doc.modules.values())
+        if not 60 <= total_minutes <= 90:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", f"standard Module Plan must total 60 to 90 minutes, got {total_minutes}"))
+        normalized_topics = [re.sub(r"[^0-9a-z가-힣]+", "", module.topic.casefold()) for module in doc.modules.values()]
+        if len(normalized_topics) != len(set(normalized_topics)):
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard Module Plan topics must be substantively distinct"))
+        module_signatures = [
+            (tuple(module.concept_ids), tuple(module.source_locations))
+            for module in doc.modules.values()
+        ]
+        if len(module_signatures) != len(set(module_signatures)):
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard Module Plan contains duplicate concept/source slices"))
+        planned_concepts = {concept for module in doc.modules.values() for concept in module.concept_ids}
+        required_concepts = {
+            objective.concept_id
+            for objective in doc.objectives.values()
+            if objective.treatment != "deferred"
+        }
+        if not required_concepts.issubset(planned_concepts):
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "Module Plan must cover every non-deferred concept"))
+        application_steps = [module.application_step for module in doc.modules.values() if module.application_step != "none"]
+        if len(set(application_steps)) < 2:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard sessions require at least two distinct learner-application Steps"))
+        for module in doc.modules.values():
+            if module.application_step == "none":
+                continue
+            step = teaching_steps.get(module.application_step)
+            if step is None:
+                errors.append(ValidationError(module.line, "SESSION_DEPTH", f"{module.module_id} references an unknown application Step: {module.application_step}"))
+            elif not set(module.concept_ids).intersection(step.concept_ids):
+                errors.append(ValidationError(module.line, "SESSION_DEPTH", f"{module.module_id} application Step does not exercise its concepts"))
         roles = [step.step_role for step in teaching_steps.values()]
         role_positions = [roles.index(role) for role in STANDARD_STEP_ROLES if role in roles]
         if any(role not in roles for role in STANDARD_STEP_ROLES) or role_positions != sorted(role_positions):
@@ -3041,15 +3119,15 @@ def _parse_evidence(
         if values.get("provenance") != "learner":
             errors.append(ValidationError(lines.get("provenance", item_line), "EVIDENCE_STATE", f"{evidence_id} provenance must be learner"))
         verdict = values.get("verdict")
-        append_state = values.get("append_state")
+        capture_state = values.get("capture_state")
         if verdict not in EVIDENCE_VERDICTS:
             errors.append(ValidationError(lines.get("verdict", item_line), "SCHEMA", f"{evidence_id} verdict is not allowed"))
-        if append_state not in APPEND_STATES:
-            errors.append(ValidationError(lines.get("append_state", item_line), "SCHEMA", f"{evidence_id} append_state is not allowed"))
-        if verdict == "confirmed" and append_state not in {"pending", "drafted"}:
-            errors.append(ValidationError(lines.get("append_state", item_line), "EVIDENCE_STATE", f"confirmed {evidence_id} must be pending or drafted"))
-        if verdict in {"partial", "misconception", "unconfirmed"} and append_state != "not_eligible":
-            errors.append(ValidationError(lines.get("append_state", item_line), "EVIDENCE_STATE", f"non-confirmed {evidence_id} must be not_eligible"))
+        if capture_state not in CAPTURE_STATES:
+            errors.append(ValidationError(lines.get("capture_state", item_line), "SCHEMA", f"{evidence_id} capture_state is not allowed"))
+        if verdict == "confirmed" and capture_state not in {"pending", "captured"}:
+            errors.append(ValidationError(lines.get("capture_state", item_line), "EVIDENCE_STATE", f"confirmed {evidence_id} must be pending or captured"))
+        if verdict in {"partial", "misconception", "unconfirmed"} and capture_state != "not_eligible":
+            errors.append(ValidationError(lines.get("capture_state", item_line), "EVIDENCE_STATE", f"non-confirmed {evidence_id} must be not_eligible"))
         if "captured_at" in values and not _is_rfc3339(values["captured_at"]):
             errors.append(ValidationError(lines["captured_at"], "SCHEMA", f"{evidence_id} captured_at must be an RFC 3339 timestamp"))
         actual_content_hash = _sha256_bytes(content.encode("utf-8"))
@@ -3064,7 +3142,7 @@ def _parse_evidence(
                 content=content,
                 assessment=assessment,
                 line=item_line,
-                append_value_span=spans.get("append_state", (0, 0)),
+                capture_value_span=spans.get("capture_state", (0, 0)),
             )
         )
 
@@ -3076,7 +3154,7 @@ def _parse_evidence(
     doc.evidence = {item.evidence_id: item for item in evidence_items}
 
 
-def _parse_daily_learning_coverage(
+def _parse_session_concept_coverage(
     doc: HandoffDocument,
     section: tuple[int, int, int] | None,
     errors: list[ValidationError],
@@ -3086,7 +3164,7 @@ def _parse_daily_learning_coverage(
     start, end, _ = section
     region = doc.text[start:end]
     table_header = re.search(
-        r"^\| Concept ID \| Today state \| Evidence IDs \| TIL representation \| Note \|[ \t]*$",
+        r"^\| Concept ID \| Session state \| Evidence IDs \| Note \|[ \t]*$",
         region,
         re.MULTILINE,
     )
@@ -3095,18 +3173,18 @@ def _parse_daily_learning_coverage(
             ValidationError(
                 _line_number(doc.text, start),
                 "SCHEMA",
-                "Daily Learning Coverage table columns must be Concept ID | Today state | Evidence IDs | TIL representation | Note",
+                "Session Concept Coverage table columns must be Concept ID | Session state | Evidence IDs | Note",
             )
         )
         return
     table_start = start + table_header.start()
     table_lines = doc.text[table_start:end].splitlines()
     if len(table_lines) < 2:
-        errors.append(ValidationError(_line_number(doc.text, table_start), "SCHEMA", "Daily Learning Coverage table is incomplete"))
+        errors.append(ValidationError(_line_number(doc.text, table_start), "SCHEMA", "Session Concept Coverage table is incomplete"))
         return
     separator = _split_table_row(table_lines[1])
-    if separator is None or len(separator) != 5 or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
-        errors.append(ValidationError(_line_number(doc.text, table_start) + 1, "SCHEMA", "Daily Learning Coverage separator is invalid"))
+    if separator is None or len(separator) != 4 or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
+        errors.append(ValidationError(_line_number(doc.text, table_start) + 1, "SCHEMA", "Session Concept Coverage separator is invalid"))
 
     coverage: dict[str, LearningCoverage] = {}
     cursor = table_start + len(table_lines[0]) + 1 + len(table_lines[1]) + 1
@@ -3116,34 +3194,28 @@ def _parse_daily_learning_coverage(
         if not raw_line.strip():
             continue
         cells = _split_table_row(raw_line)
-        if cells is None or len(cells) != 5:
-            errors.append(ValidationError(line_no, "SCHEMA", "Daily Learning Coverage row must have five cells"))
+        if cells is None or len(cells) != 4:
+            errors.append(ValidationError(line_no, "SCHEMA", "Session Concept Coverage row must have four cells"))
             continue
-        concept_id, today_state, raw_evidence, representation, note = cells
+        concept_id, today_state, raw_evidence, note = cells
         if concept_id in coverage:
             errors.append(ValidationError(line_no, "SCHEMA", f"duplicate coverage concept: {concept_id}"))
             continue
         evidence_ids = [] if raw_evidence == "none" else [item.strip() for item in raw_evidence.split(",") if item.strip()]
-        row = LearningCoverage(concept_id, today_state, evidence_ids, representation, note, line_no)
+        row = LearningCoverage(concept_id, today_state, evidence_ids, note, line_no)
         coverage[concept_id] = row
-        if today_state not in TODAY_STATES:
-            errors.append(ValidationError(line_no, "SCHEMA", f"invalid Today state for {concept_id}: {today_state}"))
-        if representation not in TIL_REPRESENTATIONS:
-            errors.append(ValidationError(line_no, "SCHEMA", f"invalid TIL representation for {concept_id}: {representation}"))
+        if today_state not in SESSION_CONCEPT_STATES:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid Session state for {concept_id}: {today_state}"))
         if not note:
             errors.append(ValidationError(line_no, "SCHEMA", f"coverage note must not be empty: {concept_id}"))
         if re.search(r"(?<![A-Z0-9])G\d{3,}(?![A-Z0-9])", f"{raw_evidence} {note}"):
-            errors.append(ValidationError(line_no, "TIL_COVERAGE", f"Daily Learning Coverage must not include Guidance: {concept_id}"))
+            errors.append(ValidationError(line_no, "SESSION_CONCEPT_INCOMPLETE", f"Session Concept Coverage must not include Guidance: {concept_id}"))
         if today_state == "deferred":
-            if evidence_ids or representation != "not-required":
-                errors.append(ValidationError(line_no, "TIL_COVERAGE", f"deferred {concept_id} requires evidence none and not-required"))
+            if evidence_ids:
+                errors.append(ValidationError(line_no, "SESSION_CONCEPT_INCOMPLETE", f"deferred {concept_id} requires evidence none"))
         elif today_state == "confirmed":
             if not evidence_ids:
-                errors.append(ValidationError(line_no, "TIL_COVERAGE", f"confirmed {concept_id} requires learner evidence"))
-            if representation not in {"learning", "missing"}:
-                errors.append(ValidationError(line_no, "TIL_COVERAGE", f"confirmed {concept_id} must use learning or missing"))
-        elif today_state == "uncertain" and representation not in {"remaining-question", "missing"}:
-            errors.append(ValidationError(line_no, "TIL_COVERAGE", f"uncertain {concept_id} must use remaining-question or missing"))
+                errors.append(ValidationError(line_no, "SESSION_CONCEPT_INCOMPLETE", f"confirmed {concept_id} requires learner evidence"))
 
     doc.learning_coverage = coverage
     if list(coverage) != doc.contract_concepts:
@@ -3151,7 +3223,7 @@ def _parse_daily_learning_coverage(
             ValidationError(
                 _line_number(doc.text, table_start),
                 "SCHEMA",
-                "Daily Learning Coverage must contain one ordered row per Concept Path concept",
+                "Session Concept Coverage must contain one ordered row per Concept Path concept",
             )
         )
     for row in coverage.values():
@@ -3161,11 +3233,11 @@ def _parse_daily_learning_coverage(
                 continue
             evidence = doc.evidence.get(evidence_id)
             if evidence is None:
-                errors.append(ValidationError(row.line, "TIL_COVERAGE", f"coverage references missing evidence: {evidence_id}"))
+                errors.append(ValidationError(row.line, "SESSION_CONCEPT_INCOMPLETE", f"coverage references missing evidence: {evidence_id}"))
                 continue
             evidence_concepts = _comma_ids(evidence.values.get("concept_ids", ""), r"C\d{2}") or []
             if row.concept_id not in evidence_concepts:
-                errors.append(ValidationError(row.line, "TIL_COVERAGE", f"{evidence_id} belongs to a different concept"))
+                errors.append(ValidationError(row.line, "SESSION_CONCEPT_INCOMPLETE", f"{evidence_id} belongs to a different concept"))
         if row.today_state == "confirmed" and row.evidence_ids:
             confirmed_evidence = [
                 doc.evidence[evidence_id]
@@ -3187,7 +3259,7 @@ def _parse_daily_learning_coverage(
                 and doc.objective_delivery[objective.objective_id].state == "delivered"
             }
             if not confirmed_evidence:
-                errors.append(ValidationError(row.line, "TIL_COVERAGE", f"confirmed {row.concept_id} requires confirmed evidence"))
+                errors.append(ValidationError(row.line, "SESSION_CONCEPT_INCOMPLETE", f"confirmed {row.concept_id} requires confirmed evidence"))
             if not delivered_objectives or covered_objectives != delivered_objectives:
                 missing = sorted(delivered_objectives - covered_objectives)
                 extra = sorted(covered_objectives - delivered_objectives)
@@ -3199,144 +3271,11 @@ def _parse_daily_learning_coverage(
                 errors.append(
                     ValidationError(
                         row.line,
-                        "TIL_COVERAGE",
+                        "SESSION_CONCEPT_INCOMPLETE",
                         f"confirmed {row.concept_id} evidence must exactly cover all delivered objectives"
                         + (": " + "; ".join(detail) if detail else ""),
                     )
                 )
-
-
-def _parse_til_composition(
-    doc: HandoffDocument,
-    section: tuple[int, int, int] | None,
-    errors: list[ValidationError],
-) -> None:
-    if section is None:
-        return
-    start, end, _ = section
-    region = doc.text[start:end]
-    table_header = re.search(
-        r"^\| Item ID \| Section \| Evidence IDs \| Representation \| Content SHA-256 \|[ \t]*$",
-        region,
-        re.MULTILINE,
-    )
-    values_end = start + table_header.start() if table_header is not None else end
-    values, lines, _ = _parse_bullets(
-        doc.text,
-        start,
-        values_end,
-        TIL_COMPOSITION_KEYS,
-        errors,
-        context="TIL Composition",
-    )
-    doc.til_composition = values
-    mode = values.get("mode")
-    state = values.get("state")
-    review = values.get("review")
-    if mode not in TIL_COMPOSITION_MODES:
-        errors.append(ValidationError(lines.get("mode", 1), "SCHEMA", "TIL Composition mode is not allowed"))
-    if state not in TIL_COMPOSITION_STATES:
-        errors.append(ValidationError(lines.get("state", 1), "SCHEMA", "TIL Composition state is not allowed"))
-    if review not in TIL_COMPOSITION_REVIEWS:
-        errors.append(ValidationError(lines.get("review", 1), "SCHEMA", "TIL Composition review is not allowed"))
-
-    if table_header is None:
-        errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "TIL Composition item table is missing"))
-        return
-    rows = _contract_table_rows(
-        region[table_header.start() :],
-        ["Item ID", "Section", "Evidence IDs", "Representation", "Content SHA-256"],
-        doc,
-        start + table_header.start(),
-        errors,
-        context="TIL Composition items",
-    )
-    if len(rows) == 1 and rows[0][0] == ["none", "none", "none", "none", "none"]:
-        rows = []
-    items: dict[str, dict[str, Any]] = {}
-    for cells, line_no in rows:
-        item_id, section_name, raw_evidence, representation, content_hash = cells
-        evidence_ids = _comma_ids(raw_evidence, r"E\d{3}")
-        if not re.fullmatch(r"D\d{3}", item_id) or item_id in items:
-            errors.append(ValidationError(line_no, "SCHEMA", f"invalid or duplicate TIL Item ID: {item_id}"))
-            continue
-        if section_name not in TIL_ITEM_SECTIONS:
-            errors.append(ValidationError(line_no, "SCHEMA", f"invalid TIL Item section: {section_name}"))
-        if raw_evidence == "none":
-            evidence_ids = []
-        elif evidence_ids is None or not evidence_ids or len(evidence_ids) != len(set(evidence_ids)):
-            errors.append(ValidationError(line_no, "SCHEMA", f"{item_id} requires none or unique Evidence IDs"))
-            evidence_ids = []
-        unknown = [item for item in evidence_ids if item not in doc.evidence]
-        if unknown:
-            errors.append(ValidationError(line_no, "TIL_COMPOSITION", f"{item_id} references unknown evidence: {', '.join(unknown)}"))
-        if representation not in TIL_ITEM_REPRESENTATIONS:
-            errors.append(ValidationError(line_no, "SCHEMA", f"invalid TIL Item representation: {representation}"))
-        elif representation == "remaining-question" and section_name != "남은 질문":
-            errors.append(ValidationError(line_no, "TIL_COMPOSITION", f"remaining-question item {item_id} belongs under 남은 질문"))
-        elif representation == "changed-understanding" and section_name != "배운 점":
-            errors.append(ValidationError(line_no, "TIL_COMPOSITION", f"changed-understanding item {item_id} belongs under 배운 점"))
-        elif representation == "learning" and section_name == "남은 질문":
-            errors.append(ValidationError(line_no, "TIL_COMPOSITION", f"learning item {item_id} may not appear under 남은 질문"))
-        if not HASH_RE.fullmatch(content_hash):
-            errors.append(ValidationError(line_no, "SCHEMA", f"{item_id} Content SHA-256 is invalid"))
-        verdicts = {
-            doc.evidence[evidence_id].values.get("verdict")
-            for evidence_id in evidence_ids
-            if evidence_id in doc.evidence
-        }
-        if mode == "handoff-generated" and not evidence_ids:
-            errors.append(ValidationError(line_no, "TIL_COMPOSITION", f"handoff-generated {item_id} requires learner evidence"))
-        if representation == "learning" and any(verdict != "confirmed" for verdict in verdicts):
-            errors.append(ValidationError(line_no, "TIL_COMPOSITION", f"learning item {item_id} may cite confirmed evidence only"))
-        if representation == "changed-understanding" and not ({"confirmed"} <= verdicts and bool(verdicts - {"confirmed"})):
-            errors.append(ValidationError(line_no, "TIL_COMPOSITION", f"changed-understanding item {item_id} requires both corrected and confirmed learner evidence"))
-        if representation == "remaining-question" and evidence_ids and verdicts == {"confirmed"}:
-            errors.append(ValidationError(line_no, "TIL_COMPOSITION", f"remaining-question item {item_id} requires unresolved learner evidence"))
-        items[item_id] = {
-            "section": section_name,
-            "evidence_ids": evidence_ids,
-            "representation": representation,
-            "content_sha256": content_hash,
-            "line": line_no,
-        }
-    expected_ids = [f"D{index:03d}" for index in range(1, len(items) + 1)]
-    if list(items) != expected_ids:
-        errors.append(ValidationError(_line_number(doc.text, start), "SCHEMA", "TIL Item IDs must be unique and contiguous from D001"))
-    doc.til_items = items
-
-    pending_values = {"composed_at", "draft_sha256", "dated_til_path", "commit_sha"}
-    if state == "pending":
-        if mode != "pending" or review != "pending" or items:
-            errors.append(ValidationError(_line_number(doc.text, start), "TIL_COMPOSITION", "pending composition requires pending mode/review and no items"))
-        for key in pending_values:
-            if values.get(key) != "pending":
-                errors.append(ValidationError(lines.get(key, 1), "TIL_COMPOSITION", f"pending composition requires {key}: pending"))
-        return
-
-    if mode == "pending" or not items:
-        errors.append(ValidationError(_line_number(doc.text, start), "TIL_COMPOSITION", "composed or committed state requires a concrete mode and items"))
-    if mode == "handoff-generated" and review != "not-required":
-        errors.append(ValidationError(lines.get("review", 1), "TIL_COMPOSITION", "handoff-generated composition requires review: not-required"))
-    if mode == "mixed" and review not in {"pending", "pass", "repair_required"}:
-        errors.append(ValidationError(lines.get("review", 1), "TIL_COMPOSITION", "mixed composition requires pending, pass, or repair_required review"))
-    if not _is_rfc3339(values.get("composed_at", "")):
-        errors.append(ValidationError(lines.get("composed_at", 1), "SCHEMA", "composed_at must be an RFC 3339 timestamp"))
-    if not HASH_RE.fullmatch(values.get("draft_sha256", "")):
-        errors.append(ValidationError(lines.get("draft_sha256", 1), "SCHEMA", "draft_sha256 must be lowercase SHA-256"))
-    study_date = doc.metadata.get("study_date", "")
-    expected_path = (
-        f"til/{study_date[:4]}/{study_date[5:7]}/{study_date}.md"
-        if _is_date(study_date)
-        else ""
-    )
-    if values.get("dated_til_path") != expected_path:
-        errors.append(ValidationError(lines.get("dated_til_path", 1), "TIL_COMPOSITION", f"dated_til_path must be {expected_path}"))
-    commit_sha = values.get("commit_sha")
-    if state == "composed" and commit_sha != "pending":
-        errors.append(ValidationError(lines.get("commit_sha", 1), "TIL_COMPOSITION", "composed state requires commit_sha: pending"))
-    if state == "committed" and not re.fullmatch(r"[0-9a-f]{7,64}", commit_sha or ""):
-        errors.append(ValidationError(lines.get("commit_sha", 1), "TIL_COMPOSITION", "committed state requires a Git commit SHA"))
 
 
 def _validate_objective_state(doc: HandoffDocument, errors: list[ValidationError]) -> None:
@@ -3466,6 +3405,21 @@ def _validate_objective_state(doc: HandoffDocument, errors: list[ValidationError
                 errors.append(ValidationError(current.line, "ASSESSMENT_ALIGNMENT", "remediate evidence must belong to a current Step concept"))
 
     if status == "completed":
+        uncaptured = [
+            evidence.evidence_id
+            for evidence in doc.evidence.values()
+            if evidence.values.get("verdict") == "confirmed"
+            and evidence.values.get("capture_state") != "captured"
+        ]
+        if uncaptured:
+            errors.append(
+                ValidationError(
+                    1,
+                    "EVIDENCE_STATE",
+                    "completed lesson has confirmed evidence not captured in the daily cursor: "
+                    + ", ".join(uncaptured),
+                )
+            )
         exit_step = doc.teaching_steps.get(doc.session_plan.get("exit_step", ""))
         exit_kind = doc.session_plan.get("exit_evidence_kind")
         matching_exit_evidence = []
@@ -3475,12 +3429,32 @@ def _validate_objective_state(doc: HandoffDocument, errors: list[ValidationError
                 evidence_objectives = set(_comma_ids(evidence.values.get("objective_ids", ""), r"O\d{3,}") or [])
                 if (
                     evidence.values.get("kind") == exit_kind
+                    and evidence.values.get("verdict") == "confirmed"
                     and set(exit_step.concept_ids).issubset(evidence_concepts)
                     and set(exit_step.objective_ids).issubset(evidence_objectives)
                 ):
                     matching_exit_evidence.append(evidence)
         if not matching_exit_evidence:
-            errors.append(ValidationError(1, "SESSION_EXIT_EVIDENCE", "completed lesson requires a learner attempt matching the Session Plan exit Step, concepts, objectives, and evidence kind"))
+            errors.append(ValidationError(1, "SESSION_EXIT_EVIDENCE", "completed lesson requires confirmed learner evidence matching the Session Plan exit Step, concepts, objectives, and evidence kind"))
+
+        incomplete_concepts = [
+            concept_id
+            for concept_id, row in doc.learning_coverage.items()
+            if any(
+                objective.concept_id == concept_id and objective.treatment != "deferred"
+                for objective in doc.objectives.values()
+            )
+            and row.today_state != "confirmed"
+        ]
+        if incomplete_concepts:
+            errors.append(
+                ValidationError(
+                    1,
+                    "SESSION_CONCEPT_INCOMPLETE",
+                    "completed lesson still has unconfirmed non-deferred concepts: "
+                    + ", ".join(incomplete_concepts),
+                )
+            )
 
     delivered_concepts = {doc.objectives[objective_id].concept_id for objective_id in delivered_ids if objective_id in doc.objectives}
     for concept_id in delivered_concepts:
@@ -3490,189 +3464,48 @@ def _validate_objective_state(doc: HandoffDocument, errors: list[ValidationError
                 ValidationError(
                     coverage.line,
                     "OBJECTIVE_COVERAGE",
-                    f"delivered objectives cannot belong to a deferred Daily Learning Coverage concept: {concept_id}",
+                    f"delivered objectives cannot belong to a deferred Session Concept Coverage concept: {concept_id}",
                 )
             )
 
 
-def _validate_til_readiness(doc: HandoffDocument, errors: list[ValidationError]) -> None:
-    status = doc.metadata.get("status")
-    if status not in {"paused", "completed"}:
-        errors.append(ValidationError(1, "TIL_COVERAGE", "--til-ready requires paused or completed status"))
+def _validate_session_capture_readiness(
+    doc: HandoffDocument, errors: list[ValidationError]
+) -> None:
+    """Retain the old CLI gate as a capture preflight, not a TIL gate."""
+
+    if doc.metadata.get("status") != "completed":
+        errors.append(
+            ValidationError(
+                1,
+                "SESSION_CONCEPT_INCOMPLETE",
+                "--capture-ready requires completed status",
+            )
+        )
     latest = doc.semantic_review
     if latest is None or latest.values.get("verdict") != "pass":
         errors.append(
             ValidationError(
                 latest.line if latest else 1,
                 "REVIEW_NOT_PASS",
-                "--til-ready requires a current independent lesson-contract pass",
+                "session capture requires a current independent lesson-contract pass",
             )
         )
     elif (
         latest.values.get("reviewed_input_manifest_sha256") != doc.computed_manifest_sha256
         or latest.values.get("reviewed_contract_sha256") != doc.computed_contract_sha256
     ):
-        errors.append(ValidationError(latest.line, "REVIEW_STALE", "--til-ready lesson-contract review hashes are stale"))
-    composition_state = doc.til_composition.get("state")
-    composition_mode = doc.til_composition.get("mode")
-    composition_review = doc.til_composition.get("review")
-    if composition_state not in {"composed", "committed"}:
-        errors.append(ValidationError(1, "TIL_COMPOSITION", "--til-ready requires a composed or committed TIL Composition"))
-    if composition_mode == "handoff-generated" and composition_review != "not-required":
-        errors.append(ValidationError(1, "TIL_COMPOSITION", "handoff-generated TIL must use review: not-required"))
-    if composition_mode == "mixed" and composition_review != "pass":
-        errors.append(ValidationError(1, "TIL_COMPOSITION", "mixed TIL requires a same-flow semantic review pass"))
-
-    draft_raw = doc.metadata.get("draft_path", "")
-    draft_path, path_error = _safe_repo_path(draft_raw, doc.repo_root)
-    draft_text: str | None = None
-    if path_error or draft_path is None or not draft_path.is_file():
-        errors.append(ValidationError(1, "TIL_COMPOSITION_STALE", "composed draft is missing or invalid"))
-    else:
-        draft_bytes = draft_path.read_bytes()
-        try:
-            draft_text = draft_bytes.decode("utf-8")
-        except UnicodeDecodeError:
-            errors.append(ValidationError(1, "TIL_COMPOSITION_STALE", "composed draft is not valid UTF-8"))
-
-    if draft_text is not None:
-        _validate_target_til_provenance(doc, draft_text, errors)
-        _validate_external_til_provenance(doc, draft_text, errors)
-
+        errors.append(ValidationError(latest.line, "REVIEW_STALE", "session-capture review hashes are stale"))
     for row in doc.learning_coverage.values():
-        for evidence_id in row.evidence_ids:
-            evidence = doc.evidence.get(evidence_id)
-            if evidence is not None and evidence.values.get("verdict") == "confirmed" and evidence.values.get("append_state") != "drafted":
-                errors.append(ValidationError(row.line, "TIL_COVERAGE", f"confirmed evidence is not drafted: {evidence_id}"))
-        if row.today_state == "confirmed":
-            if row.til_representation != "learning":
-                errors.append(ValidationError(row.line, "TIL_COVERAGE", f"confirmed {row.concept_id} is not represented as learning"))
-            matching_items = [
-                item
-                for item in doc.til_items.values()
-                if item["representation"] in {"learning", "changed-understanding"}
-                and set(row.evidence_ids).intersection(item["evidence_ids"])
-            ]
-            if not matching_items:
-                errors.append(ValidationError(row.line, "TIL_COVERAGE", f"confirmed {row.concept_id} has no evidence-linked TIL composition item"))
-        elif row.today_state == "uncertain":
-            if row.til_representation != "remaining-question":
-                errors.append(ValidationError(row.line, "TIL_COVERAGE", f"uncertain {row.concept_id} is not represented as a remaining question"))
-            matching_items = [
-                item
-                for item in doc.til_items.values()
-                if item["representation"] == "remaining-question"
-                and (
-                    set(row.evidence_ids).intersection(item["evidence_ids"])
-                    or (composition_mode == "mixed" and not row.evidence_ids)
+        if row.today_state == "uncertain":
+            errors.append(
+                ValidationError(
+                    row.line,
+                    "SESSION_CONCEPT_INCOMPLETE",
+                    f"session capture cannot close uncertain concept {row.concept_id}; teach differently or pause",
                 )
-            ]
-            if not matching_items:
-                errors.append(ValidationError(row.line, "TIL_COVERAGE", f"uncertain {row.concept_id} has no evidence-linked remaining-question item"))
-        elif row.today_state == "deferred" and row.til_representation != "not-required":
-            errors.append(ValidationError(row.line, "TIL_COVERAGE", f"deferred {row.concept_id} must be not-required"))
-
-
-def _validate_target_til_provenance(
-    doc: HandoffDocument,
-    draft_text: str,
-    errors: list[ValidationError],
-) -> None:
-    """Require the exact lesson target and only an actually delivered bridge."""
-    decision = doc.target_decision
-    if decision is None:
-        return
-    related = _markdown_h2_body(draft_text, "관련 기록")
-    if related is None:
-        errors.append(
-            ValidationError(
-                decision.line,
-                "TIL_TARGET_PROVENANCE",
-                "a handoff-backed TIL requires a non-empty ## 관련 기록 section",
             )
-        )
-        return
-    related_lines = [line.strip() for line in related.splitlines()]
-    primary_lines = [line for line in related_lines if line.startswith("- 관련 역량:")]
-    expected_primary = f"- 관련 역량: `{decision.primary_target}`"
-    if primary_lines != [expected_primary]:
-        errors.append(
-            ValidationError(
-                decision.line,
-                "TIL_TARGET_PROVENANCE",
-                f"## 관련 기록 must contain exactly one primary provenance line: {expected_primary!r}",
-            )
-        )
 
-    bridge_lines = [
-        line for line in related_lines if line.startswith("- 보충 선수 역량:")
-    ]
-    bridge_delivered = False
-    if decision.bridge_target != "none":
-        treatment = doc.curriculum_treatments.get(decision.bridge_target)
-        if treatment is not None:
-            bridge_delivered = any(
-                doc.objective_delivery.get(objective_id) is not None
-                and doc.objective_delivery[objective_id].state == "delivered"
-                for objective_id in treatment.objective_ids
-            )
-    expected_bridge = (
-        f"- 보충 선수 역량: `{decision.bridge_target}`"
-        if bridge_delivered
-        else None
-    )
-    if expected_bridge is not None and bridge_lines != [expected_bridge]:
-        errors.append(
-            ValidationError(
-                doc.curriculum_treatments[decision.bridge_target].line,
-                "TIL_TARGET_PROVENANCE",
-                f"a delivered bridge requires exactly {expected_bridge!r}",
-            )
-        )
-    elif expected_bridge is None and bridge_lines:
-        errors.append(
-            ValidationError(
-                decision.line,
-                "TIL_TARGET_PROVENANCE",
-                "## 관련 기록 must not claim a bridge that was not delivered",
-            )
-        )
-
-
-def _validate_external_til_provenance(
-    doc: HandoffDocument,
-    draft_text: str,
-    errors: list[ValidationError],
-) -> None:
-    """Require exact external identity before an external-source TIL can save."""
-    if not doc.external_identities:
-        return
-    related = _markdown_h2_body(draft_text, "관련 기록")
-    if related is None:
-        errors.append(
-            ValidationError(
-                1,
-                "EXTERNAL_TIL_PROVENANCE",
-                "a temporary external lesson requires a non-empty ## 관련 기록 section",
-            )
-        )
-        return
-
-    for identity in doc.external_identities.values():
-        required = (
-            ("official URL", identity.official_url),
-            ("offering or edition", identity.offering_or_edition),
-            ("scope", identity.scope),
-        )
-        for label, exact_value in required:
-            if exact_value not in related:
-                errors.append(
-                    ValidationError(
-                        identity.line,
-                        "EXTERNAL_TIL_PROVENANCE",
-                        f"## 관련 기록 is missing the exact external {label}: {exact_value}",
-                    )
-                )
 
 def _validate_declared_hashes(doc: HandoffDocument, metadata_lines: dict[str, int], errors: list[ValidationError]) -> None:
     declared_manifest = doc.metadata.get("input_manifest_sha256")
@@ -3812,176 +3645,12 @@ def _validate_course_freshness(
             )
 
 
-def _draft_marker_blocks(text: str, lesson_id: str) -> tuple[list[tuple[str, str, str, int]], bool]:
-    escaped = re.escape(lesson_id)
-    opening = list(re.finditer(rf"^<!-- lesson-evidence:{escaped}:(E\d{{3}}):([0-9a-f]{{64}}) -->[ \t]*$", text, re.MULTILINE))
-    closing = list(re.finditer(rf"^<!-- /lesson-evidence:{escaped}:(E\d{{3}}) -->[ \t]*$", text, re.MULTILINE))
-    blocks: list[tuple[str, str, str, int]] = []
-    balanced = len(opening) == len(closing)
-    for start_match in opening:
-        evidence_id, content_hash = start_match.group(1), start_match.group(2)
-        end_match = next((candidate for candidate in closing if candidate.group(1) == evidence_id and candidate.start() > start_match.end()), None)
-        if end_match is None:
-            balanced = False
-            continue
-        body_start = start_match.end()
-        if text[body_start : body_start + 1] == "\n":
-            body_start += 1
-        body_end = end_match.start()
-        if body_end > body_start and text[body_end - 1 : body_end] == "\n":
-            body_end -= 1
-        blocks.append((evidence_id, content_hash, text[body_start:body_end], _line_number(text, start_match.start())))
-    return blocks, balanced
-
-
-def _draft_til_item_blocks(
-    text: str,
-    lesson_id: str,
-) -> tuple[list[tuple[str, str, list[str], str, str, int]], bool]:
-    escaped = re.escape(lesson_id)
-    opening = list(
-        re.finditer(
-            rf"^<!-- lesson-til-item:{escaped}:(D\d{{3}}):(learning|changed-understanding|remaining-question):(none|E\d{{3}}(?:,E\d{{3}})*):([0-9a-f]{{64}}) -->[ \t]*$",
-            text,
-            re.MULTILINE,
-        )
-    )
-    closing = list(
-        re.finditer(
-            rf"^<!-- /lesson-til-item:{escaped}:(D\d{{3}}) -->[ \t]*$",
-            text,
-            re.MULTILINE,
-        )
-    )
-    blocks: list[tuple[str, str, list[str], str, str, int]] = []
-    balanced = len(opening) == len(closing)
-    for start_match in opening:
-        item_id, representation, raw_evidence, content_hash = start_match.groups()
-        end_match = next(
-            (
-                candidate
-                for candidate in closing
-                if candidate.group(1) == item_id and candidate.start() > start_match.end()
-            ),
-            None,
-        )
-        if end_match is None:
-            balanced = False
-            continue
-        body_start = start_match.end()
-        if text[body_start : body_start + 1] == "\n":
-            body_start += 1
-        body_end = end_match.start()
-        if body_end > body_start and text[body_end - 1 : body_end] == "\n":
-            body_end -= 1
-        evidence_ids = [] if raw_evidence == "none" else raw_evidence.split(",")
-        blocks.append(
-            (
-                item_id,
-                representation,
-                evidence_ids,
-                content_hash,
-                text[body_start:body_end],
-                _line_number(text, start_match.start()),
-            )
-        )
-    return blocks, balanced
-
-
-def _validate_draft(doc: HandoffDocument, errors: list[ValidationError]) -> None:
-    draft_raw = doc.metadata.get("draft_path")
-    if not draft_raw:
-        return
-    draft_path, path_error = _safe_repo_path(draft_raw, doc.repo_root)
-    if path_error:
-        errors.append(ValidationError(1, "PATH", f"invalid draft_path: {path_error}"))
-        return
-    assert draft_path is not None
-    drafted = [item for item in doc.evidence.values() if item.values.get("append_state") == "drafted"]
-    if not draft_path.exists():
-        if drafted:
-            errors.append(ValidationError(drafted[0].line, "DRAFT_MARKER", "draft is missing but evidence is marked drafted"))
-        return
-    if not draft_path.is_file():
-        errors.append(ValidationError(1, "PATH", "draft_path is not a regular file"))
-        return
-    try:
-        draft_text = _normalize_newlines(draft_path.read_text(encoding="utf-8"))
-    except UnicodeDecodeError:
-        errors.append(ValidationError(1, "DRAFT_CONTENT", "draft is not valid UTF-8"))
-        return
-    composition_state = doc.til_composition.get("state", "pending")
-    lesson_id = doc.metadata.get("lesson_id", "")
-    if composition_state in {"composed", "committed"}:
-        if "lesson-evidence:" in draft_text:
-            errors.append(ValidationError(1, "DRAFT_MARKER", "composed draft must not retain raw lesson-evidence envelopes"))
-        blocks, balanced = _draft_til_item_blocks(draft_text, lesson_id)
-        if not balanced:
-            errors.append(ValidationError(1, "DRAFT_MARKER", "draft lesson-til-item markers are unbalanced"))
-        if "lesson-til-item:" in draft_text and not blocks:
-            errors.append(ValidationError(1, "DRAFT_MARKER", "draft lesson-til-item markers are malformed or belong to another lesson"))
-        by_id: dict[str, list[tuple[str, str, list[str], str, str, int]]] = {}
-        for block in blocks:
-            by_id.setdefault(block[0], []).append(block)
-        for item_id, instances in by_id.items():
-            if len(instances) != 1:
-                errors.append(ValidationError(instances[0][5], "DRAFT_MARKER", f"duplicate draft TIL item marker: {item_id}"))
-            declared = doc.til_items.get(item_id)
-            if declared is None:
-                errors.append(ValidationError(instances[0][5], "DRAFT_MARKER", f"draft TIL item has no composition row: {item_id}"))
-                continue
-            _, representation, evidence_ids, marker_hash, body, line = instances[0]
-            if representation != declared["representation"] or evidence_ids != declared["evidence_ids"]:
-                errors.append(ValidationError(line, "DRAFT_CONTENT", f"draft TIL item metadata differs from {item_id}"))
-            if marker_hash != declared["content_sha256"]:
-                errors.append(ValidationError(line, "DRAFT_CONTENT", f"draft TIL item hash differs from {item_id}"))
-            actual_hash = _sha256_bytes(body.encode("utf-8"))
-            if actual_hash != marker_hash:
-                errors.append(ValidationError(line, "DRAFT_CONTENT", f"draft TIL item body hash mismatch: {item_id}"))
-            section_body = _markdown_h2_body(draft_text, declared["section"])
-            if section_body is None or body not in section_body:
-                errors.append(ValidationError(line, "TIL_COMPOSITION", f"{item_id} is not under its declared section: {declared['section']}"))
-        missing_items = [item_id for item_id in doc.til_items if item_id not in by_id]
-        if missing_items:
-            errors.append(ValidationError(1, "DRAFT_MARKER", "composition rows have no draft TIL item marker: " + ", ".join(missing_items)))
-        expected_hash = doc.til_composition.get("draft_sha256", "")
-        actual_draft_hash = _sha256_bytes(draft_path.read_bytes())
-        if HASH_RE.fullmatch(expected_hash) and expected_hash != actual_draft_hash:
-            errors.append(ValidationError(1, "TIL_COMPOSITION_STALE", f"composed draft hash is stale: got {actual_draft_hash}"))
-        return
-
-    blocks, balanced = _draft_marker_blocks(draft_text, lesson_id)
-    if not balanced:
-        errors.append(ValidationError(1, "DRAFT_MARKER", "draft lesson-evidence markers are unbalanced"))
-    by_id: dict[str, list[tuple[str, str, str, int]]] = {}
-    for block in blocks:
-        by_id.setdefault(block[0], []).append(block)
-    for evidence_id, instances in by_id.items():
-        if len(instances) != 1:
-            errors.append(ValidationError(instances[0][3], "DRAFT_MARKER", f"duplicate draft marker for {evidence_id}"))
-        item = doc.evidence.get(evidence_id)
-        if item is None:
-            errors.append(ValidationError(instances[0][3], "DRAFT_MARKER", f"draft marker has no handoff evidence: {evidence_id}"))
-            continue
-        _, marker_hash, body, line = instances[0]
-        expected_hash = item.values.get("content_sha256")
-        if marker_hash != expected_hash:
-            errors.append(ValidationError(line, "DRAFT_CONTENT", f"draft marker hash differs from {evidence_id}"))
-        if body != item.content or _sha256_bytes(body.encode("utf-8")) != expected_hash:
-            errors.append(ValidationError(line, "DRAFT_CONTENT", f"draft body differs from {evidence_id} Learner Content"))
-        if item.values.get("append_state") == "not_eligible":
-            errors.append(ValidationError(line, "DRAFT_MARKER", f"not-eligible evidence was appended: {evidence_id}"))
-    for item in drafted:
-        if item.evidence_id not in by_id:
-            errors.append(ValidationError(item.line, "DRAFT_MARKER", f"drafted evidence has no draft marker: {item.evidence_id}"))
-
-
 def validate_handoff(
     path: Path | str,
     *,
     repo_root: Path | str | None = None,
     ready: bool = False,
-    til_ready: bool = False,
+    capture_ready: bool = False,
     check_draft: bool = True,
 ) -> ValidationReport:
     handoff_path = Path(path)
@@ -3997,7 +3666,7 @@ def validate_handoff(
         return ValidationReport(
             handoff_path,
             ready,
-            til_ready,
+            capture_ready,
             [ValidationError(1, "PATH", "handoff path escapes the repository")],
             None,
         )
@@ -4005,7 +3674,7 @@ def validate_handoff(
         return ValidationReport(
             handoff_path,
             ready,
-            til_ready,
+            capture_ready,
             [ValidationError(1, "SOURCE_MISSING", "handoff file does not exist")],
             None,
         )
@@ -4015,7 +3684,7 @@ def validate_handoff(
         return ValidationReport(
             handoff_path,
             ready,
-            til_ready,
+            capture_ready,
             [ValidationError(1, "SCHEMA", "handoff is not valid UTF-8")],
             None,
         )
@@ -4035,11 +3704,9 @@ def validate_handoff(
     _parse_objective_delivery(doc, sections.get("Objective Delivery"), errors)
     _parse_step_delivery(doc, sections.get("Teaching Step Delivery"), errors)
     _parse_evidence(doc, sections.get("Learner Evidence"), errors)
-    _parse_daily_learning_coverage(doc, sections.get("Daily Learning Coverage"), errors)
-    _parse_til_composition(doc, sections.get("TIL Composition"), errors)
+    _parse_session_concept_coverage(doc, sections.get("Session Concept Coverage"), errors)
     _validate_objective_state(doc, errors)
-    if check_draft:
-        _validate_draft(doc, errors)
+    del check_draft  # v9 stores learner evidence in the daily cursor, not til/today.md
 
     if ready:
         _validate_course_freshness(doc, errors, warnings)
@@ -4056,10 +3723,10 @@ def validate_handoff(
         ):
             errors.append(ValidationError(latest.line, "REVIEW_STALE", "--ready review hashes are stale"))
 
-    if til_ready:
+    if capture_ready:
         _validate_course_freshness(doc, errors, warnings)
         _validate_external_receipts(doc, errors)
-        _validate_til_readiness(doc, errors)
+        _validate_session_capture_readiness(doc, errors)
 
     deduplicated: list[ValidationError] = []
     seen: set[tuple[int, str, str]] = set()
@@ -4078,7 +3745,7 @@ def validate_handoff(
     return ValidationReport(
         handoff_path,
         ready,
-        til_ready,
+        capture_ready,
         deduplicated,
         doc,
         deduplicated_warnings,
@@ -4096,9 +3763,9 @@ def _build_parser() -> argparse.ArgumentParser:
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--ready", action="store_true", help="also require a current pass and teachable status")
     mode.add_argument(
-        "--til-ready",
+        "--capture-ready",
         action="store_true",
-        help="also require a complete evidence-linked TIL composition and final preflight state",
+        help="also require a completed, fully confirmed session ready for cursor capture",
     )
     parser.add_argument("--json", action="store_true", dest="as_json", help="emit machine-readable JSON")
     return parser
@@ -4107,7 +3774,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     try:
-        report = validate_handoff(args.handoff, ready=args.ready, til_ready=args.til_ready)
+        report = validate_handoff(args.handoff, ready=args.ready, capture_ready=args.capture_ready)
     except Exception as exc:  # pragma: no cover - last-resort CLI boundary
         if args.as_json:
             print(
@@ -4116,7 +3783,7 @@ def main(argv: list[str] | None = None) -> int:
                         "ok": False,
                         "path": args.handoff.as_posix(),
                         "ready": False,
-                        "til_ready": False,
+                        "capture_ready": False,
                         "workflow_action": "PREPARE_CONTRACT",
                         "computed": {},
                         "errors": [{"line": 1, "code": "SCHEMA", "message": f"internal error: {exc}"}],
@@ -4135,7 +3802,7 @@ def main(argv: list[str] | None = None) -> int:
         for warning in report.warnings:
             print(warning.rendered(report.path), file=sys.stderr)
         if report.ok:
-            result_mode = "ready" if args.ready else "til-ready" if args.til_ready else "valid"
+            result_mode = "ready" if args.ready else "capture-ready" if args.capture_ready else "valid"
             print(f"OK {report.path.as_posix()} [{result_mode}]")
         else:
             for error in report.errors:

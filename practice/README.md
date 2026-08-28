@@ -1,12 +1,14 @@
 # Practice
 
-TIL에서 배운 내용을 직접 회상하고 구현하며, 실제 테스트 실패와 상태
-변화를 해석한 증거를 둡니다.
+완료된 lesson session 또는 명시적으로 지정한 finalized TIL에서 배운
+내용을 직접 회상하고 구현하며, 실제 테스트 실패와 상태 변화를 해석한
+증거를 둡니다.
 
 ## 산출물 형태
 
-실습을 만들기 전에 정확한 target과 finalized TIL을 기준으로 action과 mode를
-판정합니다.
+실습을 만들기 전에 정확한 target과 `lesson-session | finalized-til`
+learning input을 기준으로 action과 mode를 판정합니다. 하루 전체 흐름은
+TIL을 기다리지 않고 완료된 schema-v9 session을 사용합니다.
 
 - 수학·Tensor·메커니즘·작은 구현: `NOTEBOOK`
 - latency·throughput·memory·batching·KV cache: `BENCHMARK`
@@ -39,10 +41,16 @@ Notebook은 자연스러운 목적과 요구사항, 작은 예, 단계별 힌트
 
 ## 생성 원칙
 
-`$suggest-learning-practice`에는 검토·저장을 마친 날짜별 TIL 경로를
-정확히 전달합니다. `til/today.md`나 자동으로 고른 최신 TIL은 입력이
-아닙니다. 실습은 TIL의 공백만 고치는 것이 아니라 주요 학습 성과 전체를
-다음 action으로 바꿉니다.
+`$suggest-learning-practice`에는 다음 중 하나만 정확히 전달합니다.
+
+- 하루 전체 흐름: completed schema-v9 handoff의 cycle·lesson ID, exact
+  path/hash, primary/bridge target, concept/evidence hash
+- 독립·과거 학습: 검증된 날짜별 TIL의 exact path/hash
+
+`til/today.md`나 자동으로 고른 최신 TIL은 입력이 아닙니다. 실습은 lesson
+session 또는 TIL의 주요 학습 성과를 다음 action으로 바꿉니다. Session이
+깨졌으면 `SESSION_REPAIR_REQUIRED`, legacy TIL이 깨졌으면
+`TIL_REPAIR_REQUIRED`로 구분합니다.
 
 - `implement`: 핵심 메커니즘 직접 구현
 - `test`: 정상·경계·실패 계약 확인
@@ -50,13 +58,16 @@ Notebook은 자연스러운 목적과 요구사항, 작은 예, 단계별 힌트
 - `interpret`: Shape, gradient, metric, output의 의미 설명
 - `design`: API, 데이터 계약, 모델 출력이나 실험 조건 설계
 
-Notebook metadata schema v3는 artifact와 Outcome별 Curriculum target,
-`practice_mode`, stable source ID를 보존합니다. Local source는 exact path와
-hash를, temporary external source는 provider/course/offering 또는 edition,
-artifact, official URL, retrieval hash와 scope를 기록합니다. Requirement의
-source 위치는 변하기 쉬운 path 대신 stable source ID를 참조합니다. 이
-target 관계는 실습 relevance와 provenance이며 mastery나 Curriculum coverage
-승격이 아닙니다.
+새 Notebook metadata schema v4는 artifact와 Outcome별 Curriculum target,
+`practice_mode`, stable source ID와 위 learning-input union을 보존합니다.
+Session Outcome은 `concept_ids`, `evidence_ids`, 수행 action을 연결하고,
+finalized-TIL Outcome은 exact `til_location`을 유지합니다. Local source는
+exact path와 hash를, temporary external source는
+provider/course/offering 또는 edition, artifact, official URL, retrieval
+hash와 scope를 기록합니다. Requirement의 source 위치는 변하기 쉬운 path
+대신 stable source ID를 참조합니다. 기존 schema-v3 Notebook은 migration
+없이 계속 검증하지만 새 산출물은 v4만 사용합니다. 이 target 관계는 실습
+relevance와 provenance이며 mastery나 Curriculum coverage 승격이 아닙니다.
 
 설명을 잘했어도 직접 구현한 증거가 없으면 작은 `Core` 실습부터
 시작합니다. `Applied`는 작은 현실 조건 하나를, `Advanced`는 기반 구현이
@@ -91,11 +102,11 @@ target 관계는 실습 relevance와 provenance이며 mastery나 Curriculum cove
 Practice path | Related lesson path | Variant | Format | Original
 ```
 
-TIL에 링크된 정확한 강의와 일치하는 행만 자동으로 참고합니다. 원본은
-learner evidence가 아닙니다. 기본·심화 자료의 starter, TODO, fixture,
-check 경계를 먼저 감사하고 적절한 starter를 우선 보존합니다. 정답은
-명세 확인과 임시 reference 실행에만 사용하며 답이나 가짜 출력을
-Notebook에 복사하지 않습니다.
+Session 또는 TIL의 exact source provenance와 일치하는 행만 자동으로
+참고합니다. 원본은 learner evidence가 아닙니다. 기본·심화 자료의 starter,
+TODO, fixture, check 경계를 먼저 감사하고 적절한 starter를 우선
+보존합니다. 정답은 명세 확인과 임시 reference 실행에만 사용하며 답이나
+가짜 출력을 Notebook에 복사하지 않습니다.
 
 ## 실행과 피드백
 
@@ -124,9 +135,9 @@ python3 .agents/skills/suggest-learning-practice/scripts/validate_practice_artif
 external cache는 warning으로만 보고합니다. `--strict-external-sources`는
 receipt와 cache identity/hash를 요구합니다. `--completion-ready`는 모든
 learner target과 필수 reflection, setup·implementation·fixture·checker의
-실제 실행, 최신 실행 순서, error output 부재와 TIL/source 정합성을 모두
-요구합니다. 이 gate와 학습자 해석이 확인된 뒤에만 exact Notebook path를
-완료 커밋 대상으로 삼을 수 있습니다.
+실제 실행, 최신 실행 순서, error output 부재와 session-or-TIL/source
+정합성을 모두 요구합니다. 이 gate와 학습자 해석이 확인된 뒤에만 exact
+Notebook path를 완료 커밋 대상으로 삼을 수 있습니다.
 
 [실습 Notebook 템플릿](./template.ipynb)은 위 구조의 Notebook 기준입니다.
 실행하지 않은 결과를 기록하지 않고, 데이터셋·모델 가중치·API 키와 큰

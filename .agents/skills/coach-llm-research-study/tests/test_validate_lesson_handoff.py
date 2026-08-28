@@ -20,10 +20,8 @@ SKILL = Path(__file__).resolve().parents[1]
 REPO = SKILL.parents[2]
 sys.path.insert(0, str(SKILL / "scripts"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(REPO / ".agents/skills/save-today-til/scripts"))
 
-from handoff_fixture import CONTRACT, build_handoff, draft_envelope, sha256  # noqa: E402
-from compose_lesson_til import compose_lesson_til  # noqa: E402
+from handoff_fixture import CONTRACT, build_handoff, sha256  # noqa: E402
 import validate_lesson_handoff as handoff_validator  # noqa: E402
 from validate_lesson_handoff import (  # noqa: E402
     ValidationReport,
@@ -33,7 +31,10 @@ from validate_lesson_handoff import (  # noqa: E402
     can_mechanically_rebuild_same_lesson,
     validate_handoff,
 )
-from migrate_completed_v7_handoff import migrate_completed_v7_handoff  # noqa: E402
+from migrate_paused_v8_handoff import (  # noqa: E402
+    MigrationError,
+    migrate_paused_v8_handoff,
+)
 
 
 class LessonHandoffValidatorTests(unittest.TestCase):
@@ -62,99 +63,6 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             "#### T003\n\n- step_role: synthesis-transfer\n- concept_ids: C03\n- objective_ids: O003\n- example_id: X003",
         )
         return contract
-
-    def build_til_ready_handoff(
-        self,
-        root: Path,
-        *,
-        provenance: str = "- 관련 역량: `CC-DL-01`",
-    ) -> Path:
-        content = "배치 축과 특성 축을 구분해 결과 shape를 설명했다."
-        question = "Broadcasting에서 오른쪽 축부터 비교하는 이유는 무엇인가?"
-        draft = root / "til/today.md"
-        draft.parent.mkdir(parents=True, exist_ok=True)
-        draft.write_text(draft_envelope("tensor-shape-lesson", "E001", content), encoding="utf-8")
-        handoff, _ = build_handoff(
-            root,
-            status="paused",
-            reviews=[("pass", "fresh-reviewer")],
-            evidence=[
-                {"concept_ids": "C01", "content": content, "append_state": "drafted"},
-                {
-                    "concept_ids": "C02",
-                    "objective_ids": "O002",
-                    "content": question,
-                    "verdict": "unconfirmed",
-                    "append_state": "not_eligible",
-                },
-            ],
-            coverage=[
-                {
-                    "concept": "C01",
-                    "state": "confirmed",
-                    "evidence_ids": "E001",
-                    "representation": "learning",
-                    "note": "Learner explanation is present in the draft.",
-                },
-                {
-                    "concept": "C02",
-                    "state": "uncertain",
-                    "evidence_ids": "E002",
-                    "representation": "remaining-question",
-                    "note": "The unresolved learner question is represented explicitly.",
-                },
-                {
-                    "concept": "C03",
-                    "state": "deferred",
-                    "evidence_ids": "none",
-                    "representation": "not-required",
-                    "note": "Not taught today.",
-                },
-            ],
-            delivery=[
-                {"objective": "O001", "state": "delivered", "mode": "full", "note": "Axis meaning was taught."},
-                {"objective": "O002", "state": "delivered", "mode": "full", "note": "Broadcasting was taught."},
-                {"objective": "O003", "state": "pending", "mode": "none", "note": "Not taught today."},
-            ],
-        )
-        compose_lesson_til(
-            handoff,
-            [
-                {
-                    "section": "오늘의 학습",
-                    "evidence_ids": ["E001"],
-                    "representation": "learning",
-                    "text": content,
-                },
-                {
-                    "section": "남은 질문",
-                    "evidence_ids": ["E002"],
-                    "representation": "remaining-question",
-                    "text": question,
-                },
-            ],
-            repo_root=root,
-            composed_at="2026-08-20T02:00:00Z",
-        )
-        expected = "- 관련 역량: `CC-DL-01`"
-        if provenance != expected:
-            draft_text = draft.read_text(encoding="utf-8")
-            if provenance:
-                draft_text = draft_text.replace(expected, provenance)
-            else:
-                draft_text = draft_text.replace(expected + "\n", "")
-            draft.write_text(draft_text, encoding="utf-8")
-            handoff_text = handoff.read_text(encoding="utf-8")
-            handoff.write_text(
-                re.sub(
-                    r"(?m)^- draft_sha256: [0-9a-f]{64}$",
-                    f"- draft_sha256: {sha256(draft.read_bytes())}",
-                    handoff_text,
-                    count=1,
-                ),
-                encoding="utf-8",
-            )
-        return handoff
 
     def build_focused_private_handoff(self, root: Path) -> Path:
         source_path = "materials/private/example-course/00-01_lesson.md"
@@ -390,7 +298,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                     status="active",
                     reviews=[("pass", "fresh-reviewer")],
                 )
-                for mode in ({}, {"ready": True}, {"til_ready": True}):
+                for mode in ({}, {"ready": True}, {"capture_ready": True}):
                     report = validate_handoff(handoff, repo_root=root, **mode)
                     self.assertFalse(report.ok)
                     self.assert_code(report, "TARGET_DECISION")
@@ -482,310 +390,74 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 any("is not a prerequisite" in error.message for error in report.errors)
             )
 
-    def test_til_ready_accepts_complete_learning_and_uncertainty_inventory(self) -> None:
-        with self.make_root() as directory:
-            root = Path(directory)
-            handoff = self.build_til_ready_handoff(root)
-            report = validate_handoff(handoff, repo_root=root, til_ready=True)
-            self.assertTrue(report.ok, report.errors)
 
-    def test_til_ready_requires_exact_common_primary_provenance(self) -> None:
-        for provenance in (
-            "",
-            "- 관련 역량: `CC-ML-01`",
-            "- 관련 역량: `CC-DL-01`\n- 관련 역량: `CC-DL-01`",
-        ):
-            with self.subTest(provenance=provenance), self.make_root() as directory:
-                root = Path(directory)
-                handoff = self.build_til_ready_handoff(root, provenance=provenance)
-                report = validate_handoff(handoff, repo_root=root, til_ready=True)
-                self.assertFalse(report.ok)
-                self.assert_code(report, "TIL_TARGET_PROVENANCE")
-
-    def test_common_target_provenance_accepts_tr_and_only_a_delivered_bridge(self) -> None:
-        with self.make_root() as directory:
-            root = Path(directory)
-            handoff, _ = build_handoff(root)
-            report = validate_handoff(handoff, repo_root=root)
-            self.assertTrue(report.ok, report.errors)
-            document = report.document
-            assert document is not None and document.target_decision is not None
-
-            document.target_decision.primary_target = "TR-SYS-03"
-            errors = []
-            handoff_validator._validate_target_til_provenance(
-                document,
-                "# 오늘\n\n## 관련 기록\n\n- 관련 역량: `TR-SYS-03`\n",
-                errors,
-            )
-            self.assertEqual(errors, [])
-
-            document.target_decision.primary_target = "CC-DL-01"
-            document.target_decision.bridge_target = "CC-MATH-01"
-            document.curriculum_treatments["CC-MATH-01"] = (
-                handoff_validator.CurriculumTreatment(
-                    "CC-MATH-01",
-                    "부분",
-                    "수업 내 보충",
-                    "supplement-now",
-                    ["O003"],
-                    "Inline bridge fixture.",
-                    1,
-                )
-            )
-            document.objective_delivery["O003"].state = "delivered"
-            errors = []
-            handoff_validator._validate_target_til_provenance(
-                document,
-                "# 오늘\n\n## 관련 기록\n\n"
-                "- 관련 역량: `CC-DL-01`\n"
-                "- 보충 선수 역량: `CC-MATH-01`\n",
-                errors,
-            )
-            self.assertEqual(errors, [])
-
-            document.objective_delivery["O003"].state = "pending"
-            errors = []
-            handoff_validator._validate_target_til_provenance(
-                document,
-                "# 오늘\n\n## 관련 기록\n\n"
-                "- 관련 역량: `CC-DL-01`\n"
-                "- 보충 선수 역량: `CC-MATH-01`\n",
-                errors,
-            )
-            self.assertIn("TIL_TARGET_PROVENANCE", {error.code for error in errors})
-
-    def test_confirmed_concept_requires_evidence_for_every_delivered_objective(self) -> None:
-        contract = CONTRACT.replace(
-            "| C02 | full | Compare aligned dimensions from the right. | none |",
-            "| C01 | full | Compare aligned dimensions from the right. | none |",
-        ).replace(
-            "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | full | Map one small tensor to an attention input. | none |",
-            "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | full | Map one small tensor to an attention input. | none |\n"
-            "| O004 | source-core | none | materials/lesson.md#shape-propagation | Distinguish aligned and expanded axes. | C02 | full | Label each aligned axis before broadcasting. | none |",
-        ).replace(
-            "| source-only | O001, O002 |",
-            "| source-only | O001, O002, O004 |",
-        ).replace(
-            "| I001 | D001, D002, D003 | O001, O002 |",
-            "| I001 | D001, D002, D003 | O001, O002, O004 |",
-        ).replace(
-            "- objective_ids: O001\n- delivery_outline:",
-            "- objective_ids: O001, O002\n- delivery_outline:",
-        ).replace(
-            "- objective_ids: O002\n- delivery_outline:",
-            "- objective_ids: O004\n- delivery_outline:",
-        )
-        delivery = [
-            {"objective": "O001", "state": "delivered", "mode": "full", "note": "Axis meaning was taught."},
-            {"objective": "O002", "state": "delivered", "mode": "full", "note": "Broadcasting was taught."},
-            {"objective": "O003", "state": "pending", "mode": "none", "note": "Not taught today."},
-            {"objective": "O004", "state": "pending", "mode": "none", "note": "Not taught today."},
-        ]
-        coverage = [
-            {"concept": "C01", "state": "confirmed", "evidence_ids": "E001", "representation": "learning", "note": "One answer was captured."},
-            {"concept": "C02", "state": "deferred", "evidence_ids": "none", "representation": "not-required", "note": "No objective was taught."},
-            {"concept": "C03", "state": "deferred", "evidence_ids": "none", "representation": "not-required", "note": "Not taught today."},
-        ]
+    def test_capture_ready_accepts_a_completed_confirmed_session(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
             handoff, _ = build_handoff(
                 root,
-                contract=contract,
-                status="paused",
+                status="completed",
                 reviews=[("pass", "fresh-reviewer")],
-                evidence=[{"concept": "C01", "objective_ids": "O001"}],
-                coverage=coverage,
-                delivery=delivery,
             )
-            report = validate_handoff(handoff, repo_root=root)
-            self.assert_code(report, "TIL_COVERAGE")
-            self.assertTrue(any("missing O002" in error.message for error in report.errors))
+            report = validate_handoff(handoff, repo_root=root, capture_ready=True)
+            self.assertTrue(report.ok, report.errors)
+            self.assertTrue(report.as_json()["capture_ready"])
+            self.assertEqual(report.as_json()["workflow_action"], "CAPTURE_SESSION")
 
-    def test_til_ready_accepts_objective_complete_concept_evidence(self) -> None:
-        contract = CONTRACT.replace(
-            "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | full | Map one small tensor to an attention input. | none |",
-            "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | full | Map one small tensor to an attention input. | none |\n"
-            "| O004 | source-core | none | materials/lesson.md#shape-propagation | Distinguish aligned and expanded axes. | C02 | full | Label each aligned axis before broadcasting. | none |",
-        ).replace(
-            "| O002 | source-core | none | materials/lesson.md#shape-propagation | Predict the output shape of a broadcast operation. | C02 |",
-            "| O002 | source-core | none | materials/lesson.md#shape-propagation | Predict the output shape of a broadcast operation. | C01 |",
-        ).replace(
-            "| source-only | O001, O002 |",
-            "| source-only | O001, O002, O004 |",
-        ).replace(
-            "| I001 | D001, D002, D003 | O001, O002 |",
-            "| I001 | D001, D002, D003 | O001, O002, O004 |",
-        ).replace(
-            "#### T003\n\n- step_role: worked-example\n- concept_ids: C02\n- objective_ids: O002",
-            "#### T003\n\n- step_role: worked-example\n- concept_ids: C01\n- objective_ids: O002",
-        ).replace(
-            "- objective_ids: O002, O003\n- example_id: X003",
-            "- objective_ids: O004, O003\n- example_id: X003",
-        ).replace(
-            "- objective_ids: O001, O002, O003\n- example_id: X004",
-            "- objective_ids: O001, O002, O003, O004\n- example_id: X004",
-        ).replace(
-            "| X003 | Contrast valid and invalid alignment | A compatible pair and one mismatched pair of tensor shapes. | O002, O003 |",
-            "| X003 | Contrast valid and invalid alignment | A compatible pair and one mismatched pair of tensor shapes. | O002, O003, O004 |",
-        ).replace(
-            "| X004 | Transfer the axis contract | One batch by token by hidden attention input. | O001, O002, O003 |",
-            "| X004 | Transfer the axis contract | One batch by token by hidden attention input. | O001, O002, O003, O004 |",
-        )
-        first = "배치 축과 특성 축을 구분했다."
-        second = "브로드캐스팅 결과 shape를 오른쪽 축부터 설명했다."
+    def test_capture_ready_rejects_uncertain_or_uncaptured_learning(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
-            draft = root / "til/today.md"
-            draft.parent.mkdir(parents=True)
-            draft.write_text(
-                draft_envelope("tensor-shape-lesson", "E001", first)
-                + draft_envelope("tensor-shape-lesson", "E002", second),
-                encoding="utf-8",
-            )
             handoff, _ = build_handoff(
                 root,
-                contract=contract,
                 status="paused",
                 reviews=[("pass", "fresh-reviewer")],
                 evidence=[
-                    {"concept": "C01", "objective_ids": "O001", "content": first, "append_state": "drafted"},
-                    {"concept": "C01", "objective_ids": "O002", "content": second, "append_state": "drafted"},
-                ],
-                coverage=[
-                    {"concept": "C01", "state": "confirmed", "evidence_ids": "E001, E002", "representation": "learning", "note": "Both delivered objectives are demonstrated."},
-                    {"concept": "C02", "state": "deferred", "evidence_ids": "none", "representation": "not-required", "note": "No objective was taught."},
-                    {"concept": "C03", "state": "deferred", "evidence_ids": "none", "representation": "not-required", "note": "Not taught today."},
+                    {
+                        "concept_ids": "C01",
+                        "objective_ids": "O001",
+                        "verdict": "partial",
+                        "capture_state": "not_eligible",
+                    }
                 ],
                 delivery=[
                     {"objective": "O001", "state": "delivered", "mode": "full", "note": "Axis meaning was taught."},
-                    {"objective": "O002", "state": "delivered", "mode": "full", "note": "Broadcasting was taught."},
-                    {"objective": "O003", "state": "pending", "mode": "none", "note": "Not taught today."},
-                    {"objective": "O004", "state": "pending", "mode": "none", "note": "Not taught today."},
+                    {"objective": "O002", "state": "pending", "mode": "none", "note": "Awaiting instruction."},
+                    {"objective": "O003", "state": "pending", "mode": "none", "note": "Awaiting instruction."},
+                ],
+                coverage=[
+                    {"concept": "C01", "state": "uncertain", "evidence_ids": "E001", "note": "Explanation must continue."},
+                    {"concept": "C02", "state": "deferred", "evidence_ids": "none", "note": "Not taught."},
+                    {"concept": "C03", "state": "deferred", "evidence_ids": "none", "note": "Not taught."},
                 ],
             )
-            compose_lesson_til(
-                handoff,
-                [
-                    {
-                        "section": "오늘의 학습",
-                        "evidence_ids": ["E001", "E002"],
-                        "representation": "learning",
-                        "text": first + " " + second,
-                    }
-                ],
-                repo_root=root,
-                composed_at="2026-08-20T02:00:00Z",
-            )
-            report = validate_handoff(handoff, repo_root=root, til_ready=True)
-            self.assertTrue(report.ok, report.errors)
+            report = validate_handoff(handoff, repo_root=root, capture_ready=True)
+            self.assert_code(report, "SESSION_CONCEPT_INCOMPLETE")
 
-    def test_til_ready_rejects_missing_confirmed_or_uncertain_concept(self) -> None:
-        with self.make_root() as directory:
-            root = Path(directory)
-            handoff = self.build_til_ready_handoff(root)
-            text = handoff.read_text(encoding="utf-8").replace(
-                "| C01 | confirmed | E001 | learning |",
-                "| C01 | confirmed | E001 | missing |",
+            handoff, _ = build_handoff(
+                root,
+                status="completed",
+                reviews=[("pass", "fresh-reviewer")],
             )
-            handoff.write_text(text, encoding="utf-8")
-            report = validate_handoff(handoff, repo_root=root, til_ready=True)
-            self.assert_code(report, "TIL_COVERAGE")
-
-            handoff = self.build_til_ready_handoff(root)
-            text = handoff.read_text(encoding="utf-8").replace(
-                "| C02 | uncertain | E002 | remaining-question |",
-                "| C02 | uncertain | E002 | missing |",
-            )
-            handoff.write_text(text, encoding="utf-8")
-            report = validate_handoff(handoff, repo_root=root, til_ready=True)
-            self.assert_code(report, "TIL_COVERAGE")
-
-    def test_til_ready_rejects_claimed_uncertainty_without_draft_question(self) -> None:
-        with self.make_root() as directory:
-            root = Path(directory)
-            handoff = self.build_til_ready_handoff(root)
-            draft = root / "til/today.md"
-            text = draft.read_text(encoding="utf-8")
-            text = re.sub(
-                r"\n\n## 남은 질문\n\n<!-- lesson-til-item:.*?<!-- /lesson-til-item:.*? -->",
-                "",
-                text,
-                count=1,
-                flags=re.DOTALL,
-            )
-            draft.write_text(text, encoding="utf-8")
-            handoff_text = handoff.read_text(encoding="utf-8")
-            handoff_text = re.sub(
-                r"(?m)^\| D002 \| 남은 질문 \|.*\n",
-                "",
-                handoff_text,
-                count=1,
-            )
-            handoff.write_text(
-                re.sub(
-                    r"(?m)^- draft_sha256: [0-9a-f]{64}$",
-                    f"- draft_sha256: {sha256(draft.read_bytes())}",
-                    handoff_text,
-                    count=1,
-                ),
-                encoding="utf-8",
-            )
-            report = validate_handoff(handoff, repo_root=root, til_ready=True)
-            self.assert_code(report, "TIL_COVERAGE")
-
-    def test_til_ready_rejects_uncertain_item_without_its_evidence(self) -> None:
-        with self.make_root() as directory:
-            root = Path(directory)
-            handoff = self.build_til_ready_handoff(root)
-            text = handoff.read_text(encoding="utf-8").replace(
-                "| D002 | 남은 질문 | E002 | remaining-question |",
-                "| D002 | 남은 질문 | E001 | remaining-question |",
-            )
-            handoff.write_text(text, encoding="utf-8")
-            report = validate_handoff(handoff, repo_root=root, til_ready=True)
-            self.assert_code(report, "TIL_COVERAGE")
-
-    def test_til_ready_ignores_deferred_source_content(self) -> None:
-        with self.make_root() as directory:
-            root = Path(directory)
-            handoff = self.build_til_ready_handoff(root)
-            report = validate_handoff(handoff, repo_root=root, til_ready=True)
-            self.assertTrue(report.ok, report.errors)
-            self.assertEqual(report.document.learning_coverage["C03"].til_representation, "not-required")
-
-    def test_til_ready_rejects_stale_composition_and_missing_contract_review(self) -> None:
-        with self.make_root() as directory:
-            root = Path(directory)
-            handoff = self.build_til_ready_handoff(root)
-            with (root / "til/today.md").open("a", encoding="utf-8") as stream:
-                stream.write("\nchanged after composition\n")
-            report = validate_handoff(handoff, repo_root=root, til_ready=True)
-            self.assert_code(report, "TIL_COMPOSITION_STALE")
-
-            handoff = self.build_til_ready_handoff(root)
             handoff.write_text(
                 handoff.read_text(encoding="utf-8").replace(
-                    "- verdict: pass",
-                    "- verdict: pending",
-                    1,
+                    "- capture_state: captured", "- capture_state: pending", 1
                 ),
                 encoding="utf-8",
             )
-            report = validate_handoff(handoff, repo_root=root, til_ready=True)
-            self.assert_code(report, "REVIEW_NOT_PASS")
+            self.assert_code(
+                validate_handoff(handoff, repo_root=root, capture_ready=True),
+                "EVIDENCE_STATE",
+            )
 
-    def test_til_ready_rejects_confirmed_evidence_not_yet_drafted(self) -> None:
+    def test_handoff_has_no_til_composition_or_scratchpad_state(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
-            handoff = self.build_til_ready_handoff(root)
-            text = handoff.read_text(encoding="utf-8").replace(
-                "- append_state: drafted",
-                "- append_state: pending",
-            )
-            handoff.write_text(text, encoding="utf-8")
-            report = validate_handoff(handoff, repo_root=root, til_ready=True)
-            self.assert_code(report, "TIL_COVERAGE")
+            handoff, _ = build_handoff(root)
+            text = handoff.read_text(encoding="utf-8")
+            self.assertNotIn("TIL Composition", text)
+            self.assertNotIn("til_finalize_policy", text)
+            self.assertNotIn("draft_path", text)
+            self.assertNotIn("til/today.md", text)
 
     def test_ready_rejects_checkpoint_outside_contract(self) -> None:
         with self.make_root() as directory:
@@ -1112,7 +784,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
         report = ValidationReport(
             path=Path("tmp/active-lesson-handoff.md"),
             ready_requested=True,
-            til_ready_requested=False,
+            capture_ready_requested=False,
             errors=[],
             document=None,
             warnings=[ValidationWarning(12, "CURRICULUM_FRESHNESS", "unrelated source drift")],
@@ -1173,7 +845,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
     def test_mutable_draft_cannot_be_a_manifest_input(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
-            handoff, hashes = build_handoff(root)
+            handoff, _ = build_handoff(root)
             draft = root / "til/today.md"
             draft.parent.mkdir(parents=True)
             draft.write_text("learner scratch\n", encoding="utf-8")
@@ -1181,7 +853,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             draft_hash = sha256(draft.read_bytes())
             text = text.replace(
                 "<!-- lesson-contract:start -->",
-                f"| I003 | til | til/today.md | {draft_hash} |\n\n<!-- lesson-contract:start -->",
+                f"| I004 | til | til/today.md | {draft_hash} |\n\n<!-- lesson-contract:start -->",
                 1,
             )
             manifest_hash = sha256(
@@ -1190,6 +862,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                         [
                             f"primary\tmaterials/lesson.md\t{sha256((root / 'materials/lesson.md').read_bytes())}\n",
                             f"curriculum\tCURRICULUM.md\t{sha256((root / 'CURRICULUM.md').read_bytes())}\n",
+                            f"roadmap\tROADMAP.md\t{sha256((root / 'ROADMAP.md').read_bytes())}\n",
                             f"til\ttil/today.md\t{draft_hash}\n",
                         ]
                     )
@@ -1220,14 +893,14 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             handoff.write_text(text, encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "EVIDENCE_STATE")
 
-    def test_schema_v7_and_earlier_are_rejected_with_rebuild_error(self) -> None:
-        for old_version in ("7", "6", "5", "4"):
+    def test_schema_v8_and_earlier_are_rejected_with_rebuild_error(self) -> None:
+        for old_version in ("8", "7", "6", "5", "4"):
             with self.subTest(old_version=old_version), self.make_root() as directory:
                 root = Path(directory)
                 handoff, _ = build_handoff(root)
                 handoff.write_text(
                     handoff.read_text(encoding="utf-8").replace(
-                        "- schema_version: 8", f"- schema_version: {old_version}"
+                        "- schema_version: 9", f"- schema_version: {old_version}"
                     ),
                     encoding="utf-8",
                 )
@@ -1277,114 +950,69 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             )
             self.assert_code(validate_handoff(handoff, repo_root=root), "SESSION_EXIT_EVIDENCE")
 
-    def test_completed_v7_recovery_preserves_every_learner_content_byte(self) -> None:
-        contract = self.short_three_step_contract()
-        answers = (
-            "첫 번째 개념을 내 말로 설명했다.",
-            "두 번째 개념의 한계를 구분했다.",
-            "세 번째 개념을 새 예시에 전이했다.",
-        )
+
+    def test_v8_to_v9_paused_migration_preserves_every_learner_content_byte(self) -> None:
+        answer = "기존 답변의 바이트를 그대로 보존한다.\n\n아직 확신할 수 없는 이유도 평가와 분리한다."
         with self.make_root() as directory:
             root = Path(directory)
-            draft = root / "til/today.md"
-            draft.parent.mkdir(parents=True)
-            draft.write_text(
-                "".join(
-                    draft_envelope("recovery-fixture", f"E{index:03d}", answer)
-                    for index, answer in enumerate(answers, start=1)
-                ),
-                encoding="utf-8",
-            )
-            handoff, _ = build_handoff(
+            replacement, _ = build_handoff(
                 root,
-                contract=contract,
-                lesson_id="recovery-fixture",
-                session_profile="short",
-                status="completed",
+                status="paused",
                 reviews=[("pass", "fresh-reviewer")],
+                lesson_id="recovery-fixture",
                 evidence=[
-                    {"concept_ids": "C01", "objective_ids": "O001", "content": answers[0], "append_state": "drafted"},
-                    {"concept_ids": "C02", "objective_ids": "O002", "content": answers[1], "append_state": "drafted"},
-                    {"concept_ids": "C03", "objective_ids": "O003", "kind": "transfer", "content": answers[2], "append_state": "drafted"},
+                    {
+                        "concept_ids": "C01",
+                        "objective_ids": "O001",
+                        "content": answer,
+                        "verdict": "partial",
+                        "capture_state": "not_eligible",
+                    }
+                ],
+                delivery=[
+                    {"objective": "O001", "state": "delivered", "mode": "full", "note": "The earlier explanation was delivered."},
+                    {"objective": "O002", "state": "pending", "mode": "none", "note": "Awaiting instruction."},
+                    {"objective": "O003", "state": "pending", "mode": "none", "note": "Awaiting instruction."},
                 ],
                 coverage=[
-                    {"concept": "C01", "state": "confirmed", "evidence_ids": "E001", "representation": "learning", "note": "Preserved evidence."},
-                    {"concept": "C02", "state": "confirmed", "evidence_ids": "E002", "representation": "learning", "note": "Preserved evidence."},
-                    {"concept": "C03", "state": "confirmed", "evidence_ids": "E003", "representation": "learning", "note": "Preserved evidence."},
+                    {"concept": "C01", "state": "uncertain", "evidence_ids": "E001", "note": "Preserved unresolved evidence."},
+                    {"concept": "C02", "state": "deferred", "evidence_ids": "none", "note": "Not taught."},
+                    {"concept": "C03", "state": "deferred", "evidence_ids": "none", "note": "Not taught."},
                 ],
             )
-            self.assertTrue(validate_handoff(handoff, repo_root=root).ok)
-            text = handoff.read_text(encoding="utf-8")
-            old_contract = re.search(
-                r"(?ms)^<!-- lesson-contract:start -->\n(.*?)\n<!-- lesson-contract:end -->$",
-                text,
-            ).group(1)
-            v7_contract = re.sub(
-                r"(?ms)^### Session Plan\n.*?(?=^### Prepared Teaching Steps$)",
-                "",
-                old_contract,
-                count=1,
-            )
-            v7_contract = re.sub(r"(?m)^- step_role: .+\n", "", v7_contract)
-            v7_contract = re.sub(r"(?m)^- concept_ids: ", "- concept_id: ", v7_contract)
-            v7_contract = re.sub(r"(?m)^- example_id: .+\n", "", v7_contract)
-            v7_hash = sha256(v7_contract)
-            text = text.replace(old_contract, v7_contract, 1)
-            text = text.replace("- schema_version: 8", "- schema_version: 7", 1)
-            text = re.sub(r"(?m)^- session_profile: .+\n- til_finalize_policy: .+\n", "", text, count=1)
-            text = re.sub(
-                r"(?ms)^## Teaching Step Delivery\n.*?(?=^## Daily Learning Coverage$)",
-                "",
-                text,
-                count=1,
-            )
-            text = text.replace(
-                "## Daily Learning Coverage\n\n",
-                "## Daily Learning Coverage\n\n"
-                "- pre_save_verdict: 저장 가능\n"
-                "- reviewed_at: 2026-08-20T02:00:00Z\n"
-                f"- reviewed_draft_sha256: {sha256(draft.read_bytes())}\n\n",
-                1,
-            )
-            text = text.replace("- concept_ids: ", "- concept: ")
-            text = re.sub(r"(?ms)\n## TIL Composition\n.*\Z", "\n", text, count=1)
-            text = re.sub(r"(?m)^- contract_sha256: [0-9a-f]{64}$", f"- contract_sha256: {v7_hash}", text, count=1)
-            text = re.sub(r"(?m)^- reviewed_contract_sha256: [0-9a-f]{64}$", f"- reviewed_contract_sha256: {v7_hash}", text, count=1)
-            handoff.write_text(text, encoding="utf-8")
+            report = validate_handoff(replacement, repo_root=root)
+            self.assertTrue(report.ok, report.errors)
+            current = replacement.read_bytes()
+            legacy = root / "tmp/legacy-v8.md"
+            legacy.write_bytes(current.replace(b"- schema_version: 9", b"- schema_version: 8", 1))
+            prepared = root / "tmp/prepared-v9.md"
+            prepared.write_bytes(current)
             before = tuple(
-                match.group(1).encode("utf-8")
+                match.group(1)
                 for match in re.finditer(
-                    r"(?ms)^<!-- learner-content:start -->\n(.*?)\n<!-- learner-content:end -->$",
-                    text,
+                    rb"(?ms)^<!-- learner-content:start -->\n(.*?)\n<!-- learner-content:end -->$",
+                    legacy.read_bytes(),
                 )
             )
 
-            migrate_completed_v7_handoff(
-                handoff,
-                repo_root=root,
-                expected_lesson_id="recovery-fixture",
-                updated_at="2026-08-20T03:00:00Z",
-                require_stat110_boundary=False,
-            )
-            report = validate_handoff(handoff, repo_root=root)
-            self.assertTrue(report.ok, report.errors)
-            self.assertEqual(report.document.metadata["session_profile"], "short")
-            self.assertEqual(report.as_json()["workflow_action"], "COMPOSE_TIL")
+            migrate_paused_v8_handoff(legacy, prepared, repo_root=root)
             after = tuple(
-                match.group(1).encode("utf-8")
+                match.group(1)
                 for match in re.finditer(
-                    r"(?ms)^<!-- learner-content:start -->\n(.*?)\n<!-- learner-content:end -->$",
-                    handoff.read_text(encoding="utf-8"),
+                    rb"(?ms)^<!-- learner-content:start -->\n(.*?)\n<!-- learner-content:end -->$",
+                    legacy.read_bytes(),
                 )
             )
             self.assertEqual(after, before)
-            with self.assertRaisesRegex(Exception, "completed.*v7"):
-                migrate_completed_v7_handoff(
-                    handoff,
-                    repo_root=root,
-                    expected_lesson_id="recovery-fixture",
-                    require_stat110_boundary=False,
-                )
+            migrated = validate_handoff(legacy, repo_root=root)
+            self.assertTrue(migrated.ok, migrated.errors)
+            self.assertEqual(migrated.document.metadata["status"], "paused")
+
+            tampered = current.replace(answer.encode("utf-8"), b"changed", 1)
+            prepared.write_bytes(tampered)
+            legacy.write_bytes(current.replace(b"- schema_version: 9", b"- schema_version: 8", 1))
+            with self.assertRaisesRegex(MigrationError, "learner-content bytes"):
+                migrate_paused_v8_handoff(legacy, prepared, repo_root=root)
 
     def test_source_coverage_requires_every_primary_in_manifest_order(self) -> None:
         with self.make_root() as directory:
@@ -1507,9 +1135,9 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             self.assert_code(validate_handoff(handoff, repo_root=root), "EVIDENCE_STATE")
 
             handoff, _ = build_handoff(root)
-            text = handoff.read_text(encoding="utf-8").replace("| C01 | deferred | none | not-required | Not taught yet. |", "| C01 | deferred | none | not-required | G001 was not taught. |")
+            text = handoff.read_text(encoding="utf-8").replace("| C01 | deferred | none | Not taught yet. |", "| C01 | deferred | none | G001 was not taught. |")
             handoff.write_text(text, encoding="utf-8")
-            self.assert_code(validate_handoff(handoff, repo_root=root), "TIL_COVERAGE")
+            self.assert_code(validate_handoff(handoff, repo_root=root), "SESSION_CONCEPT_INCOMPLETE")
 
     def test_source_gap_cannot_masquerade_as_source_core(self) -> None:
         with self.make_root() as directory:
@@ -1778,8 +1406,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 ],
             )
             text = handoff.read_text(encoding="utf-8").replace(
-                "| C01 | uncertain | none | missing | Taught but not demonstrated. |",
-                "| C01 | deferred | none | not-required | Not taught yet. |",
+                "| C01 | uncertain | none | Taught but not demonstrated. |",
+                "| C01 | deferred | none | Not taught yet. |",
             )
             handoff.write_text(text, encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "OBJECTIVE_COVERAGE")
@@ -1965,7 +1593,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 sys.executable,
                 str(SKILL / "scripts/validate_lesson_handoff.py"),
                 "--ready",
-                "--til-ready",
+                "--capture-ready",
                 "tmp/active-lesson-handoff.md",
             ],
             cwd=REPO,
@@ -1975,7 +1603,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
         )
         self.assertEqual(conflict.returncode, 2)
         self.assertEqual(conflict.stdout, "")
-        self.assertRegex(conflict.stderr, r"^ERROR <cli>:1 \[SCHEMA\] argument --til-ready: not allowed with argument --ready\n$")
+        self.assertRegex(conflict.stderr, r"^ERROR <cli>:1 \[SCHEMA\] argument --capture-ready: not allowed with argument --ready\n$")
 
 
 def re_sub_field(text: str, key: str, value: str) -> str:

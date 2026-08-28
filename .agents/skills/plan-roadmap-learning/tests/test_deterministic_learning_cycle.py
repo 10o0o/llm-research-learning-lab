@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import shutil
 import subprocess
 import sys
@@ -12,27 +13,31 @@ SKILL = Path(__file__).resolve().parents[1]
 REPO = SKILL.parents[2]
 COACH = REPO / ".agents/skills/coach-llm-research-study"
 PRACTICE = REPO / ".agents/skills/suggest-learning-practice"
-SAVE = REPO / ".agents/skills/save-today-til"
 for path in (
     SKILL / "scripts",
     COACH / "scripts",
     COACH / "tests",
     PRACTICE / "scripts",
     PRACTICE / "tests",
-    SAVE / "scripts",
 ):
     sys.path.insert(0, str(path))
 
 from cache_external_source import cache_external_source  # noqa: E402
-from compose_lesson_til import compose_lesson_til  # noqa: E402
-from finalize_lesson_til import finalize_lesson_til  # noqa: E402
-from handoff_fixture import CONTRACT, build_handoff, draft_envelope  # noqa: E402
+from handoff_fixture import CONTRACT, build_handoff  # noqa: E402
 from inspect_target_graph import inspect_target_graph  # noqa: E402
+from daily_learning_flow import (  # noqa: E402
+    begin_cycle,
+    capture_completed_session,
+    empty_flow,
+    start_flow,
+    transition_phase,
+)
 from route_practice import route_practice  # noqa: E402
 import test_validate_practice_artifact as practice_fixture  # noqa: E402
 from validate_curriculum import curriculum_snapshot_from_text  # noqa: E402
 from validate_lesson_handoff import validate_handoff  # noqa: E402
 from validate_practice_artifact import validate as validate_practice  # noqa: E402
+from validate_practice_notebook import _canonical_hash  # noqa: E402
 
 
 OFFICIAL_URL = "https://docs.example.edu/evaluation/lesson"
@@ -209,20 +214,14 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
         "선택한 metric이 숨길 수 있는 slice-level failure를 분류했다.",
         "질문과 slice, metric의 한계를 함께 사용해 어떤 모델을 선택할지 전이해 설명했다.",
     )
-    draft = tmp_path / "til/today.md"
-    draft.parent.mkdir(parents=True)
-    draft.write_text(
-        draft_envelope(
-            "deterministic-evaluation-cycle", "E001", learner_explanations[0]
-        )
-        + draft_envelope(
-            "deterministic-evaluation-cycle", "E002", learner_explanations[1]
-        )
-        + draft_envelope(
-            "deterministic-evaluation-cycle", "E003", learner_explanations[2]
-        ),
-        encoding="utf-8",
+    state = start_flow(empty_flow(), mode="full-day")
+    state = begin_cycle(
+        state,
+        cycle_id="cycle-deterministic-evaluation-cycle",
+        primary_target=primary_target,
     )
+    state = transition_phase(state, "PREPARE_LESSON")
+    state = transition_phase(state, "TEACH")
     contract = _external_contract(receipt["path"], receipt["receipt_path"])
     repair_handoff, _ = build_handoff(
         tmp_path,
@@ -277,20 +276,20 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
                 "concept_ids": "C01",
                 "objective_ids": "O001",
                 "content": learner_explanations[0],
-                "append_state": "drafted",
+                "capture_state": "captured",
             },
             {
                 "concept_ids": "C02",
                 "objective_ids": "O002",
                 "content": learner_explanations[1],
-                "append_state": "drafted",
+                "capture_state": "captured",
             },
             {
                 "concept_ids": "C01, C02, C03",
                 "objective_ids": "O001, O002, O003",
                 "kind": "transfer",
                 "content": learner_explanations[2],
-                "append_state": "drafted",
+                "capture_state": "captured",
             },
         ],
         lesson_id="deterministic-evaluation-cycle",
@@ -341,50 +340,28 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
             },
         ],
     )
-    compose_lesson_til(
-        handoff,
-        [
-            {
-                "section": "오늘의 학습",
-                "evidence_ids": ["E001"],
-                "representation": "learning",
-                "text": learner_explanations[0],
-            },
-            {
-                "section": "배운 점",
-                "evidence_ids": ["E002"],
-                "representation": "learning",
-                "text": learner_explanations[1],
-            },
-            {
-                "section": "배운 점",
-                "evidence_ids": ["E003"],
-                "representation": "learning",
-                "text": learner_explanations[2],
-            },
-        ],
-        repo_root=tmp_path,
-        composed_at="2026-08-27T02:00:00Z",
-    )
     completed = validate_handoff(handoff, repo_root=tmp_path)
     assert completed.ok, completed.errors
     assert completed.document is not None
     assert completed.document.target_decision.primary_target == primary_target
     assert completed.document.target_decision.endpoint == "TR-EVAL-02"
-    til_ready = validate_handoff(handoff, repo_root=tmp_path, til_ready=True)
-    assert til_ready.ok, til_ready.errors
-    finalized = finalize_lesson_til(handoff, repo_root=tmp_path)
-    assert finalized["dated_til_path"] == "til/2026/08/2026-08-20.md"
-    committed_paths = subprocess.run(
-        ["git", "show", "--pretty=format:", "--name-only", "HEAD"],
-        cwd=tmp_path,
-        text=True,
-        stdout=subprocess.PIPE,
-        check=True,
-    ).stdout.splitlines()
-    assert committed_paths == ["til/2026/08/2026-08-20.md"]
+    capture_ready = validate_handoff(
+        handoff,
+        repo_root=tmp_path,
+        capture_ready=True,
+    )
+    assert capture_ready.ok, capture_ready.errors
+    state = capture_completed_session(state, handoff, repo_root=tmp_path)
+    assert state["phase"] == "DECIDE_PRACTICE"
+    cycle = state["cycles"][0]
+    assert len(cycle["learner_evidence_sha256"]) == 64
+    assert len(state["learner_evidence_sha256"]) == 64
 
-    practice_decision = route_practice("evaluation-data")
+    practice_decision = route_practice(
+        "evaluation-data",
+        learning_input_kind="lesson-session",
+        learning_input_ready=True,
+    )
     assert (
         practice_decision.practice_action,
         practice_decision.practice_mode,
@@ -393,6 +370,43 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
     notebook = practice_fixture.PracticeArtifactValidatorTests().build_notebook(tmp_path)
     payload = json.loads(notebook.read_text(encoding="utf-8"))
     metadata = payload["metadata"]["llm_research_lab"]["practice"]
+    metadata["schema_version"] = 4
+    metadata.pop("til")
+    document = completed.document
+    confirmed_concepts = [
+        concept_id
+        for concept_id, coverage in document.learning_coverage.items()
+        if coverage.today_state == "confirmed"
+    ]
+    concept_projection = [
+        {
+            "concept_id": concept_id,
+            "objective_ids": [
+                objective.objective_id
+                for objective in document.objectives.values()
+                if objective.concept_id == concept_id and objective.treatment != "deferred"
+            ],
+            "evidence_ids": list(document.learning_coverage[concept_id].evidence_ids),
+        }
+        for concept_id in confirmed_concepts
+    ]
+    evidence_ids = [item["evidence_id"] for item in cycle["learner_evidence"]]
+    metadata["learning_input"] = {
+        "kind": "lesson-session",
+        "cycle_id": cycle["cycle_id"],
+        "lesson_id": cycle["lesson_id"],
+        "handoff_path": "tmp/active-lesson-handoff.md",
+        "handoff_sha256": hashlib.sha256(handoff.read_bytes()).hexdigest(),
+        "primary_target": primary_target,
+        "bridge_target": None,
+        "concept_ids": confirmed_concepts,
+        "evidence_ids": evidence_ids,
+        "concept_sha256": _canonical_hash(concept_projection),
+        "learner_evidence_sha256": cycle["learner_evidence_sha256"],
+    }
+    metadata["outcomes"][0].pop("til_location")
+    metadata["outcomes"][0]["concept_ids"] = confirmed_concepts
+    metadata["outcomes"][0]["evidence_ids"] = evidence_ids
     metadata["practice_mode"] = practice_decision.practice_mode
     metadata["curriculum_targets"] = [primary_target]
     metadata["outcomes"][0]["curriculum_target_ids"] = [primary_target]

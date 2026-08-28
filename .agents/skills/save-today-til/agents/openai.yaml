@@ -1,6 +1,6 @@
 interface:
   display_name: "오늘의 TIL 저장"
-  short_description: "학습자 증거로 TIL을 구성해 날짜별 파일 하나만 저장·커밋합니다"
-  default_prompt: "$save-today-til을 사용해 완료된 reviewed lesson의 학습자 증거를 자연스러운 TIL로 구성하고, mixed 내용만 같은 흐름에서 검토한 뒤 날짜별 TIL 하나만 커밋해줘."
+  short_description: "명시적 요청 때 완료된 하루 cycle만 TIL로 저장합니다"
+  default_prompt: "$save-today-til을 사용해 완료됐지만 아직 기록되지 않은 daily-flow cycle, 해석이 끝난 practice, knowledge 변경과 exact commit만 concept-first TIL로 종합해줘. 미완료 cycle은 제외하고 날짜별 TIL 하나만 커밋해줘."
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false

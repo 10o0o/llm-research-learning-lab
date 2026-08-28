@@ -58,10 +58,11 @@ Keep two distinct layers inside the same `.ipynb`:
 
 - **Learner surface**: natural purpose, exact implementation requirements,
   small examples, starter code, fixtures, checks, hints, and interpretation.
-- **Audit metadata**: source hashes, TIL coverage, Requirement kinds, cell roles,
-  and assertion traceability under `metadata.llm_research_lab.practice`.
+- **Audit metadata**: the exact completed lesson session or finalized TIL,
+  source hashes, Outcome coverage, Requirement kinds, cell roles, and assertion
+  traceability under `metadata.llm_research_lab.practice`.
 
-Read [practice audit metadata v3](practice-audit-metadata.md) when creating or
+Read [practice audit metadata v4](practice-audit-metadata.md) when creating or
 validating a Notebook. The internal IDs and audit kinds must never be rendered
 in Markdown or code. Hiding an ID does not hide its requirement: every fixed
 value and convention still appears naturally before the learner implementation.
@@ -136,9 +137,9 @@ Choose the scaffold by evidence and by the concept's role:
 
 Use one primary concept and at most three learner targets per Exercise. Do not
 turn return-token memorization, dict construction, repeated shape guards, or a
-generator-created helper into learner work unless the TIL explicitly studies
-that operation. A design or interpretation target may be a structured written
-response and does not need an artificial callable.
+generator-created helper into learner work unless the exact lesson session or
+finalized TIL studies that operation. A design or interpretation target may be
+a structured written response and does not need an artificial callable.
 
 Every required written response is a learner target too. If an Exercise has
 already reached three targets, any additional reflection must be clearly
@@ -147,14 +148,15 @@ prompt is hidden workload and fails review.
 
 The metadata ownership decision is part of review. A `practice-given`
 Requirement defaults to `provided`; making it learner-owned requires a direct
-link to a named TIL outcome and a concrete reason. Fading removes support for
-later Exercises, not required task information.
+link to a named session or TIL Outcome and a concrete reason. Fading removes
+support for later Exercises, not required task information.
 
 ## Coverage-map review
 
-For every major TIL outcome, ask:
+For every major session or TIL Outcome, ask:
 
-1. Is the cited TIL location exact enough to find the learner's statement?
+1. Is the cited session concept/evidence relation or TIL location exact enough
+   to find the learner's demonstrated statement?
 2. Does the action test performance rather than recognition?
 3. Is required evidence observable in code, a test, a trace, or an interpreted
    result?
@@ -167,7 +169,8 @@ For every major TIL outcome, ask:
 
 A fresh reviewer returns `pass` only when all are true:
 
-- the exact finalized TIL is valid and all major outcomes are represented;
+- the exact completed session or finalized TIL is valid and all major Outcomes
+  are represented;
 - the practice modality matches the evidence the selected Curriculum target
   requires, and every Outcome declares a relevant target;
 - exact lesson links resolve and instructor practice comes from an explicit
@@ -198,7 +201,7 @@ A fresh reviewer returns `pass` only when all are true:
 The completion gate is separate from creation review. `--completion-ready`
 requires every learner target and required reflection to be resolved, setup,
 implementation, fixture, and checker cells to have actually executed in the
-current order, no error output, and current TIL/source provenance. A green
+current order, no error output, and current session-or-TIL/source provenance. A green
 checker without the learner's interpretation is still not learning evidence.
 
 The reviewer first receives only the rendered learner surface and performs a

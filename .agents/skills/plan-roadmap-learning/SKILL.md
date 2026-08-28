@@ -1,40 +1,70 @@
 ---
 name: plan-roadmap-learning
-description: Choose one primary AI, ML, deep-learning, or LLM curriculum target and at most one bridge prerequisite from this repository's static ROADMAP endpoints, target graph, and learner-authored evidence, then resolve the exact next source or directly related existing practice. Use when the learner asks what target, course, lecture, topic, source, or practice to pursue next. Keep the result read-only; do not teach, cache or register sources, edit files, create practice, or claim mastery.
+description: Choose one actual AI, ML, deep-learning, mathematics, or LLM Curriculum target and at most one nearly satisfied bridge from this repository's ordered ROADMAP routes and learner-authored evidence, then resolve an exact source or directly related existing practice. Use when deciding what to study next or at SELECT_TARGET in the daily full learning flow. Remain read-only; do not teach, cache, register, create practice, update progress, or claim mastery.
 ---
 
-# Plan Roadmap Learning
+# Plan the Next Learning Target
 
-Turn the repository's static endpoints, target graph, and demonstrated learner evidence into one executable target decision without creating another progress tracker.
+Select the target before resolving material. Read `ROADMAP.md`,
+`CURRICULUM.md`, relevant `knowledge/`, finalized TILs, interpreted practice or
+challenge evidence, and `tmp/active-learning-flow.json` when it exists. The
+cursor is resumable operational evidence, not mastery or a progress database.
 
-Read and follow [`references/planner-contract.md`](references/planner-contract.md) whenever this skill is used.
+Use `scripts/inspect_target_graph.py` for the ordered endpoint routes. Keep
+these meanings separate:
 
-## Preserve responsibility boundaries
+- `endpoint`: the long-term ROADMAP destination;
+- `primary_target`: the actual competency taught in this cycle;
+- `bridge_target`: at most one almost-satisfied prerequisite that can be closed
+  inside the same lesson.
 
-- This skill reads and recommends only. It may run `scripts/inspect_target_graph.py` and read-only validators, but it must not edit files, cache or register material, create a lesson handoff, teach, generate practice, or update TIL/knowledge.
-- Leave source fidelity and curriculum-coverage judgments to `$coach-llm-research-study`. Report an existing registry problem; do not repair or reinterpret it here.
-- Leave adaptive delivery to `$teach-course-material` and hands-on generation or attempt feedback to `$suggest-learning-practice`.
-- Temporary retrieval of a public official HTTPS source may be proposed for the lesson flow. Require approval for permanent registration, paid or authenticated access, large or unsupported artifacts, and external participation.
+## Selection order
 
-## Produce a bounded recommendation
+1. Honor an explicit user-named target.
+2. Otherwise choose the earliest ROADMAP stage that still needs evidence.
+3. On that route, make the actionable blocking frontier the primary target.
+4. If the route has no blocker and the endpoint lacks required evidence, make
+   the endpoint primary.
+5. Use a bridge only for one nearly satisfied direct prerequisite. Two
+   independent gaps require separate cycles; choose the gap with greater
+   downstream impact as primary.
+6. If an unknown state can change the choice, return `NEED_DIAGNOSTIC`. Return
+   `NO_ACTIONABLE_TARGET` only when no executable target remains.
 
-1. Run `scripts/inspect_target_graph.py` for the relevant ordered endpoint stage or user-named target. Inspect the route, downstream counts, and membership, then inspect only the evidence needed to classify prerequisite states. Re-run it with ephemeral `--state TARGET=STATE` values when deterministic frontier candidates would resolve a tie or expose an unknown.
-2. Inspect only evidence relevant to the candidate targets: current learner-authored answers, current `knowledge/`, finalized TIL, executed/interpreted practice, and explicitly linked challenge work.
-3. Select exactly one primary target and at most one bridge using the contract. Do not use source availability or chapter order to choose the target.
-4. Keep the ROADMAP endpoint separate from the current target. An actionable
-   frontier blocker is the primary target; one narrow, mostly satisfied
-   prerequisite may be its inline bridge. Multiple assessed gaps are not
-   bundled as bridges.
-5. After target selection, reuse only a directly linked, valuable practice with required execution evidence and no blocker. Otherwise resolve a current local source or one exact official external artifact, then identify the smallest registered or ephemeral lesson slice that can close the primary target's current evidence gap. Route-level chapter ranges are not automatically one lesson scope.
-6. Return all four decision axes and the observable completion evidence required by the contract. State uncertainty instead of inferring progress from file presence or completion signals.
+Source availability, chapter order, and an unrelated unfinished practice never
+change target priority. A practice may be resumed only when it directly covers
+the selected primary or bridge, still needs valuable execution evidence, is not
+paused, and has no concept blocker. A platform pass alone never satisfies a
+prerequisite.
 
-Do not persist a planner snapshot, daily status, mastery checkbox, score, or completion percentage.
+## Resolve the exact next artifact
 
-## Maintain this skill
+After target selection, rank executable inputs as:
 
-After changing ranking, evidence, prerequisite, or source-state behavior, read
-[`references/forward-test-scenarios.md`](references/forward-test-scenarios.md)
-and run its prompts through a fresh read-only reviewer. Give the reviewer this
-skill, the planner contract, and raw repository evidence, but do not expose the
-scenario file or its expected invariants. Compare the result afterward and do
-not save generated answers as repository state.
+1. a directly related existing practice that meets the reuse gate;
+2. an audited registered local source;
+3. an unaudited local source that needs repair;
+4. an official external primary source.
+
+Identify external material by provider, course, offering or edition, artifact,
+official URL, and exact scope. The agent discovers and verifies the URL; the
+cache helper only retrieves a supplied URL. Recommend registration after a
+second independent lesson or when the source becomes a durable route input,
+but never register automatically.
+
+Return exactly these axes:
+
+- `target_state`: `START_TARGET | CONTINUE_TARGET | BRIDGE_PREREQUISITE | NEED_DIAGNOSTIC | NO_ACTIONABLE_TARGET`;
+- `registry_action`: `REPAIR_REQUIRED | NONE`;
+- `learning_action`: `CONTINUE_EXISTING_PRACTICE | CONTINUE_LOCAL_SOURCE | USE_TEMPORARY_EXTERNAL_SOURCE | AWAIT_SOURCE_APPROVAL | NO_NEW_SOURCE_NEEDED`;
+- `source_persistence`: `LOCAL_REGISTERED | EPHEMERAL | REGISTRATION_RECOMMENDED | NONE`.
+
+Also state endpoint, primary and optional bridge, selection reason,
+prerequisite states, missing evidence token, completion evidence for the actual
+primary, exact artifact and bounded source scope, time/compute/access burden,
+and approval status. Do not edit any file or start the lesson.
+
+For the full output and maintenance contract, read
+`references/planner-contract.md`. Use
+`references/forward-test-scenarios.md` only for contract maintenance and a
+fresh read-only reviewer forward test; never store a generated planner result.

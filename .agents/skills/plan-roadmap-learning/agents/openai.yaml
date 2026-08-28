@@ -1,4 +1,4 @@
 interface:
   display_name: "학습 로드맵 플래너"
   short_description: "순서화된 endpoint 경로에서 실제 다음 target을 읽기 전용으로 결정합니다"
-  default_prompt: "$plan-roadmap-learning을 사용해 endpoint와 실제 다음 primary target을 구분하고, 필요한 inline bridge와 정확한 다음 artifact 및 최소 lesson slice를 정해줘."
+  default_prompt: "$plan-roadmap-learning을 사용해 daily-flow cursor와 learner evidence를 읽고 endpoint와 실제 다음 primary target을 구분한 뒤, 필요한 inline bridge와 정확한 다음 source 또는 직접 관련 practice를 읽기 전용으로 정해줘."

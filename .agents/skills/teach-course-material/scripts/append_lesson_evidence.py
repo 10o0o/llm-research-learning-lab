@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atomically append one confirmed learner-evidence item to til/today.md."""
+"""Atomically capture one confirmed learner-evidence item in the daily cursor."""
 
 from __future__ import annotations
 
@@ -16,14 +16,15 @@ if str(COACH_SCRIPTS) not in sys.path:
 
 from validate_lesson_handoff import (  # noqa: E402
     ValidationError,
-    _draft_marker_blocks,
-    _normalize_newlines,
-    _safe_repo_path,
     validate_handoff,
 )
-
-
-DEFAULT_DRAFT = "<!-- 형식 없이 자유롭게 작성하세요. 저장할 때 $save-today-til을 사용합니다. -->\n"
+from daily_learning_flow import (  # noqa: E402
+    DEFAULT_CURSOR_PATH,
+    FlowError,
+    load_flow,
+    record_lesson_evidence,
+    save_flow,
+)
 
 
 def _atomic_write(path: Path, text: str) -> None:
@@ -52,13 +53,6 @@ def _atomic_write(path: Path, text: str) -> None:
             temporary.unlink()
 
 
-def _append_envelope(existing: str, envelope: str) -> str:
-    if not existing:
-        return envelope
-    separator = "" if existing.endswith("\n\n") else "\n" if existing.endswith("\n") else "\n\n"
-    return existing + separator + envelope
-
-
 def _render_error(path: Path, error: ValidationError) -> str:
     return error.rendered(path)
 
@@ -68,8 +62,9 @@ def append_evidence(
     evidence_id: str,
     *,
     repo_root: Path | str | None = None,
+    cursor: str = DEFAULT_CURSOR_PATH,
 ) -> tuple[int, str]:
-    report = validate_handoff(handoff_path, repo_root=repo_root, check_draft=True)
+    report = validate_handoff(handoff_path, repo_root=repo_root, check_draft=False)
     if not report.ok or report.document is None:
         return report.exit_code, "\n".join(_render_error(report.path, error) for error in report.errors)
     doc = report.document
@@ -80,85 +75,67 @@ def append_evidence(
     if item.values.get("provenance") != "learner" or item.values.get("verdict") != "confirmed":
         error = ValidationError(item.line, "EVIDENCE_STATE", f"{evidence_id} is not confirmed learner-authored evidence")
         return 1, _render_error(report.path, error)
-    if item.values.get("append_state") not in {"pending", "drafted"}:
-        error = ValidationError(item.line, "EVIDENCE_STATE", f"{evidence_id} is not eligible for draft append")
+    if item.values.get("capture_state") not in {"pending", "captured"}:
+        error = ValidationError(item.line, "EVIDENCE_STATE", f"{evidence_id} is not eligible for daily-flow capture")
         return 1, _render_error(report.path, error)
     if doc.metadata.get("status") not in {"active", "paused", "completed"}:
         error = ValidationError(item.line, "REVIEW_NOT_PASS", "evidence append requires an active, paused, or completed reviewed lesson")
         return 1, _render_error(report.path, error)
 
-    draft_path, path_error = _safe_repo_path(doc.metadata["draft_path"], doc.repo_root)
-    if path_error or draft_path is None:
-        error = ValidationError(1, "PATH", f"invalid draft path: {path_error or 'unknown path error'}")
-        return 1, _render_error(report.path, error)
-    if draft_path.exists() and not draft_path.is_file():
-        error = ValidationError(1, "PATH", "draft path is not a regular file")
-        return 1, _render_error(report.path, error)
     try:
-        draft_text = _normalize_newlines(draft_path.read_text(encoding="utf-8")) if draft_path.exists() else DEFAULT_DRAFT
-    except UnicodeDecodeError:
-        error = ValidationError(1, "DRAFT_CONTENT", "draft is not valid UTF-8")
-        return 1, _render_error(report.path, error)
-
-    lesson_id = doc.metadata["lesson_id"]
-    blocks, balanced = _draft_marker_blocks(draft_text, lesson_id)
-    if not balanced:
-        error = ValidationError(1, "DRAFT_MARKER", "draft lesson-evidence markers are unbalanced")
-        return 1, _render_error(report.path, error)
-    matching = [block for block in blocks if block[0] == evidence_id]
-    if len(matching) > 1:
-        error = ValidationError(matching[0][3], "DRAFT_MARKER", f"duplicate draft marker for {evidence_id}")
-        return 1, _render_error(report.path, error)
-
-    content_hash = item.values["content_sha256"]
-    if matching:
-        _, marker_hash, marker_body, marker_line = matching[0]
-        if marker_hash != content_hash or marker_body != item.content:
-            error = ValidationError(marker_line, "DRAFT_CONTENT", f"existing draft envelope differs from {evidence_id}")
-            return 1, _render_error(report.path, error)
-        draft_changed = False
-    else:
-        if item.values.get("append_state") == "drafted":
-            error = ValidationError(item.line, "DRAFT_MARKER", f"{evidence_id} is drafted but its marker is missing")
-            return 1, _render_error(report.path, error)
-        envelope = (
-            f"<!-- lesson-evidence:{lesson_id}:{evidence_id}:{content_hash} -->\n"
-            f"{item.content}\n"
-            f"<!-- /lesson-evidence:{lesson_id}:{evidence_id} -->\n"
+        state = load_flow(doc.repo_root, path=cursor)
+        relative_handoff = report.path.resolve().relative_to(doc.repo_root).as_posix()
+        state = record_lesson_evidence(
+            state,
+            cycle_id=doc.metadata["cycle_id"],
+            lesson_id=doc.metadata["lesson_id"],
+            handoff_path=relative_handoff,
+            evidence={
+                "evidence_id": evidence_id,
+                "concept_ids": [value.strip() for value in item.values["concept_ids"].split(",")],
+                "objective_ids": [value.strip() for value in item.values["objective_ids"].split(",")],
+                "kind": item.values["kind"],
+                "provenance": item.values["provenance"],
+                "verdict": item.values["verdict"],
+                "content": item.content,
+                "content_sha256": item.values["content_sha256"],
+                "captured_at": item.values["captured_at"],
+            },
         )
-        _atomic_write(draft_path, _append_envelope(draft_text, envelope))
-        draft_changed = True
+        save_flow(state, doc.repo_root, path=cursor)
+    except (FlowError, ValueError) as exc:
+        error = ValidationError(item.line, "FLOW_STATE", str(exc))
+        return 1, _render_error(report.path, error)
 
-    state_changed = item.values.get("append_state") != "drafted"
+    state_changed = item.values.get("capture_state") != "captured"
     if state_changed:
-        span_start, span_end = item.append_value_span
+        span_start, span_end = item.capture_value_span
         if span_start <= 0 or span_end < span_start:
-            error = ValidationError(item.line, "SCHEMA", f"cannot locate {evidence_id} append_state")
+            error = ValidationError(item.line, "SCHEMA", f"cannot locate {evidence_id} capture_state")
             return 2, _render_error(report.path, error)
-        updated_handoff = doc.text[:span_start] + "drafted" + doc.text[span_end:]
+        updated_handoff = doc.text[:span_start] + "captured" + doc.text[span_end:]
         _atomic_write(report.path, updated_handoff)
 
-    final_report = validate_handoff(report.path, repo_root=doc.repo_root, check_draft=True)
+    final_report = validate_handoff(report.path, repo_root=doc.repo_root, check_draft=False)
     if not final_report.ok:
         return final_report.exit_code, "\n".join(_render_error(final_report.path, error) for error in final_report.errors)
-    if draft_changed:
-        return 0, f"APPENDED {evidence_id} -> {doc.metadata['draft_path']}"
     if state_changed:
-        return 0, f"RECOVERED {evidence_id} -> drafted"
-    return 0, f"ALREADY_APPENDED {evidence_id}"
+        return 0, f"CAPTURED {evidence_id} -> {cursor}"
+    return 0, f"ALREADY_CAPTURED {evidence_id}"
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("handoff", type=Path, help="repository-relative active handoff Markdown path")
     parser.add_argument("--evidence", required=True, help="learner evidence ID such as E001")
+    parser.add_argument("--cursor", default=DEFAULT_CURSOR_PATH, help="ignored daily-flow cursor path")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     try:
-        code, message = append_evidence(args.handoff, args.evidence)
+        code, message = append_evidence(args.handoff, args.evidence, cursor=args.cursor)
     except Exception as exc:  # pragma: no cover - last-resort CLI boundary
         print(f"ERROR {args.handoff.as_posix()}:1 [SCHEMA] internal error: {exc}", file=sys.stderr)
         return 2

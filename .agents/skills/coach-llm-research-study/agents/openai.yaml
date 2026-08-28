@@ -1,4 +1,4 @@
 interface:
   display_name: "LLM 학습 평가 코치"
-  short_description: "자료·수업 계약과 mixed 또는 standalone 학습 기록을 검토합니다"
-  default_prompt: "$coach-llm-research-study를 사용해 focused source slice와 표준 심화 session 계약을 독립 검토하고 repair를 수렴시켜줘. Pure handoff-generated TIL은 재검토하지 말고 mixed 또는 standalone 초안만 같은 저장 흐름에서 검토해줘."
+  short_description: "자료 slice와 60~90분 schema-v9 수업 계약을 검토합니다"
+  default_prompt: "$coach-llm-research-study를 사용해 review slice와 60~90분 Module Plan을 분리한 schema-v9 lesson contract를 독립 검토하고 repair를 같은 흐름에서 수렴시켜줘. 명시적 TIL 저장에 섞인 수동 내용만 별도로 검토해줘."

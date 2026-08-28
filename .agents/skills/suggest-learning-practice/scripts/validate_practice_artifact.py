@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate creation-ready or learner-state single-Notebook practice.
+"""Validate creation-ready or learner-state single-Notebook practice v3/v4.
 
 Legacy bundles can be reviewed only with an explicit compatibility flag.
 """
@@ -502,7 +502,7 @@ def validate(
         return [Problem(target, 1, "SOURCE_MISSING", "artifact does not exist")]
     if target.is_dir():
         if strict_external_sources or completion_ready:
-            return [Problem(target, 1, "NOTEBOOK_ONLY", "external-source and completion gates require a v3 Notebook")]
+            return [Problem(target, 1, "NOTEBOOK_ONLY", "external-source and completion gates require a metadata-v3/v4 Notebook")]
         if not allow_legacy_bundle:
             return [
                 Problem(
@@ -594,6 +594,34 @@ def completion_commit_target(
         summary = "; ".join(f"{item.code}: {item.message}" for item in problems[:3])
         raise ValueError(f"practice is not completion-ready: {summary}")
     return target.resolve().relative_to(repo).as_posix()
+
+
+def external_completion_commit_target(
+    artifact: Path | str,
+    *,
+    interpretation_evidence: list[str] | tuple[str, ...],
+    repo_root: Path | str | None = None,
+) -> str:
+    """Return the sole challenge path eligible for a completion commit.
+
+    A platform pass is deliberately not an argument: at least one concrete
+    learner interpretation of the executed result is required independently.
+    """
+
+    repo = Path(repo_root).resolve() if repo_root is not None else _repo_root()
+    target = Path(artifact)
+    if not target.is_absolute():
+        target = repo / target
+    try:
+        relative = target.resolve(strict=True).relative_to(repo).as_posix()
+    except (OSError, ValueError) as error:
+        raise ValueError("challenge artifact is missing or escapes the repository") from error
+    if not relative.startswith("challenges/") or not target.is_file():
+        raise ValueError("external challenge completion must name one file under challenges/")
+    evidence = [item.strip() for item in interpretation_evidence if item.strip()]
+    if not evidence:
+        raise ValueError("external challenge completion requires learner result interpretation")
+    return relative
 
 
 class ContractParser(argparse.ArgumentParser):

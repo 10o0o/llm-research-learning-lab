@@ -13,9 +13,12 @@ Deep-ML 서버 채점을 요청한다.
 # - Contract / shape:
 # - Key idea:
 # - What I verified:
-# - Remaining question:
+# - Limitation or next experiment:
 ```
 
-플랫폼의 문제 원문·해설을 복사하지 말고 원문 링크만 남긴다. 특정 풀이를
-강의 학습의 실행 증거로 발전시키고 싶다면, 그 개념을 실제 강의 TIL과 연결한
-뒤 `practice/`의 별도 실습으로 다룬다.
+플랫폼의 문제 원문·해설을 복사하지 말고 원문 링크만 남긴다. 하루 전체
+흐름에서 선택한 challenge라면 exact completed lesson session과 challenge
+경로를 연결하고, 통과 여부뿐 아니라 구현의 핵심 계약과 실제 결과를
+해석한다. 과거 자율학습은 exact finalized TIL과 연결할 수 있다. 짧은 제출
+코드는 `challenges/`에 두며, 데이터 분석·benchmark처럼 Notebook 자체가
+학습 산출물인 경우에만 `practice/`를 사용한다.

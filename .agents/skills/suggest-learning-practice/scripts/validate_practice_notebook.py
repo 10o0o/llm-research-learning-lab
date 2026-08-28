@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate guided-fading Notebook practice backed by audit metadata v3."""
+"""Validate guided-fading Notebook practice backed by metadata v3 or v4."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import ast
 import hashlib
 import json
 import re
+import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -52,6 +53,7 @@ OPTIONAL_REFLECTION_RE = re.compile(
     re.IGNORECASE,
 )
 TIL_RE = re.compile(r"til/\d{4}/\d{2}/\d{4}-\d{2}-\d{2}\.md\Z")
+CYCLE_ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{2,95}\Z")
 EXERCISE_ID_RE = re.compile(r"E\d{2}\Z")
 REQUIREMENT_ID_RE = re.compile(r"C-(E\d{2})-(\d{2})\Z")
 TARGET_ID_RE = re.compile(r"T-(E\d{2})-(\d{2})\Z")
@@ -131,6 +133,172 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _canonical_hash(value: object) -> str:
+    encoded = (
+        json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        + "\n"
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _validate_learning_input(
+    issues: list[NotebookIssue],
+    warnings: list[NotebookIssue],
+    *,
+    practice: dict[str, object],
+    repo: Path,
+    learner_state: bool,
+    completion_ready: bool,
+) -> tuple[str | None, set[str], set[str]]:
+    """Validate the v4 lesson-session/finalized-til union."""
+
+    raw = practice.get("learning_input")
+    if not isinstance(raw, dict):
+        issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", "schema v4 requires learning_input"))
+        return None, set(), set()
+    kind = raw.get("kind")
+    if kind == "finalized-til":
+        til_path = _validate_hash_record(issues, record=raw, repo=repo, label="learning_input")
+        if til_path is not None and TIL_RE.fullmatch(til_path) is None:
+            issues.append(NotebookIssue(1, "TIL_REPAIR_REQUIRED", "finalized-til input must name one dated TIL"))
+        return kind, set(), set()
+    if kind != "lesson-session":
+        issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", "learning_input.kind must be lesson-session or finalized-til"))
+        return None, set(), set()
+
+    required_strings = (
+        "cycle_id",
+        "lesson_id",
+        "handoff_path",
+        "handoff_sha256",
+        "primary_target",
+        "concept_sha256",
+        "learner_evidence_sha256",
+    )
+    for key in required_strings:
+        if not isinstance(raw.get(key), str) or not str(raw[key]).strip():
+            issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", f"lesson-session requires {key}"))
+    if not CYCLE_ID_RE.fullmatch(str(raw.get("cycle_id", ""))):
+        issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", "lesson-session cycle_id is invalid"))
+    if not CURRICULUM_ID_RE.fullmatch(str(raw.get("primary_target", ""))):
+        issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", "lesson-session primary_target is invalid"))
+    bridge = raw.get("bridge_target")
+    if bridge is not None and (
+        not isinstance(bridge, str) or CURRICULUM_ID_RE.fullmatch(bridge) is None
+    ):
+        issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", "lesson-session bridge_target must be null or a Curriculum ID"))
+    raw_concepts = raw.get("concept_ids")
+    raw_evidence = raw.get("evidence_ids")
+    concept_ids = (
+        set(raw_concepts)
+        if isinstance(raw_concepts, list)
+        and raw_concepts
+        and len(raw_concepts) == len(set(raw_concepts))
+        and all(isinstance(item, str) and re.fullmatch(r"C\d{2}", item) for item in raw_concepts)
+        else set()
+    )
+    evidence_ids = (
+        set(raw_evidence)
+        if isinstance(raw_evidence, list)
+        and raw_evidence
+        and len(raw_evidence) == len(set(raw_evidence))
+        and all(isinstance(item, str) and re.fullmatch(r"E\d{3}", item) for item in raw_evidence)
+        else set()
+    )
+    if not concept_ids:
+        issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", "lesson-session requires unique concept_ids"))
+    if not evidence_ids:
+        issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", "lesson-session requires unique evidence_ids"))
+    for key in ("handoff_sha256", "concept_sha256", "learner_evidence_sha256"):
+        if SHA256_RE.fullmatch(str(raw.get(key, ""))) is None:
+            issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", f"lesson-session {key} must be SHA-256"))
+
+    handoff_path, path_error = _resolve_repo_file(raw.get("handoff_path"), repo)
+    if path_error is not None or handoff_path is None:
+        message = f"lesson-session handoff is offline: {raw.get('handoff_path')}"
+        if learner_state and not completion_ready:
+            warnings.append(NotebookIssue(1, "SESSION_SOURCE_OFFLINE", message))
+        else:
+            issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", message))
+        return kind, concept_ids, evidence_ids
+    if _sha256(handoff_path) != raw.get("handoff_sha256"):
+        issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", "lesson-session handoff hash drift"))
+        return kind, concept_ids, evidence_ids
+
+    coach_scripts = repo / ".agents/skills/coach-llm-research-study/scripts"
+    if str(coach_scripts) not in sys.path:
+        sys.path.insert(0, str(coach_scripts))
+    try:
+        from validate_lesson_handoff import validate_handoff  # noqa: PLC0415
+
+        report = validate_handoff(
+            handoff_path,
+            repo_root=repo,
+            capture_ready=True,
+        )
+    except Exception as error:  # pragma: no cover - defensive import boundary
+        issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", f"cannot validate lesson handoff: {error}"))
+        return kind, concept_ids, evidence_ids
+    if not report.ok or report.document is None:
+        issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", "lesson-session handoff is not a valid completed v9 session"))
+        return kind, concept_ids, evidence_ids
+    doc = report.document
+    decision = doc.target_decision
+    mismatches: list[str] = []
+    expected_bridge = None if decision is None or decision.bridge_target == "none" else decision.bridge_target
+    if doc.metadata.get("schema_version") != "9" or doc.metadata.get("status") != "completed":
+        mismatches.append("schema/status")
+    if doc.metadata.get("cycle_id") != raw.get("cycle_id"):
+        mismatches.append("cycle_id")
+    if doc.metadata.get("lesson_id") != raw.get("lesson_id"):
+        mismatches.append("lesson_id")
+    if decision is None or decision.primary_target != raw.get("primary_target"):
+        mismatches.append("primary_target")
+    if expected_bridge != bridge:
+        mismatches.append("bridge_target")
+    confirmed_concepts = [
+        concept_id
+        for concept_id, coverage in doc.learning_coverage.items()
+        if coverage.today_state == "confirmed"
+    ]
+    confirmed_evidence = [
+        {
+            "evidence_id": item.evidence_id,
+            "concept_ids": [value.strip() for value in item.values["concept_ids"].split(",")],
+            "objective_ids": [value.strip() for value in item.values["objective_ids"].split(",")],
+            "kind": item.values["kind"],
+            "content": item.content,
+            "content_sha256": item.values["content_sha256"],
+            "captured_at": item.values["captured_at"],
+        }
+        for item in doc.evidence.values()
+        if item.values.get("verdict") == "confirmed"
+    ]
+    concept_projection = [
+        {
+            "concept_id": concept_id,
+            "objective_ids": [
+                objective.objective_id
+                for objective in doc.objectives.values()
+                if objective.concept_id == concept_id and objective.treatment != "deferred"
+            ],
+            "evidence_ids": list(doc.learning_coverage[concept_id].evidence_ids),
+        }
+        for concept_id in confirmed_concepts
+    ]
+    if list(raw_concepts or []) != confirmed_concepts:
+        mismatches.append("concept_ids")
+    if list(raw_evidence or []) != [item["evidence_id"] for item in confirmed_evidence]:
+        mismatches.append("evidence_ids")
+    if raw.get("concept_sha256") != _canonical_hash(concept_projection):
+        mismatches.append("concept_sha256")
+    if raw.get("learner_evidence_sha256") != _canonical_hash(confirmed_evidence):
+        mismatches.append("learner_evidence_sha256")
+    if mismatches:
+        issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", "lesson-session identity differs: " + ", ".join(mismatches)))
+    return kind, concept_ids, evidence_ids
 
 
 def _resolve_repo_file(raw: object, repo: Path) -> tuple[Path | None, str | None]:
@@ -480,11 +648,11 @@ def validate_notebook_v3(
             [],
         )
     schema_version = practice.get("schema_version")
-    if schema_version != 3:
+    if schema_version not in {3, 4}:
         message = (
             "practice schema v2 must be mechanically migrated to v3 without changing learner cells"
             if schema_version == 2
-            else "practice schema_version must be 3"
+            else "practice schema_version must be 3 or 4"
         )
         return NotebookValidation([NotebookIssue(1, "SCHEMA_MIGRATION", message)], set(), [])
     if practice.get("artifact_kind") != "standalone-practice":
@@ -605,11 +773,43 @@ def validate_notebook_v3(
     elif len(expected_order) != len(cells):
         issues.append(NotebookIssue(1, "CELL_ROLE", "every cell must have exactly one recognized learner-flow role"))
 
-    til_path = _validate_hash_record(issues, record=practice.get("til"), repo=repo, label="til")
-    if til_path is not None:
-        source_links.add(til_path)
-        if TIL_RE.fullmatch(til_path) is None:
-            issues.append(NotebookIssue(1, "SOURCE_AUDIT", "til path must name one finalized dated TIL"))
+    learning_kind: str | None = None
+    session_concept_ids: set[str] = set()
+    session_evidence_ids: set[str] = set()
+    if schema_version == 3:
+        til_path = _validate_hash_record(issues, record=practice.get("til"), repo=repo, label="til")
+        if til_path is not None:
+            source_links.add(til_path)
+            if TIL_RE.fullmatch(til_path) is None:
+                issues.append(NotebookIssue(1, "SOURCE_AUDIT", "til path must name one finalized dated TIL"))
+    else:
+        if "til" in practice:
+            issues.append(NotebookIssue(1, "AUDIT_METADATA", "schema v4 stores the input only under learning_input"))
+        learning_kind, session_concept_ids, session_evidence_ids = _validate_learning_input(
+            issues,
+            warnings,
+            practice=practice,
+            repo=repo,
+            learner_state=learner_state,
+            completion_ready=completion_ready,
+        )
+        raw_input = practice.get("learning_input")
+        if learning_kind == "lesson-session" and isinstance(raw_input, dict):
+            expected_targets = [raw_input.get("primary_target")]
+            if raw_input.get("bridge_target") is not None:
+                expected_targets.append(raw_input.get("bridge_target"))
+            if curriculum_targets != expected_targets:
+                issues.append(
+                    NotebookIssue(
+                        1,
+                        "TARGET_RELATION",
+                        "artifact curriculum_targets must be the session primary followed by its optional bridge",
+                    )
+                )
+        if learning_kind == "finalized-til" and isinstance(raw_input, dict):
+            path = raw_input.get("path")
+            if isinstance(path, str):
+                source_links.add(path)
 
     raw_sources = practice.get("sources")
     if not isinstance(raw_sources, list):
@@ -686,8 +886,31 @@ def validate_notebook_v3(
         outcome_order.append(outcome_id)
         if item.get("action") not in ACTIONS:
             issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{outcome_id} has invalid action"))
-        if not isinstance(item.get("til_location"), str) or not item["til_location"].strip():
-            issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{outcome_id} needs til_location"))
+        if schema_version == 3:
+            if not isinstance(item.get("til_location"), str) or not item["til_location"].strip():
+                issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{outcome_id} needs til_location"))
+        elif learning_kind == "lesson-session":
+            if "til_location" in item:
+                issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{outcome_id} must not use til_location for a lesson-session"))
+            linked_concepts = item.get("concept_ids")
+            linked_evidence = item.get("evidence_ids")
+            if (
+                not isinstance(linked_concepts, list)
+                or not linked_concepts
+                or len(linked_concepts) != len(set(linked_concepts))
+                or not set(linked_concepts).issubset(session_concept_ids)
+            ):
+                issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", f"{outcome_id} needs session concept_ids"))
+            if (
+                not isinstance(linked_evidence, list)
+                or not linked_evidence
+                or len(linked_evidence) != len(set(linked_evidence))
+                or not set(linked_evidence).issubset(session_evidence_ids)
+            ):
+                issues.append(NotebookIssue(1, "SESSION_REPAIR_REQUIRED", f"{outcome_id} needs session evidence_ids"))
+        elif learning_kind == "finalized-til":
+            if not isinstance(item.get("til_location"), str) or not item["til_location"].strip():
+                issues.append(NotebookIssue(1, "TIL_REPAIR_REQUIRED", f"{outcome_id} needs til_location"))
         if not isinstance(item.get("required_evidence"), str) or not item["required_evidence"].strip():
             issues.append(NotebookIssue(1, "AUDIT_METADATA", f"{outcome_id} needs required_evidence"))
         linked_targets = item.get("curriculum_target_ids")

@@ -1,29 +1,86 @@
-# Practice audit metadata v3
+# Practice audit metadata v4
 
-Read this reference when creating, migrating, or validating a Notebook. The metadata is an internal authoring and provenance layer inside the same `.ipynb`; it is not a security boundary and never replaces learner-visible requirements.
+Read this reference when creating or validating a practice Notebook. Metadata at
+`metadata.llm_research_lab.practice` is an internal provenance and authoring
+layer, not a mastery record or learner-facing specification.
 
-Schema v3 connects five separate identities without recording mastery:
+All newly generated artifacts use schema v4. Existing schema-v3 notebooks remain
+valid without migration. Schema v2 requires the existing explicit metadata-only
+migration; learner cells, outputs, execution counts, IDs, and answers must not
+change.
 
-- artifact-level Curriculum targets and practice modality;
-- TIL Outcomes and the targets each Outcome practises;
-- stable source IDs for local or temporary external provenance;
-- atomic Requirements and their exact source locations;
-- exact learner-owned targets and execution evidence.
+## Learning input union
 
-## Notebook metadata
+Schema v4 replaces the mandatory TIL input with exactly one `learning_input`.
 
-Store the audit at `metadata.llm_research_lab.practice`:
+### Completed lesson session
+
+The full day flow uses:
 
 ```json
 {
-  "schema_version": 3,
+  "kind": "lesson-session",
+  "cycle_id": "cycle-example",
+  "lesson_id": "example-lesson",
+  "handoff_path": "tmp/active-lesson-handoff.md",
+  "handoff_sha256": "<64 lowercase hex>",
+  "primary_target": "CC-DL-01",
+  "bridge_target": null,
+  "concept_ids": ["C01", "C02"],
+  "evidence_ids": ["E001", "E002"],
+  "concept_sha256": "<canonical confirmed concept projection hash>",
+  "learner_evidence_sha256": "<canonical confirmed learner evidence hash>"
+}
+```
+
+The handoff must be a completed schema-v9 session. Its exact cycle, lesson,
+targets, ordered confirmed concepts, ordered confirmed learner evidence, and
+both canonical hashes must match. Creation and strict completion require the
+live handoff and exact file hash. Learner-state validation may emit an offline
+warning after deliberate downstream cleanup; hash or identity drift is
+`SESSION_REPAIR_REQUIRED`.
+
+Session Outcomes do not use `til_location`. They link non-empty subsets of the
+input's `concept_ids` and `evidence_ids`, one performance action, exercises,
+required evidence, and relevant Curriculum targets.
+
+### Exact finalized TIL
+
+Manual or historical study may use:
+
+```json
+{
+  "kind": "finalized-til",
+  "path": "til/2026/08/2026-08-28.md",
+  "sha256": "<64 lowercase hex>"
+}
+```
+
+This form names one validated dated TIL. Its Outcomes retain exact
+`til_location` values. Missing or drifted input is `TIL_REPAIR_REQUIRED`.
+Do not infer the latest TIL.
+
+## Complete Notebook example
+
+```json
+{
+  "schema_version": 4,
   "artifact_kind": "standalone-practice",
   "scaffold_mode": "guided-fading",
   "practice_mode": "NOTEBOOK",
   "curriculum_targets": ["CC-DL-01"],
-  "til": {
-    "path": "til/2026/08/2026-08-24.md",
-    "sha256": "<64 lowercase hex>"
+  "learning_input": {
+    "kind": "lesson-session",
+    "cycle_id": "cycle-example",
+    "lesson_id": "example-lesson",
+    "handoff_path": "tmp/active-lesson-handoff.md",
+    "handoff_sha256": "<64 lowercase hex>",
+    "primary_target": "CC-DL-01",
+    "bridge_target": null,
+    "concept_ids": ["C01"],
+    "evidence_ids": ["E001"],
+    "concept_sha256": "<64 lowercase hex>",
+    "learner_evidence_sha256": "<64 lowercase hex>"
   },
   "sources": [
     {
@@ -36,10 +93,11 @@ Store the audit at `metadata.llm_research_lab.practice`:
   "outcomes": [
     {
       "id": "O01",
-      "til_location": "오늘의 학습 > 식별 문구",
+      "concept_ids": ["C01"],
+      "evidence_ids": ["E001"],
       "action": "implement",
       "exercise_ids": ["E01"],
-      "required_evidence": "구현, 공개 검사, 결과 해석",
+      "required_evidence": "구현, 실행, 결과 해석",
       "curriculum_target_ids": ["CC-DL-01"]
     }
   ],
@@ -57,7 +115,7 @@ Store the audit at `metadata.llm_research_lab.practice`:
       "id": "C-E01-01",
       "exercise_id": "E01",
       "kind": "source-given",
-      "claim": "반환된 `shape`는 Tensor shape를 일반 tuple로 기록해야 합니다.",
+      "claim": "반환된 shape는 일반 tuple로 기록해야 합니다.",
       "owner": "learner",
       "source_locations": [
         {
@@ -77,7 +135,7 @@ Store the audit at `metadata.llm_research_lab.practice`:
       "exercise_id": "E01",
       "kind": "code",
       "cell_id": "e01-implementation",
-      "marker": "# TODO: Tensor 속성 네 가지를 채우세요",
+      "marker": "# TODO: Tensor 속성을 채우세요",
       "placeholder": "raise NotImplementedError(\"Tensor 속성을 채우세요\")",
       "symbol": "tensor_card",
       "outcome_ids": ["O01"],
@@ -87,73 +145,58 @@ Store the audit at `metadata.llm_research_lab.practice`:
 }
 ```
 
-`practice_mode` is `NOTEBOOK`, `BENCHMARK`, or `DATASET_PROJECT` for a local Notebook. These modes share the one-Notebook boundary but use different tasks: mechanisms and small calculations, controlled systems measurements, or data/validation/error-analysis work. External challenge and competition proposals are not local artifacts and therefore do not use this Notebook schema until an exact learner artifact is saved locally.
+`practice_mode` is `NOTEBOOK`, `BENCHMARK`, or `DATASET_PROJECT` for
+local notebooks. The artifact-level Curriculum targets are the exact union of
+Outcome target IDs. These are relevance links only.
 
-Artifact `curriculum_targets` contains the union of every Outcome's non-empty `curriculum_target_ids`. The links are relevance and provenance only; they do not change Curriculum coverage or establish mastery.
+## Source records
 
-## Stable source records
+Source IDs are contiguous `S001`, `S002`, and so on. Requirement locations
+reference stable source IDs, not paths as identity.
 
-Source IDs are contiguous `S001`, `S002`, and so on. A Requirement source location uses `source_id`, never a mutable path as its identity.
+Local kinds are `course-index`, `lesson`, `instructor-practice`, and
+`reference`; each stores the exact repository-relative path and current hash.
+Instructor practice also records its explicit related lesson and variant.
 
-Local source kinds are `course-index`, `lesson`, `instructor-practice`, and `reference`; they retain exact repository-relative `path` and current SHA-256. Instructor practice also records `related_lesson` and `variant: basic | advanced | single`.
+A temporary external source stores provider, course, offering or edition,
+artifact, official and final HTTPS URLs, retrieval time, media type, exact
+scope, byte hash, cache path, and receipt path. Cache and receipt identity must
+match the reviewed lesson. Normal learner-state validation warns if deliberate
+cleanup made them offline. Strict external validation requires the bytes and
+receipt. Never fabricate durable coverage from a temporary receipt.
 
-A temporary external source uses `kind: external-reference` and this identity:
+## Graph invariants
 
-```json
-{
-  "id": "S002",
-  "kind": "external-reference",
-  "provider": "Provider",
-  "course": "Course",
-  "offering_or_edition": "2026 offering",
-  "artifact": "Lecture 1 notes",
-  "url": "https://official.example/course/lecture-1",
-  "final_url": "https://official.example/course/lecture-1.html",
-  "retrieved_at": "2026-08-27T01:02:03Z",
-  "media_type": "text/html",
-  "sha256": "<retrieved bytes hash>",
-  "scope": "Sections 1-3",
-  "cache_path": "tmp/active-lesson-sources/<lesson-id>/<sha>.html",
-  "receipt_path": "tmp/active-lesson-sources/<lesson-id>/<sha>.receipt.json"
-}
-```
+- Outcome IDs and Exercise IDs are contiguous.
+- Outcome action is `implement`, `test`, `debug`, `interpret`, or
+  `design`.
+- Each Exercise has one primary Outcome, optional supporting Outcomes, one
+  scaffold stage, and one to three learner targets.
+- Requirements are atomic, learner-visible contracts. Source-given requirements
+  need an exact source ID, locator, and normalized anchor.
+- Requirements and learner targets reference each other in both directions
+  within the same Exercise.
+- Learner-target kinds are `code`, `debug`, `prediction`, `design`, and
+  `interpretation`. Required reflections are tracked learner targets.
 
-The cache and receipt paths use the same exact content SHA under one valid
-`tmp/active-lesson-sources/<lesson-id>/` directory. The receipt must say
-`status: CACHED`, the same lesson ID, and `kind: primary`, and must match both
-URLs, media type, retrieval time, paths, byte count, and hash.
+Every cell has a stable nbformat ID and internal role. There is exactly one
+unexecuted setup cell, followed by adjacent brief, implementation, fixture,
+check, and reflection cells per Exercise. Check metadata records assertion or
+expected-exception kind, AST ordinal, fingerprint, category, and atomic
+Requirement. Internal IDs never appear on the learner surface.
 
-Normal learner-state validation warns, but exits successfully, when this temporary cache is offline. `--strict-external-sources` requires the cache and receipt and checks every identity field and hash. Preserve the exact lesson cache through this strict practice-provenance check; delete only that lesson directory after the check succeeds. Never fabricate a receipt or durable coverage when the bytes are unavailable.
+## Validation states and completion
 
-## Outcomes, Exercises, Requirements, and Learner Targets
+Creation validation requires an unexecuted artifact and unresolved learner
+targets. Learner-state validation permits saved work and output while retaining
+schema, ownership, source, disclosure, and check traceability.
 
-- Outcome IDs are contiguous `O01`, `O02`, and so on. `action` is `implement`, `test`, `debug`, `interpret`, or `design`.
-- Exercise IDs are contiguous and match learner-flow cells. `primary_outcome_id` is singular, `supporting_outcome_ids` may reuse connected knowledge, and `scaffold_stage` is `guided`, `partial`, or `independent`.
-- Each Exercise has one to three learner targets. A migrated completed Exercise still lists them; learner-state validation permits resolved placeholders.
-- Requirement IDs are contiguous within the Exercise. `kind` is `source-given`, `practice-given`, or `derive`; `owner` is `provided` or `learner`.
-- A Requirement `claim` is one complete learner-visible behavior. A source-given Requirement has at least one exact `source_id`, `locator`, and normalized `anchor`.
-- A practice-given Requirement needs a concrete rationale. If learner-owned, its `learner_outcome_ids` must be shared by every linked target.
-- Requirement and learner target records reference each other in both directions within the same Exercise.
-- Learner Target `kind` is `code`, `debug`, `prediction`, `design`, or `interpretation`. `marker` and exact unresolved `placeholder` occur in its implementation or reflection cell. Optional `symbol` names the top-level learner API.
+Completion requires every code and reflection target resolved; setup,
+implementation, fixture, and checker cells actually executed in current order;
+no error output or non-empty stderr; live strict session/source provenance; and
+learner-authored result interpretation. A checker or platform pass alone is not
+completion and cannot update knowledge.
 
-## Cell and check metadata
-
-Every cell retains a stable nbformat `id` and `metadata.llm_research_lab.practice.role`. There is exactly one `intro` and one `setup`, then one `brief`, `implementation`, `fixture`, `check`, and `reflection` per Exercise in that order. Required reflection answers have learner targets; an untracked reflection must explicitly be optional and not a completion condition.
-
-The `check` cell records every `np.testing.*` or `torch.testing.*` call and expected-exception block with its AST ordinal, kind, fingerprint, `normal|edge|failure` category, and exactly one atomic Requirement ID. The trace must match code order. Do not expose these internal IDs or roles to the learner.
-
-## Validation states
-
-Default creation-ready validation requires unexecuted code cells and unresolved learner targets. `--learner-state` permits learner implementations, saved outputs, and resolved placeholders while retaining schema, source, disclosure, ownership, surface, and check-trace validation.
-
-`--completion-ready` implies learner-state and additionally requires:
-
-- every learner target placeholder, including required reflections, is resolved;
-- setup and every implementation, fixture, and check cell has a positive saved execution count;
-- each check ran after its Exercise's latest implementation and fixture;
-- no code cell retains an error output or non-empty stderr stream;
-- TIL and source provenance is current, including strict external receipts.
-
-Completion does not create learner evidence by itself: the learner must still interpret the relevant state or output. Once the completion gate and that interpretation are confirmed, only the exact Notebook path is eligible for the path-limited completion commit.
-
-Schema v2 is rejected with an explicit mechanical migration message. Use `scripts/migrate_practice_v2_to_v3.py` with an explicit Outcome-to-Curriculum mapping. The migration may change audit metadata only; cell source, output, execution count, stable ID, and learner answers must remain identical.
+After completion, only the exact Notebook path may be committed. A short
+external submission uses its exact `challenges/` path instead; a Kaggle
+execution remains a Notebook under `practice/`.

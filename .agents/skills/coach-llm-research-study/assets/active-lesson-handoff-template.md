@@ -5,17 +5,17 @@
 
 ## Metadata
 
-- schema_version: 8
+- schema_version: 9
+- cycle_id: replace-with-daily-flow-cycle-id
 - lesson_id: replace-with-stable-lesson-id
 - title: Replace with lesson title
 - status: preparing
 - session_profile: standard
-- til_finalize_policy: auto-commit
+- flow_mode: day-full
 - study_date: YYYY-MM-DD
 - created_at: YYYY-MM-DDTHH:MM:SSZ
 - updated_at: YYYY-MM-DDTHH:MM:SSZ
 - author_id: replace-with-contract-author-id
-- draft_path: til/today.md
 - input_manifest_sha256: replace-with-64-lowercase-hex
 - contract_sha256: replace-with-64-lowercase-hex
 
@@ -119,6 +119,15 @@ Replace with one observable lesson objective.
 2. C02 | none | Second concept | source: materials/private/course/NN-NN_lesson.md#exact-location
 3. C03 | [보충] | Third concept | source: CURRICULUM.md#exact-location
 
+### Module Plan
+
+| Module ID | Topic | Concept IDs | Source locators | Application step | Expected minutes |
+| --- | --- | --- | --- | --- | ---: |
+| M01 | Why the first concept is needed | C01 | materials/private/course/NN-NN_lesson.md#exact-location | T002 | 15 |
+| M02 | Core mechanism and assumptions | C02 | materials/private/course/NN-NN_lesson.md#exact-location | T003 | 20 |
+| M03 | Failure boundary and correction | C02, C03 | materials/private/course/NN-NN_lesson.md#exact-location; CURRICULUM.md#exact-location | T004 | 15 |
+| M04 | Integrated transfer to the target | C01, C02, C03 | materials/private/course/NN-NN_lesson.md#exact-location; CURRICULUM.md#exact-location | T005 | 20 |
+
 ### Session Plan
 
 - session_goal: Connect the motivating problem, concept model, worked example, limitation, and one integrated transfer.
@@ -168,9 +177,9 @@ Replace with one observable lesson objective.
 - example_id: X002
 - delivery_outline: Work the core mechanism for O002 from inputs to result.
 - tiny_example: Replace with a tiny concrete example.
-- check_policy: none
-- check_basis: The worked trace exposes this outcome directly and no branch in the next explanation depends on a learner answer.
-- check_question: none
+- check_policy: adaptive
+- check_basis: if the learner applies the mechanism correctly -> continue to the limitation; else -> retrace the smallest failed step with a different fixture
+- check_question: Replace with one learner calculation, prediction, or trace.
 
 #### T004
 
@@ -254,29 +263,15 @@ Replace with one observable lesson objective.
 | T004 | pending | Awaiting teaching. |
 | T005 | pending | Awaiting teaching. |
 
-## Daily Learning Coverage
+## Session Concept Coverage
 
-| Concept ID | Today state | Evidence IDs | TIL representation | Note |
-| --- | --- | --- | --- | --- |
-| C01 | deferred | none | not-required | Update after this concept is taught. |
-| C02 | deferred | none | not-required | Update after this concept is taught. |
-| C03 | deferred | none | not-required | Update after this concept is taught. |
+| Concept ID | Session state | Evidence IDs | Note |
+| --- | --- | --- | --- |
+| C01 | deferred | none | Update after this concept is taught. |
+| C02 | deferred | none | Update after this concept is taught. |
+| C03 | deferred | none | Update after this concept is taught. |
 
 ## Learner Evidence
 
 > Add learner-evidence blocks only after the learner answers. Use the exact
 > block schema in `references/lesson-handoff.md`; do not pre-create evidence.
-
-## TIL Composition
-
-- mode: pending
-- state: pending
-- review: pending
-- composed_at: pending
-- draft_sha256: pending
-- dated_til_path: pending
-- commit_sha: pending
-
-| Item ID | Section | Evidence IDs | Representation | Content SHA-256 |
-| --- | --- | --- | --- | --- |
-| none | none | none | none | none |

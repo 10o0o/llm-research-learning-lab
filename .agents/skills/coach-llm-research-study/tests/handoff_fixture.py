@@ -103,6 +103,15 @@ Trace a tensor operation and explain its shape contract.
 2. C02 | none | Shape propagation | source: materials/lesson.md#shape-propagation
 3. C03 | [보충] | Attention connection | source: CURRICULUM.md#CC-DL-01
 
+### Module Plan
+
+| Module ID | Topic | Concept IDs | Source locators | Application step | Expected minutes |
+| --- | --- | --- | --- | --- | ---: |
+| M01 | 축의 의미와 이름 | C01 | materials/lesson.md#axes | T002 | 15 |
+| M02 | 브로드캐스트 shape 전파 | C02 | materials/lesson.md#shape-propagation | T003 | 20 |
+| M03 | 정렬 실패와 attention 축의 한계 | C02, C03 | materials/lesson.md#shape-propagation; CURRICULUM.md#CC-DL-01 | T004 | 10 |
+| M04 | 세 축을 결합한 전이 | C01, C02, C03 | materials/lesson.md#axes; materials/lesson.md#shape-propagation; CURRICULUM.md#CC-DL-01 | T005 | 20 |
+
 ### Session Plan
 
 - session_goal: Connect axis meaning, broadcast mechanics, a failure contrast, and one attention-shaped transfer.
@@ -214,9 +223,7 @@ def build_handoff(
     delivery: list[dict[str, str]] | None = None,
     step_delivery: list[dict[str, str]] | None = None,
     session_profile: str = "standard",
-    til_finalize_policy: str = "auto-commit",
-    composition: dict[str, str] | None = None,
-    til_items: list[dict[str, str]] | None = None,
+    flow_mode: str = "day-full",
 ) -> tuple[Path, dict[str, str]]:
     reviews = reviews or []
     if evidence is None and status == "completed":
@@ -340,6 +347,10 @@ def build_handoff(
             "C03": "O003",
             "C01, C02, C03": "O001, O002, O003",
         }
+        raw_capture_state = item.get("capture_state", item.get("append_state"))
+        if raw_capture_state == "drafted":
+            raw_capture_state = "captured"
+        capture_state = raw_capture_state or ("captured" if status == "completed" else "pending")
         evidence_text += f"""
 <!-- learner-evidence:{evidence_id}:start -->
 ### {evidence_id}
@@ -349,7 +360,7 @@ def build_handoff(
 - kind: {item.get("kind", "explain_back")}
 - provenance: {item.get("provenance", "learner")}
 - verdict: {item.get("verdict", "confirmed")}
-- append_state: {item.get("append_state", "pending")}
+- capture_state: {capture_state}
 - captured_at: 2026-08-20T01:30:0{index}Z
 - content_sha256: {content_hash}
 
@@ -387,18 +398,28 @@ def build_handoff(
             objective_concepts[cells[0]] = cells[5]
 
     if coverage is None:
-        coverage = [
-            {
-                "concept": concept,
-                "state": "uncertain" if any(objective_concepts[item] == concept for item in delivered_objectives) else "deferred",
-                "evidence_ids": "none",
-                "representation": "missing" if any(objective_concepts[item] == concept for item in delivered_objectives) else "not-required",
-                "note": "Taught but not demonstrated." if any(objective_concepts[item] == concept for item in delivered_objectives) else "Not taught yet.",
-            }
-            for concept in ("C01", "C02", "C03")
-        ]
+        if status == "completed":
+            coverage = [
+                {
+                    "concept": concept,
+                    "state": "confirmed",
+                    "evidence_ids": "E001",
+                    "note": "Confirmed by the integrated learner transfer.",
+                }
+                for concept in ("C01", "C02", "C03")
+            ]
+        else:
+            coverage = [
+                {
+                    "concept": concept,
+                    "state": "uncertain" if any(objective_concepts[item] == concept for item in delivered_objectives) else "deferred",
+                    "evidence_ids": "none",
+                    "note": "Taught but not demonstrated." if any(objective_concepts[item] == concept for item in delivered_objectives) else "Not taught yet.",
+                }
+                for concept in ("C01", "C02", "C03")
+            ]
     coverage_rows = "\n".join(
-        "| {concept} | {state} | {evidence_ids} | {representation} | {note} |".format(**row)
+        "| {concept} | {state} | {evidence_ids} | {note} |".format(**row)
         for row in coverage
     )
 
@@ -435,24 +456,6 @@ def build_handoff(
         next_action = "teach"
         target_objectives = ", ".join(step_objectives[current_step])
         resume_note = f"Teach {current_step} from its reviewed delivery outline."
-    composition = composition or {
-        "mode": "pending",
-        "state": "pending",
-        "review": "pending",
-        "composed_at": "pending",
-        "draft_sha256": "pending",
-        "dated_til_path": "pending",
-        "commit_sha": "pending",
-    }
-    til_items = til_items or []
-    til_item_rows = (
-        "\n".join(
-            "| {item_id} | {section} | {evidence_ids} | {representation} | {content_sha256} |".format(**row)
-            for row in til_items
-        )
-        if til_items
-        else "| none | none | none | none | none |"
-    )
     rows = "\n".join(f"| {item_id} | {role} | {path} | {digest} |" for item_id, role, path, digest in manifest_rows)
     text = f"""# Active Lesson Handoff
 
@@ -461,17 +464,17 @@ def build_handoff(
 
 ## Metadata
 
-- schema_version: 8
+- schema_version: 9
+- cycle_id: cycle-{lesson_id}
 - lesson_id: {lesson_id}
 - title: Tensor shape lesson
 - status: {status}
 - session_profile: {session_profile}
-- til_finalize_policy: {til_finalize_policy}
+- flow_mode: {flow_mode}
 - study_date: 2026-08-20
 - created_at: 2026-08-20T00:00:00Z
 - updated_at: 2026-08-20T01:30:00Z
 - author_id: contract-author
-- draft_path: til/today.md
 - input_manifest_sha256: {manifest_hash}
 - contract_sha256: {contract_hash}
 
@@ -509,28 +512,14 @@ def build_handoff(
 | --- | --- | --- |
 {step_delivery_rows}
 
-## Daily Learning Coverage
+## Session Concept Coverage
 
-| Concept ID | Today state | Evidence IDs | TIL representation | Note |
-| --- | --- | --- | --- | --- |
+| Concept ID | Session state | Evidence IDs | Note |
+| --- | --- | --- | --- |
 {coverage_rows}
 
 ## Learner Evidence
 {evidence_text}
-
-## TIL Composition
-
-- mode: {composition['mode']}
-- state: {composition['state']}
-- review: {composition['review']}
-- composed_at: {composition['composed_at']}
-- draft_sha256: {composition['draft_sha256']}
-- dated_til_path: {composition['dated_til_path']}
-- commit_sha: {composition['commit_sha']}
-
-| Item ID | Section | Evidence IDs | Representation | Content SHA-256 |
-| --- | --- | --- | --- | --- |
-{til_item_rows}
 """
     handoff = root / "tmp" / "active-lesson-handoff.md"
     handoff.parent.mkdir(parents=True, exist_ok=True)

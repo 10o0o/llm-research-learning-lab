@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass
 
 
 PRACTICE_ACTIONS = {
+    "SESSION_REPAIR_REQUIRED",
     "TIL_REPAIR_REQUIRED",
     "CONTINUE_EXISTING_PRACTICE",
     "CREATE_LOCAL_PRACTICE",
@@ -49,7 +50,9 @@ class PracticeDecision:
 def route_practice(
     profile: str,
     *,
-    til_ready: bool = True,
+    learning_input_kind: str = "finalized-til",
+    learning_input_ready: bool = True,
+    til_ready: bool | None = None,
     equivalent_evidence: bool = False,
     existing_direct_artifact: bool = False,
     existing_required_execution: bool = True,
@@ -59,11 +62,23 @@ def route_practice(
     external_item_verified_current: bool = False,
     external_item_valuable: bool = False,
 ) -> PracticeDecision:
-    if not til_ready:
+    if til_ready is not None:
+        learning_input_kind = "finalized-til"
+        learning_input_ready = til_ready
+    if learning_input_kind not in {"lesson-session", "finalized-til"}:
+        raise ValueError("learning_input_kind must be lesson-session or finalized-til")
+    if not learning_input_ready:
+        action = (
+            "SESSION_REPAIR_REQUIRED"
+            if learning_input_kind == "lesson-session"
+            else "TIL_REPAIR_REQUIRED"
+        )
         return PracticeDecision(
-            "TIL_REPAIR_REQUIRED",
+            action,
             "NONE",
-            "The exact finalized TIL is not ready.",
+            "The exact lesson session is not current."
+            if learning_input_kind == "lesson-session"
+            else "The exact finalized TIL is not ready.",
             False,
             "NONE",
         )
@@ -117,6 +132,12 @@ def route_practice(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("profile", choices=sorted(PROFILES))
+    parser.add_argument(
+        "--learning-input-kind",
+        choices=("lesson-session", "finalized-til"),
+        default="finalized-til",
+    )
+    parser.add_argument("--learning-input-not-ready", action="store_true")
     parser.add_argument("--til-not-ready", action="store_true")
     parser.add_argument("--equivalent-evidence", action="store_true")
     parser.add_argument("--existing-direct-artifact", action="store_true")
@@ -134,7 +155,10 @@ def main(argv: list[str] | None = None) -> int:
     try:
         decision = route_practice(
             args.profile,
-            til_ready=not args.til_not_ready,
+            learning_input_kind=args.learning_input_kind,
+            learning_input_ready=not (
+                args.learning_input_not_ready or args.til_not_ready
+            ),
             equivalent_evidence=args.equivalent_evidence,
             existing_direct_artifact=args.existing_direct_artifact,
             existing_required_execution=not args.existing_evidence_complete,

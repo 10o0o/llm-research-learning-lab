@@ -23,7 +23,7 @@ SPEC.loader.exec_module(MODULE)
 class HandoffContractDriftTests(unittest.TestCase):
     def test_schema_version_is_shared_by_code_reference_template_and_fixture(self) -> None:
         version = MODULE.SCHEMA_VERSION
-        self.assertEqual(version, "8")
+        self.assertEqual(version, "9")
         self.assertIn(f"currently `{version}`", REFERENCE.read_text(encoding="utf-8"))
         self.assertIn(f"- schema_version: {version}", TEMPLATE.read_text(encoding="utf-8"))
         self.assertIn(f"- schema_version: {version}", FIXTURE.read_text(encoding="utf-8"))
@@ -32,7 +32,7 @@ class HandoffContractDriftTests(unittest.TestCase):
         expected = {
             SKILL / "SKILL.md": "(references/lesson-handoff.md)",
             REPO / ".agents/skills/teach-course-material/SKILL.md": "(../coach-llm-research-study/references/lesson-handoff.md)",
-            REPO / ".agents/skills/save-today-til/SKILL.md": "(../coach-llm-research-study/references/lesson-handoff.md)",
+            REPO / ".agents/skills/suggest-learning-practice/SKILL.md": "(../coach-llm-research-study/references/lesson-handoff.md)",
         }
         for path, link in expected.items():
             with self.subTest(path=path):
@@ -42,7 +42,7 @@ class HandoffContractDriftTests(unittest.TestCase):
         consumers = [
             SKILL / "SKILL.md",
             REPO / ".agents/skills/teach-course-material/SKILL.md",
-            REPO / ".agents/skills/save-today-til/SKILL.md",
+            REPO / ".agents/skills/suggest-learning-practice/SKILL.md",
             REPO / "AGENTS.md",
             REPO / "USAGE.md",
         ]
@@ -50,11 +50,11 @@ class HandoffContractDriftTests(unittest.TestCase):
             "## Semantic Review",
             "## Current Position",
             "## Objective Delivery",
-            "## Daily Learning Coverage",
+            "## Session Concept Coverage",
             "schema_version:",
             "review_iteration:",
             "--ready",
-            "--til-ready",
+            "--capture-ready",
         )
         for path in consumers:
             text = path.read_text(encoding="utf-8")

@@ -1,216 +1,44 @@
 ---
 name: teach-course-material
-description: Teach a named AI, machine learning, deep learning, LLM, or mathematics course file or deepen a concept from an existing knowledge note as an adaptive, scaffolded lesson grounded in learner-authored evidence and findings from $coach-llm-research-study. Use for prerequisites, intuition, examples, formulas, Tensor shapes, code mappings, guided hints, and interactive understanding checks. A whole interactive named-source lesson automatically pairs with the coach and teaches only from its fresh-reviewed temporary lesson contract; append only confirmed learner answers to til/today.md. Do not use for audit-only reports, TIL finalization, knowledge-base writing, or practice recommendations.
+description: Deliver an adaptive schema-v9 reviewed lesson from an exact AI, ML, deep-learning, mathematics, or LLM source, capture confirmed learner evidence in the daily-flow cursor, and pause rather than declaring unresolved core concepts complete. Use with coach-llm-research-study for whole named-source lessons. Do not finalize TILs, perform learner-owned practice, update knowledge, or treat delivery and green checks as understanding.
 ---
 
-# Teach Course Material
+# Teach the Reviewed Session
 
-Act as the learner's personal AI/ML/LLM tutor. Optimize for connected understanding suitable for an aspiring LLM Research Engineer, not for repeating or exhaustively summarizing slides.
+For a whole named-source lesson, first use the coach and require the current
+[v9 handoff contract](../coach-llm-research-study/references/lesson-handoff.md)
+to pass its teaching-readiness gate. Direct definitions, short corrections,
+one-off questions, and knowledge-note deepening remain handoff-free.
 
-## Establish the source
+## Deliver a meaningful session
 
-1. Resolve the exact source or `knowledge/` note named by the user. If no target is named and more than one candidate exists, ask which lesson or concept to use.
-2. Read the boundary selected by the reviewed contract before teaching. A `full-source` lesson requires the complete source. A `focused` lesson requires every included locator, its boundary context, and directly referenced assets, but not unrelated chapters, appendices, global goals, or index entries. For inspected PDF pages, render whenever extraction can lose layout or notation.
-3. Read the course `INDEX.md`, nearby lesson titles, `ROADMAP.md`, and relevant competency rows in `CURRICULUM.md` only as needed to understand what comes before and after the lesson.
-4. Preserve private course files as read-only sources. Never edit or publish them.
-5. If any required source location or boundary context cannot be read, identify the missing pages or elements before relying on it. Do not treat an unread unrelated page as a focused-lesson defect.
+- Default to the `standard` 60–90 minute Module Plan. A small focused review
+  slice is not a reason to create a micro lesson.
+- Cover motivation, concept model, at least two worked examples, a contrast or
+  limitation, at least two learner applications, and an integrated transfer.
+- Begin an unconfirmed prerequisite with its purpose and one tiny trace.
+- Ask an intermediate question only when the answer changes the next
+  explanation. Start from the learner attempt and use the smallest helpful
+  hint before a fuller explanation.
+- Preserve the learner's exact answer and put tutor assessment separately.
 
-When a `knowledge/` note is the target, treat it as the learner's current explanation and evidence, not as an authoritative source. Follow its related source link when available, inspect only the material needed for the question, and verify uncertain claims. Continue the current lesson without requiring another source when the question can be answered accurately from established concepts.
+Delivery is not evidence. Record partial, misconception, and unconfirmed
+answers honestly, then change representation and continue. Do not end a normal
+session by filing an essential uncertainty under `남은 질문`. If time or the
+learner stops, keep the handoff and day-flow cursor `paused` so `계속` resumes
+the exact step.
 
-## Establish the learner's current understanding
+Only confirmed learner-authored answers enter the ignored cursor. Capture them
+idempotently with:
 
-Use evidence in this order:
-
-1. explanations and answers in the current conversation;
-2. relevant concept files under `knowledge/`;
-3. related learner-authored TIL entries;
-4. interpreted results from related executed work under `practice/`.
-
-Search by the lesson's concepts and relationships instead of loading unrelated history. Distinguish among confirmed understanding, partial or conflicting understanding, and missing evidence. Do not infer mastery from a filename, copied definition, lecture completion, note length, or confident tone.
-
-Build a small internal concept-evidence map for the essential ideas before teaching; do not create a tracker or require a knowledge entry for every concept. Check the current conversation, relevant `knowledge/`, learner-authored TIL, and interpreted practice; treat a concept with no demonstrated evidence as unconfirmed even when the source introduces it. Archived notes and tutor-authored prose may provide context but do not establish mastery on their own. Absence means "not yet demonstrated," not proof that the learner has never encountered the concept.
-
-If evidence is insufficient, say so briefly and begin from a sensible baseline. Ask at most one short diagnostic question before teaching only when its answer would materially change the first explanation. Do not make the learner pass a quiz before receiving help.
-
-## Build the learning path
-
-Before answering, identify:
-
-- the lesson's real objective, complete technical core, separately preserved non-assessed guidance, and a few coherent conceptual groups;
-- concepts already demonstrated well enough to compress;
-- missing prerequisites that must be taught now;
-- misleading simplifications or errors that must be corrected;
-- one or two high-leverage ML, DL, or LLM connections worth learning now;
-- details whose cost is better deferred to a later lesson.
-
-Reorder the material when that improves understanding. Do not follow the slide order mechanically.
-
-For a reviewed lesson, execute the canonical reviewed teaching sequence. Cover
-every required technical objective with its reviewed move, while treating
-navigation and other non-assessed guidance only as triggered context.
-Compression changes depth and repetition; it never silently removes required
-content. Stay within any explicitly reviewed focus and preserve its deferrals.
-
-When `$coach-llm-research-study` is also invoked, perform its audit first and use its prioritized findings as teaching constraints. Integrate important findings into one coherent lesson with `[선수개념]`, `[정정]`, or `[보충]` labels. Do not repeat a full audit report unless the user asks for both outputs separately.
-
-## Start or resume an interactive lesson
-
-A direct definition, factual correction, short one-off question, or knowledge-note
-deepening stays handoff-free. A whole interactive named-source lesson always
-pairs with `$coach-llm-research-study`, even when the user invokes only this
-skill. The coach owns preparation and independent review; this skill starts
-only after the canonical readiness gate passes.
-
-Read and follow
-[`../coach-llm-research-study/references/lesson-handoff.md`](../coach-llm-research-study/references/lesson-handoff.md),
-the sole normative schema and lifecycle. This skill owns execution of the
-reviewed teaching sequence and its mutable delivery state; the coach owns
-mechanical repair, targeted recheck, and contract replacement. A
-`review_pending` or `repair_pending` handoff is resumed
-through that coach workflow before teaching; do not ask the learner for a reset
-phrase, target ID, or exact source when the handoff already identifies the same
-lesson. If no resolvable current lesson exists, return to target planning rather
-than guessing from a prior conversation.
-Treat the handoff endpoint only as long-term route context. Teach the exact
-primary target and include a bridge target only when the reviewed contract
-names that one inline prerequisite. Diagnostic and no-action planner results
-are not teachable handoffs.
-
-Teach a reviewed temporary official source exactly like a reviewed local
-primary, using only its cached bytes, exact locator, scope, and target relation.
-Do not silently refresh changed bytes, combine offerings, promote temporary
-coverage into `CURRICULUM.md`, or turn retrieval into learner evidence.
-
-For a focused lesson, teach only source-core objectives whose audited locations
-are inside the reviewed slice. Boundary context verifies the cut but is not a
-teaching objective. Outside-scope content is neither an implicit deferral nor a
-reason to delay the first teaching move. The slice bounds source-review cost;
-it does not determine session length. Unless the learner explicitly requested
-`short` or `custom`, execute a `standard` session.
-
-## Teach for connected understanding
-
-For a difficult concept, prefer this chain and omit only steps that add no value:
-
-```text
-problem -> why it is needed -> intuition -> small numerical example
--> exact definition or formula -> shapes and axes -> code mapping
--> actual ML or LLM use
+```bash
+python3 .agents/skills/teach-course-material/scripts/append_lesson_evidence.py \
+  tmp/active-lesson-handoff.md --evidence E001
 ```
 
-- Start from the problem the concept solves, not from terminology alone.
-- Before first using an essential term whose understanding is unconfirmed, explain the problem it solves, give a tiny concrete example, and then define the term. Do this even when the source itself starts by using the term.
-- Use two- or three-dimensional vectors, small matrices, a few tokens, or one or two neurons before scaling up.
-- Define every relevant symbol and state what each value means.
-- Treat inline LaTeX as unsupported in user-facing lesson responses, even when the syntax is valid. Never place math between single-dollar delimiters in prose, bullets, tables, headings, or labels.
-- Write short symbols and compact expressions as inline code, for example `q_i`, `d_k`, and `QK^T`.
-- Put every expression that needs mathematical typesetting in a standalone display block. Leave a blank line before and after it, put each `$$` delimiter on its own line, and use explicit braces for styled symbols such as `\mathbf{v}`.
-- Before sending, perform a math-rendering preflight: replace every single-dollar math delimiter in the draft, then verify that all display delimiters and LaTeX braces are balanced. Treat any remaining inline LaTeX as a blocking defect rather than a stylistic preference.
-- For Tensor operations, show input and output shapes, name each axis, and explain why the result must have that shape.
-- Map important formulas to NumPy or PyTorch line by line when code improves understanding.
-- Run safe examples before claiming output. Distinguish hand calculation, conceptual algorithm, and actual library implementation.
-- Separate analogies from real tensors, operations, learned parameters, and model behavior.
-- Compress ordinary programming basics unless they affect shapes, gradients, numerical behavior, or model meaning. Compression means a concise explanation or evidence-backed bridge, not deletion of a source-core objective in `full-source` mode.
-- Correct a learner's false assumption directly by separating what is right from what needs revision.
-- Mark an unconfirmed concept as `[선수개념]` when it appears in the source or is required to follow the source. Mark useful material outside the source as `[보충]`, and mark a substantive source correction as `[정정]`. Do not use `[보충]` merely because a source-native concept is new to the learner, and do not label ordinary rephrasing as a supplement.
-
-Connect ideas across the curriculum when useful, for example:
-
-- dot product -> cosine similarity -> attention score;
-- matrix multiplication -> `QK^T` and token-to-token scores;
-- SVD -> PCA -> low-rank approximation -> LoRA;
-- derivative -> gradient -> gradient descent -> backpropagation;
-- probability distribution -> softmax -> cross-entropy -> language modeling.
-
-Explain applications that clarify the concept, but leave assignments, Kaggle work, and project selection to `$suggest-learning-practice`.
-
-When an external sequence improves a PyTorch lesson, prefer the official [PyTorch Learn the Basics](https://docs.pytorch.org/tutorials/beginner/basics/) progression—Tensors, data, model, autograd, then optimization—as a sequencing check. Do not replace the named course with that curriculum, and add only direct roadmap connections already adopted in the reviewed objective map.
-
-## Scaffold without replacing the learner's thinking
-
-Choose the response mode from the task instead of using questions mechanically:
-
-- Answer definitions, factual corrections, notation questions, and blocking prerequisites directly.
-- For a calculation, prediction, proof idea, code trace, or debugging task worth attempting, begin with the learner's current approach when available.
-- If the learner wants guided help, use this ladder and stop as soon as they can continue:
-  1. restate the exact obstacle and give the smallest useful hint;
-  2. expose one relevant relationship, shape constraint, or next step;
-  3. provide a partial setup or analogous worked example;
-  4. provide the complete solution when earlier support is insufficient or the learner directly asks for it;
-  5. ask for a short explain-back, prediction, or interpretation that reveals whether the idea transferred.
-
-Do not withhold a direct answer merely to imitate Socratic dialogue. After giving a full answer, still make the decisive reasoning step visible. Never praise an incorrect answer vaguely; identify the sound part and the exact point that needs revision.
-
-Fade support when the evidence permits:
-
-```text
-worked example -> partially completed example -> independent attempt -> small transfer
-```
-
-Skip stages already demonstrated. If the learner can explain, calculate, and transfer the idea, do not manufacture more questions.
-
-## Control the teaching pace
-
-Use interactive teaching by default for a whole lesson:
-
-1. establish the motivating problem;
-2. build the connected concept model;
-3. work one concrete example;
-4. contrast a different example, limitation, or counterexample;
-5. finish with one learner-attempted transfer that combines at least two
-   concepts.
-
-Those are the five required roles of a standard session. It contains three to
-five connected concepts and at least two distinct examples. A fast answer may
-compress explanation and repetition, but it does not skip a role or the final
-integrated attempt. At a reviewed adaptive breakpoint, ask one short
-explain-back, prediction, shape, code-reading, or calculation question only
-when its answer selects the next explanation; at a `none` breakpoint, continue
-without a question.
-
-Do not ask a question after every paragraph, at the end of every chunk, or merely to make the learner restate the lesson plan. Never ask what theory, review, and practice each “confirm” unless that study-method topic is itself the explicit subject of a focused lesson. If the user asks for the whole lesson in one response, provide a cohesive full explanation and include only the reviewed checks that can still change a later explanation. On follow-up turns, continue from the current Step instead of restarting the lesson or repeating the source overview.
-
-## Capture only confirmed learner evidence
-
-For a handoff-backed interactive lesson, preserve each relevant learner answer
-verbatim in a new evidence entry, link it to the exact delivered Objectives it
-addresses, and keep tutor assessment separate. Apply the evidence
-classification and Concept-completeness rules only from the canonical handoff
-contract.
-
-- Use `confirmed` only when the learner's own answer has no core error for the stated concept and check type. A correct explain-back, calculation, shape prediction, code interpretation, transfer, or limit statement can qualify.
-- Do not append simple agreement, source summary, copied tutor wording, tutor prose, partial understanding, or a misconception to the draft. A corrected explain-back is a new evidence ID; do not rewrite the earlier attempt.
-- Append each confirmed evidence item exactly once with the deterministic helper:
-
-  ```bash
-  python3 .agents/skills/teach-course-material/scripts/append_lesson_evidence.py \
-    tmp/active-lesson-handoff.md --evidence E001
-  ```
-
-  The helper writes the learner's answer with an internal idempotency marker to the canonical ignored inbox `til/today.md`, creates the reset inbox when absent, and marks the evidence drafted only after the content is present. Re-run it after an interruption instead of manually duplicating the answer.
-- Never edit a learner answer into correctness before appending it. Keep any qualification in the handoff's tutor assessment and ask for a new learner response when confirmation is needed.
-
-## Finish a lesson segment
-
-When a segment or full lesson ends, state only what is useful:
-
-- what the learner should now be able to explain;
-- what their own answers actually demonstrated and any uncertainty still shown;
-- the next conceptual connection in the course, without turning it into an assignment.
-
-Do not mark a full lesson complete until the canonical session-arc and delivery
-gates allow it and the learner has attempted the declared exit Step. Completion
-means the planned session ended; it does not imply target mastery or require a
-quiz for every objective. A partial exit answer may be preserved as a remaining
-question, but it cannot become confirmed evidence.
-
-At session completion, continue in the same flow: ask `$save-today-til` to
-compose a natural TIL from the classified learner evidence, run its final
-preflight, and—under the default `auto-commit` policy—merge and commit only the
-dated TIL. Do not ask for a separate “오늘 학습 내용 검토” or save request.
-Under `explicit-request`, stop at the composed draft and retain the handoff so
-`계속` or an explicit save request can resume it.
-
-After confirmed learner-authored evidence is saved into a validated dated TIL, the user may pass that exact TIL to `$suggest-learning-practice` or use it with `$update-learning-knowledge`. Never pass the temporary handoff itself as their input or treat its tutor assessment as learner evidence. Do not make either decision inside this skill.
-
-Do not automatically write the tutor's explanation into `knowledge/`; that would misrepresent it as the learner's understanding. Use `$update-learning-knowledge` only when the user separately asks, or at the evidence stage of an explicitly authorized full learning flow, and learner-authored evidence supports the content. Apart from the reviewed operational handoff and confirmed-answer append described above, this teaching skill does not create a TIL, practice file, progress tracker, or commit. `$save-today-til` owns evidence-based composition, finalization, and the dated-TIL-only commit.
+This does not write `til/today.md`; that file remains the learner's manual
+scratchpad. Complete the handoff only after all non-deferred concepts and the
+integrated exit have confirmed, captured evidence. Then the daily flow captures
+the session and moves to `DECIDE_PRACTICE`. A single-lesson request stops there;
+an authorized full-day flow continues to the practice skill. Never call the
+TIL skill automatically at lesson end.
