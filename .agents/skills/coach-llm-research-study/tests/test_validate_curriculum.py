@@ -328,6 +328,161 @@ class CurriculumValidatorTests(unittest.TestCase):
         changed = self.valid_text + "\n| 항목 | 점수 |\n|---|---|\n| 예시 | 1 |\n"
         self.assertIn("PROGRESS_FIELD", self.codes(self.validate_text(changed)))
 
+    def test_schema_v2_sequence_and_endpoint_contracts_are_exact(self) -> None:
+        snapshot = validator.curriculum_snapshot_from_text(self.valid_text)
+        self.assertIn("<!-- curriculum-schema: 2 -->", self.valid_text)
+        sequence = snapshot.targets["CC-SEQ-01"]
+        self.assertEqual("D2", sequence.depth)
+        self.assertEqual(("CC-DL-02",), sequence.prerequisites)
+        self.assertEqual(
+            ("explain", "calculate", "shape", "implement", "debug", "interpret", "transfer"),
+            sequence.required_evidence,
+        )
+        self.assertEqual("MOD-SEQUENCE-01", sequence.module_id)
+        self.assertEqual("MA-SEQUENCE-01", sequence.module_assignment_id)
+        self.assertEqual(
+            ("TR-SYS-03", "CC-RES-02"),
+            snapshot.targets["TR-SYS-04"].prerequisites,
+        )
+        self.assertEqual(
+            ("TR-MOD-03", "TR-EVAL-02", "CC-RES-03"),
+            snapshot.targets["TR-EVAL-05"].prerequisites,
+        )
+
+    def test_every_target_belongs_to_exactly_one_module(self) -> None:
+        changed = self.valid_text.replace(
+            "| MOD-SEQUENCE-01 | RNN·LSTM sequence modeling 연결 | CC-SEQ-01 |",
+            "| MOD-SEQUENCE-01 | RNN·LSTM sequence modeling 연결 | CC-SEQ-01, CC-DL-02 |",
+            1,
+        )
+        self.assertIn("TARGET_MODULE_DUPLICATE", self.codes(self.validate_text(changed)))
+
+        changed = self.valid_text.replace(
+            "| MOD-SEQUENCE-01 | RNN·LSTM sequence modeling 연결 | CC-SEQ-01 |",
+            "| MOD-SEQUENCE-01 | RNN·LSTM sequence modeling 연결 | CC-SEQ-99 |",
+            1,
+        )
+        codes = self.codes(self.validate_text(changed))
+        self.assertIn("MODULE_TARGET_MISSING", codes)
+        self.assertIn("TARGET_MODULE_MISSING", codes)
+
+    def test_catalog_provenance_is_not_registered_as_source_coverage(self) -> None:
+        for url in (
+            "https://cs231n.stanford.edu/assignments.html",
+            "https://web.stanford.edu/class/cs224n/",
+            "https://cs336.stanford.edu/",
+        ):
+            self.assertIn(url, self.valid_text)
+        catalog = self.valid_text.split("## 5. 정적 module·milestone catalog", 1)[1].split(
+            "## 6. 현재 강의자료 Registry", 1
+        )[0]
+        self.assertIn("영구 `SRC-*` registry나 target coverage로 계산하지 않는다", catalog)
+
+    def test_module_catalog_references_order_and_cycles_are_rejected(self) -> None:
+        changed = self.valid_text.replace(
+            "CC-DL-03, CC-DL-04, CC-DL-07 | — | MA-DL-FOUNDATION-01",
+            "CC-DL-03, CC-DL-04, CC-DL-07 | MOD-SEQUENCE-01 | MA-DL-FOUNDATION-01",
+            1,
+        )
+        codes = self.codes(self.validate_text(changed))
+        self.assertIn("MODULE_PREREQUISITE_ORDER", codes)
+        self.assertIn("MODULE_CYCLE", codes)
+
+        changed = self.valid_text.replace(
+            "| MOD-SEQUENCE-01 | RNN·LSTM sequence modeling 연결 | CC-SEQ-01 | MOD-DL-FOUNDATION-01 |",
+            "| MOD-SEQUENCE-01 | RNN·LSTM sequence modeling 연결 | CC-SEQ-01 | MOD-UNKNOWN-01 |",
+            1,
+        )
+        self.assertIn(
+            "MODULE_PREREQUISITE_MISSING", self.codes(self.validate_text(changed))
+        )
+
+    def test_milestone_layer_depth_references_order_and_cycles_are_rejected(self) -> None:
+        changed = self.valid_text.replace(
+            "| MA-SEQUENCE-01 | MODULE_ASSIGNMENT | MOD-SEQUENCE-01 | I4_EXPERIMENT | — |",
+            "| MA-SEQUENCE-01 | PRE_LAB | MOD-SEQUENCE-01 | I1_MECHANISM | — |",
+            1,
+        )
+        codes = self.codes(self.validate_text(changed))
+        self.assertIn("PRACTICE_LAYER", codes)
+        self.assertIn("IMPLEMENTATION_DEPTH_CONTRACT", codes)
+
+        changed = self.valid_text.replace(
+            "| MA-DL-FOUNDATION-01 | MODULE_ASSIGNMENT | MOD-DL-FOUNDATION-01 | I3_WORKFLOW | — |",
+            "| MA-DL-FOUNDATION-01 | MODULE_ASSIGNMENT | MOD-DL-FOUNDATION-01 | I3_WORKFLOW | MA-SEQUENCE-01 |",
+            1,
+        ).replace(
+            "| MA-SEQUENCE-01 | MODULE_ASSIGNMENT | MOD-SEQUENCE-01 | I4_EXPERIMENT | — |",
+            "| MA-SEQUENCE-01 | MODULE_ASSIGNMENT | MOD-SEQUENCE-01 | I4_EXPERIMENT | MA-DL-FOUNDATION-01 |",
+            1,
+        )
+        codes = self.codes(self.validate_text(changed))
+        self.assertIn("MILESTONE_PREREQUISITE_ORDER", codes)
+        self.assertIn("MILESTONE_CYCLE", codes)
+
+        changed = self.valid_text.replace(
+            "| MA-LM-01 | MODULE_ASSIGNMENT | MOD-LM-01 | I3_WORKFLOW | MA-SEQUENCE-01 |",
+            "| MA-LM-01 | MODULE_ASSIGNMENT | MOD-LM-01 | I3_WORKFLOW | MA-UNKNOWN-01 |",
+            1,
+        )
+        self.assertIn(
+            "MILESTONE_PREREQUISITE_MISSING", self.codes(self.validate_text(changed))
+        )
+
+        lines = self.valid_text.splitlines()
+        posttrain_index = next(
+            index for index, line in enumerate(lines) if line.startswith("| MA-POSTTRAIN-01 |")
+        )
+        evaluation_index = next(
+            index for index, line in enumerate(lines) if line.startswith("| MA-EVALUATION-01 |")
+        )
+        lines[posttrain_index], lines[evaluation_index] = (
+            lines[evaluation_index],
+            lines[posttrain_index],
+        )
+        self.assertIn(
+            "MILESTONE_ORDER", self.codes(self.validate_text("\n".join(lines) + "\n"))
+        )
+
+    def test_phase_capstones_require_i5_and_exact_endpoint_closure(self) -> None:
+        changed = self.valid_text.replace(
+            "| PC-DL-FOUNDATION-01 | PHASE_CAPSTONE | MOD-DL-FOUNDATION-01, MOD-SEQUENCE-01 | I5_RESEARCH |",
+            "| PC-DL-FOUNDATION-01 | PHASE_CAPSTONE | MOD-DL-FOUNDATION-01, MOD-SEQUENCE-01 | I4_EXPERIMENT |",
+            1,
+        )
+        codes = self.codes(self.validate_text(changed))
+        self.assertIn("IMPLEMENTATION_DEPTH_MINIMUM", codes)
+        self.assertIn("IMPLEMENTATION_DEPTH_CONTRACT", codes)
+
+        changed = self.valid_text.replace(
+            "| TR-SYS-03, TR-SYS-04 | serving 연구 질문의",
+            "| TR-SYS-03 | serving 연구 질문의",
+            1,
+        )
+        codes = self.codes(self.validate_text(changed))
+        self.assertIn("ENDPOINT_CLOSURE_MISSING", codes)
+        self.assertIn("PHASE_ENDPOINT_CONTRACT", codes)
+        self.assertIn("ROADMAP_ENDPOINT_CLOSURE", codes)
+
+    def test_sequence_prerequisite_and_source_boundaries_are_rejected_on_drift(self) -> None:
+        changed = self.valid_text.replace(
+            "| CC-SEQ-01 | recurrence·parameter sharing을 unroll하고 gradient 전달 한계를 진단하며, LSTM gate와 `h_t`·`c_t`의 tensor/state shape를 추적해 직접 `nn.Module`·`forward`로 구현하고 실제 sequence task에서 RNN·LSTM·baseline을 동일 조건으로 학습·평가·비교한다. | D2 | CC-DL-02 |",
+            "| CC-SEQ-01 | recurrence·parameter sharing을 unroll하고 gradient 전달 한계를 진단하며, LSTM gate와 `h_t`·`c_t`의 tensor/state shape를 추적해 직접 `nn.Module`·`forward`로 구현하고 실제 sequence task에서 RNN·LSTM·baseline을 동일 조건으로 학습·평가·비교한다. | D2 | CC-PROB-01 |",
+            1,
+        )
+        self.assertIn(
+            "TARGET_PREREQUISITE_CONTRACT", self.codes(self.validate_text(changed))
+        )
+
+        changed = self.valid_text.replace(
+            "| — | 없음 | 별도 자료 확보 | 언어모델과 Transformer 전에 완료해야 하는 필수 연결 역량이다.",
+            "| context:SRC-KBM-06-02 | 없음 | 별도 자료 확보 | 언어모델과 Transformer 전에 완료해야 하는 필수 연결 역량이다.",
+            1,
+        )
+        self.assertIn(
+            "SEQUENCE_SOURCE_BOUNDARY", self.codes(self.validate_text(changed))
+        )
+
     def test_registry_accepts_a_data_driven_source_catalog(self) -> None:
         source = validator.Source(
             identifier="SRC-HARV-STAT110-2E-00-01",

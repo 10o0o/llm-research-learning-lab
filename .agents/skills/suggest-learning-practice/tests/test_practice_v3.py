@@ -103,10 +103,16 @@ def test_v2_to_v3_migration_preserves_every_cell_field() -> None:
 
 
 def test_mode_router_follows_outcome_semantics() -> None:
-    assert route_practice("math-tensor-mechanism").practice_mode == "NOTEBOOK"
-    assert route_practice("inference-performance").practice_mode == "BENCHMARK"
-    assert route_practice("evaluation-data").practice_mode == "DATASET_PROJECT"
-    local_fallback = route_practice("short-algorithm-api")
+    assert route_practice(
+        "math-tensor-mechanism", prelab_required=True
+    ).practice_mode == "NOTEBOOK"
+    assert route_practice(
+        "inference-performance", prelab_required=True
+    ).practice_mode == "BENCHMARK"
+    assert route_practice(
+        "evaluation-data", prelab_required=True
+    ).practice_mode == "DATASET_PROJECT"
+    local_fallback = route_practice("short-algorithm-api", prelab_required=True)
     assert (local_fallback.practice_action, local_fallback.practice_mode) == (
         "CREATE_LOCAL_PRACTICE",
         "NOTEBOOK",
@@ -131,6 +137,7 @@ def test_mode_router_follows_outcome_semantics() -> None:
         "short-algorithm-api",
         external_item_verified_current=True,
         external_item_valuable=False,
+        prelab_required=True,
     )
     assert (unhelpful.practice_action, unhelpful.practice_mode) == (
         "CREATE_LOCAL_PRACTICE",
@@ -143,7 +150,9 @@ def test_mode_router_follows_outcome_semantics() -> None:
 
 def test_mode_router_reuses_only_a_direct_valuable_unblocked_artifact() -> None:
     reusable = route_practice(
-        "inference-performance", existing_direct_artifact=True
+        "inference-performance",
+        existing_direct_artifact=True,
+        prelab_required=True,
     )
     assert reusable.practice_action == "CONTINUE_EXISTING_PRACTICE"
     for excluded in (
@@ -155,6 +164,7 @@ def test_mode_router_reuses_only_a_direct_valuable_unblocked_artifact() -> None:
         decision = route_practice(
             "inference-performance",
             existing_direct_artifact=True,
+            prelab_required=True,
             **excluded,
         )
         assert (decision.practice_action, decision.practice_mode) == (

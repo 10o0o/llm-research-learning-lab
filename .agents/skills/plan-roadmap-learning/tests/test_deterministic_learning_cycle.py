@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import hashlib
 import shutil
 import subprocess
 import sys
@@ -34,10 +33,15 @@ from daily_learning_flow import (  # noqa: E402
 )
 from route_practice import route_practice  # noqa: E402
 import test_validate_practice_artifact as practice_fixture  # noqa: E402
+from test_practice_v5 import (  # noqa: E402
+    WORKFLOW_CONTRACT,
+    _install_workflow_surface,
+    _set_pass_review,
+)
 from validate_curriculum import curriculum_snapshot_from_text  # noqa: E402
 from validate_lesson_handoff import validate_handoff  # noqa: E402
 from validate_practice_artifact import validate as validate_practice  # noqa: E402
-from validate_practice_notebook import _canonical_hash  # noqa: E402
+from validate_practice_notebook import _milestone_definition_hash  # noqa: E402
 
 
 OFFICIAL_URL = "https://docs.example.edu/evaluation/lesson"
@@ -98,6 +102,13 @@ def _external_contract(cache_path: str, receipt_path: str) -> str:
     contract = CONTRACT
     replacements = {
         "Trace a tensor operation and explain its shape contract.": "Design one comparable evaluation and explain its data and metric contract.",
+        "target_evidence_requirements: explain": "target_evidence_requirements: explain, implement, interpret, design, transfer",
+        "target_evidence_basis: CURRICULUM.md requires an explain-back for CC-DL-01.": "target_evidence_basis: CURRICULUM.md requires explain, implement, interpret, design, and transfer evidence for CC-EVAL-01.",
+        "target_evidence_gap: explain": "target_evidence_gap: explain, implement, interpret, design, transfer",
+        "lesson_evidence_scope: explain": "lesson_evidence_scope: explain, interpret, design, transfer",
+        "lesson_scope_basis: This reviewed session directly assesses the missing explain-back.": "lesson_scope_basis: This reviewed session assesses evaluation reasoning and transfer; implementation remains learner-owned practice.",
+        "residual_target_evidence: none": "residual_target_evidence: implement",
+        "residual_practice_basis: No target-level evidence is left outside this lesson; later practice may deepen implementation without backfilling session evidence.": "residual_practice_basis: A learner-owned evaluation workflow must implement the dataset, metric, and error-analysis path after the lesson.",
         "Identify the batch and feature axes.": "Define the evaluation question and one dataset slice.",
         "Predict the output shape of a broadcast operation.": "Choose one metric and classify one failure.",
         "Review the course map only when it affects the current path.": "Review the evaluation report only when it affects the current decision.",
@@ -361,6 +372,10 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
         "evaluation-data",
         learning_input_kind="lesson-session",
         learning_input_ready=True,
+        module_assignment_id="MA-EVALUATION-01",
+        module_assignment_ready=True,
+        module_assignment_depth="I4_EXPERIMENT",
+        repo_root=tmp_path,
     )
     assert (
         practice_decision.practice_action,
@@ -370,46 +385,75 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
     notebook = practice_fixture.PracticeArtifactValidatorTests().build_notebook(tmp_path)
     payload = json.loads(notebook.read_text(encoding="utf-8"))
     metadata = payload["metadata"]["llm_research_lab"]["practice"]
-    metadata["schema_version"] = 4
-    metadata.pop("til")
-    document = completed.document
+    _install_workflow_surface(payload)
+    captured_session = cycle["captured_session"]
+    cursor_path = tmp_path / "tmp/active-learning-flow.json"
+    cursor_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
     confirmed_concepts = [
-        concept_id
-        for concept_id, coverage in document.learning_coverage.items()
-        if coverage.today_state == "confirmed"
+        item["concept_id"] for item in captured_session["concepts"]
     ]
-    concept_projection = [
+    evidence_ids = [
+        item["evidence_id"] for item in captured_session["learner_evidence"]
+    ]
+    metadata.update(
         {
-            "concept_id": concept_id,
-            "objective_ids": [
-                objective.objective_id
-                for objective in document.objectives.values()
-                if objective.concept_id == concept_id and objective.treatment != "deferred"
+            "schema_version": 5,
+            "practice_mode": practice_decision.practice_mode,
+            "practice_layer": practice_decision.practice_layer,
+            "implementation_depth": practice_decision.implementation_depth,
+            "lifecycle": "fresh",
+            "milestone_id": practice_decision.milestone_id,
+            "milestone_definition_sha256": _milestone_definition_hash(
+                tmp_path,
+                practice_decision.milestone_id,
+            ),
+            "learning_inputs": [
+                {
+                    "id": "L001",
+                    "role": "primary",
+                    "kind": "captured-cycle",
+                    "cycle_id": captured_session["cycle_id"],
+                    "lesson_id": captured_session["lesson_id"],
+                    "primary_target": captured_session["primary_target"],
+                    "bridge_target": captured_session["bridge_target"],
+                    "concept_ids": confirmed_concepts,
+                    "evidence_ids": evidence_ids,
+                    "captured_session_sha256": captured_session[
+                        "projection_sha256"
+                    ],
+                }
             ],
-            "evidence_ids": list(document.learning_coverage[concept_id].evidence_ids),
+            "prior_practice_evidence": [],
+            "creation_reviews": [],
+            "result_cell_ids": ["e04-fixture", "e05-fixture"],
+            "workflow_contract": {
+                **WORKFLOW_CONTRACT,
+                "stage_cell_ids": {
+                    "data": [
+                        "e01-implementation",
+                        "e01-fixture",
+                        "e01-check",
+                    ],
+                    "model": ["e02-implementation", "e02-fixture"],
+                    "loss": ["e03-implementation", "e03-fixture"],
+                    "train": ["e04-implementation", "e04-fixture"],
+                    "evaluation": [
+                        "e05-implementation",
+                        "e05-fixture",
+                        "e05-check",
+                    ],
+                },
+            },
         }
-        for concept_id in confirmed_concepts
-    ]
-    evidence_ids = [item["evidence_id"] for item in cycle["learner_evidence"]]
-    metadata["learning_input"] = {
-        "kind": "lesson-session",
-        "cycle_id": cycle["cycle_id"],
-        "lesson_id": cycle["lesson_id"],
-        "handoff_path": "tmp/active-lesson-handoff.md",
-        "handoff_sha256": hashlib.sha256(handoff.read_bytes()).hexdigest(),
-        "primary_target": primary_target,
-        "bridge_target": None,
-        "concept_ids": confirmed_concepts,
-        "evidence_ids": evidence_ids,
-        "concept_sha256": _canonical_hash(concept_projection),
-        "learner_evidence_sha256": cycle["learner_evidence_sha256"],
-    }
-    metadata["outcomes"][0].pop("til_location")
-    metadata["outcomes"][0]["concept_ids"] = confirmed_concepts
-    metadata["outcomes"][0]["evidence_ids"] = evidence_ids
-    metadata["practice_mode"] = practice_decision.practice_mode
+    )
+    metadata.pop("til")
+    for outcome in metadata["outcomes"]:
+        outcome.pop("til_location")
+        outcome["concept_ids"] = [f"L001:{item}" for item in confirmed_concepts]
+        outcome["evidence_ids"] = [f"L001:{item}" for item in evidence_ids]
     metadata["curriculum_targets"] = [primary_target]
-    metadata["outcomes"][0]["curriculum_target_ids"] = [primary_target]
+    for outcome in metadata["outcomes"]:
+        outcome["curriculum_target_ids"] = [primary_target]
     metadata["sources"] = [
         {
             "id": "S001",
@@ -428,14 +472,39 @@ def test_mocked_cycle_preserves_the_selected_frontier_across_every_artifact(
             "receipt_path": receipt["receipt_path"],
         }
     ]
-    source_location = metadata["requirements"][0]["source_locations"][0]
-    source_location["locator"] = (
-        "text: Define the evaluation question and one dataset slice."
+    source_claim = (
+        "Define the evaluation question and one dataset slice before "
+        "interpreting the held-out result."
     )
-    source_location["anchor"] = (
-        "Define the evaluation question and one dataset slice."
+    source_requirement = next(
+        requirement
+        for requirement in metadata["requirements"]
+        if requirement["id"] == "C-E05-02"
     )
+    source_requirement["kind"] = "source-given"
+    source_requirement["claim"] = source_claim
+    source_requirement["source_locations"] = [
+        {
+            "source_id": "S001",
+            "locator": "text: Define the evaluation question and one dataset slice.",
+            "anchor": "Define the evaluation question and one dataset slice.",
+        }
+    ]
+    evaluation_brief = next(
+        cell for cell in payload["cells"] if cell.get("id") == "e05-brief"
+    )
+    evaluation_brief["source"] = "".join(evaluation_brief["source"]).replace(
+        "<details><summary>힌트 1</summary>",
+        f"- {source_claim}\n\n<details><summary>힌트 1</summary>",
+        1,
+    ).splitlines(keepends=True)
+    _set_pass_review(payload, reviewer="cycle-practice-reviewer")
     notebook.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    assert (
+        metadata["practice_layer"],
+        metadata["implementation_depth"],
+        metadata["milestone_id"],
+    ) == ("MODULE_ASSIGNMENT", "I4_EXPERIMENT", "MA-EVALUATION-01")
     assert validate_practice(
         notebook,
         repo_root=tmp_path,

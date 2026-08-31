@@ -20,9 +20,11 @@
 1. 실제 다음 target과 자료를 정합니다.
 2. 선택한 source slice를 검토하고 60~90분 표준 수업을 구성합니다.
 3. 대화형으로 배우고 학습자의 확인된 답변을 cursor에 보존합니다.
-4. target에 맞는 실습을 정합니다.
-5. 학습자가 직접 구현·실행·해석합니다.
-6. 확인된 session·practice 근거로 knowledge를 0~3개 갱신합니다.
+4. target에 맞는 실습 또는 exact milestone deferral을 정합니다.
+5. 실습이면 학습자가 직접 구현·실행·해석하고, 확인된 근거로 knowledge를
+   0~3개 갱신합니다.
+6. deferral이면 cycle을 `milestone-pending`으로 보존하고 실습·knowledge를
+   완료로 꾸미지 않은 채 다음 target으로 이동합니다.
 7. 다음 target을 계산하고 다음 reviewed lesson의 첫 teaching move를
    준비합니다.
 
@@ -53,7 +55,7 @@ knowledge의 path-limited commit이 포함됩니다. 다음은 포함되지 않�
 | `SELECT_TARGET` | 다음 primary target 결정 |
 | `PREPARE_LESSON` | source 해결, handoff 작성·독립 검토·repair |
 | `TEACH` | 현재 teaching step에서 수업 재개 |
-| `DECIDE_PRACTICE` | practice action과 modality 결정 |
+| `DECIDE_PRACTICE` | practice action·modality·progression layer 결정 |
 | `AWAIT_PRACTICE` | exact Notebook 또는 challenge 시도 재개 |
 | `UPDATE_KNOWLEDGE` | terminal practice 근거로 knowledge 갱신 |
 | `PLAN_NEXT` | 다음 target 계산 |
@@ -108,6 +110,9 @@ Read-only planner만 사용합니다. 파일을 수정하거나 수업·캐시·
 `tmp/active-learning-flow.json`은 원자적으로 갱신되는 단일 ignored
 cursor입니다. 날짜, 승인 모드, phase, exact handoff/practice, cycle별
 confirmed learner evidence와 hash, exact learning commit만 보존합니다.
+명시적으로 다시 시작한 cycle은 `superseded`로 보존되고, 여러 수업의
+근거를 누적하는 cycle은 `milestone-pending`으로 남을 수 있습니다. 둘 다
+완료나 mastery로 계산되지 않습니다.
 별도 snapshot, 진행률, mastery DB가 아닙니다.
 
 | 파일 | 역할 |
@@ -147,7 +152,7 @@ provider, course, offering/edition, artifact, official URL, exact scope로
 식별합니다.
 
 [`coach-llm-research-study`](./.agents/skills/coach-llm-research-study/SKILL.md)
-는 schema-v9 handoff를 준비하고 독립 검토합니다. Focused review는
+는 schema-v10 handoff를 준비하고 독립 검토합니다. Focused review는
 선택한 topic/section/example-family unit, 그 boundary unit, 직접 asset과
 관련 registry 행에만 비례합니다. 각 unit의 source-anchor는 경계 확인용이며
 책 전체를 매번 다시 감사하지 않습니다.
@@ -156,14 +161,18 @@ Review slice는 수업 길이가 아닙니다. 기본 `standard` session은 다�
 요구합니다.
 
 - 실질적으로 다른 연결 module 3~5개
+- 이 module들이 묶는 연결 concept path 3~5개
 - 60~90분 예상 시간
 - 서로 다른 worked example 최소 2개
-- 학습자 적용 최소 2회
+- module마다 하나의 closing application, 평가 checkpoint는 최대 한 번
 - 성립 조건과 반례·한계
-- 둘 이상의 개념을 결합하는 마지막 전이
+- 모든 비보류 핵심 개념을 새 task/code 문맥에서 결합하는 마지막 전이
+- 구현·디버깅 D2 target의 실제 class/API/`forward`/data-flow walkthrough
 
-`짧게 하자`라는 명시적 요청 또는 legacy 복구일 때만 `short`를
-사용합니다.
+`짧게 하자`라는 명시적 시간·형식 요청이 있을 때만 `short`를
+사용합니다. `압축`, `빠르게`, `따라잡기`만으로는 standard arc를 줄이지
+않습니다. 설명하지 않은 개념을 먼저 평가하지 않으며, 한 module을
+목적·설명·worked trace/code walk·적용까지 이어서 진행합니다.
 
 ### 3. 대화형 수업과 evidence
 
@@ -183,8 +192,10 @@ Curriculum mastery가 아닙니다.
 ### 4. Practice modality
 
 [`suggest-learning-practice`](./.agents/skills/suggest-learning-practice/SKILL.md)
-는 completed schema-v9 session 또는 exact finalized TIL 중 하나를
-입력으로 받습니다.
+는 completed schema-v10 captured session 또는 exact finalized TIL을 새
+실습 입력으로 받습니다. Cursor의 schema-v9 legacy capture는 기존 v4
+Notebook을 `PRE_LAB / I1_MECHANISM / preserved_attempt`로 보존 분류하는
+migration에서만 쓸 수 있고, fresh milestone artifact로 승격할 수 없습니다.
 
 | 학습 성과 | 기본 modality |
 |---|---|
@@ -194,11 +205,25 @@ Curriculum mastery가 아닙니다.
 | 짧은 algorithm/API | `EXTERNAL_CHALLENGE` |
 | 실제 가치가 검증된 data competition | `EXTERNAL_COMPETITION` |
 
-모든 새 local artifact는 metadata-v4
-`practice/<area>/<topic>.ipynb` 하나입니다. Session input은 exact cycle,
-handoff hash, target, concept/evidence ID와 canonical hash를 보존합니다.
-Historical/manual 학습은 exact finalized TIL 경로·hash를 계속 사용할 수
-있습니다. 기존 metadata-v3 Notebook은 migration 없이 검증됩니다.
+실습은 다음 세 층으로 구분됩니다. 이 중 `PRE_LAB`은 누적 milestone
+credit이 아니라 다음 구현을 막는 blocker를 푸는 보조 층입니다.
+
+| 층 | 쓰는 때 | 최소 수행 경계 |
+|---|---|---|
+| `PRE_LAB` | 다음 구현을 막는 작은 mechanism 공백 | 계산·shape·단일 연산 |
+| `MODULE_ASSIGNMENT` | 한 module을 실제로 사용할 준비가 됐을 때 | component와 data→model→loss→train/eval |
+| `PHASE_CAPSTONE` | 여러 module assignment를 연결할 때 | baseline·통제 비교/ablation·error analysis·재현·한계 |
+
+아직 assignment 경계가 준비되지 않았으면 `DEFER_TO_MILESTONE`으로
+누적하며 `NO_EXTRA_PRACTICE`로 위장하지 않습니다.
+
+모든 새 local artifact는 metadata-v5
+`practice/<area>/<topic>.ipynb` 하나입니다. Session input은 live handoff를
+재해석하지 않고 cursor의 immutable captured-cycle projection과 hash를
+보존합니다. Historical/manual 학습은 exact finalized TIL 경로·hash를
+계속 사용할 수 있습니다. 기존 metadata-v3/v4 Notebook은
+`legacy-unclassified`로 검증되지만 milestone credit은 자동으로 받지
+않습니다.
 
 Notebook에는 자연어 명세, learner-owned TODO, deterministic fixture,
 `check_e##()`, required reflection이 인접합니다. 생성본은 실행·커밋하지

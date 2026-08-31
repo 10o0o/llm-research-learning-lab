@@ -28,13 +28,19 @@ def test_roadmap_endpoints_resolve_and_have_valid_closures() -> None:
         (1, "1B", "TR-SYS-04"),
         (2, "2A", "TR-MOD-03"),
         (2, "2B", "TR-EVAL-02"),
-        (2, "2C", "TR-EVAL-04"),
+        (2, "2C", "TR-EVAL-05"),
     ]
     assert report["targets"]["TR-SYS-03"]["prerequisites"] == ["CC-SYS-03"]
     assert "CC-DL-01" in report["targets"]["TR-SYS-03"]["prerequisite_closure"]
     assert report["targets"]["TR-SYS-03"]["required_evidence"] == [
         "calculate", "implement", "debug", "interpret", "design", "transfer"
     ]
+    assert report["routes"]["TR-EVAL-05"]["closing_milestone_id"] == (
+        "PC-POSTTRAIN-EVALUATION-01"
+    )
+    assert report["routes"]["TR-SYS-04"]["closing_milestone_id"] == (
+        "PC-SYSTEMS-INFERENCE-01"
+    )
 
 
 def test_route_edges_downstream_counts_and_endpoint_membership_are_static() -> None:
@@ -42,8 +48,18 @@ def test_route_edges_downstream_counts_and_endpoint_membership_are_static() -> N
     route = report["routes"]["TR-SYS-04"]
     assert route["route_nodes"][-1] == "TR-SYS-04"
     assert {"prerequisite": "TR-SYS-03", "target": "TR-SYS-04"} in route["edges"]
+    assert {"prerequisite": "CC-RES-02", "target": "TR-SYS-04"} in route["edges"]
+    assert "TR-SYS-02" not in route["route_nodes"]
     assert route["downstream_count"]["TR-SYS-03"] == 1
     assert route["downstream_count"]["TR-SYS-04"] == 0
+    assert route["module_ids"] == [
+        "MOD-DL-FOUNDATION-01",
+        "MOD-SEQUENCE-01",
+        "MOD-LM-01",
+        "MOD-TRANSFORMER-01",
+        "MOD-SYSTEMS-INFERENCE-01",
+        "MOD-EVALUATION-01",
+    ]
     assert report["endpoint_membership"]["TR-SYS-03"] == [
         "TR-SYS-03",
         "TR-SYS-04",
@@ -96,6 +112,27 @@ def test_snapshot_exposes_planner_fields_and_direct_source_state() -> None:
         "explain", "calculate", "implement", "interpret"
     ]
     assert target["direct_source_ids"] == ["SRC-HARV-STAT110-2E-00-01"]
+    assert target["module_id"] == "MOD-DL-FOUNDATION-01"
+    assert target["module_assignment_id"] == "MA-DL-FOUNDATION-01"
+
+
+def test_sequence_target_and_catalog_are_exposed_without_progress_state() -> None:
+    report = graph.inspect_target_graph(
+        REPO / "ROADMAP.md", REPO / "CURRICULUM.md", ["CC-SEQ-01"]
+    )
+    target = report["targets"]["CC-SEQ-01"]
+    assert target["prerequisites"] == ["CC-DL-02"]
+    assert target["required_evidence"] == [
+        "explain", "calculate", "shape", "implement", "debug", "interpret", "transfer"
+    ]
+    assert target["module_id"] == "MOD-SEQUENCE-01"
+    assert target["module_assignment_id"] == "MA-SEQUENCE-01"
+    assignment = report["milestones"]["MA-SEQUENCE-01"]
+    assert assignment["practice_layer"] == "MODULE_ASSIGNMENT"
+    assert assignment["implementation_depth"] == "I4_EXPERIMENT"
+    assert assignment["prerequisites"] == []
+    assert "status" not in assignment
+    assert "mastery" not in assignment
 
 
 def test_json_cli_can_inspect_one_target() -> None:

@@ -59,8 +59,26 @@ def inspect_target_graph(
     )
     endpoints = parse_roadmap_endpoints(roadmap_path.read_text(encoding="utf-8"))
     endpoint_ids = [row["target_id"] for row in endpoints]
+    target_modules = {
+        target_id: target.module_id
+        for target_id, target in snapshot.targets.items()
+        if target.module_id is not None
+    }
+    endpoint_milestones = {
+        endpoint_id: milestone_id
+        for milestone_id, milestone in snapshot.milestones.items()
+        for endpoint_id in milestone.endpoint_ids
+    }
     routes, endpoint_membership = build_endpoint_graph(
-        endpoints, snapshot.targets, target_states
+        endpoints,
+        snapshot.targets,
+        target_states,
+        target_modules=target_modules,
+        module_order={
+            module_id: index
+            for index, module_id in enumerate(snapshot.modules)
+        },
+        endpoint_milestones=endpoint_milestones,
     )
 
     selected_ids = requested_targets or endpoint_ids
@@ -81,6 +99,8 @@ def inspect_target_graph(
             "direct_source_ids": list(target.direct_source_ids),
             "direct_source_paths": sorted(target.direct_source_paths),
             "curriculum_line": target.line,
+            "module_id": target.module_id,
+            "module_assignment_id": target.module_assignment_id,
         }
 
     return {
@@ -90,6 +110,27 @@ def inspect_target_graph(
         "routes": routes,
         "endpoint_membership": endpoint_membership,
         "targets": target_details,
+        "modules": {
+            module_id: {
+                "target_ids": list(module.target_ids),
+                "prerequisites": list(module.prerequisites),
+                "assignment_id": module.assignment_id,
+                "optionality": module.optionality,
+                "curriculum_line": module.line,
+            }
+            for module_id, module in snapshot.modules.items()
+        },
+        "milestones": {
+            milestone_id: {
+                "practice_layer": milestone.practice_layer,
+                "module_ids": list(milestone.module_ids),
+                "implementation_depth": milestone.implementation_depth,
+                "prerequisites": list(milestone.prerequisites),
+                "endpoint_ids": list(milestone.endpoint_ids),
+                "curriculum_line": milestone.line,
+            }
+            for milestone_id, milestone in snapshot.milestones.items()
+        },
     }
 
 
@@ -107,6 +148,7 @@ def render_text(report: dict[str, Any]) -> str:
                 f"  prerequisites: {', '.join(target['prerequisites']) or 'none'}",
                 f"  closure: {', '.join(target['prerequisite_closure']) or 'none'}",
                 f"  required evidence: {', '.join(target['required_evidence'])}",
+                f"  module: {target['module_id']} ({target['module_assignment_id']})",
                 f"  source state: coverage={target['coverage']}; gap={target['gap_action']}",
                 f"  direct sources: {', '.join(target['direct_source_ids']) or 'none'}",
             )
@@ -128,6 +170,8 @@ def render_text(report: dict[str, Any]) -> str:
             (
                 f"{route['stage']} {endpoint_id}",
                 f"  route nodes: {', '.join(route['route_nodes'])}",
+                f"  modules: {', '.join(route['module_ids'] or []) or 'none'}",
+                f"  closing milestone: {route['closing_milestone_id'] or 'none'}",
                 f"  frontier candidates: {rendered_candidates}",
                 f"  unclassified: {', '.join(route['unclassified_nodes']) or 'none'}",
             )

@@ -62,12 +62,35 @@ Keep two distinct layers inside the same `.ipynb`:
   source hashes, Outcome coverage, Requirement kinds, cell roles, and assertion
   traceability under `metadata.llm_research_lab.practice`.
 
-Read [practice audit metadata v4](practice-audit-metadata.md) when creating or
+Read [practice audit metadata v5](practice-audit-metadata.md) when creating or
 validating a Notebook. The internal IDs and audit kinds must never be rendered
 in Markdown or code. Hiding an ID does not hide its requirement: every fixed
 value and convention still appears naturally before the learner implementation.
 Do not make a source link, hint, fixture output, or failing check the first place
 an arbitrary choice becomes visible.
+
+## Cumulative progression
+
+Choose one progression layer before designing exercises:
+
+- `PRE_LAB / I1_MECHANISM` removes one concrete mechanism blocker. It has no
+  milestone ID and cannot satisfy a module or phase milestone.
+- `MODULE_ASSIGNMENT / I3_WORKFLOW` or deeper implements at least one reusable
+  component and a bounded data → model → loss → train/eval workflow. Its
+  Outcomes include `implement`, `interpret`, and at least one of `test` or
+  `debug`.
+- `PHASE_CAPSTONE / I5_RESEARCH` integrates at least two exact completed module
+  artifacts. It adds a baseline, controlled comparison or ablation, error
+  analysis, reproducibility conditions, and limitations.
+
+Prefer a ready phase capstone over a module assignment and a ready module
+assignment over a pre-lab. If no concrete blocker remains and the cumulative
+assignment is not ready, use `DEFER_TO_MILESTONE` instead of generating another
+small Notebook. The deferred ID must be a well-formed, case-sensitive `MA-*` or
+`PC-*` ID with exactly one current row in `CURRICULUM.md`; a plausible-looking
+or future prose label is not enough. Apply the same exact-row check to ready
+module and capstone IDs, with `MA-*` restricted to module assignments and
+`PC-*` restricted to phase capstones.
 
 This is a semantic boundary, not merely a formatting rule. If multiple sensible
 implementations fit the prose and only an undisclosed convention passes, the
@@ -169,8 +192,11 @@ For every major session or TIL Outcome, ask:
 
 A fresh reviewer returns `pass` only when all are true:
 
-- the exact completed session or finalized TIL is valid and all major Outcomes
+- the exact captured session or finalized TIL is valid and all major Outcomes
   are represented;
+- the v5 layer, implementation depth, and milestone definition are current;
+- a captured-cycle input matches the cursor-v2 immutable captured session and
+  does not depend on a live handoff;
 - the practice modality matches the evidence the selected Curriculum target
   requires, and every Outcome declares a relevant target;
 - exact lesson links resolve and instructor practice comes from an explicit
@@ -197,6 +223,20 @@ A fresh reviewer returns `pass` only when all are true:
   source-audit prose, or cell-role/test-trace marker;
 - each Exercise has one primary concept and no more than three learner targets;
 - initial execution fails only at explicit learner-owned unresolved boundaries.
+- module assignments expose a real data → model → loss → train/eval workflow,
+  and phase capstones expose the required baseline/comparison/error-analysis
+  research cycle with prior module evidence;
+- every workflow stage owns at least one learner-visible code cell not reused
+  as every other stage, data owns a deterministic fixture and check,
+  model/loss/train own distinct learner code targets tied to their Requirements
+  and expose their component, computation, and update/control-flow boundaries,
+  and distinct training and evaluation result cells are interpreted;
+- capstone baseline, controlled comparison or ablation, and error analysis are
+  grounded in structurally distinct learner-visible result cells rather than
+  three metadata labels over one observation;
+- every required interpretation names the result cell or cells it interprets;
+- one fresh independent review passes both the learner surface and the metadata
+  inspection, with at most one repair and one second reviewer.
 
 The completion gate is separate from creation review. `--completion-ready`
 requires every learner target and required reflection to be resolved, setup,

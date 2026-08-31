@@ -16,7 +16,11 @@ these meanings separate:
 - `endpoint`: the long-term ROADMAP destination;
 - `primary_target`: the actual competency taught in this cycle;
 - `bridge_target`: at most one almost-satisfied prerequisite that can be closed
-  inside the same lesson.
+  inside the same lesson;
+- `module_id` and `module_assignment_id`: static catalog context for the chosen
+  target, never a completion claim;
+- `closing_milestone_id`: the `PHASE_CAPSTONE` that statically closes an
+  endpoint, not evidence that the endpoint is complete.
 
 ## Selection order
 
@@ -60,9 +64,12 @@ Return exactly these axes:
 - `source_persistence`: `LOCAL_REGISTERED | EPHEMERAL | REGISTRATION_RECOMMENDED | NONE`.
 
 Also state endpoint, primary and optional bridge, selection reason,
-prerequisite states, missing evidence token, completion evidence for the actual
-primary, exact artifact and bounded source scope, time/compute/access burden,
-and approval status. Do not edit any file or start the lesson.
+the primary target's module and module assignment, the endpoint's closing phase
+capstone, prerequisite states, missing evidence token, completion evidence for
+the actual primary, exact artifact and bounded source scope,
+time/compute/access burden, and approval status. Do not edit any file or start
+the lesson. Never turn the static catalog into module progress or milestone
+credit.
 
 For the full output and maintenance contract, read
 `references/planner-contract.md`. Use

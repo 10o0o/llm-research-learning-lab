@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate creation-ready or learner-state single-Notebook practice v3/v4.
+"""Validate creation-ready or learner-state single-Notebook practice v3/v4/v5.
 
 Legacy bundles can be reviewed only with an explicit compatibility flag.
 """
@@ -502,7 +502,7 @@ def validate(
         return [Problem(target, 1, "SOURCE_MISSING", "artifact does not exist")]
     if target.is_dir():
         if strict_external_sources or completion_ready:
-            return [Problem(target, 1, "NOTEBOOK_ONLY", "external-source and completion gates require a metadata-v3/v4 Notebook")]
+            return [Problem(target, 1, "NOTEBOOK_ONLY", "external-source and completion gates require a metadata-v3/v4/v5 Notebook")]
         if not allow_legacy_bundle:
             return [
                 Problem(

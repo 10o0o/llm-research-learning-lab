@@ -56,7 +56,7 @@ def test_target_selection_is_source_independent_and_stat110_is_conditional() -> 
 def test_forward_scenarios_are_complete_and_non_persistent() -> None:
     text = SCENARIOS.read_text(encoding="utf-8")
     headings = re.findall(r"^## (F\d{2}) ", text, re.MULTILINE)
-    assert headings == ["F01", "F02", "F03", "F04", "F05", "F06", "F07"]
+    assert headings == ["F01", "F02", "F03", "F04", "F05", "F06", "F07", "F08"]
     for scenario_id in headings:
         start = text.index(f"## {scenario_id} ")
         next_match = re.search(r"^## F\d{2} ", text[start + 1 :], re.MULTILINE)
@@ -108,6 +108,17 @@ def test_endpoint_primary_and_bridge_have_non_overlapping_meanings() -> None:
     assert "the endpoint itself becomes `primary_target`" in text
     assert "keep the long-term destination in `endpoint`" in scenarios
     assert "use no bridge for multiple independent gaps" in scenarios
+
+
+def test_static_module_and_milestone_context_never_claims_credit() -> None:
+    entrypoint = ENTRYPOINT.read_text(encoding="utf-8")
+    contract = CONTRACT.read_text(encoding="utf-8")
+    scenarios = SCENARIOS.read_text(encoding="utf-8")
+    assert "`module_id` and `module_assignment_id`" in entrypoint
+    assert "`closing_milestone_id`" in entrypoint
+    assert "`PRE_LAB` is not a catalog milestone" in contract
+    assert "never imply that a target" in contract
+    assert "without granting milestone credit" in scenarios
 
 
 def test_repository_rules_keep_planner_target_first_and_read_only() -> None:

@@ -23,7 +23,7 @@ SPEC.loader.exec_module(MODULE)
 class HandoffContractDriftTests(unittest.TestCase):
     def test_schema_version_is_shared_by_code_reference_template_and_fixture(self) -> None:
         version = MODULE.SCHEMA_VERSION
-        self.assertEqual(version, "9")
+        self.assertEqual(version, "10")
         self.assertIn(f"currently `{version}`", REFERENCE.read_text(encoding="utf-8"))
         self.assertIn(f"- schema_version: {version}", TEMPLATE.read_text(encoding="utf-8"))
         self.assertIn(f"- schema_version: {version}", FIXTURE.read_text(encoding="utf-8"))

@@ -21,8 +21,12 @@ LLM Research Engineer를 목표로 **학습자료 구성 → 60~90분 대화형 
 
 `전체 학습 흐름 시작`도 같습니다. Agent가 현재 학습 근거에서 실제
 다음 target을 정하고, 검토된 자료로 표준 60~90분 수업을 진행합니다.
-수업 뒤에는 target에 맞는 실습을 제시하고, 학습자가 직접 구현·실행·
-해석한 후 knowledge를 갱신하고 다음 target으로 넘어갑니다.
+수업 뒤에는 필요할 때 pre-lab, module assignment, phase capstone 중 실제
+수행 경계에 맞는 실습을 제시합니다. 아직 누적 과제 시점이 아니면 작은
+Notebook을 반복 생성하지 않고 milestone으로 넘깁니다. 학습자가 직접
+수행할 실습이 선택되면 구현·실행·해석한 후 knowledge를 갱신합니다.
+Milestone으로 넘긴 cycle은 완료로 꾸미지 않고 보존한 뒤 바로 다음
+target을 고릅니다.
 
 같은 날 새 대화를 열어도 다음처럼 이어갈 수 있습니다.
 
@@ -57,7 +61,10 @@ TIL은 수업이나 실습의 선행 입력이 아닙니다. 이 명시적 요�
 오늘 학습 시작
 ```
 
-명시적으로 `짧게 하자`고 할 때만 short session을 사용합니다. Source의
+명시적으로 시간이나 형식을 정해 `짧게 하자`고 할 때만 short session을
+사용합니다. `압축`이나 `따라잡기`만으로 standard 수업을 micro lesson으로
+줄이지 않습니다. 구현·디버깅 목표의 표준 수업은 실제 class·`forward`·
+Tensor/data flow를 포함합니다. Source의
 focused source unit은 검토 비용 경계일 뿐 수업을 자동으로 짧게 만들지
 않습니다. 범위는 페이지 목록이 아니라 연결된 단원·주제·예제군으로
 선언하며, 내부적으로만 하나의 검증 가능한 source-anchor로 고정합니다.
@@ -71,9 +78,11 @@ ROADMAP endpoint와 learner evidence
         ↓
 등록된 local source 또는 검토된 임시 official source
         ↓
-선택 slice 독립 검토 + 3~5개 Module Plan
+선택 slice 독립 검토 + 3~5개 concept / 3~5개 Module Plan
         ↓
 60~90분 대화형 수업과 confirmed learner evidence
+        ↓
+pre-lab / module assignment / phase capstone
         ↓
 Notebook / benchmark / dataset project / external challenge·competition
         ↓
@@ -83,6 +92,9 @@ knowledge 0~3개 갱신 또는 NO_CHANGE
         ↓
 다음 target 계산과 다음 수업 준비
 ```
+
+`DEFER_TO_MILESTONE`이면 실습·knowledge 경로를 건너뛰고 captured cycle을
+`milestone-pending`으로 보존한 뒤 다음 target 계산으로 이동합니다.
 
 강의 수강, tutor 설명, 파일 존재, green checker, platform pass만으로는
 이해나 완료를 인정하지 않습니다. 핵심 개념이 불확실하면 질문으로
@@ -98,7 +110,7 @@ knowledge 0~3개 갱신 또는 NO_CHANGE
 | [`practice/`](./practice/) | Notebook, benchmark, dataset/Kaggle 실행 |
 | [`challenges/`](./challenges/) | 짧은 외부 문제 제출 코드 |
 | [`ROADMAP.md`](./ROADMAP.md) | 장기 전문화 방향과 정적 endpoint |
-| [`CURRICULUM.md`](./CURRICULUM.md) | 목표 깊이·선수관계·필요 근거·자료 coverage |
+| [`CURRICULUM.md`](./CURRICULUM.md) | 목표 깊이·선수관계·정적 module/milestone·자료 coverage |
 | [`USAGE.md`](./USAGE.md) | 진입점, phase, 저장·승인 경계 |
 | [`archive/`](./archive/) | 보존하는 과거 기록 |
 

@@ -6,9 +6,10 @@
 
 ## 산출물 형태
 
-실습을 만들기 전에 정확한 target과 `lesson-session | finalized-til`
-learning input을 기준으로 action과 mode를 판정합니다. 하루 전체 흐름은
-TIL을 기다리지 않고 완료된 schema-v9 session을 사용합니다.
+실습을 만들기 전에 정확한 target과 `captured-cycle | finalized-til`
+learning input을 기준으로 action, mode, progression layer, implementation
+depth를 판정합니다. 하루 전체 흐름은 TIL을 기다리지 않고 cursor v2에
+불변 projection으로 captured된 schema-v10 session을 사용합니다.
 
 - 수학·Tensor·메커니즘·작은 구현: `NOTEBOOK`
 - latency·throughput·memory·batching·KV cache: `BENCHMARK`
@@ -18,6 +19,20 @@ TIL을 기다리지 않고 완료된 schema-v9 session을 사용합니다.
 
 세 local mode는 재사용 모듈 경계 자체가 학습 대상이 아닌 한 단일
 Notebook을 사용합니다.
+
+누적 단계는 다음처럼 구분합니다.
+
+- `PRE_LAB / I1_MECHANISM`: 한 개념 blocker를 푸는 용도이며 milestone
+  credit이 없습니다.
+- `MODULE_ASSIGNMENT / I3_WORKFLOW` 이상: 실제 component와
+  data→model→loss→train/eval 흐름을 구현합니다.
+- `PHASE_CAPSTONE / I5_RESEARCH`: 적어도 두 module artifact를 통합하고
+  baseline, 통제 비교 또는 ablation, error analysis, 재현 조건, 한계를
+  보고합니다.
+
+준비된 capstone, module assignment, pre-lab 순으로 우선합니다. blocker가
+없고 누적 과제를 아직 만들 시점이 아니면 `DEFER_TO_MILESTONE`으로 exact
+`MA-*` 또는 `PC-*` ID에 연결하고 작은 Notebook을 추가하지 않습니다.
 
 ```text
 practice/<area>/<topic>.ipynb
@@ -41,14 +56,14 @@ Notebook은 자연스러운 목적과 요구사항, 작은 예, 단계별 힌트
 
 ## 생성 원칙
 
-`$suggest-learning-practice`에는 다음 중 하나만 정확히 전달합니다.
+`$suggest-learning-practice`에는 한 종류의 input을 정확히 전달합니다.
 
-- 하루 전체 흐름: completed schema-v9 handoff의 cycle·lesson ID, exact
-  path/hash, primary/bridge target, concept/evidence hash
+- 하루 전체 흐름: cursor v2 `captured_session`의 cycle·lesson ID,
+  `projection_sha256`, primary/bridge target, concept/evidence ID
 - 독립·과거 학습: 검증된 날짜별 TIL의 exact path/hash
 
-`til/today.md`나 자동으로 고른 최신 TIL은 입력이 아닙니다. 실습은 lesson
-session 또는 TIL의 주요 학습 성과를 다음 action으로 바꿉니다. Session이
+`til/today.md`나 자동으로 고른 최신 TIL은 입력이 아닙니다. 실습은 captured
+session 또는 TIL의 주요 학습 성과를 다음 action으로 바꿉니다. Capture가
 깨졌으면 `SESSION_REPAIR_REQUIRED`, legacy TIL이 깨졌으면
 `TIL_REPAIR_REQUIRED`로 구분합니다.
 
@@ -58,20 +73,30 @@ session 또는 TIL의 주요 학습 성과를 다음 action으로 바꿉니다. 
 - `interpret`: Shape, gradient, metric, output의 의미 설명
 - `design`: API, 데이터 계약, 모델 출력이나 실험 조건 설계
 
-새 Notebook metadata schema v4는 artifact와 Outcome별 Curriculum target,
-`practice_mode`, stable source ID와 위 learning-input union을 보존합니다.
-Session Outcome은 `concept_ids`, `evidence_ids`, 수행 action을 연결하고,
-finalized-TIL Outcome은 exact `til_location`을 유지합니다. Local source는
+새 Notebook metadata schema v5는 artifact와 Outcome별 Curriculum target,
+`practice_mode`, progression layer/depth, milestone definition hash, stable
+source ID와 `learning_inputs`를 보존합니다. Captured-cycle Outcome은
+`L001:C01`처럼 input-namespaced concept/evidence ID와 수행 action을
+연결하고, finalized-TIL Outcome은 exact `til_location`을 유지합니다. Local source는
 exact path와 hash를, temporary external source는
 provider/course/offering 또는 edition, artifact, official URL, retrieval
 hash와 scope를 기록합니다. Requirement의 source 위치는 변하기 쉬운 path
-대신 stable source ID를 참조합니다. 기존 schema-v3 Notebook은 migration
-없이 계속 검증하지만 새 산출물은 v4만 사용합니다. 이 target 관계는 실습
-relevance와 provenance이며 mastery나 Curriculum coverage 승격이 아닙니다.
+대신 stable source ID를 참조합니다. 기존 schema-v3/v4 Notebook은
+`legacy-unclassified`로 계속 검증하지만 milestone credit을 받지 않으며 새
+산출물은 v5만 사용합니다. 이 target 관계는 실습 relevance와 provenance이며
+mastery나 Curriculum coverage 승격이 아닙니다.
 
-설명을 잘했어도 직접 구현한 증거가 없으면 작은 `Core` 실습부터
-시작합니다. `Applied`는 작은 현실 조건 하나를, `Advanced`는 기반 구현이
-확인됐을 때만 ablation·민감도·실패 분석 같은 연구 질문 하나를 더합니다.
+Fresh v5 artifact는 learner surface를 먼저 보고 metadata/source fidelity를
+나중에 보는 독립 review를 통과해야 합니다. `creation_reviews`는 한 번의
+repair와 두 번째 fresh reviewer까지만 기록합니다. Module/capstone의
+required interpretation target은 자신이 해석하는 `result_cell_ids`를
+명시합니다.
+
+직접 구현 근거가 부족해도 blocker가 없다면 작은 pre-lab을 반복하지
+않습니다. 준비된 module assignment의 실제 component와 workflow를 가장
+작게 유지하거나, 아직 그 시점이 아니면 exact milestone으로 defer합니다.
+여러 module artifact가 준비된 뒤에만 capstone의 ablation·민감도·실패
+분석을 수행합니다.
 
 각 exercise는 하나의 주 개념과 최대 세 개의 학습자 작업만 다루며 다음
 순서를 유지합니다.
@@ -135,9 +160,30 @@ python3 .agents/skills/suggest-learning-practice/scripts/validate_practice_artif
 external cache는 warning으로만 보고합니다. `--strict-external-sources`는
 receipt와 cache identity/hash를 요구합니다. `--completion-ready`는 모든
 learner target과 필수 reflection, setup·implementation·fixture·checker의
-실제 실행, 최신 실행 순서, error output 부재와 session-or-TIL/source
-정합성을 모두 요구합니다. 이 gate와 학습자 해석이 확인된 뒤에만 exact
-Notebook path를 완료 커밋 대상으로 삼을 수 있습니다.
+실제 실행, 최신 실행 순서, error output 부재, session-or-TIL/source 정합성,
+declared result output을 모두 요구합니다. 이 gate와 학습자 해석이 확인된
+뒤에만 exact Notebook path를 완료 커밋 대상으로 삼을 수 있습니다.
+
+기존 v4 시도를 보존형 pre-lab으로 분류할 때만 다음 migration을 사용합니다.
+실제 파일에 적용하기 전 exact path와 cursor projection을 확인합니다.
+
+```bash
+uv run python .agents/skills/suggest-learning-practice/scripts/migrate_practice_v4_to_v5.py \
+  practice/<area>/<topic>.ipynb --repo-root .
+```
+
+이 작업은 `.cells`를 보존하고 `PRE_LAB / I1_MECHANISM /
+preserved_attempt`와 null milestone만 기록합니다. 독립 review가 실제로 끝난
+뒤에는 learner cell을 바꾸지 않는 다음 helper로 그 결과만 기록합니다.
+
+```bash
+uv run python .agents/skills/suggest-learning-practice/scripts/record_practice_creation_review.py \
+  practice/<area>/<topic>.ipynb --repo-root . \
+  --reviewer-id <independent-reviewer> \
+  --reviewed-at <RFC3339> \
+  --learner-surface-verdict pass \
+  --metadata-verdict pass
+```
 
 [실습 Notebook 템플릿](./template.ipynb)은 위 구조의 Notebook 기준입니다.
 실행하지 않은 결과를 기록하지 않고, 데이터셋·모델 가중치·API 키와 큰

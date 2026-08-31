@@ -24,7 +24,7 @@ from typing import Any, Iterable
 from zoneinfo import ZoneInfo
 
 
-FLOW_SCHEMA_VERSION = 1
+FLOW_SCHEMA_VERSION = 2
 FLOW_TIMEZONE = "Asia/Seoul"
 DEFAULT_CURSOR_PATH = "tmp/active-learning-flow.json"
 DEFAULT_HANDOFF_PATH = "tmp/active-lesson-handoff.md"
@@ -40,13 +40,26 @@ PHASES = {
     "PAUSED",
 }
 AUTHORIZATION_MODES = {"none", "lesson-only", "full-day"}
-CYCLE_STATUSES = {"active", "paused", "completed"}
-PRACTICE_STATES = {"pending", "awaiting", "completed", "no-extra-practice"}
+CYCLE_STATUSES = {
+    "active",
+    "paused",
+    "completed",
+    "superseded",
+    "milestone-pending",
+}
+PRACTICE_STATES = {
+    "pending",
+    "awaiting",
+    "completed",
+    "no-extra-practice",
+    "milestone-pending",
+}
 KNOWLEDGE_STATES = {"pending", "committed", "no-change"}
 PRACTICE_ACTIONS = {
     "CONTINUE_EXISTING_PRACTICE",
     "CREATE_LOCAL_PRACTICE",
     "PROPOSE_EXTERNAL_PRACTICE",
+    "DEFER_TO_MILESTONE",
     "NO_EXTRA_PRACTICE",
 }
 PRACTICE_MODES = {
@@ -61,6 +74,48 @@ TARGET_RE = re.compile(r"(?:CC|TR)-[A-Z]+-\d{2}\Z")
 CYCLE_ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{2,95}\Z")
 HASH_RE = re.compile(r"[0-9a-f]{64}\Z")
 COMMIT_RE = re.compile(r"[0-9a-f]{7,64}\Z")
+MILESTONE_ID_RE = re.compile(r"(?:MA|PC)-[A-Z]+(?:-[A-Z]+)*-\d{2}\Z")
+
+CAPTURED_SESSION_KEYS = (
+    "schema_version",
+    "cycle_id",
+    "lesson_id",
+    "primary_target",
+    "bridge_target",
+    "handoff_sha256",
+    "concepts",
+    "learner_evidence",
+    "learner_evidence_sha256",
+    "source_provenance",
+    "projection_sha256",
+)
+PRACTICE_RECEIPT_KEYS = (
+    "path",
+    "sha256",
+    "practice_layer",
+    "implementation_depth",
+    "attempt_state",
+)
+CAPTURED_CYCLE_INPUT_KEYS = (
+    "id",
+    "role",
+    "kind",
+    "cycle_id",
+    "lesson_id",
+    "primary_target",
+    "bridge_target",
+    "concept_ids",
+    "evidence_ids",
+    "captured_session_sha256",
+)
+PRACTICE_LAYERS = {"PRE_LAB", "MODULE_ASSIGNMENT", "PHASE_CAPSTONE"}
+IMPLEMENTATION_DEPTHS = {
+    "I1_MECHANISM",
+    "I2_COMPONENT",
+    "I3_WORKFLOW",
+    "I4_EXPERIMENT",
+    "I5_RESEARCH",
+}
 
 ALLOWED_TRANSITIONS = {
     "SELECT_TARGET": {"PREPARE_LESSON", "PAUSED"},
@@ -129,6 +184,46 @@ def sha256_file(path: Path) -> str:
     return sha256_bytes(path.read_bytes())
 
 
+def captured_session_projection_sha256(projection: dict[str, Any]) -> str:
+    """Hash the immutable captured-session projection without its own hash."""
+
+    payload = {
+        key: deepcopy(projection.get(key))
+        for key in CAPTURED_SESSION_KEYS
+        if key != "projection_sha256"
+    }
+    return sha256_bytes(_canonical_json(payload))
+
+
+def _build_captured_session(
+    *,
+    schema_version: int,
+    cycle_id: str,
+    lesson_id: str,
+    primary_target: str,
+    bridge_target: str | None,
+    handoff_sha256: str,
+    concepts: list[dict[str, Any]],
+    learner_evidence: list[dict[str, Any]],
+    learner_evidence_sha256: str,
+    source_provenance: list[dict[str, Any]],
+) -> dict[str, Any]:
+    projection: dict[str, Any] = {
+        "schema_version": schema_version,
+        "cycle_id": cycle_id,
+        "lesson_id": lesson_id,
+        "primary_target": primary_target,
+        "bridge_target": bridge_target,
+        "handoff_sha256": handoff_sha256,
+        "concepts": deepcopy(concepts),
+        "learner_evidence": deepcopy(learner_evidence),
+        "learner_evidence_sha256": learner_evidence_sha256,
+        "source_provenance": deepcopy(source_provenance),
+    }
+    projection["projection_sha256"] = captured_session_projection_sha256(projection)
+    return projection
+
+
 def _safe_relative_path(raw: str, root: Path, *, allow_missing: bool = True) -> Path:
     if not raw or raw.startswith("/") or "\\" in raw:
         raise FlowError(f"path must be repository-relative POSIX syntax: {raw!r}")
@@ -143,6 +238,142 @@ def _safe_relative_path(raw: str, root: Path, *, allow_missing: bool = True) -> 
     if not allow_missing and not candidate.is_file():
         raise FlowError(f"required file is missing: {raw}")
     return candidate
+
+
+def _preserved_archive_path(
+    raw: str,
+    root: Path,
+    *,
+    cycle_id: str,
+) -> Path:
+    """Resolve one handoff copy directly inside its cycle-owned attempt archive."""
+
+    candidate = _safe_relative_path(raw, root, allow_missing=False)
+    pure = PurePosixPath(raw)
+    expected_parent = PurePosixPath("tmp", "lesson-attempts", cycle_id)
+    if pure.parent != expected_parent:
+        raise FlowError(
+            "archive_path must name one file directly under "
+            f"tmp/lesson-attempts/{cycle_id}/"
+        )
+    return candidate
+
+
+def _preserved_practice_path(raw: str, root: Path) -> Path:
+    """Resolve one existing Notebook under practice/."""
+
+    candidate = _safe_relative_path(raw, root, allow_missing=False)
+    pure = PurePosixPath(raw)
+    if not pure.parts or pure.parts[0] != "practice" or pure.suffix != ".ipynb":
+        raise FlowError("preserved practice must be an exact practice/*.ipynb path")
+    return candidate
+
+
+def _projection_ids(
+    projection: dict[str, Any],
+    *,
+    collection: str,
+    key: str,
+) -> list[str]:
+    raw = projection.get(collection)
+    if not isinstance(raw, list):
+        raise FlowError(f"captured_session {collection} must be a list")
+    result: list[str] = []
+    for item in raw:
+        value = item.get(key) if isinstance(item, dict) else None
+        if not isinstance(value, str):
+            raise FlowError(f"captured_session {collection} needs {key}")
+        result.append(value)
+    if not result or len(result) != len(set(result)):
+        raise FlowError(f"captured_session {collection} IDs must be nonempty and unique")
+    return result
+
+
+def _validate_preserved_attempt_notebook(
+    candidate: Path,
+    *,
+    cycle: dict[str, Any],
+    receipt: dict[str, Any],
+) -> None:
+    """Bind a supersession receipt to the Notebook's actual v5 provenance."""
+
+    try:
+        payload = json.loads(candidate.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise FlowError(f"preserved practice Notebook is unreadable: {error}") from error
+    metadata = payload.get("metadata") if isinstance(payload, dict) else None
+    lab = metadata.get("llm_research_lab") if isinstance(metadata, dict) else None
+    practice = lab.get("practice") if isinstance(lab, dict) else None
+    if not isinstance(practice, dict):
+        raise FlowError(
+            "preserved practice needs metadata.llm_research_lab.practice"
+        )
+    expected_header = {
+        "schema_version": 5,
+        "practice_layer": "PRE_LAB",
+        "implementation_depth": "I1_MECHANISM",
+        "lifecycle": "preserved_attempt",
+        "milestone_id": None,
+        "milestone_definition_sha256": None,
+    }
+    drift = [
+        key
+        for key, expected in expected_header.items()
+        if practice.get(key) != expected
+    ]
+    if drift:
+        raise FlowError(
+            "preserved practice metadata must be schema-v5 "
+            "PRE_LAB/I1_MECHANISM/preserved_attempt with null milestone fields; "
+            "mismatch: "
+            + ", ".join(drift)
+        )
+    if (
+        receipt.get("practice_layer") != practice["practice_layer"]
+        or receipt.get("implementation_depth") != practice["implementation_depth"]
+        or receipt.get("attempt_state") != practice["lifecycle"]
+    ):
+        raise FlowError("practice receipt claims differ from the Notebook metadata")
+
+    projection = cycle.get("captured_session")
+    if not isinstance(projection, dict):
+        raise FlowError("preserved practice requires the selected cycle's captured_session")
+    raw_inputs = practice.get("learning_inputs")
+    if not isinstance(raw_inputs, list) or len(raw_inputs) != 1:
+        raise FlowError("preserved practice requires exactly one captured-cycle learning input")
+    learning_input = raw_inputs[0]
+    if not isinstance(learning_input, dict) or set(learning_input) != set(
+        CAPTURED_CYCLE_INPUT_KEYS
+    ):
+        raise FlowError(
+            "preserved practice captured-cycle input fields are invalid"
+        )
+    concept_ids = _projection_ids(
+        projection,
+        collection="concepts",
+        key="concept_id",
+    )
+    evidence_ids = _projection_ids(
+        projection,
+        collection="learner_evidence",
+        key="evidence_id",
+    )
+    expected_input = {
+        "id": "L001",
+        "role": "primary",
+        "kind": "captured-cycle",
+        "cycle_id": cycle.get("cycle_id"),
+        "lesson_id": projection.get("lesson_id"),
+        "primary_target": projection.get("primary_target"),
+        "bridge_target": projection.get("bridge_target"),
+        "concept_ids": concept_ids,
+        "evidence_ids": evidence_ids,
+        "captured_session_sha256": projection.get("projection_sha256"),
+    }
+    if learning_input != expected_input:
+        raise FlowError(
+            "preserved practice captured-cycle input differs from the selected old cycle"
+        )
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
@@ -356,6 +587,8 @@ def begin_cycle(
             or existing.get("handoff_path") != handoff_path
         ):
             raise FlowError(f"cycle_id already identifies different work: {cycle_id}")
+        if existing.get("status") not in {"active", "paused"}:
+            raise FlowError(f"cycle_id is closed and cannot be reactivated: {cycle_id}")
         current["active_cycle_id"] = cycle_id
         current["handoff_path"] = handoff_path
         if existing.get("status") == "paused":
@@ -375,6 +608,7 @@ def begin_cycle(
             "handoff_path": handoff_path,
             "handoff_sha256": None,
             "lesson_id": None,
+            "captured_session": None,
             "concepts": [],
             "learner_evidence": [],
             "learner_evidence_sha256": sha256_bytes(_canonical_json([])),
@@ -387,6 +621,7 @@ def begin_cycle(
                 "sha256": None,
                 "interpretation_evidence": [],
                 "commit_sha": None,
+                "milestone_id": None,
             },
             "knowledge": {"state": "pending", "paths": [], "commit_sha": None},
             "learning_commits": [],
@@ -394,11 +629,192 @@ def begin_cycle(
             "til_consumed": False,
             "til_path": None,
             "til_commit_sha": None,
+            "supersession": None,
         }
     )
     current["active_cycle_id"] = cycle_id
     current["handoff_path"] = handoff_path
     current["practice_path"] = None
+    _recompute_aggregates(current)
+    return current
+
+
+def migrate_flow_v1_to_v2(state: dict[str, Any]) -> dict[str, Any]:
+    """Deterministically add v2 fields without rewriting any v1 evidence."""
+
+    if not isinstance(state, dict):
+        raise FlowError("cursor root must be a JSON object")
+    version = state.get("schema_version")
+    if version == FLOW_SCHEMA_VERSION:
+        return deepcopy(state)
+    if version != 1:
+        raise FlowError("cursor migration accepts schema version 1 or an already-migrated version 2")
+    migrated = deepcopy(state)
+    migrated["schema_version"] = FLOW_SCHEMA_VERSION
+    cycles = migrated.get("cycles")
+    if not isinstance(cycles, list):
+        raise FlowError("schema-v1 cursor cycles must be a list")
+    for cycle in cycles:
+        if not isinstance(cycle, dict):
+            raise FlowError("schema-v1 cursor cycles must contain objects")
+        practice = cycle.get("practice")
+        if isinstance(practice, dict):
+            practice.setdefault("milestone_id", None)
+        cycle.setdefault("supersession", None)
+        if "captured_session" in cycle:
+            continue
+        captured_fields_present = (
+            isinstance(cycle.get("lesson_id"), str)
+            and HASH_RE.fullmatch(str(cycle.get("handoff_sha256", ""))) is not None
+            and isinstance(cycle.get("concepts"), list)
+            and bool(cycle.get("concepts"))
+            and isinstance(cycle.get("learner_evidence"), list)
+            and bool(cycle.get("learner_evidence"))
+            and isinstance(cycle.get("source_provenance"), list)
+        )
+        if not captured_fields_present:
+            cycle["captured_session"] = None
+            continue
+        cycle["captured_session"] = _build_captured_session(
+            schema_version=9,
+            cycle_id=str(cycle.get("cycle_id")),
+            lesson_id=str(cycle.get("lesson_id")),
+            primary_target=str(cycle.get("primary_target")),
+            bridge_target=cycle.get("bridge_target"),
+            handoff_sha256=str(cycle.get("handoff_sha256")),
+            concepts=cycle["concepts"],
+            learner_evidence=cycle["learner_evidence"],
+            learner_evidence_sha256=str(cycle.get("learner_evidence_sha256")),
+            source_provenance=cycle["source_provenance"],
+        )
+    errors = validate_flow(migrated, repo_root=Path.cwd(), verify_commits=False)
+    if errors:
+        raise FlowError("migrated cursor is invalid: " + "; ".join(errors))
+    return migrated
+
+
+def migrate_cursor_v1_to_v2(
+    repo_root: Path | str,
+    *,
+    path: str = DEFAULT_CURSOR_PATH,
+) -> Path:
+    """Atomically migrate one cursor file; a second call writes identical bytes."""
+
+    root = Path(repo_root).resolve()
+    candidate = cursor_path(root, path)
+    try:
+        state = json.loads(candidate.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise FlowError(f"daily learning cursor is unreadable: {error}") from error
+    migrated = migrate_flow_v1_to_v2(state)
+    errors = validate_flow(migrated, repo_root=root, verify_commits=False)
+    if errors:
+        raise FlowError("migrated cursor is invalid: " + "; ".join(errors))
+    payload = _canonical_json(migrated)
+    if not candidate.exists() or candidate.read_bytes() != payload:
+        _atomic_write(candidate, payload)
+    return candidate
+
+
+def supersede_cycle(
+    state: dict[str, Any],
+    *,
+    cycle_id: str | None,
+    reason: str,
+    replacement_cycle_id: str,
+    archive_path: str,
+    archive_sha256: str,
+    practice_receipt: dict[str, Any],
+    repo_root: Path | str,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    """Archive one unfinished attempt while preserving all learner evidence."""
+
+    _require_authorization(state, allowed_modes={"lesson-only", "full-day"}, now=now)
+    root = Path(repo_root).resolve()
+    selected_id = cycle_id or state.get("active_cycle_id")
+    if not isinstance(selected_id, str):
+        raise FlowError("supersede requires an explicit or active cycle_id")
+    if not reason.strip():
+        raise FlowError("supersede requires a concrete reason")
+    if not CYCLE_ID_RE.fullmatch(replacement_cycle_id) or replacement_cycle_id == selected_id:
+        raise FlowError("replacement_cycle_id must be a different valid cycle ID")
+    current = deepcopy(state)
+    cycle = next(
+        (item for item in current.get("cycles", []) if item.get("cycle_id") == selected_id),
+        None,
+    )
+    if cycle is None:
+        raise FlowError(f"cannot supersede unknown cycle: {selected_id}")
+    archive_candidate = _preserved_archive_path(
+        archive_path,
+        root,
+        cycle_id=selected_id,
+    )
+    if not HASH_RE.fullmatch(archive_sha256):
+        raise FlowError("archive_sha256 must be an exact lowercase SHA-256")
+    if sha256_file(archive_candidate) != archive_sha256:
+        raise FlowError("archive_sha256 differs from the preserved archive bytes")
+    if not HASH_RE.fullmatch(str(cycle.get("handoff_sha256", ""))):
+        raise FlowError("the selected old cycle has no exact handoff_sha256")
+    if archive_sha256 != cycle.get("handoff_sha256"):
+        raise FlowError("preserved archive hash must equal the selected old handoff hash")
+    if tuple(practice_receipt) != PRACTICE_RECEIPT_KEYS:
+        raise FlowError(
+            "practice_receipt fields must appear exactly in order: "
+            + ", ".join(PRACTICE_RECEIPT_KEYS)
+        )
+    practice_candidate = _preserved_practice_path(
+        str(practice_receipt["path"]),
+        root,
+    )
+    if not HASH_RE.fullmatch(str(practice_receipt["sha256"])):
+        raise FlowError("practice_receipt sha256 must be exact")
+    if sha256_file(practice_candidate) != practice_receipt["sha256"]:
+        raise FlowError("practice_receipt sha256 differs from the preserved artifact bytes")
+    if practice_receipt["practice_layer"] != "PRE_LAB":
+        raise FlowError("practice_receipt practice_layer must be PRE_LAB")
+    if practice_receipt["implementation_depth"] != "I1_MECHANISM":
+        raise FlowError("practice_receipt implementation_depth must be I1_MECHANISM")
+    if practice_receipt["attempt_state"] != "preserved_attempt":
+        raise FlowError("practice_receipt attempt_state must be preserved_attempt")
+    _validate_preserved_attempt_notebook(
+        practice_candidate,
+        cycle=cycle,
+        receipt=practice_receipt,
+    )
+    identity = {
+        "reason": reason.strip(),
+        "replacement_cycle_id": replacement_cycle_id,
+        "archive_path": archive_path,
+        "archive_sha256": archive_sha256,
+        "practice_receipt": deepcopy(practice_receipt),
+    }
+    existing = cycle.get("supersession")
+    if cycle.get("status") == "superseded":
+        if not isinstance(existing, dict) or any(existing.get(key) != value for key, value in identity.items()):
+            raise FlowError("superseded cycle already has a different archive or replacement receipt")
+        return current
+    if cycle.get("status") not in {"active", "paused"}:
+        raise FlowError("only an unfinished active or paused cycle may be superseded")
+    if selected_id != state.get("active_cycle_id"):
+        raise FlowError("only the cursor's current unfinished cycle may be superseded")
+    evidence_before = deepcopy(cycle.get("learner_evidence"))
+    evidence_hash_before = cycle.get("learner_evidence_sha256")
+    captured_before = deepcopy(cycle.get("captured_session"))
+    cycle["status"] = "superseded"
+    cycle["supersession"] = {**identity, "superseded_at": _timestamp(now)}
+    if (
+        cycle.get("learner_evidence") != evidence_before
+        or cycle.get("learner_evidence_sha256") != evidence_hash_before
+        or cycle.get("captured_session") != captured_before
+    ):
+        raise FlowError("supersession must not change learner evidence or its captured projection")
+    current["active_cycle_id"] = None
+    current["handoff_path"] = None
+    current["practice_path"] = None
+    current["phase"] = "SELECT_TARGET"
+    current["resume_phase"] = None
     _recompute_aggregates(current)
     return current
 
@@ -433,6 +849,8 @@ def record_lesson_evidence(
     cycle = next((item for item in current.get("cycles", []) if item.get("cycle_id") == cycle_id), None)
     if cycle is None:
         raise FlowError(f"daily cursor has no cycle for learner evidence: {cycle_id}")
+    if cycle.get("captured_session") is not None:
+        raise FlowError("captured_session is immutable and cannot accept new learner evidence")
     if cycle.get("handoff_path") != handoff_path:
         raise FlowError("learner evidence handoff path differs from the cursor cycle")
     if evidence.get("verdict") != "confirmed" or evidence.get("provenance") != "learner":
@@ -472,7 +890,7 @@ def capture_completed_session(
     repo_root: Path | str,
     now: datetime | None = None,
 ) -> dict[str, Any]:
-    """Capture exact v9 session evidence into the cursor without inferring it."""
+    """Capture an exact schema-v10 session into one immutable cursor projection."""
 
     _require_authorization(state, allowed_modes={"lesson-only", "full-day"}, now=now)
     if state.get("phase") != "TEACH":
@@ -488,8 +906,8 @@ def capture_completed_session(
         messages = "; ".join(f"{item.code}: {item.message}" for item in report.errors)
         raise FlowError(f"cannot capture an invalid handoff: {messages}")
     doc = report.document
-    if doc.metadata.get("schema_version") != "9":
-        raise FlowError("daily flow accepts only a schema-v9 handoff")
+    if doc.metadata.get("schema_version") != "10":
+        raise FlowError("new daily-flow capture accepts only a schema-v10 handoff")
     if doc.metadata.get("status") != "completed":
         raise FlowError("only a completed session may advance to practice")
     cycle_id = doc.metadata.get("cycle_id")
@@ -499,6 +917,8 @@ def capture_completed_session(
         raise FlowError(f"handoff cycle is absent from the daily cursor: {cycle_id}")
     if cycle.get("primary_target") != doc.target_decision.primary_target:
         raise FlowError("handoff primary target differs from the cursor cycle")
+    if cycle.get("captured_session") is not None:
+        raise FlowError("captured_session is immutable; a captured cycle cannot be recaptured")
     if cycle.get("handoff_path") != Path(handoff_path).as_posix():
         try:
             relative_handoff = Path(handoff_path).resolve().relative_to(root).as_posix()
@@ -584,11 +1004,25 @@ def capture_completed_session(
     handoff_candidate = Path(handoff_path)
     if not handoff_candidate.is_absolute():
         handoff_candidate = root / handoff_candidate
+    handoff_digest = sha256_file(handoff_candidate)
+    captured_session = _build_captured_session(
+        schema_version=10,
+        cycle_id=cycle_id,
+        lesson_id=doc.metadata["lesson_id"],
+        primary_target=cycle["primary_target"],
+        bridge_target=cycle.get("bridge_target"),
+        handoff_sha256=handoff_digest,
+        concepts=concepts,
+        learner_evidence=evidence,
+        learner_evidence_sha256=evidence_hash,
+        source_provenance=sources,
+    )
     cycle.update(
         {
             "status": "active",
             "lesson_id": doc.metadata["lesson_id"],
-            "handoff_sha256": sha256_file(handoff_candidate),
+            "handoff_sha256": handoff_digest,
+            "captured_session": captured_session,
             "concepts": concepts,
             "learner_evidence": evidence,
             "learner_evidence_sha256": evidence_hash,
@@ -612,6 +1046,7 @@ def record_practice_decision(
     action: str,
     mode: str,
     path: str | None,
+    milestone_id: str | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
     _require_authorization(state, allowed_modes={"full-day"}, now=now)
@@ -625,19 +1060,70 @@ def record_practice_decision(
         raise FlowError("practice decision uses an unknown action or mode")
     previous = cycle.get("practice", {})
     if previous.get("state") != "pending":
-        expected = (previous.get("action"), previous.get("mode"), previous.get("path"))
-        if expected == (action, mode, path):
+        expected = (
+            previous.get("action"),
+            previous.get("mode"),
+            previous.get("path"),
+            previous.get("milestone_id"),
+        )
+        if expected == (action, mode, path, milestone_id):
             return current
         raise FlowError("an existing practice decision cannot be silently replaced")
     if action == "NO_EXTRA_PRACTICE":
-        if mode != "NONE" or path is not None:
-            raise FlowError("NO_EXTRA_PRACTICE requires mode NONE and no path")
+        if mode != "NONE" or path is not None or milestone_id is not None:
+            raise FlowError("NO_EXTRA_PRACTICE requires mode NONE, no path, and no milestone")
         cycle["practice"].update(
-            {"state": "no-extra-practice", "action": action, "mode": "NONE", "path": None}
+            {
+                "state": "no-extra-practice",
+                "action": action,
+                "mode": "NONE",
+                "path": None,
+                "milestone_id": None,
+            }
         )
         current["practice_path"] = None
         current["phase"] = "UPDATE_KNOWLEDGE"
+    elif action == "DEFER_TO_MILESTONE":
+        if mode != "NONE" or path is not None or not milestone_id or not MILESTONE_ID_RE.fullmatch(milestone_id):
+            raise FlowError("DEFER_TO_MILESTONE requires mode NONE, no path, and one valid MA-/PC- milestone ID")
+        captured = cycle.get("captured_session")
+        if (
+            cycle.get("status") != "active"
+            or cycle.get("cycle_id") != current.get("active_cycle_id")
+            or not isinstance(captured, dict)
+            or captured.get("schema_version") != 10
+        ):
+            raise FlowError(
+                "DEFER_TO_MILESTONE requires the eligible current cycle's "
+                "captured schema-v10 session; migrated schema-v9 provenance is ineligible"
+            )
+        cycle["practice"].update(
+            {
+                "state": "milestone-pending",
+                "action": action,
+                "mode": "NONE",
+                "path": None,
+                "milestone_id": milestone_id,
+            }
+        )
+        cycle["status"] = "milestone-pending"
+        current["active_cycle_id"] = None
+        current["handoff_path"] = None
+        current["practice_path"] = None
+        current["phase"] = "SELECT_TARGET"
     else:
+        milestone_actions = {
+            "CREATE_LOCAL_PRACTICE",
+            "CONTINUE_EXISTING_PRACTICE",
+        }
+        if milestone_id is not None and (
+            action not in milestone_actions
+            or not MILESTONE_ID_RE.fullmatch(milestone_id)
+        ):
+            raise FlowError(
+                "only a local created/continued assignment may name one valid "
+                "MA-/PC- milestone"
+            )
         if not path:
             raise FlowError("a concrete practice or challenge path is required")
         pure_path = PurePosixPath(path)
@@ -653,8 +1139,20 @@ def record_practice_decision(
                 raise FlowError(f"{mode} requires one practice/*.ipynb path")
         elif mode == "EXTERNAL_CHALLENGE" and not path.startswith("challenges/"):
             raise FlowError("EXTERNAL_CHALLENGE requires an exact challenges/ path")
+        if milestone_id is not None and (
+            not path.startswith("practice/") or not path.endswith(".ipynb")
+        ):
+            raise FlowError(
+                "a milestone-bound assignment must use one exact practice/*.ipynb path"
+            )
         cycle["practice"].update(
-            {"state": "awaiting", "action": action, "mode": mode, "path": path}
+            {
+                "state": "awaiting",
+                "action": action,
+                "mode": mode,
+                "path": path,
+                "milestone_id": milestone_id,
+            }
         )
         current["practice_path"] = path
         current["phase"] = "AWAIT_PRACTICE"
@@ -751,7 +1249,11 @@ def complete_cycle(
         raise FlowError("practice is not complete or explicitly unnecessary")
     if cycle["knowledge"].get("state") not in {"committed", "no-change"}:
         raise FlowError("knowledge handling is not terminal")
-    if not cycle.get("concepts") or not cycle.get("learner_evidence"):
+    if (
+        cycle.get("captured_session") is None
+        or not cycle.get("concepts")
+        or not cycle.get("learner_evidence")
+    ):
         raise FlowError("a cycle cannot complete without captured confirmed session evidence")
     cycle["status"] = "completed"
     cycle["completed_on"] = _today(now)
@@ -1000,6 +1502,40 @@ def validate_flow(
         expected_evidence_hash = sha256_bytes(_canonical_json(evidence))
         if cycle.get("learner_evidence_sha256") != expected_evidence_hash:
             errors.append(f"learner evidence aggregate hash mismatch: {cycle_id}")
+        captured = cycle.get("captured_session")
+        if captured is not None:
+            if not isinstance(captured, dict):
+                errors.append(f"captured_session must be an object or null: {cycle_id}")
+            else:
+                if set(captured) != set(CAPTURED_SESSION_KEYS):
+                    errors.append(f"captured_session fields are invalid: {cycle_id}")
+                if captured.get("schema_version") not in {9, 10}:
+                    errors.append(f"captured_session schema must be legacy 9 or current 10: {cycle_id}")
+                if captured.get("projection_sha256") != captured_session_projection_sha256(captured):
+                    errors.append(f"captured_session projection hash mismatch: {cycle_id}")
+                expected_projection_values = {
+                    "cycle_id": cycle_id,
+                    "lesson_id": cycle.get("lesson_id"),
+                    "primary_target": cycle.get("primary_target"),
+                    "bridge_target": cycle.get("bridge_target"),
+                    "handoff_sha256": cycle.get("handoff_sha256"),
+                    "concepts": cycle.get("concepts"),
+                    "learner_evidence": evidence,
+                    "learner_evidence_sha256": cycle.get("learner_evidence_sha256"),
+                    "source_provenance": cycle.get("source_provenance"),
+                }
+                for key, value in expected_projection_values.items():
+                    if captured.get(key) != value:
+                        errors.append(f"captured_session differs from immutable cycle field {key}: {cycle_id}")
+                captured_evidence = captured.get("learner_evidence", [])
+                if (
+                    isinstance(captured_evidence, list)
+                    and captured.get("learner_evidence_sha256")
+                    != sha256_bytes(_canonical_json(captured_evidence))
+                ):
+                    errors.append(f"captured_session learner evidence hash mismatch: {cycle_id}")
+        elif status in {"completed", "milestone-pending"}:
+            errors.append(f"{status} cycle requires an immutable captured_session: {cycle_id}")
         if status == "completed":
             try:
                 date.fromisoformat(str(cycle.get("completed_on")))
@@ -1011,6 +1547,106 @@ def validate_flow(
                 errors.append(f"completed cycle has non-terminal practice: {cycle_id}")
             if cycle.get("knowledge", {}).get("state") not in {"committed", "no-change"}:
                 errors.append(f"completed cycle has non-terminal knowledge: {cycle_id}")
+        if status == "milestone-pending":
+            if cycle.get("completed_on") is not None:
+                errors.append(f"milestone-pending cycle must not claim completion: {cycle_id}")
+            if not isinstance(captured, dict) or captured.get("schema_version") != 10:
+                errors.append(
+                    f"milestone-pending cycle requires captured schema-v10 provenance: {cycle_id}"
+                )
+            milestone_practice = cycle.get("practice", {})
+            if milestone_practice.get("state") != "milestone-pending":
+                errors.append(f"milestone-pending cycle requires a matching practice state: {cycle_id}")
+            if (
+                milestone_practice.get("action") != "DEFER_TO_MILESTONE"
+                or milestone_practice.get("mode") != "NONE"
+                or milestone_practice.get("path") is not None
+                or not MILESTONE_ID_RE.fullmatch(
+                    str(milestone_practice.get("milestone_id", ""))
+                )
+            ):
+                errors.append(
+                    f"milestone-pending cycle has an invalid deferral receipt: {cycle_id}"
+                )
+            if cycle.get("knowledge", {}).get("state") != "pending":
+                errors.append(f"milestone-pending cycle must not claim knowledge completion: {cycle_id}")
+        supersession = cycle.get("supersession")
+        if status == "superseded":
+            if not isinstance(supersession, dict):
+                errors.append(f"superseded cycle requires a supersession receipt: {cycle_id}")
+            else:
+                required = {
+                    "reason",
+                    "replacement_cycle_id",
+                    "archive_path",
+                    "archive_sha256",
+                    "practice_receipt",
+                    "superseded_at",
+                }
+                if set(supersession) != required:
+                    errors.append(f"supersession receipt fields are invalid: {cycle_id}")
+                if not str(supersession.get("reason", "")).strip():
+                    errors.append(f"supersession reason is missing: {cycle_id}")
+                replacement = str(supersession.get("replacement_cycle_id", ""))
+                if not CYCLE_ID_RE.fullmatch(replacement) or replacement == cycle_id:
+                    errors.append(f"supersession replacement cycle is invalid: {cycle_id}")
+                try:
+                    archive_candidate = _preserved_archive_path(
+                        str(supersession.get("archive_path", "")),
+                        root,
+                        cycle_id=cycle_id,
+                    )
+                except FlowError as error:
+                    errors.append(str(error))
+                    archive_candidate = None
+                archive_hash = supersession.get("archive_sha256")
+                if not HASH_RE.fullmatch(str(archive_hash or "")):
+                    errors.append(f"supersession archive hash is invalid: {cycle_id}")
+                elif (
+                    archive_candidate is not None
+                    and sha256_file(archive_candidate) != archive_hash
+                ):
+                    errors.append(f"supersession archive bytes changed: {cycle_id}")
+                if archive_hash != cycle.get("handoff_sha256"):
+                    errors.append(
+                        f"supersession archive does not preserve the old handoff hash: {cycle_id}"
+                    )
+                receipt = supersession.get("practice_receipt")
+                if not isinstance(receipt, dict) or set(receipt) != set(PRACTICE_RECEIPT_KEYS):
+                    errors.append(f"supersession practice receipt fields are invalid: {cycle_id}")
+                else:
+                    try:
+                        practice_candidate = _preserved_practice_path(
+                            str(receipt.get("path", "")),
+                            root,
+                        )
+                    except FlowError as error:
+                        errors.append(str(error))
+                        practice_candidate = None
+                    if not HASH_RE.fullmatch(str(receipt.get("sha256", ""))):
+                        errors.append(f"supersession practice hash is invalid: {cycle_id}")
+                    elif (
+                        practice_candidate is not None
+                        and sha256_file(practice_candidate) != receipt.get("sha256")
+                    ):
+                        errors.append(f"supersession practice bytes changed: {cycle_id}")
+                    if receipt.get("practice_layer") != "PRE_LAB":
+                        errors.append(f"supersession practice layer is invalid: {cycle_id}")
+                    if receipt.get("implementation_depth") != "I1_MECHANISM":
+                        errors.append(f"supersession implementation depth is invalid: {cycle_id}")
+                    if receipt.get("attempt_state") != "preserved_attempt":
+                        errors.append(f"supersession attempt state is invalid: {cycle_id}")
+                    if practice_candidate is not None:
+                        try:
+                            _validate_preserved_attempt_notebook(
+                                practice_candidate,
+                                cycle=cycle,
+                                receipt=receipt,
+                            )
+                        except FlowError as error:
+                            errors.append(f"supersession practice metadata invalid: {cycle_id}: {error}")
+        elif supersession is not None:
+            errors.append(f"only a superseded cycle may carry supersession metadata: {cycle_id}")
         practice = cycle.get("practice", {})
         if practice.get("state") not in PRACTICE_STATES:
             errors.append(f"invalid practice state: {cycle_id}")
@@ -1018,6 +1654,27 @@ def validate_flow(
             errors.append(f"invalid practice action: {cycle_id}")
         if practice.get("mode") is not None and practice.get("mode") not in PRACTICE_MODES:
             errors.append(f"invalid practice mode: {cycle_id}")
+        milestone_id = practice.get("milestone_id")
+        if practice.get("state") == "milestone-pending":
+            if (
+                practice.get("action") != "DEFER_TO_MILESTONE"
+                or practice.get("mode") != "NONE"
+                or practice.get("path") is not None
+                or not isinstance(milestone_id, str)
+                or not MILESTONE_ID_RE.fullmatch(milestone_id)
+            ):
+                errors.append(f"milestone-pending practice receipt is invalid: {cycle_id}")
+        elif milestone_id is not None and (
+            practice.get("action")
+            not in {"CREATE_LOCAL_PRACTICE", "CONTINUE_EXISTING_PRACTICE"}
+            or not isinstance(milestone_id, str)
+            or not MILESTONE_ID_RE.fullmatch(milestone_id)
+            or not str(practice.get("path", "")).startswith("practice/")
+            or not str(practice.get("path", "")).endswith(".ipynb")
+        ):
+            errors.append(
+                f"only a local created/continued assignment may name a valid milestone: {cycle_id}"
+            )
         knowledge = cycle.get("knowledge", {})
         if knowledge.get("state") not in KNOWLEDGE_STATES:
             errors.append(f"invalid knowledge state: {cycle_id}")
@@ -1136,6 +1793,25 @@ def _build_parser() -> argparse.ArgumentParser:
     start.add_argument("--mode", choices=("lesson-only", "full-day"), required=True)
     subparsers.add_parser("show")
     subparsers.add_parser("pause")
+    subparsers.add_parser("migrate-v1-to-v2")
+    supersede = subparsers.add_parser("supersede")
+    supersede.add_argument("--cycle-id")
+    supersede.add_argument("--reason", required=True)
+    supersede.add_argument("--replacement-cycle-id", required=True)
+    supersede.add_argument("--archive-path", required=True)
+    supersede.add_argument("--archive-sha256", required=True)
+    supersede.add_argument("--practice-path", required=True)
+    supersede.add_argument("--practice-sha256", required=True)
+    supersede.add_argument(
+        "--practice-layer",
+        choices=("PRE_LAB",),
+        required=True,
+    )
+    supersede.add_argument(
+        "--implementation-depth",
+        choices=("I1_MECHANISM",),
+        required=True,
+    )
     validate = subparsers.add_parser("validate")
     validate.add_argument("--verify-commits", action="store_true")
     transition = subparsers.add_parser("transition")
@@ -1149,7 +1825,9 @@ def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     root = _repo_root_from_script()
     try:
-        if args.command == "start":
+        if args.command == "migrate-v1-to-v2":
+            migrate_cursor_v1_to_v2(root, path=args.cursor)
+        elif args.command == "start":
             state = load_flow(root, path=args.cursor, create=True)
             state = start_flow(state, mode=args.mode)
             save_flow(state, root, path=args.cursor)
@@ -1158,6 +1836,24 @@ def main(argv: list[str] | None = None) -> int:
             save_flow(state, root, path=args.cursor)
         elif args.command == "transition":
             state = transition_phase(load_flow(root, path=args.cursor), args.phase)
+            save_flow(state, root, path=args.cursor)
+        elif args.command == "supersede":
+            state = supersede_cycle(
+                load_flow(root, path=args.cursor),
+                cycle_id=args.cycle_id,
+                reason=args.reason,
+                replacement_cycle_id=args.replacement_cycle_id,
+                archive_path=args.archive_path,
+                archive_sha256=args.archive_sha256,
+                practice_receipt={
+                    "path": args.practice_path,
+                    "sha256": args.practice_sha256,
+                    "practice_layer": args.practice_layer,
+                    "implementation_depth": args.implementation_depth,
+                    "attempt_state": "preserved_attempt",
+                },
+                repo_root=root,
+            )
             save_flow(state, root, path=args.cursor)
         elif args.command == "validate":
             state = load_flow(root, path=args.cursor)

@@ -21,10 +21,12 @@ if str(SCRIPTS_DIR) not in sys.path:
 
 from pdf_utils import pdf_page_count as _pdf_page_count  # noqa: E402
 from source_scopes import validate_course_scopes  # noqa: E402
+from target_graph import parse_roadmap_endpoints  # noqa: E402
 
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_CURRICULUM = REPO_ROOT / "CURRICULUM.md"
+DEFAULT_ROADMAP = REPO_ROOT / "ROADMAP.md"
 
 COMPETENCY_HEADER = (
     "ID",
@@ -57,15 +59,34 @@ REGISTRY_SUMMARY_HEADER = (
     "PDF 페이지",
     "Limited source",
 )
+MODULE_HEADER = (
+    "Module ID",
+    "역할",
+    "Target IDs",
+    "선수 Module ID",
+    "Module assignment",
+    "선택성",
+    "비고",
+)
+MILESTONE_HEADER = (
+    "Milestone ID",
+    "Practice layer",
+    "Module IDs",
+    "구현 깊이",
+    "선수 Milestone ID",
+    "Endpoint closure",
+    "요구 산출물",
+)
 
 REQUIRED_SECTIONS = (
     "## 1. 목적과 비목적",
     "## 2. ID, 깊이, 자료 충족도 범례",
     "## 3. 공통 핵심 역량",
     "## 4. 선택 전문 트랙",
-    "## 5. 현재 강의자료 Registry",
-    "## 6. 감사 중 발견된 주요 오류와 공백",
-    "## 7. 갱신 규칙",
+    "## 5. 정적 module·milestone catalog",
+    "## 6. 현재 강의자료 Registry",
+    "## 7. 감사 중 발견된 주요 오류와 공백",
+    "## 8. 갱신 규칙",
 )
 
 CORE_RANGES = {
@@ -75,6 +96,7 @@ CORE_RANGES = {
     "ML": 5,
     "DL": 7,
     "NLP": 2,
+    "SEQ": 1,
     "LM": 2,
     "TRF": 3,
     "LLM": 4,
@@ -82,7 +104,7 @@ CORE_RANGES = {
     "SYS": 3,
     "RES": 3,
 }
-TRACK_RANGES = {"MOD": 4, "SYS": 4, "EVAL": 4, "DATA": 4}
+TRACK_RANGES = {"MOD": 4, "SYS": 4, "EVAL": 5, "DATA": 4}
 EXPECTED_CORE_IDS = {
     f"CC-{area}-{number:02d}"
     for area, last in CORE_RANGES.items()
@@ -94,6 +116,106 @@ EXPECTED_TRACK_IDS = {
     for number in range(1, last + 1)
 }
 EXPECTED_COMPETENCY_IDS = EXPECTED_CORE_IDS | EXPECTED_TRACK_IDS
+
+EXPECTED_MODULE_IDS = (
+    "MOD-DL-FOUNDATION-01",
+    "MOD-SEQUENCE-01",
+    "MOD-LM-01",
+    "MOD-TRANSFORMER-01",
+    "MOD-SYSTEMS-INFERENCE-01",
+    "MOD-POSTTRAIN-01",
+    "MOD-EVALUATION-01",
+    "MOD-SYSTEMS-FULLSTACK-01",
+)
+EXPECTED_MODULE_PREREQUISITES = {
+    "MOD-DL-FOUNDATION-01": (),
+    "MOD-SEQUENCE-01": ("MOD-DL-FOUNDATION-01",),
+    "MOD-LM-01": ("MOD-SEQUENCE-01",),
+    "MOD-TRANSFORMER-01": ("MOD-SEQUENCE-01", "MOD-LM-01"),
+    "MOD-SYSTEMS-INFERENCE-01": ("MOD-TRANSFORMER-01",),
+    "MOD-POSTTRAIN-01": ("MOD-TRANSFORMER-01",),
+    "MOD-EVALUATION-01": ("MOD-TRANSFORMER-01",),
+    "MOD-SYSTEMS-FULLSTACK-01": ("MOD-SYSTEMS-INFERENCE-01",),
+}
+EXPECTED_MILESTONE_ORDER = (
+    "MA-DL-FOUNDATION-01",
+    "MA-SEQUENCE-01",
+    "PC-DL-FOUNDATION-01",
+    "MA-LM-01",
+    "MA-TRANSFORMER-01",
+    "PC-CORE-MODELING-01",
+    "MA-SYSTEMS-INFERENCE-01",
+    "MA-POSTTRAIN-01",
+    "MA-EVALUATION-01",
+    "MA-SYSTEMS-FULLSTACK-01",
+    "PC-SYSTEMS-INFERENCE-01",
+    "PC-POSTTRAIN-EVALUATION-01",
+)
+EXPECTED_MILESTONE_IDS = set(EXPECTED_MILESTONE_ORDER)
+EXPECTED_PHASE_MODULES = {
+    "PC-DL-FOUNDATION-01": {
+        "MOD-DL-FOUNDATION-01", "MOD-SEQUENCE-01",
+    },
+    "PC-CORE-MODELING-01": {"MOD-LM-01", "MOD-TRANSFORMER-01"},
+    "PC-SYSTEMS-INFERENCE-01": {"MOD-SYSTEMS-INFERENCE-01"},
+    "PC-POSTTRAIN-EVALUATION-01": {
+        "MOD-POSTTRAIN-01", "MOD-EVALUATION-01",
+    },
+}
+EXPECTED_MILESTONE_PREREQUISITES = {
+    "MA-DL-FOUNDATION-01": (),
+    "MA-SEQUENCE-01": (),
+    "PC-DL-FOUNDATION-01": ("MA-DL-FOUNDATION-01", "MA-SEQUENCE-01"),
+    "MA-LM-01": ("MA-SEQUENCE-01",),
+    "MA-TRANSFORMER-01": ("MA-LM-01",),
+    "PC-CORE-MODELING-01": ("MA-LM-01", "MA-TRANSFORMER-01"),
+    "MA-SYSTEMS-INFERENCE-01": ("MA-TRANSFORMER-01",),
+    "MA-POSTTRAIN-01": ("MA-TRANSFORMER-01",),
+    "MA-EVALUATION-01": ("MA-TRANSFORMER-01",),
+    "MA-SYSTEMS-FULLSTACK-01": ("MA-SYSTEMS-INFERENCE-01",),
+    "PC-SYSTEMS-INFERENCE-01": (
+        "MA-SYSTEMS-INFERENCE-01", "MA-EVALUATION-01",
+    ),
+    "PC-POSTTRAIN-EVALUATION-01": ("MA-POSTTRAIN-01", "MA-EVALUATION-01"),
+}
+EXPECTED_MILESTONE_DEPTHS = {
+    "MA-DL-FOUNDATION-01": "I3_WORKFLOW",
+    "MA-SEQUENCE-01": "I4_EXPERIMENT",
+    "MA-LM-01": "I3_WORKFLOW",
+    "MA-TRANSFORMER-01": "I3_WORKFLOW",
+    "MA-SYSTEMS-INFERENCE-01": "I4_EXPERIMENT",
+    "MA-POSTTRAIN-01": "I4_EXPERIMENT",
+    "MA-EVALUATION-01": "I4_EXPERIMENT",
+    "MA-SYSTEMS-FULLSTACK-01": "I4_EXPERIMENT",
+    "PC-DL-FOUNDATION-01": "I5_RESEARCH",
+    "PC-CORE-MODELING-01": "I5_RESEARCH",
+    "PC-SYSTEMS-INFERENCE-01": "I5_RESEARCH",
+    "PC-POSTTRAIN-EVALUATION-01": "I5_RESEARCH",
+}
+EXPECTED_PHASE_ENDPOINTS = {
+    "PC-DL-FOUNDATION-01": (),
+    "PC-CORE-MODELING-01": (),
+    "PC-SYSTEMS-INFERENCE-01": ("TR-SYS-03", "TR-SYS-04"),
+    "PC-POSTTRAIN-EVALUATION-01": (
+        "TR-MOD-03", "TR-EVAL-02", "TR-EVAL-05",
+    ),
+}
+EXPECTED_ENDPOINT_IDS = {
+    "TR-SYS-03", "TR-SYS-04", "TR-MOD-03", "TR-EVAL-02", "TR-EVAL-05",
+}
+EXPECTED_TARGET_PREREQUISITES = {
+    "CC-ML-01": (),
+    "CC-NLP-01": (),
+    "CC-SEQ-01": ("CC-DL-02",),
+    "CC-LM-01": ("CC-PROB-01", "CC-NLP-02", "CC-SEQ-01"),
+    "CC-TRF-01": ("CC-MATH-01", "CC-DL-01", "CC-NLP-02", "CC-SEQ-01"),
+    "CC-DL-05": ("CC-DL-04", "CC-SEQ-01", "CC-TRF-02"),
+    "TR-SYS-04": ("TR-SYS-03", "CC-RES-02"),
+    "TR-EVAL-05": ("TR-MOD-03", "TR-EVAL-02", "CC-RES-03"),
+}
+EXPECTED_SEQUENCE_EVIDENCE = (
+    "explain", "calculate", "shape", "implement", "debug", "interpret", "transfer",
+)
 
 ALLOWED_DEPTHS = {"D1", "D2", "D3"}
 ALLOWED_EVIDENCE = {
@@ -109,12 +231,23 @@ ALLOWED_GAP_ACTIONS = {
 ALLOWED_FORMATS = {"PDF 페이지 보존형 Markdown", "HTML 토글 펼침 Markdown", "PDF"}
 ALLOWED_INTEGRITY = {"complete", "limited", "blocked", "unverified"}
 ALLOWED_AUDIT_STATUS = {"complete", "blocked", "pending"}
+ALLOWED_IMPLEMENTATION_DEPTHS = {
+    "I1_MECHANISM": 1,
+    "I2_COMPONENT": 2,
+    "I3_WORKFLOW": 3,
+    "I4_EXPERIMENT": 4,
+    "I5_RESEARCH": 5,
+}
+ALLOWED_PRACTICE_LAYERS = {"MODULE_ASSIGNMENT", "PHASE_CAPSTONE"}
+ALLOWED_MODULE_OPTIONALITY = {"필수", "선택"}
 FORBIDDEN_PROGRESS_FIELDS = {
     "완료", "완료 여부", "점수", "진도", "진도율", "학습 날짜", "학습일",
     "mastery", "mastery 체크박스", "숙련도",
 }
 
 COMPETENCY_ID_RE = re.compile(r"(?:CC-[A-Z]+-\d{2}|TR-[A-Z]+-\d{2})\Z")
+MODULE_ID_RE = re.compile(r"MOD-[A-Z]+(?:-[A-Z]+)*-\d{2}\Z")
+MILESTONE_ID_RE = re.compile(r"(?:MA|PC)-[A-Z]+(?:-[A-Z]+)*-\d{2}\Z")
 SOURCE_ID_RE = re.compile(
     r"SRC-([A-Z0-9]+(?:-[A-Z0-9]+)*)-(\d{2}-\d{2})\Z"
 )
@@ -179,11 +312,34 @@ class CurriculumTargetSnapshot:
     line: int
     direct_source_ids: tuple[str, ...]
     direct_source_paths: frozenset[str]
+    module_id: str | None
+    module_assignment_id: str | None
+
+
+@dataclass(frozen=True)
+class CurriculumModuleSnapshot:
+    target_ids: tuple[str, ...]
+    prerequisites: tuple[str, ...]
+    assignment_id: str
+    optionality: str
+    line: int
+
+
+@dataclass(frozen=True)
+class CurriculumMilestoneSnapshot:
+    practice_layer: str
+    module_ids: tuple[str, ...]
+    implementation_depth: str
+    prerequisites: tuple[str, ...]
+    endpoint_ids: tuple[str, ...]
+    line: int
 
 
 @dataclass(frozen=True)
 class CurriculumSnapshot:
     targets: dict[str, CurriculumTargetSnapshot]
+    modules: dict[str, CurriculumModuleSnapshot]
+    milestones: dict[str, CurriculumMilestoneSnapshot]
     source_paths_by_id: dict[str, tuple[str, ...]]
     source_ids_by_path: dict[str, tuple[str, ...]]
 
@@ -211,6 +367,27 @@ class Source:
     audit_status: str
     audit_date: str
     note: str
+
+
+@dataclass
+class CurriculumModule:
+    identifier: str
+    line: int
+    target_ids: list[str]
+    prerequisites: list[str]
+    assignment_id: str
+    optionality: str
+
+
+@dataclass
+class CurriculumMilestone:
+    identifier: str
+    line: int
+    practice_layer: str
+    module_ids: list[str]
+    implementation_depth: str
+    prerequisites: list[str]
+    endpoint_ids: list[str]
 
 
 def _display_path(path: Path, repo_root: Path) -> str:
@@ -291,6 +468,12 @@ def _parse_evidence(cell: str) -> list[str]:
     return [_unwrap_code(item) for item in cell.split(",") if item.strip()]
 
 
+def _parse_id_list(cell: str) -> list[str]:
+    if cell.strip() in {"", "—"}:
+        return []
+    return [_unwrap_code(item) for item in cell.split(",") if item.strip()]
+
+
 def _parse_relations(
     cell: str,
     line: int,
@@ -332,9 +515,9 @@ def _parse_relations(
 def _validate_document_shape(
     lines: list[str], document_path: str, findings: list[Finding]
 ) -> None:
-    if "<!-- curriculum-schema: 1 -->" not in lines:
+    if "<!-- curriculum-schema: 2 -->" not in lines:
         findings.append(Finding(
-            document_path, 1, "SCHEMA_VERSION", "missing curriculum schema marker version 1",
+            document_path, 1, "SCHEMA_VERSION", "missing curriculum schema marker version 2",
         ))
 
     positions: list[int] = []
@@ -405,8 +588,43 @@ def _parse_sources(
     return sources
 
 
+def _parse_modules(
+    rows: list[TableRow], document_path: str, findings: list[Finding]
+) -> list[CurriculumModule]:
+    del document_path, findings
+    modules: list[CurriculumModule] = []
+    for row in rows:
+        modules.append(CurriculumModule(
+            identifier=_unwrap_code(row.cells[0]),
+            line=row.line,
+            target_ids=_parse_id_list(row.cells[2]),
+            prerequisites=_parse_id_list(row.cells[3]),
+            assignment_id=_unwrap_code(row.cells[4]),
+            optionality=_unwrap_code(row.cells[5]),
+        ))
+    return modules
+
+
+def _parse_milestones(
+    rows: list[TableRow], document_path: str, findings: list[Finding]
+) -> list[CurriculumMilestone]:
+    del document_path, findings
+    milestones: list[CurriculumMilestone] = []
+    for row in rows:
+        milestones.append(CurriculumMilestone(
+            identifier=_unwrap_code(row.cells[0]),
+            line=row.line,
+            practice_layer=_unwrap_code(row.cells[1]),
+            module_ids=_parse_id_list(row.cells[2]),
+            implementation_depth=_unwrap_code(row.cells[3]),
+            prerequisites=_parse_id_list(row.cells[4]),
+            endpoint_ids=_parse_id_list(row.cells[5]),
+        ))
+    return milestones
+
+
 def curriculum_snapshot_from_text(text: str) -> CurriculumSnapshot:
-    """Return target/source relations without requiring private source bytes."""
+    """Return target, catalog, and source relations without private source bytes."""
     lines = text.splitlines()
     ignored_findings: list[Finding] = []
     competency_rows, _ = _extract_tables(
@@ -415,10 +633,20 @@ def curriculum_snapshot_from_text(text: str) -> CurriculumSnapshot:
     source_rows, _ = _extract_tables(
         lines, SOURCE_HEADER, "CURRICULUM.md", ignored_findings,
     )
+    module_rows, _ = _extract_tables(
+        lines, MODULE_HEADER, "CURRICULUM.md", ignored_findings,
+    )
+    milestone_rows, _ = _extract_tables(
+        lines, MILESTONE_HEADER, "CURRICULUM.md", ignored_findings,
+    )
     competencies = _parse_competencies(
         competency_rows, "CURRICULUM.md", ignored_findings,
     )
     sources = _parse_sources(source_rows, "CURRICULUM.md", ignored_findings)
+    modules = _parse_modules(module_rows, "CURRICULUM.md", ignored_findings)
+    milestones = _parse_milestones(
+        milestone_rows, "CURRICULUM.md", ignored_findings,
+    )
 
     paths_by_id: dict[str, list[str]] = {}
     ids_by_path: dict[str, list[str]] = {}
@@ -426,6 +654,11 @@ def curriculum_snapshot_from_text(text: str) -> CurriculumSnapshot:
         paths_by_id.setdefault(source.identifier, []).append(source.relative_path)
         ids_by_path.setdefault(source.relative_path, []).append(source.identifier)
 
+    module_by_target = {
+        target_id: module
+        for module in modules
+        for target_id in module.target_ids
+    }
     targets: dict[str, CurriculumTargetSnapshot] = {}
     for competency in competencies:
         direct_ids = tuple(
@@ -446,10 +679,41 @@ def curriculum_snapshot_from_text(text: str) -> CurriculumSnapshot:
             line=competency.line,
             direct_source_ids=direct_ids,
             direct_source_paths=direct_paths,
+            module_id=(
+                module_by_target[competency.identifier].identifier
+                if competency.identifier in module_by_target
+                else None
+            ),
+            module_assignment_id=(
+                module_by_target[competency.identifier].assignment_id
+                if competency.identifier in module_by_target
+                else None
+            ),
         )
 
     return CurriculumSnapshot(
         targets=targets,
+        modules={
+            module.identifier: CurriculumModuleSnapshot(
+                target_ids=tuple(module.target_ids),
+                prerequisites=tuple(module.prerequisites),
+                assignment_id=module.assignment_id,
+                optionality=module.optionality,
+                line=module.line,
+            )
+            for module in modules
+        },
+        milestones={
+            milestone.identifier: CurriculumMilestoneSnapshot(
+                practice_layer=milestone.practice_layer,
+                module_ids=tuple(milestone.module_ids),
+                implementation_depth=milestone.implementation_depth,
+                prerequisites=tuple(milestone.prerequisites),
+                endpoint_ids=tuple(milestone.endpoint_ids),
+                line=milestone.line,
+            )
+            for milestone in milestones
+        },
         source_paths_by_id={
             source_id: tuple(paths) for source_id, paths in paths_by_id.items()
         },
@@ -691,6 +955,38 @@ def _validate_competencies(
                     "coverage '충분' needs at least one complete-integrity direct source",
                 ))
 
+    competency_by_id = {item.identifier: item for item in competencies}
+    for target_id, expected_prerequisites in EXPECTED_TARGET_PREREQUISITES.items():
+        item = competency_by_id.get(target_id)
+        if item and tuple(item.prerequisites) != expected_prerequisites:
+            findings.append(Finding(
+                document_path, item.line, "TARGET_PREREQUISITE_CONTRACT",
+                f"{target_id} prerequisites must be {', '.join(expected_prerequisites) or 'none'}",
+            ))
+    sequence = competency_by_id.get("CC-SEQ-01")
+    if sequence:
+        if sequence.depth != "D2":
+            findings.append(Finding(
+                document_path, sequence.line, "SEQUENCE_DEPTH",
+                "CC-SEQ-01 must target D2",
+            ))
+        if tuple(sequence.evidence) != EXPECTED_SEQUENCE_EVIDENCE:
+            findings.append(Finding(
+                document_path, sequence.line, "SEQUENCE_EVIDENCE",
+                "CC-SEQ-01 must require explain, calculate, shape, implement, debug, interpret, transfer",
+            ))
+        if sequence.relations or sequence.coverage != "없음" or sequence.gap_action != "별도 자료 확보":
+            findings.append(Finding(
+                document_path, sequence.line, "SEQUENCE_SOURCE_BOUNDARY",
+                "CC-SEQ-01 must remain without a durable source and use separate acquisition",
+            ))
+    architecture_comparison = competency_by_id.get("CC-DL-05")
+    if architecture_comparison and "implement" in architecture_comparison.evidence:
+        findings.append(Finding(
+            document_path, architecture_comparison.line, "ARCHITECTURE_COMPARISON_EVIDENCE",
+            "CC-DL-05 delegates implementation evidence to architecture-specific targets",
+        ))
+
     graph = {
         item.identifier: [p for p in item.prerequisites if p in actual_ids]
         for item in competencies
@@ -720,6 +1016,479 @@ def _validate_competencies(
     for identifier in graph:
         if state.get(identifier, 0) == 0:
             visit(identifier)
+
+
+def _validate_catalog(
+    modules: list[CurriculumModule],
+    milestones: list[CurriculumMilestone],
+    competencies: list[Competency],
+    document_path: str,
+    findings: list[Finding],
+) -> None:
+    target_ids = {item.identifier for item in competencies}
+    target_line = {item.identifier: item.line for item in competencies}
+    module_ids = [item.identifier for item in modules]
+    module_line = {item.identifier: item.line for item in modules}
+    actual_module_ids = set(module_ids)
+    expected_module_ids = set(EXPECTED_MODULE_IDS)
+
+    for duplicate in _duplicate_values(module_ids):
+        findings.append(Finding(
+            document_path, module_line[duplicate], "MODULE_DUPLICATE",
+            f"duplicate module ID {duplicate}",
+        ))
+    for missing in sorted(expected_module_ids - actual_module_ids):
+        findings.append(Finding(
+            document_path, 1, "MODULE_MISSING", f"missing required module ID {missing}",
+        ))
+    for unexpected in sorted(actual_module_ids - expected_module_ids):
+        findings.append(Finding(
+            document_path, module_line[unexpected], "MODULE_UNEXPECTED",
+            f"unexpected module ID {unexpected}",
+        ))
+    if module_ids != list(EXPECTED_MODULE_IDS):
+        findings.append(Finding(
+            document_path, modules[0].line if modules else 1, "MODULE_ORDER",
+            "module rows must follow the fixed catalog order",
+        ))
+
+    module_position = {identifier: index for index, identifier in enumerate(module_ids)}
+    target_memberships: dict[str, list[str]] = {}
+    assignment_memberships: dict[str, list[str]] = {}
+    for module in modules:
+        if not MODULE_ID_RE.fullmatch(module.identifier):
+            findings.append(Finding(
+                document_path, module.line, "MODULE_ID",
+                f"invalid module ID {module.identifier!r}",
+            ))
+        if not module.target_ids:
+            findings.append(Finding(
+                document_path, module.line, "MODULE_TARGET_EMPTY",
+                "each module must contain at least one target",
+            ))
+        if len(module.target_ids) != len(set(module.target_ids)):
+            findings.append(Finding(
+                document_path, module.line, "MODULE_TARGET_DUPLICATE",
+                "target IDs must be unique inside one module",
+            ))
+        for target_id in module.target_ids:
+            target_memberships.setdefault(target_id, []).append(module.identifier)
+            if target_id not in target_ids:
+                findings.append(Finding(
+                    document_path, module.line, "MODULE_TARGET_MISSING",
+                    f"module references unknown target {target_id}",
+                ))
+        if len(module.prerequisites) != len(set(module.prerequisites)):
+            findings.append(Finding(
+                document_path, module.line, "MODULE_PREREQUISITE_DUPLICATE",
+                "prerequisite module IDs must be unique",
+            ))
+        for prerequisite in module.prerequisites:
+            if prerequisite not in actual_module_ids:
+                findings.append(Finding(
+                    document_path, module.line, "MODULE_PREREQUISITE_MISSING",
+                    f"unknown prerequisite module {prerequisite}",
+                ))
+            elif module_position.get(prerequisite, len(modules)) >= module_position.get(
+                module.identifier, -1
+            ):
+                findings.append(Finding(
+                    document_path, module.line, "MODULE_PREREQUISITE_ORDER",
+                    f"prerequisite module must appear earlier: {prerequisite}",
+                ))
+        expected_prerequisites = EXPECTED_MODULE_PREREQUISITES.get(module.identifier)
+        if (
+            expected_prerequisites is not None
+            and tuple(module.prerequisites) != expected_prerequisites
+        ):
+            findings.append(Finding(
+                document_path, module.line, "MODULE_PREREQUISITE_CONTRACT",
+                f"{module.identifier} has the wrong prerequisite module sequence",
+            ))
+        if not MILESTONE_ID_RE.fullmatch(module.assignment_id):
+            findings.append(Finding(
+                document_path, module.line, "MODULE_ASSIGNMENT_ID",
+                f"invalid module assignment ID {module.assignment_id!r}",
+            ))
+        assignment_memberships.setdefault(module.assignment_id, []).append(module.identifier)
+        if module.optionality not in ALLOWED_MODULE_OPTIONALITY:
+            findings.append(Finding(
+                document_path, module.line, "MODULE_OPTIONALITY",
+                f"unsupported module optionality {module.optionality!r}",
+            ))
+        expected_optionality = (
+            "선택" if module.identifier == "MOD-SYSTEMS-FULLSTACK-01" else "필수"
+        )
+        if module.optionality != expected_optionality:
+            findings.append(Finding(
+                document_path, module.line, "MODULE_OPTIONALITY",
+                f"{module.identifier} must be {expected_optionality}",
+            ))
+
+    for target_id in sorted(target_ids):
+        memberships = target_memberships.get(target_id, [])
+        if not memberships:
+            findings.append(Finding(
+                document_path, target_line[target_id], "TARGET_MODULE_MISSING",
+                f"target must belong to exactly one module: {target_id}",
+            ))
+        elif len(memberships) > 1:
+            findings.append(Finding(
+                document_path, target_line[target_id], "TARGET_MODULE_DUPLICATE",
+                f"target belongs to multiple modules: {target_id} -> {', '.join(memberships)}",
+            ))
+
+    module_graph = {
+        module.identifier: [
+            prerequisite
+            for prerequisite in module.prerequisites
+            if prerequisite in actual_module_ids
+        ]
+        for module in modules
+    }
+    _validate_catalog_cycles(
+        module_graph, module_line, document_path, "MODULE_CYCLE", "module", findings
+    )
+
+    milestone_ids = [item.identifier for item in milestones]
+    milestone_line = {item.identifier: item.line for item in milestones}
+    actual_milestone_ids = set(milestone_ids)
+    for duplicate in _duplicate_values(milestone_ids):
+        findings.append(Finding(
+            document_path, milestone_line[duplicate], "MILESTONE_DUPLICATE",
+            f"duplicate milestone ID {duplicate}",
+        ))
+    for missing in sorted(EXPECTED_MILESTONE_IDS - actual_milestone_ids):
+        findings.append(Finding(
+            document_path, 1, "MILESTONE_MISSING",
+            f"missing required milestone ID {missing}",
+        ))
+    for unexpected in sorted(actual_milestone_ids - EXPECTED_MILESTONE_IDS):
+        findings.append(Finding(
+            document_path, milestone_line[unexpected], "MILESTONE_UNEXPECTED",
+            f"unexpected milestone ID {unexpected}",
+        ))
+    if milestone_ids != list(EXPECTED_MILESTONE_ORDER):
+        findings.append(Finding(
+            document_path, milestones[0].line if milestones else 1, "MILESTONE_ORDER",
+            "milestone rows must follow the fixed topological catalog order",
+        ))
+
+    milestone_position = {
+        identifier: index for index, identifier in enumerate(milestone_ids)
+    }
+    endpoint_memberships: dict[str, list[str]] = {}
+    milestone_by_id = {item.identifier: item for item in milestones}
+    for milestone in milestones:
+        if not MILESTONE_ID_RE.fullmatch(milestone.identifier):
+            findings.append(Finding(
+                document_path, milestone.line, "MILESTONE_ID",
+                f"invalid milestone ID {milestone.identifier!r}",
+            ))
+        if milestone.practice_layer not in ALLOWED_PRACTICE_LAYERS:
+            findings.append(Finding(
+                document_path, milestone.line, "PRACTICE_LAYER",
+                f"catalog milestone cannot use practice layer {milestone.practice_layer!r}",
+            ))
+        expected_prefix = (
+            "MA-" if milestone.practice_layer == "MODULE_ASSIGNMENT" else "PC-"
+        )
+        if (
+            milestone.practice_layer in ALLOWED_PRACTICE_LAYERS
+            and not milestone.identifier.startswith(expected_prefix)
+        ):
+            findings.append(Finding(
+                document_path, milestone.line, "MILESTONE_LAYER_ID",
+                f"{milestone.practice_layer} must use the {expected_prefix} prefix",
+            ))
+        if not milestone.module_ids:
+            findings.append(Finding(
+                document_path, milestone.line, "MILESTONE_MODULE_EMPTY",
+                "each milestone must reference at least one module",
+            ))
+        if len(milestone.module_ids) != len(set(milestone.module_ids)):
+            findings.append(Finding(
+                document_path, milestone.line, "MILESTONE_MODULE_DUPLICATE",
+                "module IDs must be unique inside one milestone",
+            ))
+        for module_id in milestone.module_ids:
+            if module_id not in actual_module_ids:
+                findings.append(Finding(
+                    document_path, milestone.line, "MILESTONE_MODULE_MISSING",
+                    f"milestone references unknown module {module_id}",
+                ))
+        depth_value = ALLOWED_IMPLEMENTATION_DEPTHS.get(
+            milestone.implementation_depth
+        )
+        if depth_value is None:
+            findings.append(Finding(
+                document_path, milestone.line, "IMPLEMENTATION_DEPTH",
+                f"unsupported implementation depth {milestone.implementation_depth!r}",
+            ))
+        else:
+            minimum = 3 if milestone.practice_layer == "MODULE_ASSIGNMENT" else 5
+            if milestone.practice_layer in ALLOWED_PRACTICE_LAYERS and depth_value < minimum:
+                findings.append(Finding(
+                    document_path, milestone.line, "IMPLEMENTATION_DEPTH_MINIMUM",
+                    f"{milestone.practice_layer} requires implementation depth I{minimum} or higher",
+                ))
+        expected_depth = EXPECTED_MILESTONE_DEPTHS.get(milestone.identifier)
+        if expected_depth and milestone.implementation_depth != expected_depth:
+            findings.append(Finding(
+                document_path, milestone.line, "IMPLEMENTATION_DEPTH_CONTRACT",
+                f"{milestone.identifier} must use {expected_depth}",
+            ))
+        if len(milestone.prerequisites) != len(set(milestone.prerequisites)):
+            findings.append(Finding(
+                document_path, milestone.line, "MILESTONE_PREREQUISITE_DUPLICATE",
+                "prerequisite milestone IDs must be unique",
+            ))
+        for prerequisite in milestone.prerequisites:
+            if prerequisite not in actual_milestone_ids:
+                findings.append(Finding(
+                    document_path, milestone.line, "MILESTONE_PREREQUISITE_MISSING",
+                    f"unknown prerequisite milestone {prerequisite}",
+                ))
+            elif milestone_position.get(prerequisite, len(milestones)) >= milestone_position.get(
+                milestone.identifier, -1
+            ):
+                findings.append(Finding(
+                    document_path, milestone.line, "MILESTONE_PREREQUISITE_ORDER",
+                    f"prerequisite milestone must appear earlier: {prerequisite}",
+                ))
+        expected_prerequisites = EXPECTED_MILESTONE_PREREQUISITES.get(
+            milestone.identifier
+        )
+        if (
+            expected_prerequisites is not None
+            and tuple(milestone.prerequisites) != expected_prerequisites
+        ):
+            findings.append(Finding(
+                document_path, milestone.line, "MILESTONE_PREREQUISITE_CONTRACT",
+                f"{milestone.identifier} has the wrong prerequisite milestone sequence",
+            ))
+        if (
+            milestone.practice_layer == "MODULE_ASSIGNMENT"
+            and len(milestone.module_ids) != 1
+        ):
+            findings.append(Finding(
+                document_path, milestone.line, "MODULE_ASSIGNMENT_SCOPE",
+                "MODULE_ASSIGNMENT must reference exactly one module",
+            ))
+        if milestone.practice_layer == "MODULE_ASSIGNMENT" and milestone.endpoint_ids:
+            findings.append(Finding(
+                document_path, milestone.line, "ENDPOINT_LAYER",
+                "only PHASE_CAPSTONE may close ROADMAP endpoints",
+            ))
+        for endpoint_id in milestone.endpoint_ids:
+            endpoint_memberships.setdefault(endpoint_id, []).append(milestone.identifier)
+            if endpoint_id not in target_ids:
+                findings.append(Finding(
+                    document_path, milestone.line, "ENDPOINT_TARGET_MISSING",
+                    f"endpoint closure references unknown target {endpoint_id}",
+                ))
+
+    milestone_graph = {
+        milestone.identifier: [
+            prerequisite
+            for prerequisite in milestone.prerequisites
+            if prerequisite in actual_milestone_ids
+        ]
+        for milestone in milestones
+    }
+    _validate_catalog_cycles(
+        milestone_graph,
+        milestone_line,
+        document_path,
+        "MILESTONE_CYCLE",
+        "milestone",
+        findings,
+    )
+
+    for assignment_id, assigned_modules in assignment_memberships.items():
+        milestone = milestone_by_id.get(assignment_id)
+        if milestone is None:
+            findings.append(Finding(
+                document_path, module_line[assigned_modules[0]], "MODULE_ASSIGNMENT_MISSING",
+                f"module assignment is absent from milestone catalog: {assignment_id}",
+            ))
+            continue
+        if milestone.practice_layer != "MODULE_ASSIGNMENT":
+            findings.append(Finding(
+                document_path, milestone.line, "MODULE_ASSIGNMENT_LAYER",
+                f"module assignment {assignment_id} has the wrong practice layer",
+            ))
+        if milestone.module_ids != assigned_modules:
+            findings.append(Finding(
+                document_path, milestone.line, "MODULE_ASSIGNMENT_REFERENCE",
+                f"{assignment_id} must reference exactly {', '.join(assigned_modules)}",
+            ))
+    for milestone in milestones:
+        if milestone.practice_layer != "MODULE_ASSIGNMENT":
+            continue
+        if milestone.identifier not in assignment_memberships:
+            findings.append(Finding(
+                document_path, milestone.line, "MODULE_ASSIGNMENT_UNREFERENCED",
+                f"no module points to assignment {milestone.identifier}",
+            ))
+
+    for phase_id, expected_modules in EXPECTED_PHASE_MODULES.items():
+        phase = milestone_by_id.get(phase_id)
+        if phase is None:
+            continue
+        if phase.practice_layer != "PHASE_CAPSTONE":
+            findings.append(Finding(
+                document_path, phase.line, "PHASE_CAPSTONE_LAYER",
+                f"{phase_id} must use PHASE_CAPSTONE",
+            ))
+        if set(phase.module_ids) != expected_modules:
+            findings.append(Finding(
+                document_path, phase.line, "PHASE_CAPSTONE_MODULES",
+                f"{phase_id} has the wrong module closure",
+            ))
+        if tuple(phase.endpoint_ids) != EXPECTED_PHASE_ENDPOINTS[phase_id]:
+            findings.append(Finding(
+                document_path, phase.line, "PHASE_ENDPOINT_CONTRACT",
+                f"{phase_id} has the wrong ordered endpoint closure",
+            ))
+        prerequisite_closure = _catalog_prerequisite_closure(
+            phase.identifier, milestone_graph
+        )
+        for module_id in phase.module_ids:
+            assignment_id = next(
+                (
+                    module.assignment_id
+                    for module in modules
+                    if module.identifier == module_id
+                ),
+                None,
+            )
+            if assignment_id and assignment_id not in prerequisite_closure:
+                findings.append(Finding(
+                    document_path, phase.line, "PHASE_ASSIGNMENT_CLOSURE",
+                    f"{phase_id} does not depend on {assignment_id}",
+                ))
+
+    for endpoint_id in sorted(EXPECTED_ENDPOINT_IDS):
+        closing = endpoint_memberships.get(endpoint_id, [])
+        if not closing:
+            findings.append(Finding(
+                document_path, target_line.get(endpoint_id, 1), "ENDPOINT_CLOSURE_MISSING",
+                f"ROADMAP endpoint has no PHASE_CAPSTONE closure: {endpoint_id}",
+            ))
+        elif len(closing) > 1:
+            findings.append(Finding(
+                document_path, target_line.get(endpoint_id, 1), "ENDPOINT_CLOSURE_DUPLICATE",
+                f"ROADMAP endpoint is closed by multiple milestones: {endpoint_id}",
+            ))
+    for endpoint_id in sorted(set(endpoint_memberships) - EXPECTED_ENDPOINT_IDS):
+        findings.append(Finding(
+            document_path,
+            milestone_line[endpoint_memberships[endpoint_id][0]],
+            "ENDPOINT_CLOSURE_UNEXPECTED",
+            f"non-endpoint target is listed as endpoint closure: {endpoint_id}",
+        ))
+
+    module_by_target = {
+        target_id: module.identifier
+        for module in modules
+        for target_id in module.target_ids
+    }
+    for endpoint_id, closing in endpoint_memberships.items():
+        if len(closing) != 1 or endpoint_id not in module_by_target:
+            continue
+        phase = milestone_by_id.get(closing[0])
+        if phase and module_by_target[endpoint_id] not in phase.module_ids:
+            findings.append(Finding(
+                document_path, phase.line, "ENDPOINT_MODULE_CLOSURE",
+                f"{closing[0]} does not include endpoint module {module_by_target[endpoint_id]}",
+            ))
+
+
+def _validate_catalog_cycles(
+    graph: dict[str, list[str]],
+    line_by_id: dict[str, int],
+    document_path: str,
+    code: str,
+    label: str,
+    findings: list[Finding],
+) -> None:
+    state: dict[str, int] = {}
+    stack: list[str] = []
+    reported: set[tuple[str, ...]] = set()
+
+    def visit(identifier: str) -> None:
+        state[identifier] = 1
+        stack.append(identifier)
+        for prerequisite in graph.get(identifier, []):
+            if state.get(prerequisite, 0) == 0:
+                visit(prerequisite)
+            elif state.get(prerequisite) == 1:
+                start = stack.index(prerequisite)
+                cycle = tuple(stack[start:] + [prerequisite])
+                if cycle not in reported:
+                    reported.add(cycle)
+                    findings.append(Finding(
+                        document_path,
+                        line_by_id.get(identifier, 1),
+                        code,
+                        f"{label} prerequisite cycle: " + " -> ".join(cycle),
+                    ))
+        stack.pop()
+        state[identifier] = 2
+
+    for identifier in graph:
+        if state.get(identifier, 0) == 0:
+            visit(identifier)
+
+
+def _catalog_prerequisite_closure(
+    identifier: str,
+    graph: dict[str, list[str]],
+    visiting: tuple[str, ...] = (),
+) -> set[str]:
+    if identifier in visiting:
+        return set()
+    closure: set[str] = set()
+    for prerequisite in graph.get(identifier, []):
+        closure.add(prerequisite)
+        closure.update(
+            _catalog_prerequisite_closure(
+                prerequisite, graph, (*visiting, identifier)
+            )
+        )
+    return closure
+
+
+def _validate_roadmap_endpoint_closure(
+    roadmap_path: Path,
+    milestones: list[CurriculumMilestone],
+    document_path: str,
+    findings: list[Finding],
+) -> None:
+    if not roadmap_path.is_file():
+        return
+    try:
+        endpoints = parse_roadmap_endpoints(roadmap_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
+        findings.append(Finding(
+            document_path, 1, "ROADMAP_ENDPOINT_PARSE",
+            f"cannot validate ROADMAP endpoint closure: {error}",
+        ))
+        return
+    roadmap_ids = [endpoint["target_id"] for endpoint in endpoints]
+    catalog_ids = [
+        endpoint_id
+        for milestone in milestones
+        if milestone.practice_layer == "PHASE_CAPSTONE"
+        for endpoint_id in milestone.endpoint_ids
+    ]
+    if catalog_ids != roadmap_ids:
+        findings.append(Finding(
+            document_path, 1, "ROADMAP_ENDPOINT_CLOSURE",
+            "PHASE_CAPSTONE endpoint closure must exactly match ordered ROADMAP endpoints; "
+            f"ROADMAP={roadmap_ids}, catalog={catalog_ids}",
+        ))
 
 
 def _validate_sources(
@@ -1487,6 +2256,12 @@ def validate_curriculum(
     summary_rows, summary_tables = _extract_tables(
         lines, REGISTRY_SUMMARY_HEADER, document_path, findings,
     )
+    module_rows, module_tables = _extract_tables(
+        lines, MODULE_HEADER, document_path, findings,
+    )
+    milestone_rows, milestone_tables = _extract_tables(
+        lines, MILESTONE_HEADER, document_path, findings,
+    )
     if competency_tables != 2:
         findings.append(Finding(
             document_path, 1, "COMPETENCY_TABLE_COUNT",
@@ -1497,14 +2272,32 @@ def validate_curriculum(
             document_path, 1, "SOURCE_TABLE_COUNT",
             f"found {source_tables} source registry tables; expected 1",
         ))
+    if module_tables != 1:
+        findings.append(Finding(
+            document_path, 1, "MODULE_TABLE_COUNT",
+            f"found {module_tables} module catalog tables; expected 1",
+        ))
+    if milestone_tables != 1:
+        findings.append(Finding(
+            document_path, 1, "MILESTONE_TABLE_COUNT",
+            f"found {milestone_tables} milestone catalog tables; expected 1",
+        ))
 
     competencies = _parse_competencies(competency_rows, document_path, findings)
     sources = _parse_sources(source_rows, document_path, findings)
+    modules = _parse_modules(module_rows, document_path, findings)
+    milestones = _parse_milestones(milestone_rows, document_path, findings)
     registry_summary = _parse_registry_summary(
         summary_rows, summary_tables, document_path, findings,
     )
     _validate_sources(sources, document_path, findings)
     _validate_competencies(competencies, sources, document_path, findings)
+    _validate_catalog(
+        modules, milestones, competencies, document_path, findings,
+    )
+    _validate_roadmap_endpoint_closure(
+        repo_root / "ROADMAP.md", milestones, document_path, findings,
+    )
     _validate_registry_structure_summary(
         registry_summary, sources, document_path, findings,
     )
@@ -1528,7 +2321,10 @@ def validate_curriculum(
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Validate CURRICULUM.md structure and optional private source integrity.",
+        description=(
+            "Validate CURRICULUM.md schema v2 competencies, static catalog, "
+            "endpoint closure, and optional private source integrity."
+        ),
     )
     parser.add_argument(
         "path", nargs="?", type=Path, default=DEFAULT_CURRICULUM,

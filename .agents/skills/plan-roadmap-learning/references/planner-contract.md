@@ -7,12 +7,20 @@ Use this contract to choose one primary curriculum target and, only when needed,
 Read the smallest relevant subset:
 
 1. `ROADMAP.md` for static endpoint priority;
-2. `CURRICULUM.md` through `scripts/inspect_target_graph.py` for `depth`, prerequisite closure, required evidence, source relations, coverage, and gap action;
+2. `CURRICULUM.md` through `scripts/inspect_target_graph.py` for `depth`, prerequisite closure, required evidence, source relations, coverage, gap action, and static module·milestone context;
 3. the selected target's registry rows, course `INDEX.md`, and read-only freshness result;
 4. learner-authored evidence in the current conversation, `knowledge/`, finalized dated TIL, and executed practice;
 5. challenge evidence only when an exact target or TIL link, actual verification result, and learner explanation all exist.
 
 Do not persist a planner snapshot, target status, mastery flag, score, or completion percentage. Source availability never changes target priority. Resolve source feasibility only after choosing the target.
+Module membership, `MODULE_ASSIGNMENT`, and `PHASE_CAPSTONE` are static catalog
+facts. They organize cumulative implementation but never imply that a target,
+module, or milestone is complete. `PRE_LAB` is not a catalog milestone and
+cannot receive milestone credit.
+Catalog order and milestone prerequisites do not replace target readiness:
+classify the chosen target's competency prerequisites from learner evidence,
+and never block a lesson merely because an older assignment or capstone has no
+retroactive credit.
 
 Implementation plus executed output and learner interpretation is the strongest local evidence. `knowledge/` is the current explanation but its cited provenance still matters. TIL is dated historical evidence. Tutor prose, source summaries, lecture completion, green checks alone, and platform passes alone do not establish mastery.
 
@@ -103,14 +111,22 @@ Then report:
 
 - exactly one `primary_target`, or `none` only with `NO_ACTIONABLE_TARGET`;
 - optional `bridge_target` and each relevant prerequisite state;
+- the primary target's exact `module_id` and `module_assignment_id` from the
+  catalog;
 - the exact ordered ROADMAP `endpoint` it advances, or `user-directed` for an
   explicitly named target outside every endpoint route;
+- the endpoint's exact `closing_milestone_id`, or `none` for a user-directed
+  target that is not an endpoint;
 - the target-first selection reason, keeping endpoint and current target distinct;
 - evidence consulted, its limitations, and exact missing evidence tokens;
 - observable target completion evidence;
 - the exact next artifact and range, plus explicit excluded scope;
 - honest qualitative time, compute, data, and access burden;
 - approval state for temporary retrieval, persistent registration, paid/authenticated access, or external participation.
+
+Reporting a module assignment or closing phase capstone is routing context,
+not a practice decision. Do not create, credit, or mark either artifact from
+the planner.
 
 `bridge_target` is non-`none` if and only if `target_state` is
 `BRIDGE_PREREQUISITE`. `NEED_DIAGNOSTIC` retains the tentative

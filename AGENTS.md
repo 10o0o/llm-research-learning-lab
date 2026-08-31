@@ -12,7 +12,9 @@ This is a lightweight personal TIL repository for studying toward an LLM Researc
 - `knowledge/`: topic-oriented, mutable notes representing the learner's current best understanding; keep its template at `knowledge/template.md`.
 - `practice/`: executed notebooks, Kaggle work, model experiments, and benchmarks; keep its template at `practice/template.ipynb`.
 - `ROADMAP.md`: broad learning direction, not a status tracker.
-- `CURRICULUM.md`: stable competency targets and audited source coverage, not learner progress or mastery tracking.
+- `CURRICULUM.md`: stable competency targets, ordered modules, cumulative
+  milestones, and audited source coverage, not learner progress or mastery
+  tracking.
 - `USAGE.md`: concise instructions for writing TIL notes, storing practice, and using repository skills.
 - `archive/`: previous TIL notes; preserve them as read-only history unless the user requests a specific change.
 
@@ -23,9 +25,13 @@ select one primary Curriculum target and, only when needed, one bridge target
 -> resolve an audited local source or one reviewed temporary official source
 -> prepare and independently review one temporary lesson handoff
 -> run a 60-90 minute standard session -> capture confirmed learner evidence
--> choose practice from that exact completed session
--> implement, execute, diagnose, and interpret the required evidence
--> update zero to three knowledge notes or record NO_CHANGE
+-> choose a pre-lab, module assignment, phase capstone, or milestone deferral
+   from that exact completed session
+-> for a concrete practice, implement, execute, diagnose, and interpret the
+   required evidence, then update zero to three knowledge notes or record
+   NO_CHANGE
+-> for `DEFER_TO_MILESTONE`, preserve the captured cycle as
+   `milestone-pending` and return directly to target selection
 -> recompute the next target and prepare the next reviewed lesson
 -> only on an explicit daily-TIL request, compose completed unconsumed cycles
 ```
@@ -71,7 +77,18 @@ is required.
 
 - Use `$plan-roadmap-learning` first when the learner asks what to study next or requests a source for an unresolved target. It keeps the ordered ROADMAP endpoint as the long-term destination, chooses exactly one actual primary target, and may add one mostly satisfied inline bridge before resolving sources. A blocking prerequisite becomes the primary target, never a bridge. Source availability affects executability after selection, not target priority. The planner remains read-only. The agent selects an exact official URL when needed; the cache helper only retrieves that supplied URL and never performs discovery or background learning.
 - Keep source and understanding evaluation in `$coach-llm-research-study`, adaptive teaching in `$teach-course-material`, hands-on decisions in `$suggest-learning-practice`, and durable concept writing in `$update-learning-knowledge`.
-- For source registration, replacement, or `full-source` teaching, read the complete source. For a `focused` lesson, read and review the selected coherent unit or unit group, its declared boundary units, direct assets, and relevant INDEX/Curriculum/ROADMAP rows. Each unit's anchor establishes the machine-checkable source boundary; unrelated chapters, appendices, goals, and index entries are outside the completeness gate. The source unit bounds review cost, not lesson length. Unless the learner explicitly requests `short` or `custom`, run a `standard` session with three to five connected concepts, motivation, concept model, a worked example, a distinct limitation or counterexample, and a final learner-attempted transfer combining at least two concepts. A fast answer may compress explanation, but cannot skip an arc role.
+- For source registration, replacement, or `full-source` teaching, read the complete source. For a `focused` lesson, read and review the selected coherent unit or unit group, its declared boundary units, direct assets, and relevant INDEX/Curriculum/ROADMAP rows. Each unit's anchor establishes the machine-checkable source boundary; unrelated chapters, appendices, goals, and index entries are outside the completeness gate. The source unit bounds review cost, not lesson length. Unless the learner explicitly requests `short` or `custom`, run a `standard` session with three to five connected concepts organized into three to five connected modules, motivation, concept model, worked examples, a distinct limitation or counterexample, and a final learner-attempted transfer combining every non-reserved core concept. A fast answer may compress explanation, but cannot skip an arc role.
+- Treat vague requests such as "압축", "빠르게", or "따라잡기" as
+  `standard` unless the learner gives an explicit duration or format constraint.
+  Deliver each module as one coherent purpose -> explanation -> worked
+  trace/code walk -> application block. Ask at most one assessed checkpoint per
+  module, explain an unconfirmed prerequisite before assessing it, and resume
+  the prerequisite step when the learner says it has not been introduced.
+- A D2 lesson whose target requires implementation or debugging must include an
+  actual class/API/`forward`/Tensor or data-flow walkthrough. Scalar arithmetic
+  and shape recall alone cannot satisfy the standard-session breadth gate;
+  learner-owned implementation still belongs to practice and is not inferred
+  from the walkthrough.
 - Before first using an essential concept, check for demonstrated understanding in the current conversation, relevant `knowledge/`, learner-authored TIL, and interpreted practice. Treat missing evidence as unconfirmed understanding even when the source introduces the concept; archived notes and tutor-authored prose may provide context but do not establish mastery on their own.
 - Teach an unconfirmed essential concept before building on it, starting from the problem it solves and a tiny example. Mark it `[선수개념]` when it appears in the source or is required to follow the source, reserve `[보충]` for useful material outside the source, and use `[정정]` for substantive source corrections.
 - When deepening an existing knowledge note, treat it as the learner's starting explanation rather than as an authoritative source; follow its related source when available and verify material claims as needed.
@@ -88,8 +105,11 @@ is required.
 - Do not treat tutor-generated explanations as proof of learner knowledge. Use
   only learner explanations, calculations, code, and interpreted output as
   evidence for session completion, practice, knowledge, or later TIL claims.
-- Do not use TIL as a prerequisite in the daily full flow. Practice accepts the
-  exact completed schema-v9 lesson session. Manual or historical practice may
+- Do not use TIL as a prerequisite in the daily full flow. New practice accepts
+  the exact cursor-v2 immutable capture of a completed schema-v10 lesson
+  session. A captured schema-v9 session may
+  remain read-only legacy provenance after an explicit restart, but it is not
+  promoted to a new Curriculum target. Manual or historical practice may
   instead use one explicitly named finalized dated TIL; never infer the latest
   note or accept `til/today.md` as that input.
 - `$suggest-learning-practice` first returns one practice action and modality.
@@ -99,10 +119,20 @@ is required.
   participation, or submission. `NO_EXTRA_PRACTICE` requires equivalent
   implementation, execution, and interpretation evidence or no
   practice-capable outcome.
-- Invoking `$suggest-learning-practice` with one exact completed session or
-  finalized TIL authorizes exactly one unexecuted local Notebook when its
-  decision is `CREATE_LOCAL_PRACTICE`. Keep coherent outcomes together; lack of
-  implementation evidence calls for the smallest Core practice, not more files.
+- Practice also returns a progression layer and implementation depth. Use
+  `PRE_LAB` only for a concrete mechanism blocker; it never earns milestone
+  credit. A `MODULE_ASSIGNMENT` contains a reusable component and a bounded
+  data-to-model-to-loss-to-train/eval workflow. A `PHASE_CAPSTONE` adds prior
+  artifact references, a baseline, a controlled comparison or ablation, error
+  analysis, reproducibility conditions, and limitations. Use
+  `DEFER_TO_MILESTONE` instead of generating another small Notebook when the
+  current lesson should accumulate into a later assignment.
+- Invoking `$suggest-learning-practice` with an exact eligible captured-cycle
+  input set or one finalized TIL authorizes exactly one unexecuted local Notebook when its
+  decision is `CREATE_LOCAL_PRACTICE`. Keep coherent outcomes together. When a
+  module assignment is due, missing implementation evidence calls for the
+  smallest coherent assignment that still contains its required component and
+  workflow, not another micro-practice or more files.
 - Map every major session or TIL Outcome to `implement`, `test`, `debug`,
   `interpret`, or `design`. Use the one Notebook for deterministic calculations,
   Tensor/Shape mechanics, small training and validation flows, debugging, and
@@ -117,10 +147,12 @@ is required.
 - `오늘 전체 학습 흐름 시작` or `전체 학습 흐름 시작` authorizes a
   same-Asia/Seoul-day sequence of cycles across new Codex conversations:
   target/source selection; reviewed 60-90 minute lesson; confirmed evidence
-  capture; one practice decision; learner implementation, execution and
-  interpretation; the exact completion-ready practice commit; zero to three
-  knowledge updates or `NO_CHANGE`; next-target calculation; and preparation
-  of the next reviewed lesson. `계속` resumes the cursor's exact phase while
+  capture; and one practice decision. Concrete practice continues through
+  learner implementation, execution, interpretation, the exact
+  completion-ready commit, and zero to three knowledge updates or `NO_CHANGE`.
+  `DEFER_TO_MILESTONE` instead preserves the cycle and returns to next-target
+  calculation without those completion claims. The flow then performs
+  preparation of the next reviewed lesson. `계속` resumes the cursor's exact phase while
   that authorization remains current. Do not create an orchestration skill,
   snapshot, or progress database.
 - Full-day authorization never permits learner answers, learner-owned practice,
@@ -182,9 +214,11 @@ is required.
 - Treat `knowledge/` as the learner's current state. Update zero to three
   date-free concept notes from confirmed session evidence plus terminal,
   interpreted practice without requiring a TIL. `NO_CHANGE` is valid.
-- New local practice uses one metadata-v4 `.ipynb` whose `learning_input` is an
-  exact completed lesson session or exact finalized TIL. Existing v3 artifacts
-  remain valid without migration.
+- New local practice uses metadata-v5 and records its practice layer,
+  implementation depth, optional stable milestone, captured-cycle or finalized
+  TIL inputs, prior practice, reviews, and result/interpretation cells. Existing
+  v3/v4 artifacts remain valid as legacy-unclassified without automatic
+  milestone credit.
 - Record only observed results from code that actually ran.
 - Keep datasets, model weights, credentials, and large generated files out of Git unless explicitly authorized and appropriate.
 - Treat PDFs as sources, not public notes. Include toggle children, figures, code, tables, and formulas when exporting Notion pages.

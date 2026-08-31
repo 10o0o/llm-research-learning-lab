@@ -1,4 +1,4 @@
 interface:
   display_name: "LLM 학습 평가 코치"
-  short_description: "자료 slice와 60~90분 schema-v9 수업 계약을 검토합니다"
-  default_prompt: "$coach-llm-research-study를 사용해 review slice와 60~90분 Module Plan을 분리한 schema-v9 lesson contract를 독립 검토하고 repair를 같은 흐름에서 수렴시켜줘. 명시적 TIL 저장에 섞인 수동 내용만 별도로 검토해줘."
+  short_description: "자료 slice와 60~90분 schema-v10 수업 계약을 검토합니다"
+  default_prompt: "$coach-llm-research-study를 사용해 review slice와 표준 60~90분 Module Plan을 분리한 schema-v10 lesson contract를 독립 검토해줘. target evidence partition, 선수 설명 순서, 숨은 질문 없는 checkpoint 부하, 실제 class/forward/nn API/shape flow, 정규화 후에도 새로운 통합 exit를 각각 판정하고 repair를 같은 흐름에서 수렴시켜줘."

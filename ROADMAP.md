@@ -6,6 +6,7 @@
 수학과 Tensor
 -> 머신러닝 기본과 실험
 -> PyTorch와 딥러닝
+-> RNN·LSTM Sequence Modeling
 -> Transformer와 Language Modeling
 -> LLM Systems / Post-training / Evaluation
 ```
@@ -28,7 +29,7 @@ Modeling과 Computer Vision은 별도 주력 트랙이 아니라 위 전문화�
 | 1 | `1B` | Systems·Inference | `TR-SYS-04` |
 | 2 | `2A` | Post-training·Evaluation | `TR-MOD-03` |
 | 2 | `2B` | Post-training·Evaluation | `TR-EVAL-02` |
-| 2 | `2C` | Post-training·Evaluation | `TR-EVAL-04` |
+| 2 | `2C` | Post-training·Evaluation | `TR-EVAL-05` |
 
 Modeling과 Computer Vision은 이 endpoint에 필요한 선수개념 또는 연결 학습으로만 선택합니다.
 
@@ -50,9 +51,11 @@ Modeling과 Computer Vision은 이 endpoint에 필요한 선수개념 또는 연
 - forward, backward, optimizer
 - 학습 루프와 디버깅
 - normalization과 regularization
+- RNN recurrence·unroll과 LSTM state·gate를 직접 구현하고 실제 sequence task에서 비교
 
 ## 4. Transformer와 Language Modeling
 
+- `CC-SEQ-01`을 필수 연결 역량으로 먼저 완료
 - tokenization과 embedding
 - attention과 Transformer block
 - autoregressive training과 generation
@@ -62,5 +65,7 @@ Modeling과 Computer Vision은 이 endpoint에 필요한 선수개념 또는 연
 - LLM Systems: latency, throughput, memory, batching, KV cache
 - Post-training: SFT, LoRA, preference optimization
 - Evaluation: metric, failure analysis, contamination
+
+누적 구현 골격과 module별 assignment·주요 phase capstone은 `CURRICULUM.md`의 정적 catalog가 관리합니다. 이 catalog와 ROADMAP endpoint는 진도나 mastery를 기록하지 않습니다.
 
 현재 무엇을 공부할지는 가장 최근 TIL, `knowledge/`에 드러난 현재 이해, 실제 실습 결과를 보고 정합니다. 추가 실습은 성취 근거상 도움이 될 때만 하나 추천받고, 이미 충분하다면 다음 강의로 진행합니다.

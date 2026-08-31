@@ -1,7 +1,7 @@
 # Lesson handoff contract
 
 This document is the sole normative specification for
-`tmp/active-lesson-handoff.md`. The schema is currently `9`.
+`tmp/active-lesson-handoff.md`. The schema is currently `10`.
 `assets/active-lesson-handoff-template.md` is the canonical surface template,
 and `scripts/validate_lesson_handoff.py` is the executable contract.
 
@@ -31,26 +31,29 @@ authorization and multi-cycle resumption live only in
    `CAPTURE_SESSION`, then `DECIDE_PRACTICE`.
 
 A completed handoff may be replaced only after all confirmed evidence has been
-captured, or after an explicit learner decision to discard it. Schema v8 and
-earlier files must be rebuilt from the current template. The sole migration
-helper is the evidence-preserving v8-to-v9 paused-session migration.
+captured. An explicitly restarted v9 attempt is archived as read-only legacy
+provenance and is never promoted to a v10 target. Every new lesson is rebuilt
+from the current template and receives a fresh review.
 
 ## Metadata and hashes
 
 Metadata contains exactly:
 
-- `schema_version: 9`
+- `schema_version: 10`
 - stable `cycle_id` and `lesson_id`
 - title and `status`
-- `session_profile: standard | short | custom`
 - `flow_mode: day-full | single-lesson`
 - Asia/Seoul `study_date`, RFC 3339 creation/update times, and author ID
 - SHA-256 of the canonical input manifest and immutable contract
 
 Allowed status values are `preparing`, `review_pending`,
 `repair_pending`, `active`, `paused`, `blocked`, and `completed`.
-`short` is allowed only after an explicit short-session request or an
-evidence-preserving legacy recovery. The normal default is `standard`.
+Session profile is part of the immutable contract, not mutable metadata. Its
+decision records `profile`, `basis`, the exact requested constraint, and
+planned minutes. The default is `standard` for 60–90 minutes. Vague wording
+such as “압축”, “빠르게”, or “따라잡기” remains `standard`; `short` or `custom`
+requires a concrete numeric duration or a recognized explicit format
+constraint. Arbitrary non-empty text is not a constraint.
 
 The input manifest includes every contract input with its exact current hash:
 all local or cached external primaries and direct assets, course INDEX,
@@ -66,7 +69,11 @@ both the manifest and this contract. Any change makes the review stale.
 ## Target, source, and scope
 
 `Target Decision` records selection mode, target state, exact primary and
-optional bridge, evidence gap, completion evidence, endpoint, and reason.
+optional bridge; all Curriculum evidence requirements and their basis; the
+current evidence gap; the subset owned by this lesson and its basis; the
+disjoint residual reserved for practice and its basis; completion evidence;
+endpoint; and reason. Lesson scope plus residual exactly partitions the target
+gap, while the gap remains a subset of all target requirements.
 Only `START_TARGET`, `CONTINUE_TARGET`, and `BRIDGE_PREREQUISITE` are
 teachable. Diagnostic and no-action planner states cannot enter a handoff.
 
@@ -87,7 +94,12 @@ coherent topic, section, or example family with one concrete source-anchor
 locator; its anchor may use a PDF page range, but the contract must not model a
 lesson as a page-by-page checklist. Objective, goal, guidance, and source
 finding locators must be inside an included unit's anchor. Boundary units are
-review-only and cannot carry an objective. Outside-scope goals, examples,
+review-only and cannot carry an objective. `Boundary Decision Map` classifies
+each one in source order as a required prerequisite, authentic application,
+advanced follow-on, or unrelated unit, with one exact disposition:
+`include-lesson`, `reserve-practice`, `defer-advanced`, or
+`exclude-unrelated`. A required prerequisite cannot remain a boundary; move it
+to Included units before review may pass. Outside-scope goals, examples,
 appendices, and index material are neither deferred objectives nor readiness
 blockers. The whole source hash remains in the manifest so byte drift still
 invalidates review.
@@ -119,11 +131,12 @@ contract contains:
 - learner-evidence baseline and precisely located audit findings;
 - source scope, source coverage, declared-goal, and guidance maps;
 - observable objectives and an ordered Concept Path;
-- Module Plan, Session Plan, Example Map, and Prepared Teaching Steps;
+- Session Profile Decision, Boundary Decision Map, Module Plan, Session Plan,
+  Example Map, and Prepared Teaching Steps;
 - explicit deferred objectives, if any.
 
 Each objective states requirement, marker, source locator, observable outcome,
-concept, treatment, teaching move, and exact baseline evidence. Source-core
+concept, prerequisite Concept IDs, treatment, teaching move, and exact baseline evidence. Source-core
 objectives may not be silently dropped. `bridge` treatment needs confirmed
 learner baseline evidence; otherwise the prerequisite is taught in full or is
 selected as the primary target.
@@ -131,16 +144,31 @@ selected as the primary target.
 ### Standard depth
 
 A standard session lasts 60–90 expected minutes and has three to five
-substantively different connected modules. Renaming the same micro-concept does
-not satisfy depth. Modules must record source locators, a learner application
-step, and expected time.
+substantively different connected modules; `custom` also keeps three to five.
+Renaming the same micro-concept does not satisfy depth. Each module records one
+representation (`numeric`, `tensor`, `code-api`, `task-experiment`, or
+`system-design`), learner action, bound Teaching Step IDs, one closing adaptive
+application Step, source locators, and expected time. Its Steps form one
+uninterrupted purpose → explanation → worked trace or code walk → application
+block, with at most one assessed checkpoint.
+`check_policy: none` means the Step's teaching outline and tiny example contain
+no hidden learner question or assessment directive; assessment cannot be moved
+out of `check_question` to bypass teaching order.
 
-The complete arc contains motivation, concept model, worked example,
+An objective's prerequisite concepts are explained in earlier Steps before it
+can be assessed. The complete arc contains motivation, concept model, worked example,
 contrast/limit, and synthesis/transfer roles; at least two genuinely distinct
 worked fixtures; at least two learner application steps; an explicit
-counterexample or limitation; and a final task combining at least two
-concepts. Every non-deferred core concept must be represented in the modules
-and exit design.
+counterexample or limitation; and a final task combining every non-reserved
+core concept in a new context. The two worked examples use distinct fixtures and representations. A
+D2 `implement` or `debug` scope includes an actual `class Name(nn.Module):`, a
+`def forward(...):`, a concrete `nn.*(...)` call, at least two explicit
+Tensor/shape states, and a three-stage arrow data flow; a keyword list or
+numeric-only plan fails. Every non-deferred core concept must be represented in
+the modules and in a novel final task, code, or system fixture covering every
+non-deferred objective. The final fixture and context must remain distinct
+from every earlier fixture/context after case, whitespace, punctuation, and
+Unicode compatibility normalization; assigning a new Example ID is not enough.
 
 `short` and `custom` still require an explicit coherent objective, reviewed
 scope, honest evidence, and an exit. They do not waive target/source identity
@@ -148,7 +176,9 @@ or semantic review.
 
 ## Review convergence
 
-`Semantic Review` holds one current record:
+`Semantic Review` holds one current record and explicit `scope_breadth`,
+`teaching_order`, `authentic_application`, `assessment_load`, and
+`exit_integration` checks:
 
 - iteration `0 | 1 | 2`;
 - phase `none | independent-slice | targeted-recheck`;

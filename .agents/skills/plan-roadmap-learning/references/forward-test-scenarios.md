@@ -43,3 +43,9 @@ Use these scenarios only after changing planner policy. Give a fresh read-only r
 - Prompt: "Systems·Inference의 다음 목표를 정해줘. 1A는 아직 blocker가 있고 1B 자료는 이미 준비돼 있어."
 - Fixture variants: stage 1A has two prerequisite gaps that require separate assessed work; stage 1B has a fresh audited source and unfinished practice.
 - Expected invariants: remain on endpoint stage 1A, choose the highest-impact actionable gap as `primary_target`, use no bridge for multiple independent gaps, and do not advance to 1B because its source or practice is convenient.
+
+## F08 Sequence bridge and static milestone context
+
+- Prompt: "Language Modeling이나 Transformer를 시작하기 전에 지금 무엇을 해야 해?"
+- Fixture facts: `CC-SEQ-01` has no learner implementation evidence; its prerequisite is satisfied; later LM and Transformer targets otherwise appear approachable.
+- Expected invariants: choose `CC-SEQ-01` as the blocking primary target, report `MOD-SEQUENCE-01` and `MA-SEQUENCE-01`, and describe the relevant phase capstone only as static routing context without granting milestone credit.

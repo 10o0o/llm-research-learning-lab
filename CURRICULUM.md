@@ -1,10 +1,10 @@
 # LLM Research Engineer 세부 커리큘럼
 
-<!-- curriculum-schema: 1 -->
+<!-- curriculum-schema: 2 -->
 
 ## 1. 목적과 비목적
 
-이 문서는 `ROADMAP.md`의 큰 방향을 실행 가능한 학습 성과로 풀고, 현재 강의 자료가 각 성과를 어느 깊이까지 직접 뒷받침하는지 판단하는 기준이다. 수업 계약은 한 번에 관련 ID 1~3개를 선택하고, 연결 자료의 관계·무결성·공백 처리를 근거로 보충 범위를 결정한다.
+이 문서는 `ROADMAP.md`의 큰 방향을 실행 가능한 학습 성과로 풀고, 현재 강의 자료가 각 성과를 어느 깊이까지 직접 뒷받침하는지 판단하는 기준이다. 수업 계약은 한 번에 관련 ID 1~3개를 선택하고, 연결 자료의 관계·무결성·공백 처리를 근거로 보충 범위를 결정한다. 정적 module·milestone catalog는 역량을 누적 구현 단위에 연결하지만 학습자의 현재 상태를 기록하지 않는다.
 
 이 문서는 학습자의 완료 여부, 점수, 진도율, 학습 날짜 또는 mastery를 기록하지 않는다. 별도 LMS, 일일 진도표, 강의 순서 강제 장치도 아니다. 아래 자료 평가는 **자료의 충족도**이며 학습자의 이해도를 뜻하지 않는다.
 
@@ -34,6 +34,8 @@
 
 자료 registry의 무결성은 `complete`, `limited`, `blocked`, `unverified`, 감사 상태는 `complete`, `blocked`, `pending`을 쓴다. `limited`는 현재 파일을 감사할 수 있지만 변환 훼손이나 원본 누락 같은 제약이 있음을 뜻한다. 파일 hash가 registry와 달라지면 validator가 별도 상태값을 저장하지 않고 stale 오류로 계산한다.
 
+실습 구현 깊이는 `I1_MECHANISM`, `I2_COMPONENT`, `I3_WORKFLOW`, `I4_EXPERIMENT`, `I5_RESEARCH` 순서다. `MODULE_ASSIGNMENT`는 실제 component와 data→model→loss→train/eval workflow를 포함하고, `PHASE_CAPSTONE`은 baseline·통제 비교 또는 ablation·error analysis·재현 조건·한계 보고를 포함한다. 개념 blocker를 푸는 `PRE_LAB`은 milestone이 아니므로 catalog에 넣지 않는다.
+
 ## 3. 공통 핵심 역량
 
 | ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |
@@ -47,7 +49,7 @@
 | CC-PROB-03 | entropy·cross entropy·KL divergence·mutual information을 계산하고 분포 차이와 학습 목적을 해석한다. | D2 | CC-PROB-01 | explain, calculate, implement, interpret | supporting:SRC-KBM-06-02 | 부분 | 수업 내 보충 | cross entropy는 직접 다루지만 entropy·KL·mutual information은 없다. |
 | CC-STAT-01 | 추정량·신뢰구간·bootstrap의 가정과 불확실성을 계산하고 보고한다. | D2 | CC-PROB-01, CC-PROB-02 | explain, calculate, implement, interpret | context:SRC-KAM-02-01,SRC-KAM-05-01 | 없음 | 별도 자료 확보 | resampling과 fold 평균·표준편차는 쓰지만 통계적 추론을 가르치지 않는다. |
 | CC-STAT-02 | 가설검정·효과크기·다중검정의 한계를 적용해 비교 결론을 평가한다. | D2 | CC-STAT-01 | explain, calculate, interpret, design | context:SRC-KAM-05-01 | 없음 | 별도 자료 확보 | 후보 비교는 있으나 유의성·효과크기·다중 비교 통제가 없다. |
-| CC-ML-01 | 문제 유형을 정의하고 train·validation·test 분리와 단순 baseline을 설계한다. | D2 | CC-PROB-01 | explain, implement, interpret, design | primary:SRC-KAM-01-01,SRC-KDL-01-02,SRC-KDL-01-03,SRC-KDL-07-04; supporting:SRC-KAM-04-02,SRC-KDL-08-05,SRC-KDL-08-08 | 충분 | 그대로 사용 | 무작위·시간·그룹 데이터의 분리 선택과 train·validation·test 역할을 포함하며, 08-08은 고정 seed 분리와 최종 test 1회 평가를 구현한다. |
+| CC-ML-01 | 문제 유형을 정의하고 train·validation·test 분리와 단순 baseline을 설계한다. | D2 | — | explain, implement, interpret, design | primary:SRC-KAM-01-01,SRC-KDL-01-02,SRC-KDL-01-03,SRC-KDL-07-04; supporting:SRC-KAM-04-02,SRC-KDL-08-05,SRC-KDL-08-08 | 충분 | 그대로 사용 | 무작위·시간·그룹 데이터의 분리 선택과 train·validation·test 역할을 포함하며, 08-08은 고정 seed 분리와 최종 test 1회 평가를 구현한다. |
 | CC-ML-02 | metric·threshold·calibration·불균형을 비용과 오류 유형에 맞춰 선택하고 해석한다. | D2 | CC-ML-01, CC-PROB-01 | explain, calculate, implement, interpret, design | primary:SRC-KAM-01-01,SRC-KAM-04-01; supporting:SRC-KDL-01-02,SRC-KDL-04-03,SRC-KDL-04-04,SRC-KDL-08-06,SRC-KDL-08-08 | 부분 | 수업 내 보충 | sample-weighted accuracy와 불균형 주의는 있으나 threshold 선택과 calibration의 계산·검증이 얕다. |
 | CC-ML-03 | 일반화·bias-variance·regularization을 진단하고 적절한 개입을 실험한다. | D2 | CC-ML-01, CC-MATH-03 | explain, calculate, implement, interpret, design | primary:SRC-KAM-03-01,SRC-KAM-03-02; supporting:SRC-KAM-02-01,SRC-KAM-02-02; context:SRC-KDL-07-04 | 부분 | 원본 복구 후 재감사 | 핵심 자료 두 개에 수식 변환 훼손 또는 신버전 원본 누락이 있다. |
 | CC-ML-04 | 선형·거리·트리·ensemble 모델 계열과 해석 도구를 데이터 조건에 맞춰 비교한다. | D2 | CC-ML-01, CC-ML-03 | explain, implement, interpret, design, transfer | primary:SRC-KAM-01-02,SRC-KAM-02-01,SRC-KAM-02-02,SRC-KAM-02-03; supporting:SRC-KDL-01-01 | 충분 | 그대로 사용 | SHAP은 예측 설명이지 인과 설명이 아님을 유지한다. |
@@ -56,14 +58,15 @@
 | CC-DL-02 | 데이터·모델·손실·optimizer·평가로 이어지는 학습 루프를 구현하고 출력 흐름을 해석한다. | D2 | CC-ML-01, CC-MATH-03, CC-DL-01 | explain, shape, implement, debug, interpret | primary:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KDL-06-04,SRC-KDL-06-05,SRC-KDL-07-01,SRC-KDL-07-02,SRC-KDL-07-04,SRC-KDL-07-05,SRC-KDL-08-03,SRC-KDL-08-04,SRC-KDL-08-05,SRC-KDL-08-08; supporting:SRC-KBM-07-02,SRC-KDL-03-05,SRC-KDL-04-01,SRC-KDL-04-03,SRC-KDL-04-04,SRC-KDL-05-01,SRC-KDL-05-02,SRC-KDL-05-03,SRC-KDL-05-04,SRC-KDL-06-01,SRC-KDL-06-02,SRC-KDL-06-03,SRC-KDL-07-03,SRC-KDL-08-01,SRC-KDL-08-02,SRC-KDL-08-06,SRC-KDL-08-07 | 충분 | 그대로 사용 | Dataset·DataLoader, model·loss·optimizer 연결, gradient update 순서, train·validation 함수, metric 누적과 통합 실행 루프를 다룬다. |
 | CC-DL-03 | autograd 그래프와 gradient를 추적하고 vanishing·exploding·detach·in-place 문제를 진단한다. | D2 | CC-MATH-03, CC-DL-01, CC-DL-02 | explain, calculate, shape, implement, debug | primary:SRC-KBM-07-02,SRC-KDL-06-01,SRC-KDL-06-02,SRC-KDL-06-03,SRC-KDL-06-05; supporting:SRC-KDL-02-04,SRC-KDL-04-01,SRC-KDL-04-02,SRC-KDL-05-01,SRC-KDL-05-04,SRC-KDL-06-04 | 부분 | 수업 내 보충 | 계산 그래프·gradient 누적·detach·graph 단절·finite gradient 점검은 직접 다루지만 vanishing/exploding 원인 진단, in-place 오류 재현·수정, 수동 gradient check가 부족하다. |
 | CC-DL-04 | activation·initialization·normalization·regularization의 상호작용을 구현하고 비교한다. | D2 | CC-DL-02, CC-ML-03 | explain, implement, debug, interpret, design | primary:SRC-KDL-04-01,SRC-KDL-04-02; supporting:SRC-KDL-04-03,SRC-KDL-04-04,SRC-KAM-03-02 | 부분 | 수업 내 보충 | 비선형성·ReLU·출력 activation은 직접 다루지만 initialization·normalization·통합 regularization 실험이 없다. |
-| CC-DL-05 | MLP·CNN·RNN·Transformer 등 주요 architecture의 inductive bias와 shape 흐름을 비교한다. | D2 | CC-DL-04 | explain, shape, implement, interpret, transfer | primary:SRC-KDL-03-01,SRC-KDL-03-02,SRC-KDL-03-03,SRC-KDL-03-04,SRC-KDL-03-05,SRC-KDL-08-01,SRC-KDL-08-02; supporting:SRC-KDL-04-01,SRC-KDL-08-08 | 부분 | 수업 내 보충 | MLP의 경계·층·shape·forward와 통합 적용은 직접 다루지만 CNN·RNN·Transformer inductive bias 비교가 없다. |
+| CC-DL-05 | MLP·CNN·RNN·Transformer 등 주요 architecture의 inductive bias와 shape 흐름을 통합 비교한다. | D2 | CC-DL-04, CC-SEQ-01, CC-TRF-02 | explain, shape, interpret, transfer | primary:SRC-KDL-03-01,SRC-KDL-03-02,SRC-KDL-03-03,SRC-KDL-03-04,SRC-KDL-03-05,SRC-KDL-08-01,SRC-KDL-08-02; supporting:SRC-KDL-04-01,SRC-KDL-08-08 | 부분 | 수업 내 보충 | 개별 구현 근거는 해당 architecture 역량이 담당하며, 여기서는 MLP·CNN·RNN·Transformer의 inductive bias·shape·적용 조건을 통합 비교한다. |
 | CC-DL-06 | loss curve·gradient·validation을 진단하고 checkpoint·mixed precision을 안전하게 운용한다. | D2 | CC-DL-02, CC-DL-03, CC-SYS-01 | explain, implement, debug, interpret, design | supporting:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KAM-02-02,SRC-KDL-02-03,SRC-KDL-05-01,SRC-KDL-05-03,SRC-KDL-05-04,SRC-KDL-06-03,SRC-KDL-06-05,SRC-KDL-07-05,SRC-KDL-08-05,SRC-KDL-08-07,SRC-KDL-08-08 | 부분 | 수업 내 보충 | validation·gradient 점검·기본 curve 진단과 validation 기준 best weight 선택은 다루지만, optimizer·epoch·history·RNG까지 보존하는 checkpoint/resume와 AMP는 없다. |
 | CC-DL-07 | SGD·momentum·AdamW, learning-rate schedule, weight decay·gradient clipping의 update 동역학과 trade-off를 계산·구현·비교한다. | D2 | CC-MATH-03, CC-DL-02, CC-DL-03 | explain, calculate, implement, debug, interpret, design | primary:SRC-KBM-07-01,SRC-KDL-05-03; supporting:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KDL-06-04,SRC-KDL-08-03,SRC-KDL-08-04,SRC-KDL-08-08 | 부분 | 수업 내 보충 | SGD·momentum·Adam, 기본 learning-rate 변경과 gradient update 순서는 직접 다루지만 AdamW·scheduler·decoupled weight decay·clipping의 계산과 통제 비교가 없다. |
-| CC-NLP-01 | 텍스트 normalization·tokenization·subword vocabulary의 trade-off를 구현하고 해석한다. | D2 | CC-PROB-01 | explain, implement, debug, interpret, design | context:SRC-KBM-06-02,SRC-KDL-07-02,SRC-KDL-07-03 | 없음 | 별도 자료 확보 | token ID와 dataset·transform 맥락만 있고 tokenizer를 가르치지 않는다. |
+| CC-NLP-01 | 텍스트 normalization·tokenization·subword vocabulary의 trade-off를 구현하고 해석한다. | D2 | — | explain, implement, debug, interpret, design | context:SRC-KBM-06-02,SRC-KDL-07-02,SRC-KDL-07-03 | 없음 | 별도 자료 확보 | token ID와 dataset·transform 맥락만 있고 tokenizer를 가르치지 않는다. |
 | CC-NLP-02 | embedding·padding·mask·sequence batching의 shape와 의미를 구현·디버깅한다. | D2 | CC-NLP-01, CC-DL-01 | explain, shape, implement, debug, interpret | supporting:SRC-KBM-06-01,SRC-KBM-06-02; context:SRC-KDL-01-03,SRC-KDL-07-03 | 부분 | 수업 내 보충 | causal mask와 transform shape는 있으나 embedding·padding mask·가변 길이 batching이 부족하다. |
-| CC-LM-01 | autoregressive objective·log-likelihood·perplexity를 계산하고 token loss와 연결한다. | D2 | CC-PROB-02, CC-PROB-03, CC-NLP-02 | explain, calculate, shape, implement, interpret | supporting:SRC-KBM-06-02 | 부분 | 수업 내 보충 | NLL·cross entropy는 있으나 sequence factorization과 perplexity가 없다. |
+| CC-SEQ-01 | recurrence·parameter sharing을 unroll하고 gradient 전달 한계를 진단하며, LSTM gate와 `h_t`·`c_t`의 tensor/state shape를 추적해 직접 `nn.Module`·`forward`로 구현하고 실제 sequence task에서 RNN·LSTM·baseline을 동일 조건으로 학습·평가·비교한다. | D2 | CC-DL-02 | explain, calculate, shape, implement, debug, interpret, transfer | — | 없음 | 별도 자료 확보 | 언어모델과 Transformer 전에 완료해야 하는 필수 연결 역량이다. 영구 등록된 전용 자료는 아직 없다. |
+| CC-LM-01 | autoregressive objective·log-likelihood·perplexity를 계산하고 token loss와 연결한다. | D2 | CC-PROB-01, CC-NLP-02, CC-SEQ-01 | explain, calculate, shape, implement, interpret | supporting:SRC-KBM-06-02 | 부분 | 수업 내 보충 | NLL·cross entropy는 있으나 sequence factorization과 perplexity가 없다. |
 | CC-LM-02 | greedy·beam·sampling 계열 decoding과 generation 설정의 품질·다양성 trade-off를 실험한다. | D2 | CC-LM-01 | explain, implement, interpret, design, transfer | supporting:SRC-KBM-06-02 | 부분 | 수업 내 보충 | greedy와 temperature만 다루며 top-k·top-p·beam과 종료 조건이 없다. |
-| CC-TRF-01 | QKV·scaled attention·mask·multi-head attention의 전체 shape 계약을 계산·구현한다. | D2 | CC-MATH-01, CC-DL-01, CC-NLP-02 | explain, calculate, shape, implement, debug | primary:SRC-KBM-06-01,SRC-KBM-06-02 | 부분 | 수업 내 보충 | single-head까지는 상세하지만 multi-head 분할·병합을 의도적으로 보류했다. |
+| CC-TRF-01 | QKV·scaled attention·mask·multi-head attention의 전체 shape 계약을 계산·구현한다. | D2 | CC-MATH-01, CC-DL-01, CC-NLP-02, CC-SEQ-01 | explain, calculate, shape, implement, debug | primary:SRC-KBM-06-01,SRC-KBM-06-02 | 부분 | 수업 내 보충 | single-head까지는 상세하지만 multi-head 분할·병합을 의도적으로 보류했다. sequence state와 attention 정보 흐름의 차이는 `CC-SEQ-01` 뒤에 연결한다. |
 | CC-TRF-02 | residual·normalization·FFN·position 구성요소의 역할과 정보 흐름을 구현·비교한다. | D2 | CC-TRF-01, CC-DL-04 | explain, shape, implement, debug, interpret | context:SRC-KBM-06-01 | 없음 | 별도 자료 확보 | 자료가 다음 단계로 명시만 하고 직접 가르치지 않는다. |
 | CC-TRF-03 | 작은 causal LM을 구현해 teacher forcing으로 학습하고 loss와 generation을 검증한다. | D2 | CC-LM-01, CC-TRF-02, CC-DL-02 | explain, shape, implement, debug, interpret, transfer | context:SRC-KBM-06-02 | 없음 | 별도 자료 확보 | attention loss의 일부만 있어 end-to-end model·학습 자료가 필요하다. |
 | CC-LLM-01 | pretraining data의 provenance·deduplication·contamination과 품질 통제를 설계한다. | D2 | CC-LM-01, CC-TRF-03 | explain, implement, interpret, design | context:SRC-KAM-04-02 | 없음 | 별도 자료 확보 | 일반 데이터 누수는 있지만 대규모 말뭉치 구축은 다루지 않는다. |
@@ -93,17 +96,52 @@
 | TR-SYS-01 | CUDA·Triton kernel의 메모리 접근과 연산 병목을 profile하고 최적화한다. | D3 | CC-SYS-01 | calculate, shape, implement, debug, interpret, design | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
 | TR-SYS-02 | sharding·distributed optimizer·collective 통신을 구현하고 scaling 효율을 분석한다. | D3 | CC-SYS-02, TR-SYS-01 | calculate, shape, implement, debug, interpret, design | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
 | TR-SYS-03 | serving·scheduling·speculative decoding을 구현하고 latency·throughput을 최적화한다. | D3 | CC-SYS-03 | calculate, implement, debug, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-SYS-04 | 시스템 benchmark의 workload·baseline·측정 오차를 통제해 연구 결론을 낸다. | D3 | TR-SYS-02, TR-SYS-03, CC-RES-02 | calculate, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
+| TR-SYS-04 | 시스템 benchmark의 workload·baseline·측정 오차를 통제해 연구 결론을 낸다. | D3 | TR-SYS-03, CC-RES-02 | calculate, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | inference 연구 endpoint이며 distributed training은 강제 선수조건이 아니다. |
 | TR-EVAL-01 | 오염과 shortcut을 억제한 benchmark를 설계하고 타당성을 검증한다. | D3 | CC-EVAL-01, CC-RES-02 | explain, calculate, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
 | TR-EVAL-02 | judge 신뢰도와 adversarial safety 평가를 결합해 실패 모드를 찾는다. | D3 | CC-EVAL-02, CC-EVAL-03 | explain, implement, debug, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
 | TR-EVAL-03 | representation·attention·attribution 기반 interpretability 가설을 실험한다. | D3 | CC-EVAL-01, CC-TRF-03, CC-RES-02 | explain, shape, implement, debug, interpret, design | context:SRC-KAM-02-03 | 없음 | 트랙 선택 시 확보 | tabular SHAP은 연구 맥락만 제공하며 LLM interpretability 자료가 아니다. |
 | TR-EVAL-04 | 평가·해석 논문의 결과를 독립 재현하고 측정 한계를 보고한다. | D3 | TR-EVAL-01, TR-EVAL-03, CC-RES-03 | implement, debug, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
+| TR-EVAL-05 | post-training과 evaluation을 결합해 baseline·통제 비교·error analysis·재현 조건·한계를 갖춘 하나의 연구 cycle을 설계·실행·보고한다. | D3 | TR-MOD-03, TR-EVAL-02, CC-RES-03 | explain, calculate, implement, debug, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | ROADMAP `2C`의 통합 endpoint이며 learner-owned 결과와 해석 전에는 완료로 보지 않는다. |
 | TR-DATA-01 | dataset provenance·license·privacy 위험을 추적하고 release 결정을 설계한다. | D3 | CC-LLM-01, CC-EVAL-03 | explain, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
 | TR-DATA-02 | mixture·filtering·synthetic data·tokenizer 선택을 통제 실험으로 비교한다. | D3 | CC-LLM-01, CC-NLP-01, CC-RES-02 | calculate, implement, debug, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
 | TR-DATA-03 | retrieval·RAG pipeline을 구현하고 검색·생성 오류를 분해 평가한다. | D3 | CC-NLP-02, CC-TRF-03, CC-EVAL-01 | explain, implement, debug, interpret, design, transfer | context:SRC-KAM-02-03 | 없음 | 트랙 선택 시 확보 | RAG 사례에서 SHAP을 언급할 뿐 retrieval을 가르치지 않는다. |
 | TR-DATA-04 | data-centric ablation으로 데이터 품질·양·구성이 결과에 미치는 영향을 검증한다. | D3 | TR-DATA-02, CC-RES-02 | calculate, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
 
-## 5. 현재 강의자료 Registry
+## 5. 정적 module·milestone catalog
+
+이 catalog는 누적 구현 구조와 endpoint closure만 정의한다. 각 target은 정확히 하나의 module에 속하지만 이 배정은 완료·진도·mastery를 뜻하지 않는다. 필수 module의 순서는 학습 순서 힌트일 뿐 기존 학습에 새 milestone credit을 소급 부여하거나 이후 milestone을 막는 gate가 아니다. 실제 readiness는 target의 선수 역량 근거로 판단한다. 선택형 full-stack systems는 inference endpoint를 막지 않는 별도 branch다.
+
+교육 구조는 [CS231n 과제·프로젝트](https://cs231n.stanford.edu/assignments.html), [CS224N](https://web.stanford.edu/class/cs224n/), [CS336](https://cs336.stanford.edu/)의 누적 구현 방식을 참고한다. 이 링크들은 module assignment·phase capstone 구조의 설계 provenance일 뿐 영구 `SRC-*` registry나 target coverage로 계산하지 않는다.
+
+| Module ID | 역할 | Target IDs | 선수 Module ID | Module assignment | 선택성 | 비고 |
+|---|---|---|---|---|---|---|
+| MOD-DL-FOUNDATION-01 | 수학·확률·통계·ML·PyTorch 학습 기반 | CC-MATH-01, CC-MATH-02, CC-MATH-03, CC-MATH-04, CC-PROB-01, CC-PROB-02, CC-PROB-03, CC-STAT-01, CC-STAT-02, CC-ML-01, CC-ML-02, CC-ML-03, CC-ML-04, CC-ML-05, CC-DL-01, CC-DL-02, CC-DL-03, CC-DL-04, CC-DL-07 | — | MA-DL-FOUNDATION-01 | 필수 | tensor·autograd·학습 loop와 공정한 비교 기반을 누적 구현한다. |
+| MOD-SEQUENCE-01 | RNN·LSTM sequence modeling 연결 | CC-SEQ-01 | MOD-DL-FOUNDATION-01 | MA-SEQUENCE-01 | 필수 | language modeling과 Transformer 전에 recurrence·state·실제 task 비교를 구현한다. |
+| MOD-LM-01 | NLP 입력 계약과 autoregressive language modeling | CC-NLP-01, CC-NLP-02, CC-LM-01, CC-LM-02 | MOD-SEQUENCE-01 | MA-LM-01 | 필수 | tokenization·batching에서 objective·decoding까지 연결한다. |
+| MOD-TRANSFORMER-01 | attention·Transformer·pretraining modeling | CC-DL-05, CC-TRF-01, CC-TRF-02, CC-TRF-03, CC-LLM-01, CC-LLM-02, TR-MOD-01, TR-MOD-02, TR-MOD-04 | MOD-SEQUENCE-01, MOD-LM-01 | MA-TRANSFORMER-01 | 필수 | architecture 통합 비교와 작은 causal LM을 누적 구현한다. |
+| MOD-SYSTEMS-INFERENCE-01 | GPU·inference·serving benchmark | CC-SYS-01, CC-SYS-03, TR-SYS-03, TR-SYS-04 | MOD-TRANSFORMER-01 | MA-SYSTEMS-INFERENCE-01 | 필수 | distributed training 없이도 inference endpoint까지 닫을 수 있다. |
+| MOD-POSTTRAIN-01 | PEFT·preference optimization·고급 post-training | CC-LLM-03, CC-LLM-04, TR-MOD-03 | MOD-TRANSFORMER-01 | MA-POSTTRAIN-01 | 필수 | 동일 base model과 평가 조건 아래 post-training 방법을 비교한다. |
+| MOD-EVALUATION-01 | LLM 평가·연구 설계·data-centric 분석 | CC-EVAL-01, CC-EVAL-02, CC-EVAL-03, CC-RES-01, CC-RES-02, CC-RES-03, TR-EVAL-01, TR-EVAL-02, TR-EVAL-03, TR-EVAL-04, TR-EVAL-05, TR-DATA-01, TR-DATA-02, TR-DATA-03, TR-DATA-04 | MOD-TRANSFORMER-01 | MA-EVALUATION-01 | 필수 | post-training과 병렬로 준비하며 통합 capstone에서 결합한다. |
+| MOD-SYSTEMS-FULLSTACK-01 | kernel·distributed training full-stack | CC-DL-06, CC-SYS-02, TR-SYS-01, TR-SYS-02 | MOD-SYSTEMS-INFERENCE-01 | MA-SYSTEMS-FULLSTACK-01 | 선택 | systems 전문화 심화 branch이며 `TR-SYS-04`의 강제 선수 module이 아니다. |
+
+각 `MODULE_ASSIGNMENT`는 적어도 하나의 실제 component와 data→model→loss→train/eval workflow를 요구한다. 각 `PHASE_CAPSTONE`은 연결 module의 learner-owned 구현을 새 task에 통합하고 baseline·통제 비교 또는 ablation·error analysis·재현 조건·한계를 보고한다.
+
+| Milestone ID | Practice layer | Module IDs | 구현 깊이 | 선수 Milestone ID | Endpoint closure | 요구 산출물 |
+|---|---|---|---|---|---|---|
+| MA-DL-FOUNDATION-01 | MODULE_ASSIGNMENT | MOD-DL-FOUNDATION-01 | I3_WORKFLOW | — | — | 실제 component와 재현 가능한 data→model→loss→train/eval workflow |
+| MA-SEQUENCE-01 | MODULE_ASSIGNMENT | MOD-SEQUENCE-01 | I4_EXPERIMENT | — | — | manual RNN/LSTM cell·classifier·delayed-information task·동일 조건 baseline 비교·오류 진단·결과 해석 |
+| PC-DL-FOUNDATION-01 | PHASE_CAPSTONE | MOD-DL-FOUNDATION-01, MOD-SEQUENCE-01 | I5_RESEARCH | MA-DL-FOUNDATION-01, MA-SEQUENCE-01 | — | foundation과 sequence component를 통합한 통제 실험·error analysis·재현 조건·한계 |
+| MA-LM-01 | MODULE_ASSIGNMENT | MOD-LM-01 | I3_WORKFLOW | MA-SEQUENCE-01 | — | tokenizer·batching·autoregressive loss·generation을 잇는 실제 workflow |
+| MA-TRANSFORMER-01 | MODULE_ASSIGNMENT | MOD-TRANSFORMER-01 | I3_WORKFLOW | MA-LM-01 | — | attention block과 작은 causal LM의 학습·평가 workflow |
+| PC-CORE-MODELING-01 | PHASE_CAPSTONE | MOD-LM-01, MOD-TRANSFORMER-01 | I5_RESEARCH | MA-LM-01, MA-TRANSFORMER-01 | — | sequence·LM·Transformer를 새 modeling task에서 통합한 baseline·ablation·error analysis·재현 보고 |
+| MA-SYSTEMS-INFERENCE-01 | MODULE_ASSIGNMENT | MOD-SYSTEMS-INFERENCE-01 | I4_EXPERIMENT | MA-TRANSFORMER-01 | — | 고정 workload에서 latency·throughput·memory baseline과 inference 최적화 비교 |
+| MA-POSTTRAIN-01 | MODULE_ASSIGNMENT | MOD-POSTTRAIN-01 | I4_EXPERIMENT | MA-TRANSFORMER-01 | — | 동일 base model·data·평가 조건의 post-training 통제 비교 |
+| MA-EVALUATION-01 | MODULE_ASSIGNMENT | MOD-EVALUATION-01 | I4_EXPERIMENT | MA-TRANSFORMER-01 | — | rubric·slice·오류 분류·통계 한계와 재현 가능한 평가 workflow |
+| MA-SYSTEMS-FULLSTACK-01 | MODULE_ASSIGNMENT | MOD-SYSTEMS-FULLSTACK-01 | I4_EXPERIMENT | MA-SYSTEMS-INFERENCE-01 | — | kernel·distributed 구성의 profile·scaling 비교와 실패 분석 |
+| PC-SYSTEMS-INFERENCE-01 | PHASE_CAPSTONE | MOD-SYSTEMS-INFERENCE-01 | I5_RESEARCH | MA-SYSTEMS-INFERENCE-01, MA-EVALUATION-01 | TR-SYS-03, TR-SYS-04 | serving 연구 질문의 baseline·통제 비교·error analysis·재현 artifact·한계 보고 |
+| PC-POSTTRAIN-EVALUATION-01 | PHASE_CAPSTONE | MOD-POSTTRAIN-01, MOD-EVALUATION-01 | I5_RESEARCH | MA-POSTTRAIN-01, MA-EVALUATION-01 | TR-MOD-03, TR-EVAL-02, TR-EVAL-05 | post-training과 evaluation을 결합한 재현 가능 연구 cycle과 부정적 결과·한계 보고 |
+
+## 6. 현재 강의자료 Registry
 
 감사 범위는 각 과정 `INDEX.md`의 `강의 자료` 표에 있는 파일만이며 `course-provided-practice/`는 제외한다. 2026-08-27 기준 Markdown 본문 전체, 모든 로컬 그림 링크, 각 자산을 검사했고 PDF는 전 페이지를 렌더해 육안 확인했다. 아래 요약은 registry 구조와 full strict private-source 검증으로 대조한다. 현재 누락되거나 열리지 않는 파일은 없지만 `limited` 자료는 원본·변환 제약 때문에 내용 복구가 필요하다.
 
@@ -185,7 +223,7 @@
 | SRC-KDL-08-08 | `materials/private/kant-deep-learning-basics/08-08_MLP_종합_실습.md` | HTML 토글 펼침 Markdown | `61e45f90bc6a396c3b8dc784fdd7f9095cc1d18e3c3ff658efa2a34a2ce19d6d` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; `best_state`는 메모리 내 model weight 보존이며 checkpoint/resume은 아님 |
 | SRC-HARV-STAT110-2E-00-01 | `materials/private/harvard-stat110-probability/00-01_introduction_to_probability_2e.pdf` | PDF | `65d94135d05322b3892b49473a397998adf8a305de19844b5c8403f76f40d681` | complete | complete | 2026-08-27 | 사용자 제공 2판 PDF의 전체 내용·텍스트·630쪽 렌더 확인; 본문 쪽수 1~619와 13개 장·부록·참고문헌·색인 완결; 로컬 PDF 630쪽과 출판사 인쇄본 서지 634쪽을 구분 |
 
-## 6. 감사 중 발견된 주요 오류와 공백
+## 7. 감사 중 발견된 주요 오류와 공백
 
 ### 즉시 정정할 내용
 
@@ -219,11 +257,11 @@
 ### 커리큘럼 공백
 
 - 현재 71개 자료의 강점은 선형대수·확률 기초·tensor shape·MLP와 activation·손실·optimizer·autodiff·기본 데이터 파이프라인·train-validation-test 루프·기본 attention·전통 ML 평가와 leakage 방지다.
-- likelihood·MLE를 포함한 통계 추론, NLP 전처리와 tokenizer, 완전한 Transformer·causal LM, pretraining·post-training, LLM 평가, 분산·추론 시스템, 논문 읽기·실험 설계·재현 보고는 직접 자료가 없거나 현재 채택한 범위로는 부분 충족·맥락 언급뿐이다.
+- likelihood·MLE를 포함한 통계 추론, RNN recurrence·LSTM gate·state와 실제 sequence task 비교, NLP 전처리와 tokenizer, 완전한 Transformer·causal LM, pretraining·post-training, LLM 평가, 분산·추론 시스템, 논문 읽기·실험 설계·재현 보고는 직접 자료가 없거나 현재 채택한 범위로는 부분 충족·맥락 언급뿐이다.
 - 딥러닝 기초 `SRC-KDL-01-00`은 14개 장의 향후 구성을 제시하지만 현재 registry에는 8개 장 40강만 있다. 등록되지 않은 미래 계획은 현재 자료 충족 근거로 세지 않는다.
 - 전문 트랙은 모두 D3가 목표이며 현재 과정은 어떤 트랙도 직접 충족하지 않는다. 트랙을 선택한 뒤 해당 자료를 확보한다.
 
-## 7. 갱신 규칙
+## 8. 갱신 규칙
 
 1. ID는 의미를 바꾸거나 재사용하지 않는다. 성과가 새로 필요하면 새 ID를 추가한다.
 2. 자료를 추가·교체하면 정확한 상대 경로와 SHA-256을 registry에 기록하고 해당 과정 `INDEX.md`와 양방향 일치를 확인한다. 각 INDEX는 `source_namespace`를 정확히 한 번 선언하며 모든 source ID가 그 namespace를 사용하고 다른 과정과 공유하지 않게 한다.
@@ -232,3 +270,5 @@
 5. 역량 연결은 `primary`, `supporting`, `context` 중 하나로 명시한다. `context`만으로 `충분`을 부여하지 않는다.
 6. 목표 깊이와 실제로 만들 수 있는 요구 근거를 비교해 충족도를 정한다. 자료가 바뀌면 관련 매핑과 오류·공백을 다시 감사한다.
 7. Registry 감사 요약 표의 과정·자료·자산·PDF 페이지·`limited` 개수는 validator 계산값과 일치시킨다. 기본 구조 검증은 `python3 .agents/skills/coach-llm-research-study/scripts/validate_curriculum.py`로, 모든 private 자료·hash·INDEX parity와 감사 요약을 포함한 검증은 같은 명령에 `--strict-sources`를 붙여 실행한다. 한 과정만 readiness 관점에서 검사할 때는 `--strict-sources --course-index materials/private/<course>/INDEX.md`를 함께 쓴다.
+8. 모든 target은 정확히 하나의 module에 배정하고 각 module은 정확히 하나의 `MODULE_ASSIGNMENT`를 참조한다. 각 주요 phase는 정해진 `PHASE_CAPSTONE`으로 닫되 선택형 full-stack module은 별도 capstone이나 systems endpoint의 강제 gate로 만들지 않는다.
+9. module·milestone catalog에는 상태·날짜·점수·mastery를 기록하지 않는다. `PRE_LAB`과 보존된 이전 시도는 milestone credit으로 올리지 않으며, 실제 prerequisite readiness는 학습자가 남긴 target evidence에서 별도로 판단한다.

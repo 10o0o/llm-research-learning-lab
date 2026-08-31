@@ -8,6 +8,7 @@ import hashlib
 import json
 import re
 import sys
+import unicodedata
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from html.parser import HTMLParser
@@ -40,7 +41,7 @@ from source_scopes import (  # noqa: E402
 )
 
 
-SCHEMA_VERSION = "9"
+SCHEMA_VERSION = "10"
 STATUSES = {
     "preparing",
     "review_pending",
@@ -100,6 +101,32 @@ FINDING_TYPES = {
 }
 CHECK_POLICIES = {"adaptive", "none"}
 SESSION_PROFILES = {"standard", "short", "custom"}
+PROFILE_BASES = {
+    "default-standard",
+    "explicit-short-request",
+    "explicit-custom-request",
+}
+REPRESENTATIONS = {
+    "numeric",
+    "tensor",
+    "code-api",
+    "task-experiment",
+    "system-design",
+}
+AUTHENTIC_REPRESENTATIONS = {"code-api", "task-experiment", "system-design"}
+BOUNDARY_RELATIONS = {
+    "required-prerequisite",
+    "authentic-application",
+    "advanced-follow-on",
+    "unrelated",
+}
+BOUNDARY_DISPOSITIONS = {
+    "include-lesson",
+    "reserve-practice",
+    "defer-advanced",
+    "exclude-unrelated",
+}
+REVIEW_CHECK_VALUES = {"pending", "pass", "repair_required", "blocked"}
 FLOW_MODES = {"day-full", "single-lesson"}
 STEP_ROLES = {
     "motivation",
@@ -172,7 +199,6 @@ METADATA_KEYS = (
     "lesson_id",
     "title",
     "status",
-    "session_profile",
     "flow_mode",
     "study_date",
     "created_at",
@@ -200,6 +226,11 @@ REVIEW_KEYS = (
     "verdict",
     "reviewed_input_manifest_sha256",
     "reviewed_contract_sha256",
+    "scope_breadth",
+    "teaching_order",
+    "authentic_application",
+    "assessment_load",
+    "exit_integration",
 )
 EVIDENCE_KEYS = (
     "concept_ids",
@@ -213,6 +244,7 @@ EVIDENCE_KEYS = (
 )
 CONTRACT_HEADINGS = (
     "Objective",
+    "Session Profile Decision",
     "Coverage Mode",
     "Curriculum Targets",
     "Target Decision",
@@ -222,6 +254,7 @@ CONTRACT_HEADINGS = (
     "Learner Evidence Baseline",
     "Audited Findings",
     "Source Scope Map",
+    "Boundary Decision Map",
     "Source Coverage Index",
     "Declared Goal Alignment",
     "Guidance Map",
@@ -276,10 +309,25 @@ class TargetDecision:
     target_state: str
     primary_target: str
     bridge_target: str
-    evidence_gap: list[str]
+    target_evidence_requirements: list[str]
+    target_evidence_basis: str
+    target_evidence_gap: list[str]
+    lesson_evidence_scope: list[str]
+    lesson_scope_basis: str
+    residual_target_evidence: list[str]
+    residual_practice_basis: str
     completion_evidence: str
     endpoint: str
     why_now: str
+    line: int
+
+
+@dataclass
+class SessionProfileDecision:
+    profile: str
+    basis: str
+    requested_constraint: str
+    planned_minutes: int
     line: int
 
 
@@ -341,6 +389,9 @@ class LessonModule:
     topic: str
     concept_ids: list[str]
     source_locations: list[str]
+    representation: str
+    learner_action: str
+    teaching_step_ids: list[str]
     application_step: str
     expected_minutes: int
     line: int
@@ -375,6 +426,17 @@ class LessonSourceScope:
     boundary_units: tuple[str, ...]
     outside_disposition: str
     registered_scope: CourseScope | None
+    line: int
+
+
+@dataclass
+class BoundaryDecision:
+    boundary_id: str
+    primary_id: str
+    unit_location: str
+    relation: str
+    disposition: str
+    reason: str
     line: int
 
 
@@ -418,6 +480,7 @@ class Objective:
     source_location: str
     outcome: str
     concept_id: str
+    prerequisite_concept_ids: list[str]
     treatment: str
     teaching_move: str
     baseline_evidence: str
@@ -473,10 +536,12 @@ class HandoffDocument:
     metadata: dict[str, str] = field(default_factory=dict)
     manifest: list[ManifestEntry] = field(default_factory=list)
     contract: str = ""
+    profile_decision: SessionProfileDecision | None = None
     coverage_mode: str = ""
     contract_concepts: list[str] = field(default_factory=list)
     source_coverage: dict[str, SourceCoverage] = field(default_factory=dict)
     lesson_source_scopes: dict[str, LessonSourceScope] = field(default_factory=dict)
+    boundary_decisions: dict[str, BoundaryDecision] = field(default_factory=dict)
     declared_goals: dict[str, DeclaredGoal] = field(default_factory=dict)
     guidance: dict[str, GuidanceItem] = field(default_factory=dict)
     findings: dict[str, AuditedFinding] = field(default_factory=dict)
@@ -794,8 +859,6 @@ def _parse_metadata(
         errors.append(ValidationError(lines.get("title", 1), "SCHEMA", "title must not be empty"))
     if values.get("status") not in STATUSES:
         errors.append(ValidationError(lines.get("status", 1), "SCHEMA", "status is not allowed"))
-    if values.get("session_profile") not in SESSION_PROFILES:
-        errors.append(ValidationError(lines.get("session_profile", 1), "SCHEMA", "session_profile must be standard, short, or custom"))
     if values.get("flow_mode") not in FLOW_MODES:
         errors.append(ValidationError(lines.get("flow_mode", 1), "SCHEMA", "flow_mode must be day-full or single-lesson"))
     if "study_date" in values and not _is_date(values["study_date"]):
@@ -1135,6 +1198,162 @@ def _contract_sections(contract: str) -> tuple[dict[str, str], list[tuple[str, i
     return sections, headings
 
 
+def _normalized_contract_content(value: str) -> str:
+    normalized = unicodedata.normalize("NFKC", value).casefold()
+    return re.sub(r"[^0-9a-z가-힣]+", "", normalized)
+
+
+def _profile_constraint_is_explicit(profile: str, value: str) -> bool:
+    normalized = " ".join(unicodedata.normalize("NFKC", value).casefold().split())
+    if not normalized or normalized == "none":
+        return False
+    if re.fullmatch(
+        r"(?:압축(?:\s*특강)?|빠르게|빨리|따라잡기|catch[ -]?up|compressed(?:\s+lesson)?|fast)",
+        normalized,
+    ):
+        return False
+    numeric_duration = re.search(
+        r"(?<![0-9a-z])\d+(?:\.\d+)?\s*(?:분|시간|minutes?|mins?|hours?|hrs?)(?![0-9a-z])",
+        normalized,
+    )
+    recognized_format = any(
+        re.search(pattern, normalized)
+        for pattern in (
+            r"\bq\s*&\s*a(?:\s+(?:only|format))?\b",
+            r"\bquestion[ -]and[ -]answer(?:\s+(?:only|format))?\b",
+            r"\b(?:code|implementation|debugging|whiteboard|workshop|lecture|worked[ -]example)[ -](?:first|only|focused|format)\b",
+            r"(?:코드|구현|디버깅|수식|예제|질의응답|문답|워크숍|강의)\s*(?:중심|우선|위주|형식|만)",
+            r"(?:퀴즈|실습)\s*(?:없이|제외)",
+        )
+    )
+    return numeric_duration is not None or recognized_format
+
+
+def _contains_embedded_assessment(*values: str) -> bool:
+    """Detect a learner prompt hidden in a Step declared as non-assessing."""
+
+    text = " ".join(values)
+    if "?" in text or "？" in text:
+        return True
+    normalized = " ".join(unicodedata.normalize("NFKC", text).casefold().split())
+    return any(
+        re.search(pattern, normalized)
+        for pattern in (
+            r"\b(?:ask|prompt|quiz|test)\s+(?:the\s+)?learner\b",
+            r"\b(?:have|let|require)\s+(?:the\s+)?learner\s+(?:answer|predict|explain|calculate|diagnose|choose|write|implement|debug)\b",
+            r"\blearner\s+(?:must|should)\s+(?:answer|predict|explain|calculate|diagnose|choose|write|implement|debug)\b",
+            r"\b(?:you\s+(?:must|should)|your\s+task\s+is\s+to|tell\s+me(?:\s+to)?)\s+(?:answer|predict|explain|calculate|diagnose|choose|write|implement|debug)\b",
+            r"학습자(?:에게|가|는)?[^.]{0,40}(?:묻|답하|예측하|설명하|계산하|진단하|선택하|작성하|구현하|디버깅하)(?:게|도록|라고)",
+            r"(?:답|예측|설명|계산|진단|선택|작성|구현|디버깅)(?:해|하)(?:\s*보)?(?:세요|십시오)",
+            r"(?:퀴즈|평가\s*질문|확인\s*질문)(?:을|를|하|해|:)",
+        )
+    )
+
+
+def _has_structural_d2_walkthrough(value: str) -> bool:
+    """Require executable-looking module structure plus an explicit shape flow."""
+
+    class_definition = re.search(
+        r"\bclass\s+[A-Za-z_]\w*\s*\(\s*(?:torch\.)?nn\.Module\s*\)\s*:",
+        value,
+    )
+    forward_definition = re.search(
+        r"\bdef\s+forward\s*\([^)]*\)\s*:",
+        value,
+    )
+    concrete_api = re.search(
+        r"\b(?:torch\.)?nn\.[A-Z][A-Za-z0-9_]*\s*\(",
+        value,
+    )
+    tensor_named = re.search(
+        r"(?:\b(?:torch\.)?tensor\b|텐서).{0,32}\bshape\b|\bshape\b.{0,32}(?:\b(?:torch\.)?tensor\b|텐서)",
+        value,
+        re.IGNORECASE,
+    )
+    shape_states = re.findall(
+        r":\s*\(\s*(?:\d+|[A-Z][A-Za-z0-9_]*)\s*,"
+        r"\s*(?:\d+|[A-Z][A-Za-z0-9_]*)"
+        r"(?:\s*,\s*(?:\d+|[A-Z][A-Za-z0-9_]*)){0,3}\s*\)",
+        value,
+    )
+    arrows = re.findall(r"(?:->|→)", value)
+    return bool(
+        class_definition
+        and forward_definition
+        and concrete_api
+        and tensor_named
+        and len(shape_states) >= 2
+        and len(arrows) >= 2
+    )
+
+
+def _parse_session_profile_decision(
+    doc: HandoffDocument,
+    section: str,
+    body_start: int,
+    errors: list[ValidationError],
+) -> None:
+    expected = ("profile", "basis", "requested_constraint", "planned_minutes")
+    values: dict[str, str] = {}
+    line_no = _line_number(doc.text, body_start)
+    for line in section.splitlines():
+        if not line.strip():
+            continue
+        match = re.fullmatch(r"- ([a-z_]+):[ \t]*(.*)", line.strip())
+        if match is None:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid Session Profile Decision row: {line.strip()}"))
+            continue
+        key, value = match.groups()
+        if key in values:
+            errors.append(ValidationError(line_no, "SCHEMA", f"duplicate Session Profile Decision field: {key}"))
+        values[key] = value.strip()
+    if tuple(values) != expected:
+        errors.append(
+            ValidationError(
+                line_no,
+                "SCHEMA",
+                "Session Profile Decision fields must appear exactly in order: " + ", ".join(expected),
+            )
+        )
+        return
+    profile = values["profile"]
+    basis = values["basis"]
+    constraint = values["requested_constraint"]
+    try:
+        planned_minutes = int(values["planned_minutes"])
+    except ValueError:
+        planned_minutes = 0
+    if profile not in SESSION_PROFILES:
+        errors.append(ValidationError(line_no, "SESSION_PROFILE", "profile must be standard, short, or custom"))
+    expected_basis = {
+        "standard": "default-standard",
+        "short": "explicit-short-request",
+        "custom": "explicit-custom-request",
+    }.get(profile)
+    if basis not in PROFILE_BASES or (expected_basis is not None and basis != expected_basis):
+        errors.append(
+            ValidationError(
+                line_no,
+                "SESSION_PROFILE",
+                f"{profile or 'unknown'} profile requires basis {expected_basis or 'one allowed basis'}",
+            )
+        )
+    if profile == "standard":
+        if constraint != "none" and not constraint:
+            errors.append(ValidationError(line_no, "SESSION_PROFILE", "standard requested_constraint must be none or concrete"))
+    elif profile in {"short", "custom"} and not _profile_constraint_is_explicit(profile, constraint):
+        errors.append(
+            ValidationError(
+                line_no,
+                "SESSION_PROFILE",
+                "short/custom requires an explicit non-vague learner time or format constraint; vague compression remains standard",
+            )
+        )
+    if planned_minutes <= 0:
+        errors.append(ValidationError(line_no, "SESSION_PROFILE", "planned_minutes must be positive"))
+    doc.profile_decision = SessionProfileDecision(profile, basis, constraint, planned_minutes, line_no)
+
+
 def _parse_target_decision(
     doc: HandoffDocument,
     section: str,
@@ -1146,7 +1365,13 @@ def _parse_target_decision(
         "target_state",
         "primary_target",
         "bridge_target",
-        "evidence_gap",
+        "target_evidence_requirements",
+        "target_evidence_basis",
+        "target_evidence_gap",
+        "lesson_evidence_scope",
+        "lesson_scope_basis",
+        "residual_target_evidence",
+        "residual_practice_basis",
         "completion_evidence",
         "endpoint",
         "why_now",
@@ -1178,7 +1403,10 @@ def _parse_target_decision(
     target_state = values["target_state"]
     primary_target = values["primary_target"]
     bridge_target = values["bridge_target"]
-    evidence_gap = _comma_ids(values["evidence_gap"], r"(?:explain|calculate|shape|implement|debug|interpret|design|transfer)")
+    requirements = _comma_ids(values["target_evidence_requirements"], r"(?:explain|calculate|shape|implement|debug|interpret|design|transfer)")
+    target_gap = _comma_ids(values["target_evidence_gap"], r"(?:explain|calculate|shape|implement|debug|interpret|design|transfer)")
+    lesson_scope = _comma_ids(values["lesson_evidence_scope"], r"(?:explain|calculate|shape|implement|debug|interpret|design|transfer)")
+    residual = _comma_ids(values["residual_target_evidence"], r"(?:explain|calculate|shape|implement|debug|interpret|design|transfer)")
     if selection_mode not in TARGET_SELECTION_MODES:
         errors.append(ValidationError(line_no, "SCHEMA", f"invalid target selection mode: {selection_mode}"))
     if target_state not in TARGET_STATES:
@@ -1195,9 +1423,57 @@ def _parse_target_decision(
         errors.append(ValidationError(line_no, "SCHEMA", f"invalid primary target: {primary_target}"))
     if bridge_target != "none" and not CURRICULUM_ID_RE.fullmatch(bridge_target):
         errors.append(ValidationError(line_no, "SCHEMA", f"invalid bridge target: {bridge_target}"))
-    if evidence_gap is None or len(evidence_gap) != len(set(evidence_gap)):
-        errors.append(ValidationError(line_no, "SCHEMA", "evidence_gap must be none or unique evidence tokens"))
-        evidence_gap = []
+    parsed_groups = {
+        "target_evidence_requirements": requirements,
+        "target_evidence_gap": target_gap,
+        "lesson_evidence_scope": lesson_scope,
+        "residual_target_evidence": residual,
+    }
+    for key, parsed in parsed_groups.items():
+        if parsed is None or len(parsed) != len(set(parsed)):
+            errors.append(ValidationError(line_no, "TARGET_EVIDENCE_PARTITION", f"{key} must be none or unique evidence tokens"))
+            parsed_groups[key] = []
+    requirements = parsed_groups["target_evidence_requirements"]
+    target_gap = parsed_groups["target_evidence_gap"]
+    lesson_scope = parsed_groups["lesson_evidence_scope"]
+    residual = parsed_groups["residual_target_evidence"]
+    if not requirements or not target_gap or not lesson_scope:
+        errors.append(
+            ValidationError(
+                line_no,
+                "TARGET_EVIDENCE_PARTITION",
+                "a teachable handoff requires nonempty target requirements, current gap, and lesson scope",
+            )
+        )
+    if set(lesson_scope).intersection(residual) or set(lesson_scope).union(residual) != set(target_gap):
+        errors.append(
+            ValidationError(
+                line_no,
+                "TARGET_EVIDENCE_PARTITION",
+                "lesson_evidence_scope and residual_target_evidence must be disjoint and exactly partition target_evidence_gap",
+            )
+        )
+    if not set(target_gap).issubset(requirements):
+        errors.append(
+            ValidationError(
+                line_no,
+                "TARGET_EVIDENCE_PARTITION",
+                "target_evidence_gap must be a subset of target_evidence_requirements",
+            )
+        )
+    for key in (
+        "target_evidence_basis",
+        "lesson_scope_basis",
+        "residual_practice_basis",
+    ):
+        if not values[key] or values[key] == "none":
+            errors.append(
+                ValidationError(
+                    line_no,
+                    "TARGET_EVIDENCE_PARTITION",
+                    f"Target Decision {key} must give a concrete rationale",
+                )
+            )
     for key in ("completion_evidence", "endpoint", "why_now"):
         if not values[key] or values[key] == "none":
             errors.append(ValidationError(line_no, "SCHEMA", f"Target Decision {key} must be concrete"))
@@ -1210,7 +1486,13 @@ def _parse_target_decision(
         target_state,
         primary_target,
         bridge_target,
-        evidence_gap or [],
+        requirements,
+        values["target_evidence_basis"],
+        target_gap,
+        lesson_scope,
+        values["lesson_scope_basis"],
+        residual,
+        values["residual_practice_basis"],
         values["completion_evidence"],
         values["endpoint"],
         values["why_now"],
@@ -1708,6 +1990,82 @@ def _parse_source_scope_map(
         errors.append(ValidationError(_line_number(doc.text, body_start), "LESSON_SCOPE", "Source Scope Map must contain one ordered row per primary input"))
 
 
+def _parse_boundary_decision_map(
+    doc: HandoffDocument,
+    section: str,
+    body_start: int,
+    errors: list[ValidationError],
+) -> None:
+    rows = _contract_table_rows(
+        section,
+        ["Boundary ID", "Primary ID", "Unit locator", "Relation", "Disposition", "Reason"],
+        doc,
+        body_start,
+        errors,
+        context="Boundary Decision Map",
+    )
+    all_boundaries: list[tuple[str, str]] = []
+    for primary_id, scope in doc.lesson_source_scopes.items():
+        for unit in scope.boundary_units:
+            location = unit_location(unit)
+            if location is not None:
+                all_boundaries.append((primary_id, location))
+    if len(rows) == 1 and rows[0][0] == ["none", "none", "none", "none", "none", "none"]:
+        rows = []
+    decisions: dict[str, BoundaryDecision] = {}
+    observed: list[tuple[str, str]] = []
+    for index, (cells, line_no) in enumerate(rows, start=1):
+        boundary_id, primary_id, location, relation, disposition, reason = cells
+        expected_id = f"BND{index:03d}"
+        if boundary_id != expected_id or boundary_id in decisions:
+            errors.append(ValidationError(line_no, "SCHEMA", f"Boundary ID must be unique and contiguous: {expected_id}"))
+            continue
+        if (primary_id, location) not in all_boundaries:
+            errors.append(ValidationError(line_no, "LESSON_SCOPE", f"{boundary_id} does not match a declared boundary unit"))
+        if relation not in BOUNDARY_RELATIONS:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid boundary relation: {relation}"))
+        if disposition not in BOUNDARY_DISPOSITIONS:
+            errors.append(ValidationError(line_no, "SCHEMA", f"invalid boundary disposition: {disposition}"))
+        if not reason or reason == "none":
+            errors.append(ValidationError(line_no, "LESSON_SCOPE", f"{boundary_id} requires a concrete reason"))
+        expected_disposition = {
+            "required-prerequisite": "include-lesson",
+            "advanced-follow-on": "defer-advanced",
+            "unrelated": "exclude-unrelated",
+        }.get(relation)
+        if expected_disposition is not None and disposition != expected_disposition:
+            errors.append(
+                ValidationError(
+                    line_no,
+                    "LESSON_SCOPE",
+                    f"{relation} requires disposition {expected_disposition}",
+                )
+            )
+        if relation == "required-prerequisite":
+            errors.append(
+                ValidationError(
+                    line_no,
+                    "LESSON_SCOPE",
+                    f"{boundary_id} is a required prerequisite and must be moved into Included units before review can pass",
+                )
+            )
+        if relation == "authentic-application" and disposition not in {"reserve-practice", "include-lesson"}:
+            errors.append(ValidationError(line_no, "LESSON_SCOPE", "authentic-application must be included or explicitly reserved for practice"))
+        observed.append((primary_id, location))
+        decisions[boundary_id] = BoundaryDecision(
+            boundary_id, primary_id, location, relation, disposition, reason, line_no
+        )
+    if observed != all_boundaries:
+        errors.append(
+            ValidationError(
+                _line_number(doc.text, body_start),
+                "LESSON_SCOPE",
+                "Boundary Decision Map must classify every declared boundary unit once and in source order",
+            )
+        )
+    doc.boundary_decisions = decisions
+
+
 def _validate_contract_locations_against_scopes(
     doc: HandoffDocument,
     errors: list[ValidationError],
@@ -1770,6 +2128,10 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             relative_line = next((offset for name, offset in headings if name == heading), 0)
             errors.append(ValidationError(_line_number(doc.text, body_start + relative_line), "SCHEMA", f"contract section must not be empty: {heading}"))
 
+    _parse_session_profile_decision(
+        doc, sections["Session Profile Decision"], body_start, errors
+    )
+
     mode_lines = [line.strip() for line in sections["Coverage Mode"].splitlines() if line.strip()]
     if len(mode_lines) != 1 or re.fullmatch(r"- mode: (full-source|focused)", mode_lines[0]) is None:
         errors.append(
@@ -1818,8 +2180,8 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             continue
         ordinal, concept_id, marker, name, location = match.groups()
         concept_rows.append((int(ordinal), concept_id, marker, name.strip(), location.strip()))
-    if not 3 <= len(concept_rows) <= 7:
-        errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", "Concept Path must contain three to seven concepts"))
+    if not 1 <= len(concept_rows) <= 7:
+        errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", "Concept Path must contain one to seven concepts"))
     for index, (ordinal, concept_id, marker, name, location) in enumerate(concept_rows, start=1):
         if ordinal != index or concept_id != f"C{index:02d}":
             errors.append(ValidationError(_line_number(doc.text, body_start), "SCHEMA", "Concept Path ordinals and IDs must be contiguous"))
@@ -1855,6 +2217,12 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
     _parse_source_scope_map(
         doc,
         sections["Source Scope Map"],
+        body_start,
+        errors,
+    )
+    _parse_boundary_decision_map(
+        doc,
+        sections["Boundary Decision Map"],
         body_start,
         errors,
     )
@@ -1905,6 +2273,7 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             "Source location",
             "Observable outcome",
             "Concept ID",
+            "Prerequisite Concept IDs",
             "Treatment",
             "Teaching move",
             "Baseline evidence",
@@ -1923,6 +2292,7 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             source_location,
             outcome,
             concept_id,
+            raw_prerequisites,
             treatment,
             teaching_move,
             baseline_evidence,
@@ -1966,6 +2336,16 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             errors.append(ValidationError(line_no, "OBJECTIVE_COVERAGE", f"{objective_id} must not turn Guidance into an objective or teaching move"))
         if concept_id not in doc.contract_concepts:
             errors.append(ValidationError(line_no, "SCHEMA", f"{objective_id} references an unknown Concept ID: {concept_id}"))
+        prerequisite_concept_ids = _comma_ids(raw_prerequisites, r"C\d{2}")
+        if prerequisite_concept_ids is None or len(prerequisite_concept_ids) != len(set(prerequisite_concept_ids)):
+            errors.append(ValidationError(line_no, "TEACHING_ORDER", f"{objective_id} Prerequisite Concept IDs must be none or unique C## IDs"))
+            prerequisite_concept_ids = []
+        concept_order = {item: position for position, item in enumerate(doc.contract_concepts)}
+        for prerequisite in prerequisite_concept_ids:
+            if prerequisite not in concept_order:
+                errors.append(ValidationError(line_no, "TEACHING_ORDER", f"{objective_id} references unknown prerequisite concept {prerequisite}"))
+            elif prerequisite == concept_id or concept_order[prerequisite] >= concept_order.get(concept_id, -1):
+                errors.append(ValidationError(line_no, "TEACHING_ORDER", f"{objective_id} prerequisite {prerequisite} must precede {concept_id} in Concept Path"))
         if requirement == "source-core" and marker in {"correction", "supplement"}:
             errors.append(ValidationError(line_no, "SCHEMA", f"source-core {objective_id} cannot be marked {marker}"))
         if requirement == "required-added" and marker == "none":
@@ -2005,6 +2385,7 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             source_location,
             outcome,
             concept_id,
+            prerequisite_concept_ids,
             treatment,
             teaching_move,
             baseline_evidence,
@@ -2346,13 +2727,21 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
                 _validate_target_endpoint_relation(doc, curriculum_snapshot, errors)
                 if decision is not None and decision.primary_target in curriculum_snapshot.targets:
                     primary_snapshot = curriculum_snapshot.targets[decision.primary_target]
-                    unknown_evidence = set(decision.evidence_gap) - set(primary_snapshot.required_evidence)
+                    if set(decision.target_evidence_requirements) != set(primary_snapshot.required_evidence):
+                        errors.append(
+                            ValidationError(
+                                decision.line,
+                                "TARGET_DECISION",
+                                "target_evidence_requirements must exactly match the primary target's Curriculum evidence requirements",
+                            )
+                        )
+                    unknown_evidence = set(decision.target_evidence_gap) - set(primary_snapshot.required_evidence)
                     if unknown_evidence:
                         errors.append(
                             ValidationError(
                                 decision.line,
                                 "TARGET_DECISION",
-                                "evidence_gap is not required by the primary target: "
+                                "target_evidence_gap is not required by the primary target: "
                                 + ", ".join(sorted(unknown_evidence)),
                             )
                         )
@@ -2404,6 +2793,9 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             "Topic",
             "Concept IDs",
             "Source locators",
+            "Representation",
+            "Learner action",
+            "Teaching Step IDs",
             "Application step",
             "Expected minutes",
         ],
@@ -2414,7 +2806,17 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
     )
     modules: dict[str, LessonModule] = {}
     for index, (cells, line_no) in enumerate(module_rows, start=1):
-        module_id, topic, raw_concepts, raw_locations, application_step, raw_minutes = cells
+        (
+            module_id,
+            topic,
+            raw_concepts,
+            raw_locations,
+            representation,
+            learner_action,
+            raw_step_ids,
+            application_step,
+            raw_minutes,
+        ) = cells
         expected_id = f"M{index:02d}"
         if module_id != expected_id or module_id in modules:
             errors.append(ValidationError(line_no, "SCHEMA", f"Module ID must be unique and contiguous: {expected_id}"))
@@ -2435,6 +2837,14 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
                 errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"{module_id} locator is not manifested: {location}"))
             elif not _location_exists(location, doc.repo_root):
                 errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"{module_id} locator does not exist: {location}"))
+        if representation not in REPRESENTATIONS:
+            errors.append(ValidationError(line_no, "SESSION_DEPTH", f"{module_id} has invalid Representation: {representation}"))
+        if learner_action not in EVIDENCE_TOKENS:
+            errors.append(ValidationError(line_no, "SESSION_DEPTH", f"{module_id} has invalid Learner action: {learner_action}"))
+        teaching_step_ids = _comma_ids(raw_step_ids, r"T\d{3,}")
+        if teaching_step_ids is None or not teaching_step_ids or len(teaching_step_ids) != len(set(teaching_step_ids)):
+            errors.append(ValidationError(line_no, "MODULE_STEP_BINDING", f"{module_id} requires unique Teaching Step IDs"))
+            teaching_step_ids = []
         if application_step != "none" and re.fullmatch(r"T\d{3,}", application_step) is None:
             errors.append(ValidationError(line_no, "SESSION_DEPTH", f"{module_id} Application step must be T### or none"))
         try:
@@ -2450,6 +2860,9 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             topic,
             concept_ids,
             locations,
+            representation,
+            learner_action,
+            teaching_step_ids,
             application_step,
             minutes,
             line_no,
@@ -2618,6 +3031,17 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
                 errors.append(ValidationError(_line_number(doc.text, body_start), "ASSESSMENT_ALIGNMENT", f"{step_id} check_basis must explain why no question is useful"))
             if fields["check_question"] != "none":
                 errors.append(ValidationError(_line_number(doc.text, body_start), "ASSESSMENT_ALIGNMENT", f"{step_id} check_policy none requires check_question none"))
+            if _contains_embedded_assessment(
+                fields["delivery_outline"],
+                fields["tiny_example"],
+            ):
+                errors.append(
+                    ValidationError(
+                        _line_number(doc.text, body_start),
+                        "TEACHING_ORDER",
+                        f"{step_id} check_policy none must not hide a learner question or assessment directive in its teaching content",
+                    )
+                )
         guidance_refs = re.findall(r"(?<![A-Z0-9])G\d{3,}(?![A-Z0-9])", " ".join(fields.values()))
         if guidance_refs:
             errors.append(ValidationError(_line_number(doc.text, body_start), "OBJECTIVE_COVERAGE", f"{step_id} must not include Guidance IDs in teaching or assessment"))
@@ -2656,68 +3080,282 @@ def _parse_contract(doc: HandoffDocument, errors: list[ValidationError]) -> None
             )
         )
 
-    profile = doc.metadata.get("session_profile")
-    if profile == "standard":
-        if not 3 <= len(doc.contract_concepts) <= 5:
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard sessions require three to five connected Concept Path entries"))
-        if not 3 <= len(doc.modules) <= 5:
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard sessions require three to five substantive Module Plan rows"))
-        total_minutes = sum(module.expected_minutes for module in doc.modules.values())
-        if not 60 <= total_minutes <= 90:
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", f"standard Module Plan must total 60 to 90 minutes, got {total_minutes}"))
-        normalized_topics = [re.sub(r"[^0-9a-z가-힣]+", "", module.topic.casefold()) for module in doc.modules.values()]
-        if len(normalized_topics) != len(set(normalized_topics)):
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard Module Plan topics must be substantively distinct"))
-        module_signatures = [
-            (tuple(module.concept_ids), tuple(module.source_locations))
-            for module in doc.modules.values()
+    profile = doc.profile_decision.profile if doc.profile_decision is not None else ""
+    total_minutes = sum(module.expected_minutes for module in doc.modules.values())
+    if doc.profile_decision is not None and total_minutes != doc.profile_decision.planned_minutes:
+        errors.append(
+            ValidationError(
+                doc.profile_decision.line,
+                "SESSION_PROFILE",
+                f"planned_minutes must equal the Module Plan total: {total_minutes}",
+            )
+        )
+
+    bound_steps = [step_id for module in doc.modules.values() for step_id in module.teaching_step_ids]
+    if bound_steps != list(teaching_steps):
+        errors.append(
+            ValidationError(
+                _line_number(doc.text, body_start),
+                "MODULE_STEP_BINDING",
+                "Module Teaching Step IDs must bind every Prepared Teaching Step exactly once in lesson order",
+            )
+        )
+    step_to_module = {
+        step_id: module
+        for module in doc.modules.values()
+        for step_id in module.teaching_step_ids
+    }
+    application_steps: list[str] = []
+    for module in doc.modules.values():
+        if len(module.teaching_step_ids) < 2:
+            errors.append(
+                ValidationError(
+                    module.line,
+                    "MODULE_STEP_BINDING",
+                    f"{module.module_id} needs an explanation/trace Step before its learner application",
+                )
+            )
+        adaptive_in_module = [
+            step_id
+            for step_id in module.teaching_step_ids
+            if teaching_steps.get(step_id) is not None
+            and teaching_steps[step_id].check_policy == "adaptive"
         ]
-        if len(module_signatures) != len(set(module_signatures)):
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard Module Plan contains duplicate concept/source slices"))
-        planned_concepts = {concept for module in doc.modules.values() for concept in module.concept_ids}
-        required_concepts = {
-            objective.concept_id
-            for objective in doc.objectives.values()
-            if objective.treatment != "deferred"
-        }
-        if not required_concepts.issubset(planned_concepts):
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "Module Plan must cover every non-deferred concept"))
-        application_steps = [module.application_step for module in doc.modules.values() if module.application_step != "none"]
-        if len(set(application_steps)) < 2:
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard sessions require at least two distinct learner-application Steps"))
-        for module in doc.modules.values():
-            if module.application_step == "none":
-                continue
-            step = teaching_steps.get(module.application_step)
+        if len(adaptive_in_module) > 1:
+            errors.append(ValidationError(module.line, "ASSESSMENT_LOAD", f"{module.module_id} may bind at most one adaptive checkpoint"))
+        for step_id in module.teaching_step_ids:
+            step = teaching_steps.get(step_id)
             if step is None:
-                errors.append(ValidationError(module.line, "SESSION_DEPTH", f"{module.module_id} references an unknown application Step: {module.application_step}"))
-            elif not set(module.concept_ids).intersection(step.concept_ids):
-                errors.append(ValidationError(module.line, "SESSION_DEPTH", f"{module.module_id} application Step does not exercise its concepts"))
-        roles = [step.step_role for step in teaching_steps.values()]
-        role_positions = [roles.index(role) for role in STANDARD_STEP_ROLES if role in roles]
-        if any(role not in roles for role in STANDARD_STEP_ROLES) or role_positions != sorted(role_positions):
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard sessions require motivation, concept-model, worked-example, contrast-limit, and synthesis-transfer in order"))
-        used_examples = {step.example_id for step in teaching_steps.values() if step.example_id != "none"}
-        if len(used_examples) < 2:
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard sessions require at least two distinct examples"))
-        used_fixtures = {
+                errors.append(ValidationError(module.line, "MODULE_STEP_BINDING", f"{module.module_id} references unknown Teaching Step {step_id}"))
+                continue
+            if not set(step.concept_ids).issubset(module.concept_ids):
+                errors.append(ValidationError(module.line, "MODULE_STEP_BINDING", f"{module.module_id} does not include every concept used by {step_id}"))
+        if module.application_step == "none":
+            errors.append(
+                ValidationError(
+                    module.line,
+                    "ASSESSMENT_ALIGNMENT",
+                    f"{module.module_id} requires one adaptive learner-application Step",
+                )
+            )
+            continue
+        application_steps.append(module.application_step)
+        step = teaching_steps.get(module.application_step)
+        if module.application_step not in module.teaching_step_ids:
+            errors.append(ValidationError(module.line, "MODULE_STEP_BINDING", f"{module.module_id} Application step must be one of its Teaching Step IDs"))
+        elif module.application_step != module.teaching_step_ids[-1]:
+            errors.append(ValidationError(module.line, "MODULE_STEP_BINDING", f"{module.module_id} Application step must close its coherent module block"))
+        if step is None:
+            errors.append(ValidationError(module.line, "MODULE_STEP_BINDING", f"{module.module_id} references unknown application Step {module.application_step}"))
+        elif step.check_policy != "adaptive":
+            errors.append(ValidationError(module.line, "ASSESSMENT_ALIGNMENT", f"{module.module_id} Application step must be adaptive"))
+        elif not set(module.concept_ids).intersection(step.concept_ids):
+            errors.append(ValidationError(module.line, "ASSESSMENT_ALIGNMENT", f"{module.module_id} application Step does not exercise its concepts"))
+        prior_steps = [
+            teaching_steps[item]
+            for item in module.teaching_step_ids
+            if item != module.application_step and item in teaching_steps
+        ]
+        if not prior_steps or any(item.check_policy != "none" for item in prior_steps):
+            errors.append(
+                ValidationError(
+                    module.line,
+                    "ASSESSMENT_LOAD",
+                    f"{module.module_id} must deliver purpose/explanation/worked trace without extra checkpoints before its application",
+                )
+            )
+        explained_concepts = {concept for item in prior_steps for concept in item.concept_ids}
+        if not set(module.concept_ids).issubset(explained_concepts):
+            errors.append(
+                ValidationError(
+                    module.line,
+                    "TEACHING_ORDER",
+                    f"{module.module_id} application asks about concepts not explained earlier in the same module",
+                )
+            )
+
+    step_sequence = list(teaching_steps.values())
+    for index, step in enumerate(step_sequence):
+        if step.check_policy != "adaptive":
+            continue
+        earlier_explanatory = [item for item in step_sequence[:index] if item.check_policy == "none"]
+        explained_concepts = {concept for item in earlier_explanatory for concept in item.concept_ids}
+        explained_objectives = {objective for item in earlier_explanatory for objective in item.objective_ids}
+        missing_concepts = sorted(set(step.concept_ids) - explained_concepts)
+        missing_objectives = sorted(set(step.objective_ids) - explained_objectives)
+        if missing_concepts or missing_objectives:
+            errors.append(
+                ValidationError(
+                    step.line,
+                    "TEACHING_ORDER",
+                    f"{step.step_id} assesses before explanation; missing prior concepts/objectives: "
+                    + ", ".join(missing_concepts + missing_objectives),
+                )
+            )
+    first_objective_step: dict[str, int] = {}
+    first_concept_step: dict[str, int] = {}
+    for index, step in enumerate(step_sequence):
+        for concept in step.concept_ids:
+            first_concept_step.setdefault(concept, index)
+        for objective_id in step.objective_ids:
+            first_objective_step.setdefault(objective_id, index)
+    for objective in objectives.values():
+        objective_index = first_objective_step.get(objective.objective_id)
+        if objective_index is None:
+            continue
+        for prerequisite in objective.prerequisite_concept_ids:
+            if first_concept_step.get(prerequisite, objective_index) >= objective_index:
+                errors.append(
+                    ValidationError(
+                        objective.line,
+                        "TEACHING_ORDER",
+                        f"{objective.objective_id} prerequisite {prerequisite} must be explained in an earlier Step",
+                    )
+                )
+
+    required_objectives = [
+        objective.objective_id for objective in objectives.values() if objective.treatment != "deferred"
+    ]
+    required_concepts = {
+        objective.concept_id for objective in objectives.values() if objective.treatment != "deferred"
+    }
+    planned_concepts = {concept for module in doc.modules.values() for concept in module.concept_ids}
+    if not required_concepts.issubset(planned_concepts):
+        errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "Module Plan must cover every non-deferred concept"))
+
+    final_step = next(reversed(teaching_steps.values()), None)
+    if final_step is None or final_step.step_role != "synthesis-transfer":
+        errors.append(ValidationError(_line_number(doc.text, body_start), "EXIT_INTEGRATION", "the final Step must be synthesis-transfer"))
+    else:
+        if final_step.check_policy != "adaptive":
+            errors.append(ValidationError(final_step.line, "EXIT_INTEGRATION", "the final synthesis-transfer Step must be adaptive"))
+        if set(final_step.concept_ids) != required_concepts or set(final_step.objective_ids) != set(required_objectives):
+            errors.append(ValidationError(final_step.line, "EXIT_INTEGRATION", "final synthesis-transfer must cover all non-deferred concepts and objectives"))
+        previous_example_ids = {item.example_id for item in step_sequence[:-1] if item.example_id != "none"}
+        final_module = step_to_module.get(final_step.step_id)
+        if final_step.example_id == "none" or final_step.example_id in previous_example_ids:
+            errors.append(ValidationError(final_step.line, "EXIT_INTEGRATION", "final synthesis-transfer requires a new Example fixture"))
+        elif final_step.example_id in examples:
+            final_example = examples[final_step.example_id]
+            final_content = {
+                _normalized_contract_content(final_example.fixture),
+                _normalized_contract_content(final_step.tiny_example),
+                _normalized_contract_content(final_step.delivery_outline),
+            }
+            prior_content = {
+                _normalized_contract_content(value)
+                for step in step_sequence[:-1]
+                for value in (
+                    step.delivery_outline,
+                    step.tiny_example,
+                    examples[step.example_id].fixture
+                    if step.example_id in examples
+                    else "",
+                )
+                if value
+            }
+            prior_content.update(
+                _normalized_contract_content(example.fixture)
+                for example_id, example in examples.items()
+                if example_id != final_step.example_id
+            )
+            final_content.discard("")
+            prior_content.discard("")
+            if final_content.intersection(prior_content):
+                errors.append(
+                    ValidationError(
+                        final_step.line,
+                        "EXIT_INTEGRATION",
+                        "final synthesis-transfer fixture/context must be normalized-content distinct from every prior fixture/context",
+                    )
+                )
+        if final_module is None or final_module.representation not in AUTHENTIC_REPRESENTATIONS:
+            errors.append(ValidationError(final_step.line, "EXIT_INTEGRATION", "final synthesis-transfer requires a novel task, code, or system context"))
+    if doc.session_plan.get("exit_step") != (final_step.step_id if final_step else None):
+        errors.append(ValidationError(_line_number(doc.text, body_start), "EXIT_INTEGRATION", "Session Plan exit_step must be the final synthesis-transfer Step"))
+
+    normalized_topics = [re.sub(r"[^0-9a-z가-힣]+", "", module.topic.casefold()) for module in doc.modules.values()]
+    if len(normalized_topics) != len(set(normalized_topics)):
+        errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "Module Plan topics must be substantively distinct"))
+    module_signatures = [
+        (tuple(module.concept_ids), tuple(module.source_locations), module.representation)
+        for module in doc.modules.values()
+    ]
+    if len(module_signatures) != len(set(module_signatures)):
+        errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "Module Plan contains duplicate concept/source/representation slices"))
+
+    if profile in {"standard", "custom"}:
+        if not 3 <= len(doc.contract_concepts) <= 5:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", f"{profile} sessions require three to five connected Concept Path entries"))
+        if not 3 <= len(doc.modules) <= 5:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", f"{profile} sessions require three to five substantive Module Plan rows"))
+        if profile == "standard" and not 60 <= total_minutes <= 90:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", f"standard Module Plan must total 60 to 90 minutes, got {total_minutes}"))
+        if len(set(application_steps)) < 2:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", f"{profile} sessions require at least two distinct learner-application Steps"))
+        roles = [step.step_role for step in step_sequence]
+        required_role_order = ["motivation", "concept-model", "worked-example", "contrast-limit", "synthesis-transfer"]
+        role_positions = [roles.index(role) for role in required_role_order if role in roles]
+        if any(role not in roles for role in required_role_order) or role_positions != sorted(role_positions):
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", f"{profile} sessions require motivation, concept-model, worked-example, contrast-limit, and synthesis-transfer in order"))
+        worked_steps = [step for step in step_sequence if step.step_role == "worked-example"]
+        worked_example_ids = [step.example_id for step in worked_steps if step.example_id != "none"]
+        worked_representations = {
+            step_to_module[step.step_id].representation
+            for step in worked_steps
+            if step.step_id in step_to_module
+        }
+        worked_fixtures = {
             " ".join(examples[example_id].fixture.split()).casefold()
-            for example_id in used_examples
+            for example_id in worked_example_ids
             if example_id in examples
         }
-        if len(used_fixtures) < 2:
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "standard sessions require at least two distinct example fixtures"))
-        final_step = next(reversed(teaching_steps.values()), None)
-        if final_step is None or final_step.step_role != "synthesis-transfer":
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "the final standard Step must be synthesis-transfer"))
-        elif len(final_step.concept_ids) < 2 or final_step.check_policy != "adaptive":
-            errors.append(ValidationError(final_step.line, "SESSION_DEPTH", "the final synthesis-transfer Step must adaptively integrate at least two concepts"))
-        if doc.session_plan.get("exit_step") != (final_step.step_id if final_step else None):
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "Session Plan exit_step must be the final synthesis-transfer Step"))
-    elif profile in {"short", "custom"}:
-        exit_step = doc.session_plan.get("exit_step")
-        if exit_step not in teaching_steps:
-            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "Session Plan exit_step must name a Prepared Teaching Step"))
+        if len(worked_steps) < 2 or len(set(worked_example_ids)) < 2 or len(worked_fixtures) < 2 or len(worked_representations) < 2:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", f"{profile} sessions require two distinct worked examples in different representations"))
+        representations = {module.representation for module in doc.modules.values()}
+        if len(representations) < 2 or not representations.intersection(AUTHENTIC_REPRESENTATIONS):
+            errors.append(ValidationError(_line_number(doc.text, body_start), "AUTHENTIC_APPLICATION", f"{profile} sessions require multiple representations including code, task/experiment, or system context"))
+    elif profile == "short":
+        if not 1 <= len(doc.contract_concepts) <= 2 or not 1 <= len(doc.modules) <= 2:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "short sessions require one or two concepts and modules"))
+        if not 15 <= total_minutes <= 45:
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", f"short Module Plan must total 15 to 45 minutes, got {total_minutes}"))
+        if not any(step.step_role == "worked-example" for step in step_sequence):
+            errors.append(ValidationError(_line_number(doc.text, body_start), "SESSION_DEPTH", "short sessions require a worked example before the exit"))
+
+    decision = doc.target_decision
+    if decision is not None and set(decision.lesson_evidence_scope).intersection({"implement", "debug"}):
+        if not any(module.representation in AUTHENTIC_REPRESENTATIONS for module in doc.modules.values()):
+            errors.append(ValidationError(decision.line, "AUTHENTIC_APPLICATION", "D2 implement/debug lesson scope requires code-api, task-experiment, or system-design representation"))
+        code_modules = [
+            module for module in doc.modules.values() if module.representation == "code-api"
+        ]
+        if not code_modules:
+            errors.append(
+                ValidationError(
+                    decision.line,
+                    "AUTHENTIC_APPLICATION",
+                    "D2 implement/debug lesson scope requires a code-api module with an actual class/API/forward/Tensor data-flow walkthrough",
+                )
+            )
+        else:
+            walkthrough = " ".join(
+                f"{teaching_steps[step_id].delivery_outline} {teaching_steps[step_id].tiny_example}"
+                for module in code_modules
+                for step_id in module.teaching_step_ids
+                if step_id in teaching_steps
+            )
+            if not _has_structural_d2_walkthrough(walkthrough):
+                errors.append(
+                    ValidationError(
+                        code_modules[0].line,
+                        "AUTHENTIC_APPLICATION",
+                        "code-api module must contain an actual class Name(nn.Module), def forward(...), concrete nn.* call, two Tensor/shape states, and a three-stage arrow data flow",
+                    )
+                )
+    if any(item.relation == "authentic-application" and item.disposition == "reserve-practice" for item in doc.boundary_decisions.values()):
+        if not any(module.representation in AUTHENTIC_REPRESENTATIONS for module in doc.modules.values()):
+            errors.append(ValidationError(_line_number(doc.text, body_start), "AUTHENTIC_APPLICATION", "reserving a boundary application for practice still requires an authentic included lesson representation"))
 
     deferred_rows = _contract_table_rows(
         sections["Deferred"],
@@ -2840,6 +3478,11 @@ def _parse_semantic_review(
             "verdict": "pending",
             "reviewed_input_manifest_sha256": "pending",
             "reviewed_contract_sha256": "pending",
+            "scope_breadth": "pending",
+            "teaching_order": "pending",
+            "authentic_application": "pending",
+            "assessment_load": "pending",
+            "exit_integration": "pending",
         }
         for key, expected in expected_pending.items():
             if values.get(key) != expected:
@@ -2862,16 +3505,35 @@ def _parse_semantic_review(
         for key in ("reviewed_input_manifest_sha256", "reviewed_contract_sha256"):
             if not HASH_RE.fullmatch(values.get(key, "")):
                 errors.append(ValidationError(lines.get(key, _line_number(doc.text, start)), "SCHEMA", f"{key} must be 64 lowercase hexadecimal characters"))
+        review_checks = {
+            key: values.get(key, "")
+            for key in (
+                "scope_breadth",
+                "teaching_order",
+                "authentic_application",
+                "assessment_load",
+                "exit_integration",
+            )
+        }
+        for key, value in review_checks.items():
+            if value not in REVIEW_CHECK_VALUES or value == "pending":
+                errors.append(ValidationError(lines.get(key, _line_number(doc.text, start)), "REVIEW_NOT_PASS", f"completed semantic review requires a terminal {key} check"))
         if iteration == 1 and (phase != "independent-slice" or recheck_ids):
             errors.append(ValidationError(lines.get("review_phase", _line_number(doc.text, start)), "REVIEW_NOT_PASS", "review_iteration 1 requires independent-slice and recheck_of none"))
         if iteration == 2 and (phase != "targeted-recheck" or not recheck_ids):
             errors.append(ValidationError(lines.get("review_phase", _line_number(doc.text, start)), "REVIEW_NOT_PASS", "review_iteration 2 requires targeted-recheck and one or more recheck_of IDs"))
         if verdict == "pass" and (repair_rows or blocker_rows):
             errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "pass review must not contain current findings"))
+        if verdict == "pass" and any(value != "pass" for value in review_checks.values()):
+            errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "pass verdict requires all five structured semantic checks to pass"))
         if verdict == "repair_required" and (not repair_rows or blocker_rows):
             errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "repair_required requires only repair findings"))
+        if verdict == "repair_required" and not any(value == "repair_required" for value in review_checks.values()):
+            errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "repair_required verdict requires at least one repair_required structured check"))
         if verdict == "blocked" and (repair_rows or not blocker_rows):
             errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "blocked verdict requires only true blocking findings"))
+        if verdict == "blocked" and not any(value == "blocked" for value in review_checks.values()):
+            errors.append(ValidationError(_line_number(doc.text, start), "REVIEW_NOT_PASS", "blocked verdict requires at least one blocked structured check"))
         doc.semantic_review = SemanticReviewRecord(
             iteration, values, _line_number(doc.text, start)
         )

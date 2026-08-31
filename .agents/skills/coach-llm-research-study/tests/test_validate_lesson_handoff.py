@@ -31,10 +31,6 @@ from validate_lesson_handoff import (  # noqa: E402
     can_mechanically_rebuild_same_lesson,
     validate_handoff,
 )
-from migrate_paused_v8_handoff import (  # noqa: E402
-    MigrationError,
-    migrate_paused_v8_handoff,
-)
 
 
 class LessonHandoffValidatorTests(unittest.TestCase):
@@ -45,22 +41,121 @@ class LessonHandoffValidatorTests(unittest.TestCase):
         self.assertIn(code, {error.code for error in report.errors}, report.errors)
 
     def short_three_step_contract(self) -> str:
-        contract = re.sub(
-            r"\n#### T004\n.*?(?=\n### Deferred)",
-            "\n",
-            CONTRACT,
-            count=1,
-            flags=re.DOTALL,
+        contract = CONTRACT.replace("- planned_minutes: 70", "- planned_minutes: 30")
+        contract = re.sub(r"(?m)^\| F002 \|.*\n", "", contract, count=1)
+        contract = re.sub(r"(?m)^\| O003 \|.*\n", "", contract, count=1)
+        contract = re.sub(r"(?m)^3\. C03 \|.*\n", "", contract, count=1)
+        module_start = contract.index("### Module Plan")
+        session_start = contract.index("### Session Plan")
+        contract = (
+            contract[:module_start]
+            + """### Module Plan
+
+| Module ID | Topic | Concept IDs | Source locators | Representation | Learner action | Teaching Step IDs | Application step | Expected minutes |
+| --- | --- | --- | --- | --- | --- | --- | --- | ---: |
+| M01 | 축 의미를 짧게 추적 | C01 | materials/lesson.md#axes | numeric | explain | T001, T002, T003 | T003 | 15 |
+| M02 | 새 task의 broadcast 전이 | C01, C02 | materials/lesson.md#axes; materials/lesson.md#shape-propagation | task-experiment | transfer | T004, T005, T006 | T006 | 15 |
+
+"""
+            + contract[session_start:]
         )
-        contract = re.sub(r"(?m)^\| X004 \|.*\n", "", contract, count=1)
-        contract = contract.replace("- exit_step: T005", "- exit_step: T003")
-        contract = contract.replace(
-            "#### T002\n\n- step_role: concept-model\n- concept_ids: C01\n- objective_ids: O001\n- example_id: X001",
-            "#### T002\n\n- step_role: contrast-limit\n- concept_ids: C02\n- objective_ids: O002\n- example_id: X002",
+        contract = contract.replace("- exit_step: T009", "- exit_step: T006")
+        example_start = contract.index("### Example Map")
+        steps_start = contract.index("### Prepared Teaching Steps")
+        contract = (
+            contract[:example_start]
+            + """### Example Map
+
+| Example ID | Purpose | Fixture | Objective IDs |
+| --- | --- | --- | --- |
+| X001 | Motivate named axes | A labeled 2 by 3 matrix. | O001 |
+| X002 | Work one numeric trace | Six values grouped as two examples. | O001 |
+| X003 | Work one broadcast | A 2 by 1 Tensor plus a 1 by 3 Tensor. | O001, O002 |
+| X004 | Transfer to a novel task | A fresh sequence feature-bias task. | O001, O002 |
+
+"""
+            + contract[steps_start:]
         )
-        contract = contract.replace(
-            "#### T003\n\n- step_role: worked-example\n- concept_ids: C02\n- objective_ids: O002\n- example_id: X002",
-            "#### T003\n\n- step_role: synthesis-transfer\n- concept_ids: C03\n- objective_ids: O003\n- example_id: X003",
+        steps_start = contract.index("### Prepared Teaching Steps")
+        deferred_start = contract.index("### Deferred")
+        contract = (
+            contract[:steps_start]
+            + """### Prepared Teaching Steps
+
+#### T001
+
+- step_role: motivation
+- concept_ids: C01
+- objective_ids: O001
+- example_id: X001
+- delivery_outline: Establish why axis names matter.
+- tiny_example: Trace the labeled 2 by 3 matrix.
+- check_policy: none
+- check_basis: Motivate before assessment.
+- check_question: none
+
+#### T002
+
+- step_role: concept-model
+- concept_ids: C01
+- objective_ids: O001
+- example_id: X001
+- delivery_outline: Explain both axes fully.
+- tiny_example: Read two rows with three features each.
+- check_policy: none
+- check_basis: Explain before application.
+- check_question: none
+
+#### T003
+
+- step_role: worked-example
+- concept_ids: C01
+- objective_ids: O001
+- example_id: X002
+- delivery_outline: Walk the numeric fixture and let the learner relabel it.
+- tiny_example: Change the value labels without changing the axes.
+- check_policy: adaptive
+- check_basis: if the learner identifies both axes -> continue to broadcast; else -> relabel the rows and retry
+- check_question: What does each axis count?
+
+#### T004
+
+- step_role: concept-model
+- concept_ids: C01, C02
+- objective_ids: O001, O002
+- example_id: X003
+- delivery_outline: Explain right-aligned broadcast and every Tensor shape.
+- tiny_example: Align 2 by 1 with 1 by 3.
+- check_policy: none
+- check_basis: Explain the mechanism before transfer.
+- check_question: none
+
+#### T005
+
+- step_role: worked-example
+- concept_ids: C01, C02
+- objective_ids: O001, O002
+- example_id: X003
+- delivery_outline: Walk the broadcast from operands to result.
+- tiny_example: Produce the 2 by 3 result shape.
+- check_policy: none
+- check_basis: Finish the worked trace before the integrated application.
+- check_question: none
+
+#### T006
+
+- step_role: synthesis-transfer
+- concept_ids: C01, C02
+- objective_ids: O001, O002
+- example_id: X004
+- delivery_outline: Transfer both concepts to a fresh task context.
+- tiny_example: Add a feature bias to a new sequence-task input.
+- check_policy: adaptive
+- check_basis: if the learner integrates both concepts -> finish; else -> revisit the smallest failed axis
+- check_question: Explain every axis and decide whether the new broadcast is valid.
+
+"""
+            + contract[deferred_start:]
         )
         return contract
 
@@ -97,6 +192,16 @@ class LessonHandoffValidatorTests(unittest.TestCase):
         contract = contract.replace(
             "| I001 | entire-source | none | entire-source | none | none |",
             f"| I001 | registered-slice | SCOPE-TEST-00-01-01 | Tensor axes [{source_path}#axes]; Broadcast propagation [{source_path}#shape-propagation] | Orientation context [{source_path}#orientation] | The rest of the source is outside this focused unit. |",
+        )
+        boundary_start = contract.index("### Boundary Decision Map")
+        coverage_start = contract.index("### Source Coverage Index")
+        contract = (
+            contract[:boundary_start]
+            + "### Boundary Decision Map\n\n"
+            + "| Boundary ID | Primary ID | Unit locator | Relation | Disposition | Reason |\n"
+            + "| --- | --- | --- | --- | --- | --- |\n"
+            + f"| BND001 | I001 | {source_path}#orientation | unrelated | exclude-unrelated | The orientation unit is review-only navigation outside the technical lesson. |\n\n"
+            + contract[coverage_start:]
         )
         contract = contract.replace(
             "| I001 | D001, D002, D003 | O001, O002 | G001 |",
@@ -184,6 +289,17 @@ class LessonHandoffValidatorTests(unittest.TestCase):
         contract = contract.replace(
             "| I001 | entire-source | none | entire-source | none | none |",
             f"| I001 | registered-slice | SCOPE-LARGE-00-01-01 | Core concept sequence [{source_path}#page-14--18] | Previous context [{source_path}#page-13]; Following context [{source_path}#page-19] | The other 627 pages are outside this focused unit. |",
+        )
+        boundary_start = contract.index("### Boundary Decision Map")
+        coverage_start = contract.index("### Source Coverage Index")
+        contract = (
+            contract[:boundary_start]
+            + "### Boundary Decision Map\n\n"
+            + "| Boundary ID | Primary ID | Unit locator | Relation | Disposition | Reason |\n"
+            + "| --- | --- | --- | --- | --- | --- |\n"
+            + f"| BND001 | I001 | {source_path}#page-13 | unrelated | exclude-unrelated | The prior page is review-only context and is not needed for this unit. |\n"
+            + f"| BND002 | I001 | {source_path}#page-19 | advanced-follow-on | defer-advanced | The following page is an advanced continuation beyond this reviewed unit. |\n\n"
+            + contract[coverage_start:]
         )
         contract = contract.replace(
             "| I001 | D001, D002, D003 | O001, O002 | G001 |",
@@ -900,7 +1016,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 handoff, _ = build_handoff(root)
                 handoff.write_text(
                     handoff.read_text(encoding="utf-8").replace(
-                        "- schema_version: 9", f"- schema_version: {old_version}"
+                        "- schema_version: 10", f"- schema_version: {old_version}"
                     ),
                     encoding="utf-8",
                 )
@@ -936,6 +1052,200 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             handoff, _ = build_handoff(root, contract=contract)
             self.assert_code(validate_handoff(handoff, repo_root=root), "SESSION_DEPTH")
 
+    def test_vague_compression_wording_cannot_bypass_the_standard_profile(self) -> None:
+        contract = self.short_three_step_contract()
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff, _ = build_handoff(
+                root,
+                contract=contract,
+                session_profile="short",
+            )
+            text = handoff.read_text(encoding="utf-8").replace(
+                "- requested_constraint: 30 minute short session",
+                "- requested_constraint: 압축",
+            )
+            handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
+            self.assert_code(validate_handoff(handoff, repo_root=root), "SESSION_PROFILE")
+
+    def test_short_and_custom_reject_arbitrary_non_constraints(self) -> None:
+        cases = (
+            ("short", self.short_three_step_contract()),
+            ("custom", CONTRACT),
+        )
+        for profile, contract in cases:
+            with self.subTest(profile=profile), self.make_root() as directory:
+                root = Path(directory)
+                handoff, _ = build_handoff(
+                    root,
+                    contract=contract,
+                    session_profile=profile,
+                )
+                text = re.sub(
+                    r"(?m)^- requested_constraint: .+$",
+                    "- requested_constraint: banana",
+                    handoff.read_text(encoding="utf-8"),
+                    count=1,
+                )
+                handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
+                self.assert_code(
+                    validate_handoff(handoff, repo_root=root),
+                    "SESSION_PROFILE",
+                )
+
+    def test_question_before_explanation_is_rejected(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff, _ = build_handoff(root)
+            text = handoff.read_text(encoding="utf-8")
+            start = text.index("#### T001")
+            end = text.index("#### T002")
+            block = text[start:end]
+            block = block.replace("- check_policy: none", "- check_policy: adaptive")
+            block = block.replace(
+                "- check_basis: The labeled fixture makes the problem concrete before any branch is useful.",
+                "- check_basis: if the learner already knows C01 -> continue; else -> explain C01 after the answer",
+            )
+            block = block.replace(
+                "- check_question: none",
+                "- check_question: Explain C01 before it has been introduced.",
+            )
+            text = text[:start] + block + text[end:]
+            handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
+            self.assert_code(validate_handoff(handoff, repo_root=root), "TEACHING_ORDER")
+
+    def test_no_check_step_cannot_hide_an_assessment_directive(self) -> None:
+        hidden_prompts = (
+            "Ask the learner to explain C01?",
+            "Have the learner predict the two axis meanings.",
+        )
+        for prompt in hidden_prompts:
+            with self.subTest(prompt=prompt), self.make_root() as directory:
+                root = Path(directory)
+                handoff, _ = build_handoff(root)
+                text = handoff.read_text(encoding="utf-8")
+                start = text.index("#### T002")
+                end = text.index("#### T003")
+                block = text[start:end].replace(
+                    "- delivery_outline: Name batch and feature axes and connect each name to the fixture.",
+                    f"- delivery_outline: {prompt}",
+                )
+                text = text[:start] + block + text[end:]
+                handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
+                self.assert_code(
+                    validate_handoff(handoff, repo_root=root),
+                    "TEACHING_ORDER",
+                )
+
+    def test_d2_code_walk_requires_structural_module_and_shape_flow(self) -> None:
+        replacements = (
+            (
+                "- target_evidence_requirements: explain",
+                "- target_evidence_requirements: explain, implement, debug",
+            ),
+            (
+                "- target_evidence_gap: explain",
+                "- target_evidence_gap: explain, implement, debug",
+            ),
+            (
+                "- lesson_evidence_scope: explain",
+                "- lesson_evidence_scope: explain, implement, debug",
+            ),
+        )
+        with self.make_root() as directory:
+            root = Path(directory)
+            build_handoff(root)
+            curriculum = root / "CURRICULUM.md"
+            curriculum.write_text(
+                curriculum.read_text(encoding="utf-8").replace(
+                    "| CC-DL-01 | Tensor contracts | D2 | — | explain |",
+                    "| CC-DL-01 | Tensor contracts | D2 | — | explain, implement, debug |",
+                ),
+                encoding="utf-8",
+            )
+            contract = CONTRACT
+            for old, new in replacements:
+                contract = contract.replace(old, new)
+            handoff, _ = build_handoff(root, contract=contract)
+            valid = validate_handoff(handoff, repo_root=root)
+            self.assertTrue(valid.ok, valid.errors)
+
+            spoofed = handoff.read_text(encoding="utf-8").replace(
+                "- delivery_outline: Walk `class ShapeReadout(nn.Module):`, `self.proj = nn.Linear(3, 2)`, and `def forward(self, x):` as an actual module/API contract.",
+                "- delivery_outline: Mention class, nn.Module, API, forward, Tensor, shape, and data-flow keywords.",
+            ).replace(
+                "- tiny_example: Trace the Tensor/shape data flow `x: (2, 4, 3) -> self.proj(x): (2, 4, 2) -> logits = y[:, -1, :]: (2, 2)` before contrasting a swapped axis.",
+                "- tiny_example: Say that a Tensor moves through a data flow.",
+            )
+            handoff.write_text(refresh_contract_hash(spoofed), encoding="utf-8")
+            self.assert_code(
+                validate_handoff(handoff, repo_root=root),
+                "AUTHENTIC_APPLICATION",
+            )
+
+    def test_numeric_only_implementation_lesson_is_rejected(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            build_handoff(root)
+            curriculum = root / "CURRICULUM.md"
+            curriculum.write_text(
+                curriculum.read_text(encoding="utf-8").replace(
+                    "| CC-DL-01 | Tensor contracts | D2 | — | explain |",
+                    "| CC-DL-01 | Tensor contracts | D2 | — | explain, implement, debug |",
+                ),
+                encoding="utf-8",
+            )
+            contract = CONTRACT.replace(
+                "- target_evidence_requirements: explain",
+                "- target_evidence_requirements: explain, implement, debug",
+            ).replace(
+                "- target_evidence_gap: explain",
+                "- target_evidence_gap: explain, implement, debug",
+            ).replace(
+                "- lesson_evidence_scope: explain",
+                "- lesson_evidence_scope: explain, implement, debug",
+            )
+            contract = contract.replace("| tensor |", "| numeric |")
+            contract = contract.replace("| code-api |", "| numeric |")
+            contract = contract.replace("| task-experiment |", "| numeric |")
+            handoff, _ = build_handoff(root, contract=contract)
+            self.assert_code(
+                validate_handoff(handoff, repo_root=root),
+                "AUTHENTIC_APPLICATION",
+            )
+
+    def test_final_transfer_must_integrate_every_non_deferred_objective(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff, _ = build_handoff(root)
+            text = handoff.read_text(encoding="utf-8")
+            start = text.index("#### T009")
+            end = text.index("### Deferred")
+            block = text[start:end].replace(
+                "- concept_ids: C01, C02, C03",
+                "- concept_ids: C01, C02",
+            ).replace(
+                "- objective_ids: O001, O002, O003",
+                "- objective_ids: O001, O002",
+            )
+            text = text[:start] + block + text[end:]
+            handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
+            self.assert_code(validate_handoff(handoff, repo_root=root), "EXIT_INTEGRATION")
+
+    def test_final_transfer_rejects_normalized_duplicate_fixture_content(self) -> None:
+        with self.make_root() as directory:
+            root = Path(directory)
+            handoff, _ = build_handoff(root)
+            text = handoff.read_text(encoding="utf-8").replace(
+                "A fresh batch by token by hidden sequence-classification input and readout.",
+                "CLASS SHAPEREADOUT(NN.MODULE): with NN.LINEAR(3,2) and an incompatible sequence readout!!!",
+            )
+            handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
+            self.assert_code(
+                validate_handoff(handoff, repo_root=root),
+                "EXIT_INTEGRATION",
+            )
+
     def test_completed_standard_requires_integrated_exit_attempt(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
@@ -951,11 +1261,11 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             self.assert_code(validate_handoff(handoff, repo_root=root), "SESSION_EXIT_EVIDENCE")
 
 
-    def test_v8_to_v9_paused_migration_preserves_every_learner_content_byte(self) -> None:
+    def test_schema_v9_handoff_is_read_only_legacy_and_is_not_promoted_to_v10(self) -> None:
         answer = "기존 답변의 바이트를 그대로 보존한다.\n\n아직 확신할 수 없는 이유도 평가와 분리한다."
         with self.make_root() as directory:
             root = Path(directory)
-            replacement, _ = build_handoff(
+            current, _ = build_handoff(
                 root,
                 status="paused",
                 reviews=[("pass", "fresh-reviewer")],
@@ -980,13 +1290,12 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                     {"concept": "C03", "state": "deferred", "evidence_ids": "none", "note": "Not taught."},
                 ],
             )
-            report = validate_handoff(replacement, repo_root=root)
-            self.assertTrue(report.ok, report.errors)
-            current = replacement.read_bytes()
-            legacy = root / "tmp/legacy-v8.md"
-            legacy.write_bytes(current.replace(b"- schema_version: 9", b"- schema_version: 8", 1))
-            prepared = root / "tmp/prepared-v9.md"
-            prepared.write_bytes(current)
+            legacy = root / "tmp/legacy-v9.md"
+            legacy.write_bytes(
+                current.read_bytes().replace(
+                    b"- schema_version: 10", b"- schema_version: 9", 1
+                )
+            )
             before = tuple(
                 match.group(1)
                 for match in re.finditer(
@@ -994,8 +1303,11 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                     legacy.read_bytes(),
                 )
             )
-
-            migrate_paused_v8_handoff(legacy, prepared, repo_root=root)
+            report = validate_handoff(legacy, repo_root=root)
+            self.assert_code(report, "SCHEMA")
+            self.assertTrue(
+                any("schema_version must be 10" in error.message for error in report.errors)
+            )
             after = tuple(
                 match.group(1)
                 for match in re.finditer(
@@ -1004,15 +1316,6 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 )
             )
             self.assertEqual(after, before)
-            migrated = validate_handoff(legacy, repo_root=root)
-            self.assertTrue(migrated.ok, migrated.errors)
-            self.assertEqual(migrated.document.metadata["status"], "paused")
-
-            tampered = current.replace(answer.encode("utf-8"), b"changed", 1)
-            prepared.write_bytes(tampered)
-            legacy.write_bytes(current.replace(b"- schema_version: 9", b"- schema_version: 8", 1))
-            with self.assertRaisesRegex(MigrationError, "learner-content bytes"):
-                migrate_paused_v8_handoff(legacy, prepared, repo_root=root)
 
     def test_source_coverage_requires_every_primary_in_manifest_order(self) -> None:
         with self.make_root() as directory:
@@ -1117,8 +1420,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             root = Path(directory)
             handoff, _ = build_handoff(root)
             text = handoff.read_text(encoding="utf-8").replace(
-                "- check_question: Which axis contains the three features?",
-                "- check_question: Which axis contains the three features in G001?",
+                "- check_question: Which axis contains the three features, and what does the other axis count?",
+                "- check_question: Which axis contains the three features in G001, and what does the other axis count?",
             )
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "OBJECTIVE_COVERAGE")
@@ -1200,9 +1503,11 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             self.assert_code(validate_handoff(handoff, repo_root=root), "SCHEMA")
 
             handoff, _ = build_handoff(root)
-            text = handoff.read_text(encoding="utf-8").replace(
-                "- objective_ids: O002",
-                "- objective_ids: O001",
+            text = handoff.read_text(encoding="utf-8")
+            text = text.replace("- objective_ids: O001, O002", "- objective_ids: O001")
+            text = text.replace(
+                "- objective_ids: O001, O002, O003",
+                "- objective_ids: O001, O003",
             )
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "OBJECTIVE_COVERAGE")
@@ -1212,7 +1517,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             root = Path(directory)
             handoff, _ = build_handoff(root)
             text = handoff.read_text(encoding="utf-8").replace(
-                "- check_basis: if learner identifies both axes -> continue to shape propagation; else -> reteach rows and columns with labels",
+                "- check_basis: if learner identifies both axes -> continue to broadcast shape propagation; else -> relabel the two rows and three features before retrying",
                 "- check_basis: Ask because every step needs a question.",
             )
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
@@ -1220,7 +1525,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
 
             handoff, _ = build_handoff(root)
             text = handoff.read_text(encoding="utf-8").replace(
-                "if learner identifies both axes -> continue to shape propagation; else -> reteach rows and columns with labels",
+                "if learner identifies both axes -> continue to broadcast shape propagation; else -> relabel the two rows and three features before retrying",
                 "if learner identifies both axes -> repeat the same explanation; else -> repeat the same explanation",
             )
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
@@ -1237,7 +1542,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
 
             handoff, _ = build_handoff(root)
             text = handoff.read_text(encoding="utf-8").replace(
-                "- check_question: Which axis contains the three features?",
+                "- check_question: Which axis contains the three features, and what does the other axis count?",
                 "- check_question: flatten에서 이론·복습·실습은 각각 무엇을 확인하게 해 주나요?",
             )
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
@@ -1266,7 +1571,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             handoff.write_text(text, encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "ASSESSMENT_ALIGNMENT")
 
-    def test_teaching_step_order_may_differ_from_objective_audit_order(self) -> None:
+    def test_teaching_step_cannot_use_an_unexplained_prerequisite(self) -> None:
         with self.make_root() as directory:
             root = Path(directory)
             handoff, _ = build_handoff(root)
@@ -1283,8 +1588,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             text = text.replace("- target_objectives: O001", "- target_objectives: O002")
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
             report = validate_handoff(handoff, repo_root=root)
-            self.assertTrue(report.ok, report.errors)
-            self.assertEqual(report.document.teaching_steps["T001"].objective_ids, ["O002"])
+            self.assert_code(report, "TEACHING_ORDER")
 
     def test_objective_source_must_be_exact_and_manifested(self) -> None:
         with self.make_root() as directory:
@@ -1310,8 +1614,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             root = Path(directory)
             handoff, _ = build_handoff(root)
             text = handoff.read_text(encoding="utf-8").replace(
-                "| O002 | source-core | none | materials/lesson.md#shape-propagation | Predict the output shape of a broadcast operation. | C02 | full | Compare aligned dimensions from the right. | none |",
-                "| O002 | source-core | none | materials/lesson.md#shape-propagation | Predict the output shape of a broadcast operation. | C02 | deferred | none | none |",
+                "| O002 | source-core | none | materials/lesson.md#shape-propagation | Predict the output shape of a broadcast operation. | C02 | C01 | full | Compare aligned dimensions from the right. | none |",
+                "| O002 | source-core | none | materials/lesson.md#shape-propagation | Predict the output shape of a broadcast operation. | C02 | C01 | deferred | none | none |",
             )
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "OBJECTIVE_COVERAGE")
@@ -1323,8 +1627,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             text = handoff.read_text(encoding="utf-8")
             text = text.replace("- mode: full-source", "- mode: focused")
             text = text.replace(
-                "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | full | Map one small tensor to an attention input. | none |",
-                "| O003 | required-added | prerequisite | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | deferred | none | none |",
+                "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | C01, C02 | full | Map one small tensor to an attention input. | none |",
+                "| O003 | required-added | prerequisite | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | C01, C02 | deferred | none | none |",
             )
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
             report = validate_handoff(handoff, repo_root=root)
@@ -1362,8 +1666,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             root = Path(directory)
             handoff, _ = build_handoff(root)
             text = handoff.read_text(encoding="utf-8").replace(
-                "| C01 | full | Trace both axes before naming the operation. | none |",
-                "| C01 | bridge | Trace both axes before naming the operation. | none |",
+                "| C01 | none | full | Trace both axes before naming the operation. | none |",
+                "| C01 | none | bridge | Trace both axes before naming the operation. | none |",
             )
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
             self.assert_code(validate_handoff(handoff, repo_root=root), "OBJECTIVE_COVERAGE")
@@ -1378,8 +1682,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
                 ],
             )
             text = handoff.read_text(encoding="utf-8").replace(
-                "| C01 | full | Trace both axes before naming the operation. | none |",
-                "| C01 | bridge | Trace both axes before naming the operation. | learner-evidence:E001 |",
+                "| C01 | none | full | Trace both axes before naming the operation. | none |",
+                "| C01 | none | bridge | Trace both axes before naming the operation. | learner-evidence:E001 |",
             )
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
             self.assertTrue(validate_handoff(handoff, repo_root=root).ok)
@@ -1525,6 +1829,10 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             relative_directory = root.relative_to(REPO)
             text = handoff.read_text(encoding="utf-8")
             text = text.replace("materials/lesson.md", f"{relative_directory.as_posix()}/materials/lesson.md")
+            text = text.replace(
+                "- target_evidence_requirements: explain",
+                "- target_evidence_requirements: explain, calculate, shape, implement, debug",
+            )
             source_hash = sha256((root / "materials/lesson.md").read_bytes())
             curriculum_hash = sha256((REPO / "CURRICULUM.md").read_bytes())
             roadmap_hash = sha256((REPO / "ROADMAP.md").read_bytes())

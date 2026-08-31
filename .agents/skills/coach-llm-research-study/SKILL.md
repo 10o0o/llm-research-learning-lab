@@ -1,6 +1,6 @@
 ---
 name: coach-llm-research-study
-description: Audit AI, ML, deep-learning, LLM, or mathematics sources and prepare or independently review the schema-v9 lesson contract. Also review mixed manual or standalone TIL material when explicitly saved or assessed. Use with teach-course-material for a whole named-source lesson. Do not teach, write knowledge, recommend practice, turn tutor prose into evidence, or re-review a pure daily-flow TIL composition.
+description: Audit AI, ML, deep-learning, LLM, or mathematics sources and prepare or independently review the schema-v10 lesson contract. Also review mixed manual or standalone TIL material when explicitly saved or assessed. Use with teach-course-material for a whole named-source lesson. Do not teach, write knowledge, recommend practice, turn tutor prose into evidence, or re-review a pure daily-flow TIL composition.
 ---
 
 # Audit Sources and Own the Lesson Contract
@@ -26,13 +26,27 @@ At a daily-flow boundary, also read the
 - Locate every finding precisely and verify unstable technical claims with
   primary sources.
 
-## Prepare and converge the v9 handoff
+## Prepare and converge the v10 handoff
 
-The handoff records `cycle_id`, `flow_mode`, target decision, source scope,
-three to five substantive modules, teaching steps, delivery, concept coverage,
-and learner evidence. A standard session is 60–90 minutes with two learner
-applications, two distinct worked examples, a limitation or counterexample,
-and an integrated transfer.
+The handoff records `cycle_id`, `flow_mode`, immutable Session Profile Decision,
+the full target requirement → lesson scope → practice residual partition,
+prerequisite Concept IDs, source-unit boundary decisions, three to five
+substantive modules, teaching steps, delivery, concept coverage, and learner
+evidence. A standard session is 60–90 minutes even for a focused source slice;
+vague compression wording never selects `short` or `custom`.
+Those profiles require a concrete numeric duration or a recognized explicit
+format constraint, not merely arbitrary non-empty text.
+
+Each module binds one uninterrupted purpose → explanation → worked trace or
+code walk → adaptive application block, uses one declared representation, and
+asks at most one assessed checkpoint. Explain prerequisites before assessment.
+Do not hide a learner question or assessment directive inside a
+`check_policy: none` Step.
+Require two distinct worked fixtures and representations, an authentic
+`class Name(nn.Module):`/`def forward(...):`/concrete `nn.*(...)`/Tensor-shape
+arrow walkthrough for D2 implementation or debugging scope, a limitation or
+counterexample, and a normalized-content-distinct final transfer covering every
+non-deferred concept and objective.
 
 The author and first reviewer must differ. Repairable locator, wording,
 objective, module, or teaching-order findings use `repair_required`; repair in
@@ -41,6 +55,8 @@ integrity/access, irreducible factual ambiguity, or a user scope decision may
 be `blocked`. Reviewer unavailability keeps review pending and is not a
 semantic blocker.
 
+The independent reviewer records separate `scope_breadth`, `teaching_order`,
+`authentic_application`, `assessment_load`, and `exit_integration` verdicts.
 Pass the contract's teaching-readiness gate before delivery. After every
 non-deferred concept has confirmed learner evidence and the integrated exit is
 complete, pass its session-capture gate. Completion means the planned session

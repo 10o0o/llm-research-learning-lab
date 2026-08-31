@@ -5,12 +5,11 @@
 
 ## Metadata
 
-- schema_version: 9
+- schema_version: 10
 - cycle_id: replace-with-daily-flow-cycle-id
 - lesson_id: replace-with-stable-lesson-id
 - title: Replace with lesson title
 - status: preparing
-- session_profile: standard
 - flow_mode: day-full
 - study_date: YYYY-MM-DD
 - created_at: YYYY-MM-DDTHH:MM:SSZ
@@ -33,6 +32,13 @@
 
 Replace with one observable lesson objective.
 
+### Session Profile Decision
+
+- profile: standard
+- basis: default-standard
+- requested_constraint: none
+- planned_minutes: 70
+
 ### Coverage Mode
 
 - mode: full-source
@@ -47,7 +53,13 @@ Replace with one observable lesson objective.
 - target_state: START_TARGET
 - primary_target: CC-DL-01
 - bridge_target: none
-- evidence_gap: explain
+- target_evidence_requirements: explain
+- target_evidence_basis: Replace with the exact Curriculum evidence-requirement basis.
+- target_evidence_gap: explain
+- lesson_evidence_scope: explain
+- lesson_scope_basis: Replace with why this lesson directly covers this exact subset.
+- residual_target_evidence: none
+- residual_practice_basis: Replace with why the residual belongs in practice or why no target-level residual remains.
 - completion_evidence: Replace with the observable evidence that closes this target for the current cycle.
 - endpoint: TR-SYS-03
 - why_now: Replace with the target-first graph and learner-evidence reason.
@@ -87,6 +99,12 @@ Replace with one observable lesson objective.
 | --- | --- | --- | --- | --- | --- |
 | I001 | entire-source | none | entire-source | none | none |
 
+### Boundary Decision Map
+
+| Boundary ID | Primary ID | Unit locator | Relation | Disposition | Reason |
+| --- | --- | --- | --- | --- | --- |
+| none | none | none | none | none | none |
+
 ### Source Coverage Index
 
 | Primary ID | Declared Goal IDs | Objective IDs | Guidance IDs |
@@ -107,11 +125,11 @@ Replace with one observable lesson objective.
 
 ### Observable Objective Map
 
-| Objective ID | Requirement | Marker | Source location | Observable outcome | Concept ID | Treatment | Teaching move | Baseline evidence |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| O001 | source-core | prerequisite | materials/private/course/NN-NN_lesson.md#exact-location | Replace with one observable source-core outcome. | C01 | full | Replace with the concrete explanation or demonstration move. | none |
-| O002 | source-core | none | materials/private/course/NN-NN_lesson.md#exact-location | Replace with another observable source-core outcome. | C02 | full | Replace with the concrete explanation or demonstration move. | none |
-| O003 | optional-added | supplement | CURRICULUM.md#exact-location | Replace with one direct roadmap connection. | C03 | full | Replace with the short supplement move. | none |
+| Objective ID | Requirement | Marker | Source location | Observable outcome | Concept ID | Prerequisite Concept IDs | Treatment | Teaching move | Baseline evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| O001 | source-core | prerequisite | materials/private/course/NN-NN_lesson.md#exact-location | Replace with one observable source-core outcome. | C01 | none | full | Replace with the concrete explanation or demonstration move. | none |
+| O002 | source-core | none | materials/private/course/NN-NN_lesson.md#exact-location | Replace with another observable source-core outcome. | C02 | C01 | full | Replace with the concrete explanation or demonstration move. | none |
+| O003 | optional-added | supplement | CURRICULUM.md#exact-location | Replace with one direct roadmap connection. | C03 | C01, C02 | full | Replace with the short supplement move. | none |
 
 ### Concept Path
 
@@ -121,17 +139,17 @@ Replace with one observable lesson objective.
 
 ### Module Plan
 
-| Module ID | Topic | Concept IDs | Source locators | Application step | Expected minutes |
-| --- | --- | --- | --- | --- | ---: |
-| M01 | Why the first concept is needed | C01 | materials/private/course/NN-NN_lesson.md#exact-location | T002 | 15 |
-| M02 | Core mechanism and assumptions | C02 | materials/private/course/NN-NN_lesson.md#exact-location | T003 | 20 |
-| M03 | Failure boundary and correction | C02, C03 | materials/private/course/NN-NN_lesson.md#exact-location; CURRICULUM.md#exact-location | T004 | 15 |
-| M04 | Integrated transfer to the target | C01, C02, C03 | materials/private/course/NN-NN_lesson.md#exact-location; CURRICULUM.md#exact-location | T005 | 20 |
+| Module ID | Topic | Concept IDs | Source locators | Representation | Learner action | Teaching Step IDs | Application step | Expected minutes |
+| --- | --- | --- | --- | --- | --- | --- | --- | ---: |
+| M01 | Why the first concept is needed | C01 | materials/private/course/NN-NN_lesson.md#exact-location | numeric | explain | T001, T002, T003 | T003 | 15 |
+| M02 | Core mechanism and assumptions | C01, C02 | materials/private/course/NN-NN_lesson.md#exact-location | tensor | shape | T004, T005 | T005 | 20 |
+| M03 | Failure boundary and correction | C01, C02, C03 | materials/private/course/NN-NN_lesson.md#exact-location; CURRICULUM.md#exact-location | code-api | debug | T006, T007 | T007 | 15 |
+| M04 | Integrated transfer to a new task | C01, C02, C03 | materials/private/course/NN-NN_lesson.md#exact-location; CURRICULUM.md#exact-location | task-experiment | transfer | T008, T009 | T009 | 20 |
 
 ### Session Plan
 
 - session_goal: Connect the motivating problem, concept model, worked example, limitation, and one integrated transfer.
-- exit_step: T005
+- exit_step: T009
 - exit_evidence_kind: transfer
 
 ### Example Map
@@ -139,9 +157,10 @@ Replace with one observable lesson objective.
 | Example ID | Purpose | Fixture | Objective IDs |
 | --- | --- | --- | --- |
 | X001 | Motivate the first concept | Replace with the concrete motivating fixture. | O001 |
-| X002 | Work the core mechanism | Replace with a different deterministic worked fixture. | O002 |
-| X003 | Expose a limitation | Replace with a failure or counterexample fixture. | O002, O003 |
-| X004 | Transfer across concepts | Replace with one integrated application fixture. | O001, O002, O003 |
+| X002 | Work the first representation | Replace with a deterministic numeric worked fixture. | O001 |
+| X003 | Work the core mechanism | Replace with a distinct Tensor worked fixture. | O001, O002 |
+| X004 | Expose and diagnose a limitation | Replace with an actual `class Name(nn.Module):`, `def forward(...):`, concrete `nn.*(...)` call, and Tensor/shape-flow fixture when implementation or debugging is in scope. | O001, O002, O003 |
+| X005 | Transfer across concepts | Replace with one novel task, code, or system fixture whose normalized content is not used in any earlier fixture or context. | O001, O002, O003 |
 
 ### Prepared Teaching Steps
 
@@ -165,44 +184,92 @@ Replace with one observable lesson objective.
 - example_id: X001
 - delivery_outline: Replace with the concept model that explains O001.
 - tiny_example: Replace with a tiny concrete example.
-- check_policy: adaptive
-- check_basis: if the answer shows the prerequisite -> continue to T003; else -> reteach the prerequisite with the tiny example
-- check_question: Replace with one diagnostic question.
+- check_policy: none
+- check_basis: Explain the prerequisite fully before its module application.
+- check_question: none
 
 #### T003
 
 - step_role: worked-example
-- concept_ids: C02
-- objective_ids: O002
+- concept_ids: C01
+- objective_ids: O001
 - example_id: X002
-- delivery_outline: Work the core mechanism for O002 from inputs to result.
-- tiny_example: Replace with a tiny concrete example.
+- delivery_outline: Walk the first representation, then let the learner apply it to a changed fixture.
+- tiny_example: Replace with a deterministic numeric trace.
 - check_policy: adaptive
-- check_basis: if the learner applies the mechanism correctly -> continue to the limitation; else -> retrace the smallest failed step with a different fixture
-- check_question: Replace with one learner calculation, prediction, or trace.
+- check_basis: if the learner applies C01 -> continue to the core mechanism; else -> retrace the smallest failed part before retrying
+- check_question: Replace with one learner application of C01.
 
 #### T004
 
-- step_role: contrast-limit
-- concept_ids: C02, C03
-- objective_ids: O002, O003
+- step_role: concept-model
+- concept_ids: C01, C02
+- objective_ids: O001, O002
 - example_id: X003
-- delivery_outline: Contrast the valid mechanism with one failure or limitation.
-- tiny_example: Replace with a distinct counterexample or boundary case.
+- delivery_outline: Explain the core mechanism and walk every intermediate Tensor or state shape.
+- tiny_example: Replace with a distinct Tensor trace.
 - check_policy: none
-- check_basis: The explicit contrast prepares the final transfer without requiring a separate quiz.
+- check_basis: Complete the mechanism and trace before asking the learner to apply it.
 - check_question: none
 
 #### T005
 
-- step_role: synthesis-transfer
+- step_role: worked-example
+- concept_ids: C01, C02
+- objective_ids: O001, O002
+- example_id: X003
+- delivery_outline: Walk a changed fixture, then let the learner predict or calculate the result.
+- tiny_example: Replace with a second worked fixture in a representation different from X002.
+- check_policy: adaptive
+- check_basis: if the learner applies the mechanism -> continue to its failure boundary; else -> retrace the first failed transition
+- check_question: Replace with one core-mechanism application.
+
+#### T006
+
+- step_role: contrast-limit
 - concept_ids: C01, C02, C03
 - objective_ids: O001, O002, O003
 - example_id: X004
-- delivery_outline: Integrate the three concepts in one small transfer task.
-- tiny_example: Replace with a new fixture that requires the learner to connect at least two concepts.
+- delivery_outline: Explain a real limitation or counterexample; when implementation/debugging is in scope, name an actual `class Name(nn.Module):`, `def forward(...):`, and concrete `nn.*(...)` call.
+- tiny_example: Replace with a distinct Tensor/shape trace containing at least three labeled stages joined by arrows, such as `x: (B,T,D) -> hidden: (B,T,H) -> logits: (B,C)`.
+- check_policy: none
+- check_basis: Explain the failure mechanism before asking the learner to diagnose it.
+- check_question: none
+
+#### T007
+
+- step_role: worked-example
+- concept_ids: C01, C02, C03
+- objective_ids: O001, O002, O003
+- example_id: X004
+- delivery_outline: Walk the failure from input through the failing state, then let the learner diagnose a changed case.
+- tiny_example: Replace with a concrete class/API/forward/Tensor or data-flow trace when required.
 - check_policy: adaptive
-- check_basis: if the learner integrates the concepts -> finish the session; else -> revisit the smallest failed link before retrying
+- check_basis: if the learner diagnoses the causal failure -> continue to the new task; else -> expose the smallest intermediate state and retry
+- check_question: Replace with one authentic diagnosis or correction.
+
+#### T008
+
+- step_role: concept-model
+- concept_ids: C01, C02, C03
+- objective_ids: O001, O002, O003
+- example_id: none
+- delivery_outline: Summarize the reusable strategy without revealing or rehearsing the final novel fixture.
+- tiny_example: Re-state the general decision procedure that will be reused in a new context.
+- check_policy: none
+- check_basis: Set up the novel context before the integrated transfer.
+- check_question: none
+
+#### T009
+
+- step_role: synthesis-transfer
+- concept_ids: C01, C02, C03
+- objective_ids: O001, O002, O003
+- example_id: X005
+- delivery_outline: Integrate every non-deferred concept and objective in the novel task, code, or system context.
+- tiny_example: Replace with a new fixture that requires every non-deferred concept.
+- check_policy: adaptive
+- check_basis: if the learner integrates all non-deferred concepts and objectives -> finish the session; else -> revisit the smallest failed link before retrying
 - check_question: Replace with one integrated transfer or explain-back question.
 
 ### Deferred
@@ -223,6 +290,11 @@ Replace with one observable lesson objective.
 - verdict: pending
 - reviewed_input_manifest_sha256: pending
 - reviewed_contract_sha256: pending
+- scope_breadth: pending
+- teaching_order: pending
+- authentic_application: pending
+- assessment_load: pending
+- exit_integration: pending
 
 ### Repair Findings
 
@@ -262,6 +334,10 @@ Replace with one observable lesson objective.
 | T003 | pending | Awaiting teaching. |
 | T004 | pending | Awaiting teaching. |
 | T005 | pending | Awaiting teaching. |
+| T006 | pending | Awaiting teaching. |
+| T007 | pending | Awaiting teaching. |
+| T008 | pending | Awaiting teaching. |
+| T009 | pending | Awaiting teaching. |
 
 ## Session Concept Coverage
 

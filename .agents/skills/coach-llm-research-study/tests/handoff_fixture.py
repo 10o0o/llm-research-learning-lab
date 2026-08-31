@@ -15,6 +15,13 @@ CONTRACT = """### Objective
 
 Trace a tensor operation and explain its shape contract.
 
+### Session Profile Decision
+
+- profile: standard
+- basis: default-standard
+- requested_constraint: none
+- planned_minutes: 70
+
 ### Coverage Mode
 
 - mode: full-source
@@ -29,7 +36,13 @@ Trace a tensor operation and explain its shape contract.
 - target_state: START_TARGET
 - primary_target: CC-DL-01
 - bridge_target: none
-- evidence_gap: explain
+- target_evidence_requirements: explain
+- target_evidence_basis: CURRICULUM.md requires an explain-back for CC-DL-01.
+- target_evidence_gap: explain
+- lesson_evidence_scope: explain
+- lesson_scope_basis: This reviewed session directly assesses the missing explain-back.
+- residual_target_evidence: none
+- residual_practice_basis: No target-level evidence is left outside this lesson; later practice may deepen implementation without backfilling session evidence.
 - completion_evidence: Explain both axes and predict the broadcast result shape.
 - endpoint: TR-SYS-03
 - why_now: The named tensor target is a prerequisite on the Systems route.
@@ -69,6 +82,12 @@ Trace a tensor operation and explain its shape contract.
 | --- | --- | --- | --- | --- | --- |
 | I001 | entire-source | none | entire-source | none | none |
 
+### Boundary Decision Map
+
+| Boundary ID | Primary ID | Unit locator | Relation | Disposition | Reason |
+| --- | --- | --- | --- | --- | --- |
+| none | none | none | none | none | none |
+
 ### Source Coverage Index
 
 | Primary ID | Declared Goal IDs | Objective IDs | Guidance IDs |
@@ -91,11 +110,11 @@ Trace a tensor operation and explain its shape contract.
 
 ### Observable Objective Map
 
-| Objective ID | Requirement | Marker | Source location | Observable outcome | Concept ID | Treatment | Teaching move | Baseline evidence |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| O001 | source-core | prerequisite | materials/lesson.md#axes | Identify the batch and feature axes in a small tensor. | C01 | full | Trace both axes before naming the operation. | none |
-| O002 | source-core | none | materials/lesson.md#shape-propagation | Predict the output shape of a broadcast operation. | C02 | full | Compare aligned dimensions from the right. | none |
-| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | full | Map one small tensor to an attention input. | none |
+| Objective ID | Requirement | Marker | Source location | Observable outcome | Concept ID | Prerequisite Concept IDs | Treatment | Teaching move | Baseline evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| O001 | source-core | prerequisite | materials/lesson.md#axes | Identify the batch and feature axes in a small tensor. | C01 | none | full | Trace both axes before naming the operation. | none |
+| O002 | source-core | none | materials/lesson.md#shape-propagation | Predict the output shape of a broadcast operation. | C02 | C01 | full | Compare aligned dimensions from the right. | none |
+| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | C01, C02 | full | Map one small tensor to an attention input. | none |
 
 ### Concept Path
 
@@ -105,17 +124,17 @@ Trace a tensor operation and explain its shape contract.
 
 ### Module Plan
 
-| Module ID | Topic | Concept IDs | Source locators | Application step | Expected minutes |
-| --- | --- | --- | --- | --- | ---: |
-| M01 | 축의 의미와 이름 | C01 | materials/lesson.md#axes | T002 | 15 |
-| M02 | 브로드캐스트 shape 전파 | C02 | materials/lesson.md#shape-propagation | T003 | 20 |
-| M03 | 정렬 실패와 attention 축의 한계 | C02, C03 | materials/lesson.md#shape-propagation; CURRICULUM.md#CC-DL-01 | T004 | 10 |
-| M04 | 세 축을 결합한 전이 | C01, C02, C03 | materials/lesson.md#axes; materials/lesson.md#shape-propagation; CURRICULUM.md#CC-DL-01 | T005 | 20 |
+| Module ID | Topic | Concept IDs | Source locators | Representation | Learner action | Teaching Step IDs | Application step | Expected minutes |
+| --- | --- | --- | --- | --- | --- | --- | --- | ---: |
+| M01 | 축의 의미와 이름 | C01 | materials/lesson.md#axes | numeric | explain | T001, T002, T003 | T003 | 15 |
+| M02 | 브로드캐스트 shape 전파 | C01, C02 | materials/lesson.md#axes; materials/lesson.md#shape-propagation | tensor | shape | T004, T005 | T005 | 20 |
+| M03 | 정렬 실패와 attention 축의 한계 | C01, C02, C03 | materials/lesson.md#axes; materials/lesson.md#shape-propagation; CURRICULUM.md#CC-DL-01 | code-api | debug | T006, T007 | T007 | 15 |
+| M04 | 세 축을 결합한 새 task 전이 | C01, C02, C03 | materials/lesson.md#axes; materials/lesson.md#shape-propagation; CURRICULUM.md#CC-DL-01 | task-experiment | transfer | T008, T009 | T009 | 20 |
 
 ### Session Plan
 
 - session_goal: Connect axis meaning, broadcast mechanics, a failure contrast, and one attention-shaped transfer.
-- exit_step: T005
+- exit_step: T009
 - exit_evidence_kind: transfer
 
 ### Example Map
@@ -123,9 +142,10 @@ Trace a tensor operation and explain its shape contract.
 | Example ID | Purpose | Fixture | Objective IDs |
 | --- | --- | --- | --- |
 | X001 | Motivate named axes | A 2 by 3 matrix with row and feature labels. | O001 |
-| X002 | Work one broadcast | A 2 by 1 tensor combined with a 1 by 3 tensor. | O002 |
-| X003 | Contrast valid and invalid alignment | A compatible pair and one mismatched pair of tensor shapes. | O002, O003 |
-| X004 | Transfer the axis contract | One batch by token by hidden attention input. | O001, O002, O003 |
+| X002 | Work a numeric axis trace | Six labeled values arranged as two examples with three features. | O001 |
+| X003 | Work one tensor broadcast | A 2 by 1 tensor combined with a 1 by 3 tensor. | O001, O002 |
+| X004 | Diagnose a code/API shape failure | `class ShapeReadout(nn.Module):` with `nn.Linear(3, 2)` and an incompatible sequence readout. | O001, O002, O003 |
+| X005 | Transfer the axis contract to a new task | A fresh batch by token by hidden sequence-classification input and readout. | O001, O002, O003 |
 
 ### Prepared Teaching Steps
 
@@ -149,45 +169,93 @@ Trace a tensor operation and explain its shape contract.
 - example_id: X001
 - delivery_outline: Name batch and feature axes and connect each name to the fixture.
 - tiny_example: Re-read the 2 by 3 matrix as two rows with three features each.
-- check_policy: adaptive
-- check_basis: if learner identifies both axes -> continue to shape propagation; else -> reteach rows and columns with labels
-- check_question: Which axis contains the three features?
+- check_policy: none
+- check_basis: Explain the prerequisite fully before asking the learner to apply it.
+- check_question: none
 
 #### T003
 
 - step_role: worked-example
-- concept_ids: C02
-- objective_ids: O002
+- concept_ids: C01
+- objective_ids: O001
 - example_id: X002
-- delivery_outline: Align dimensions from the right and explain each resulting axis.
-- tiny_example: Broadcast a 2 by 1 tensor with a 1 by 3 tensor.
+- delivery_outline: Walk the labeled values from the row axis to the feature axis, then let the learner repeat the trace.
+- tiny_example: Trace six labeled values as two examples with three features each.
 - check_policy: adaptive
-- check_basis: if learner predicts both aligned dimensions -> continue to the attention connection; else -> trace the rightmost aligned dimensions again
-- check_question: What is the result shape and why?
+- check_basis: if learner identifies both axes -> continue to broadcast shape propagation; else -> relabel the two rows and three features before retrying
+- check_question: Which axis contains the three features, and what does the other axis count?
 
 #### T004
 
-- step_role: contrast-limit
-- concept_ids: C02, C03
-- objective_ids: O002, O003
+- step_role: concept-model
+- concept_ids: C01, C02
+- objective_ids: O001, O002
 - example_id: X003
-- delivery_outline: Contrast a valid broadcast with a mismatched pair, then connect the limitation to named attention axes.
-- tiny_example: Compare one compatible pair with one pair whose aligned dimensions are neither equal nor one.
+- delivery_outline: Explain right-aligned broadcast rules and trace every operand and result shape.
+- tiny_example: Align a 2 by 1 tensor with a 1 by 3 tensor from the right.
 - check_policy: none
-- check_basis: The explicit contrast exposes the failure condition before the final transfer question.
+- check_basis: Complete the shape rule and worked trace before assessing a fresh prediction.
 - check_question: none
 
 #### T005
 
-- step_role: synthesis-transfer
+- step_role: worked-example
+- concept_ids: C01, C02
+- objective_ids: O001, O002
+- example_id: X003
+- delivery_outline: Walk the broadcast from operands to the 2 by 3 result, then give the learner a changed pair.
+- tiny_example: Compare 2 by 1 plus 1 by 3 with 4 by 1 plus 1 by 5.
+- check_policy: adaptive
+- check_basis: if learner predicts and explains both axes -> continue to the code failure; else -> retrace the first incompatible aligned dimension
+- check_question: What is the changed result shape, and why does each axis have that size?
+
+#### T006
+
+- step_role: contrast-limit
 - concept_ids: C01, C02, C03
 - objective_ids: O001, O002, O003
 - example_id: X004
-- delivery_outline: Reuse the same axis language for a small attention-shaped tensor.
-- tiny_example: Map batch, token, and hidden axes for one small tensor.
+- delivery_outline: Walk `class ShapeReadout(nn.Module):`, `self.proj = nn.Linear(3, 2)`, and `def forward(self, x):` as an actual module/API contract.
+- tiny_example: Trace the Tensor/shape data flow `x: (2, 4, 3) -> self.proj(x): (2, 4, 2) -> logits = y[:, -1, :]: (2, 2)` before contrasting a swapped axis.
+- check_policy: none
+- check_basis: Explain the API failure and the attention-axis connection before asking for a diagnosis.
+- check_question: none
+
+#### T007
+
+- step_role: worked-example
+- concept_ids: C01, C02, C03
+- objective_ids: O001, O002, O003
+- example_id: X004
+- delivery_outline: Let the learner diagnose which aligned dimension fails and choose a shape-safe correction without changing semantic axes.
+- tiny_example: Diagnose one torch tensor addition whose token and hidden axes were swapped.
 - check_policy: adaptive
-- check_basis: if learner transfers the axis and alignment contract -> finish the session; else -> revisit the smallest mismatched axis in X003
-- check_question: Explain the batch, token, and hidden axes and predict whether one named broadcast is valid.
+- check_basis: if learner identifies the failing API/data-flow axis -> continue to the integrated task; else -> print both operand shapes and relabel each axis before retrying
+- check_question: Which aligned dimension fails, and which reshape or transpose preserves the intended batch, token, and hidden meanings?
+
+#### T008
+
+- step_role: concept-model
+- concept_ids: C01, C02, C03
+- objective_ids: O001, O002, O003
+- example_id: none
+- delivery_outline: Summarize the reusable axis, broadcast, API-diagnosis, and readout strategy without revealing the final fixture.
+- tiny_example: Re-state the general input-to-readout decision procedure that will be reused in a new context.
+- check_policy: none
+- check_basis: Establish the novel task context before the integrated learner transfer.
+- check_question: none
+
+#### T009
+
+- step_role: synthesis-transfer
+- concept_ids: C01, C02, C03
+- objective_ids: O001, O002, O003
+- example_id: X005
+- delivery_outline: Integrate axis meaning, broadcast mechanics, API diagnosis, and readout reasoning in the fresh sequence task.
+- tiny_example: Map batch, token, and hidden axes, add a hidden bias, and justify the classifier readout shape.
+- check_policy: adaptive
+- check_basis: if learner transfers every non-deferred concept and objective -> finish the session; else -> revisit the smallest failed link in the earlier numeric, tensor, or API trace
+- check_question: In the new task, explain every axis, decide whether the hidden bias broadcast is valid, diagnose one swapped-axis bug, and give the readout shape.
 
 ### Deferred
 
@@ -226,11 +294,47 @@ def build_handoff(
     flow_mode: str = "day-full",
 ) -> tuple[Path, dict[str, str]]:
     reviews = reviews or []
+    if session_profile not in {"standard", "short", "custom"}:
+        raise ValueError(f"unsupported fixture session profile: {session_profile}")
+    profile_basis = {
+        "standard": "default-standard",
+        "short": "explicit-short-request",
+        "custom": "explicit-custom-request",
+    }[session_profile]
+    requested_constraint = {
+        "standard": "none",
+        "short": "30 minute short session",
+        "custom": "code-first walkthrough format",
+    }[session_profile]
+    contract = re.sub(
+        r"(?ms)^### Session Profile Decision\n\n"
+        r"- profile: [^\n]+\n"
+        r"- basis: [^\n]+\n"
+        r"- requested_constraint: [^\n]+\n",
+        "### Session Profile Decision\n\n"
+        f"- profile: {session_profile}\n"
+        f"- basis: {profile_basis}\n"
+        f"- requested_constraint: {requested_constraint}\n",
+        contract,
+        count=1,
+    )
+    objective_concepts = {
+        cells[0]: cells[5]
+        for line in contract.splitlines()
+        if line.startswith("|") and line.endswith("|")
+        for cells in ([cell.strip() for cell in line.strip()[1:-1].split("|")],)
+        if len(cells) == 10 and re.fullmatch(r"O\d{3,}", cells[0])
+    }
+    contract_concepts = [
+        match.group(1)
+        for match in re.finditer(r"(?m)^\d+\. (C\d{2}) \|", contract)
+    ]
     if evidence is None and status == "completed":
+        objective_ids = list(objective_concepts)
         evidence = [
             {
-                "concept_ids": "C01, C02, C03",
-                "objective_ids": "O001, O002, O003",
+                "concept_ids": ", ".join(contract_concepts),
+                "objective_ids": ", ".join(objective_ids),
                 "kind": "transfer",
                 "content": "축 의미, broadcast 조건, attention-shaped transfer를 함께 설명했다.",
             }
@@ -300,6 +404,19 @@ def build_handoff(
     review_time = "pending" if review_iteration == 0 else f"2026-08-20T01:00:0{min(review_iteration, 9)}Z"
     review_manifest = "pending" if review_iteration == 0 else manifest_hash
     review_contract = "pending" if review_iteration == 0 else contract_hash
+    review_checks = {
+        "scope_breadth": "pending",
+        "teaching_order": "pending",
+        "authentic_application": "pending",
+        "assessment_load": "pending",
+        "exit_integration": "pending",
+    }
+    if review_iteration:
+        review_checks = {key: "pass" for key in review_checks}
+        if latest_verdict == "repair_required":
+            review_checks["scope_breadth"] = "repair_required"
+        elif latest_verdict == "blocked":
+            review_checks["scope_breadth"] = "blocked"
     repair_row = (
         "| R001 | lesson-contract | Revise the named contract point. |"
         if latest_verdict == "repair_required"
@@ -319,6 +436,11 @@ def build_handoff(
 - verdict: {latest_verdict}
 - reviewed_input_manifest_sha256: {review_manifest}
 - reviewed_contract_sha256: {review_contract}
+- scope_breadth: {review_checks['scope_breadth']}
+- teaching_order: {review_checks['teaching_order']}
+- authentic_application: {review_checks['authentic_application']}
+- assessment_load: {review_checks['assessment_load']}
+- exit_integration: {review_checks['exit_integration']}
 
 ### Repair Findings
 
@@ -384,19 +506,13 @@ def build_handoff(
                 "mode": "full" if status == "completed" else "none",
                 "note": "Delivered in the completed fixture." if status == "completed" else "Awaiting instruction.",
             }
-            for objective in ("O001", "O002", "O003")
+            for objective in objective_concepts
         ]
     delivery_rows = "\n".join(
         "| {objective} | {state} | {mode} | {note} |".format(**row)
         for row in delivery
     )
     delivered_objectives = [row["objective"] for row in delivery if row["state"] == "delivered"]
-    objective_concepts: dict[str, str] = {}
-    for line in contract.splitlines():
-        cells = [cell.strip() for cell in line.strip()[1:-1].split("|")] if line.startswith("|") and line.endswith("|") else []
-        if len(cells) == 9 and re.fullmatch(r"O\d{3,}", cells[0]):
-            objective_concepts[cells[0]] = cells[5]
-
     if coverage is None:
         if status == "completed":
             coverage = [
@@ -406,7 +522,7 @@ def build_handoff(
                     "evidence_ids": "E001",
                     "note": "Confirmed by the integrated learner transfer.",
                 }
-                for concept in ("C01", "C02", "C03")
+                for concept in contract_concepts
             ]
         else:
             coverage = [
@@ -416,7 +532,7 @@ def build_handoff(
                     "evidence_ids": "none",
                     "note": "Taught but not demonstrated." if any(objective_concepts[item] == concept for item in delivered_objectives) else "Not taught yet.",
                 }
-                for concept in ("C01", "C02", "C03")
+                for concept in contract_concepts
             ]
     coverage_rows = "\n".join(
         "| {concept} | {state} | {evidence_ids} | {note} |".format(**row)
@@ -464,12 +580,11 @@ def build_handoff(
 
 ## Metadata
 
-- schema_version: 9
+- schema_version: 10
 - cycle_id: cycle-{lesson_id}
 - lesson_id: {lesson_id}
 - title: Tensor shape lesson
 - status: {status}
-- session_profile: {session_profile}
 - flow_mode: {flow_mode}
 - study_date: 2026-08-20
 - created_at: 2026-08-20T00:00:00Z

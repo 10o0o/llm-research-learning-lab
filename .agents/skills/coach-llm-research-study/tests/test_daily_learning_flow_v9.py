@@ -150,11 +150,11 @@ def test_standard_module_plan_is_independent_of_review_slice_and_enforces_depth(
     report = validate_handoff(handoff, repo_root=tmp_path)
     assert report.ok, report.errors
 
-    short = CONTRACT.replace("| M04 | 세 축을 결합한 전이", "| M04 | 정렬 실패와 attention 축의 한계")
+    short = CONTRACT.replace("| M04 | 세 축을 결합한 새 task 전이", "| M04 | 정렬 실패와 attention 축의 한계")
     handoff, _ = build_handoff(tmp_path, contract=short)
     assert "SESSION_DEPTH" in {item.code for item in validate_handoff(handoff, repo_root=tmp_path).errors}
 
-    too_brief = CONTRACT.replace("| T005 | 20 |", "| T005 | 5 |")
+    too_brief = CONTRACT.replace("| T008, T009 | T009 | 20 |", "| T008, T009 | T009 | 5 |")
     handoff, _ = build_handoff(tmp_path, contract=too_brief)
     assert "SESSION_DEPTH" in {item.code for item in validate_handoff(handoff, repo_root=tmp_path).errors}
 

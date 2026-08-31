@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Replace one legacy v8 handoff with an independently prepared paused v9 handoff.
+"""Retired v8-to-v9 handoff migration retained only for an explicit error.
 
-The helper does not invent a v9 Module Plan.  It verifies a supplied current
-contract, preserves every learner-content byte and evidence verdict, and then
-atomically replaces the ignored operational handoff.
+Schema-v9 handoffs are read-only legacy provenance. Archive their bytes and
+start a fresh schema-v10 cycle; never use learner evidence to promote one.
 """
 
 from __future__ import annotations
@@ -88,6 +87,12 @@ def migrate_paused_v8_handoff(
     *,
     repo_root: Path | str,
 ) -> None:
+    raise MigrationError(
+        "v8-to-v9 handoff migration is retired; archive the legacy attempt and rebuild a fresh schema-v10 lesson"
+    )
+    # The unreachable implementation below is intentionally retained for a
+    # release cycle so old callers receive the explicit error above rather than
+    # silently rewriting evidence.
     root = Path(repo_root).resolve()
     legacy = Path(legacy_path)
     replacement = Path(replacement_path)
@@ -133,7 +138,6 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, StopIteration, MigrationError) as error:
         print(f"ERROR {args.legacy}:1 [MIGRATION] {error}", file=sys.stderr)
         return 1
-    print(f"OK {args.legacy} [v8-to-v9-paused]")
     return 0
 
 

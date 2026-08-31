@@ -177,8 +177,12 @@ def build_endpoint_graph(
     endpoints: list[dict[str, Any]],
     targets: Mapping[str, Any],
     target_states: Mapping[str, str] | None = None,
+    *,
+    target_modules: Mapping[str, str] | None = None,
+    module_order: Mapping[str, int] | None = None,
+    endpoint_milestones: Mapping[str, str] | None = None,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, list[str]]]:
-    """Build deterministic route facts and optional evidence-state frontiers."""
+    """Build deterministic route facts plus optional catalog and evidence context."""
     if target_states is not None:
         unknown_ids = sorted(set(target_states) - set(targets))
         if unknown_ids:
@@ -249,6 +253,18 @@ def build_endpoint_graph(
                 )
             )
 
+        route_module_ids: list[str] | None = None
+        if target_modules is not None:
+            route_module_ids = list(dict.fromkeys(
+                target_modules[target_id]
+                for target_id in route_nodes
+                if target_id in target_modules
+            ))
+            if module_order is not None:
+                route_module_ids.sort(
+                    key=lambda module_id: module_order.get(module_id, len(module_order))
+                )
+
         routes[endpoint_id] = {
             "priority": endpoint["priority"],
             "stage": endpoint["stage"],
@@ -259,6 +275,12 @@ def build_endpoint_graph(
             "target_states": effective_states,
             "frontier_candidates": frontier_candidates,
             "unclassified_nodes": unclassified_nodes,
+            "module_ids": route_module_ids,
+            "closing_milestone_id": (
+                endpoint_milestones.get(endpoint_id)
+                if endpoint_milestones is not None
+                else None
+            ),
         }
 
     return routes, membership

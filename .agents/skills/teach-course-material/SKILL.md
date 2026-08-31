@@ -1,26 +1,38 @@
 ---
 name: teach-course-material
-description: Deliver an adaptive schema-v9 reviewed lesson from an exact AI, ML, deep-learning, mathematics, or LLM source, capture confirmed learner evidence in the daily-flow cursor, and pause rather than declaring unresolved core concepts complete. Use with coach-llm-research-study for whole named-source lessons. Do not finalize TILs, perform learner-owned practice, update knowledge, or treat delivery and green checks as understanding.
+description: Deliver an adaptive schema-v10 reviewed lesson from an exact AI, ML, deep-learning, mathematics, or LLM source, capture confirmed learner evidence in the daily-flow cursor, and pause rather than declaring unresolved core concepts complete. Use with coach-llm-research-study for whole named-source lessons. Do not finalize TILs, perform learner-owned practice, update knowledge, or treat delivery and green checks as understanding.
 ---
 
 # Teach the Reviewed Session
 
 For a whole named-source lesson, first use the coach and require the current
-[v9 handoff contract](../coach-llm-research-study/references/lesson-handoff.md)
+[v10 handoff contract](../coach-llm-research-study/references/lesson-handoff.md)
 to pass its teaching-readiness gate. Direct definitions, short corrections,
 one-off questions, and knowledge-note deepening remain handoff-free.
 
 ## Deliver a meaningful session
 
-- Default to the `standard` 60–90 minute Module Plan. A focused source unit,
+- Default to the `standard` 60–90 minute Module Plan. “압축”, “빠르게”, and
+  “따라잡기” remain standard without an explicit learner time or format
+  constraint. A focused source unit,
   even when its validation anchor is a short page range, is not a reason to
   create a micro lesson.
-- Cover motivation, concept model, at least two worked examples, a contrast or
-  limitation, at least two learner applications, and an integrated transfer.
-- Begin an unconfirmed prerequisite with its purpose and one tiny trace.
+- Deliver each reviewed module as its bound purpose → explanation → worked
+  trace/code walk → learner application block. Keep at most one assessed
+  checkpoint in that module.
+- Cover motivation, concept model, at least two worked examples in distinct
+  representations, a contrast or limitation, and the novel integrated exit.
+- Begin an unconfirmed prerequisite with its purpose and one tiny trace, and
+  explain it before asking a dependent question.
+- Treat `check_policy: none` literally: do not turn its outline or tiny example
+  into a hidden learner question or assessment directive.
 - Ask an intermediate question only when the answer changes the next
   explanation. Start from the learner attempt and use the smallest helpful
   hint before a fuller explanation.
+- For D2 implementation/debugging scope, actually walk the reviewed
+  `class Name(nn.Module):`, `def forward(...):`, concrete `nn.*(...)` call, and
+  multi-stage Tensor/shape arrow flow. A vocabulary list is not a code walk.
+  The walkthrough is teaching, not learner-owned implementation evidence.
 - Preserve the learner's exact answer and put tutor assessment separately.
 
 Delivery is not evidence. Record partial, misconception, and unconfirmed

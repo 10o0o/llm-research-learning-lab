@@ -94,19 +94,30 @@ def _external_contract(
         )
         objective_row = (
             f"| O004 | source-core | none | {mixed_local_path}#local-core | "
-            "Relate the local shape rule to the same target. | C02 | full | "
+            "Relate the local shape rule to the same target. | C02 | C01 | full | "
             "Compare the local and external statements. | none |"
         )
         contract = contract.replace(
-            "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | full | Map one small tensor to an attention input. | none |",
-            "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | full | Map one small tensor to an attention input. | none |\n"
+            "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | C01, C02 | full | Map one small tensor to an attention input. | none |",
+            "| O003 | optional-added | supplement | CURRICULUM.md#CC-DL-01 | Connect tensor axes to batch, token, and hidden axes. | C03 | C01, C02 | full | Map one small tensor to an attention input. | none |\n"
             + objective_row,
         )
         contract = contract.replace(
-            "| X002 | Work one broadcast | A 2 by 1 tensor combined with a 1 by 3 tensor. | O002 |",
-            "| X002 | Work one broadcast | A 2 by 1 tensor combined with a 1 by 3 tensor. | O002, O004 |",
+            "| X003 | Work one tensor broadcast | A 2 by 1 tensor combined with a 1 by 3 tensor. | O001, O002 |",
+            "| X003 | Work one tensor broadcast | A 2 by 1 tensor combined with a 1 by 3 tensor. | O001, O002, O004 |",
         )
-        contract = contract.replace("- objective_ids: O002\n", "- objective_ids: O002, O004\n")
+        contract = contract.replace(
+            "| O001, O002, O003 |",
+            "| O001, O002, O003, O004 |",
+        )
+        contract = contract.replace(
+            "- objective_ids: O001, O002\n",
+            "- objective_ids: O001, O002, O004\n",
+        )
+        contract = contract.replace(
+            "- objective_ids: O001, O002, O003\n",
+            "- objective_ids: O001, O002, O003, O004\n",
+        )
     return contract
 
 
