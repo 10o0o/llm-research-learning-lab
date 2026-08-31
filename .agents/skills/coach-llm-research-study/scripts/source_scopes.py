@@ -13,13 +13,14 @@ SCOPE_HEADER = (
     "Scope ID",
     "Source ID",
     "Title",
-    "Included locations",
-    "Boundary context",
+    "Included units",
+    "Boundary units",
     "Note",
 )
 SCOPE_ID_RE = re.compile(r"SCOPE-([A-Z][A-Z0-9-]*)-(\d{2})\Z")
 SOURCE_ID_RE = re.compile(r"SRC-([A-Z][A-Z0-9-]*-\d{2}-\d{2})\Z")
-PDF_FRAGMENT_RE = re.compile(r"page-(\d+)(?:: .+)?\Z", re.IGNORECASE)
+PDF_FRAGMENT_RE = re.compile(r"page-(\d+)(?:--(\d+))?(?:: .+)?\Z", re.IGNORECASE)
+UNIT_ANCHOR_RE = re.compile(r"(?P<label>.+?)\s*\[(?P<location>[^\[\]]+)\]\Z")
 
 
 @dataclass(frozen=True)
@@ -35,8 +36,8 @@ class CourseScope:
     scope_id: str
     source_id: str
     title: str
-    included_locations: tuple[str, ...]
-    boundary_locations: tuple[str, ...]
+    included_units: tuple[str, ...]
+    boundary_units: tuple[str, ...]
     note: str
     line: int
 
@@ -55,7 +56,7 @@ def _split_table_row(line: str) -> list[str] | None:
     stripped = line.strip()
     if not stripped.startswith("|") or not stripped.endswith("|"):
         return None
-    return [cell.strip() for cell in stripped[1:-1].split("|")]
+    return [cell.strip().replace(r"\|", "|") for cell in re.split(r"(?<!\\)\|", stripped[1:-1])]
 
 
 def _is_separator(cells: list[str] | None, width: int) -> bool:
@@ -66,10 +67,17 @@ def _is_separator(cells: list[str] | None, width: int) -> bool:
     )
 
 
-def split_locations(raw: str) -> tuple[str, ...]:
+def split_units(raw: str) -> tuple[str, ...]:
     if raw == "none":
         return ()
     return tuple(item.strip() for item in raw.split(";") if item.strip())
+
+
+def unit_location(unit: str) -> str | None:
+    match = UNIT_ANCHOR_RE.fullmatch(unit.strip())
+    if match is None or not match.group("label").strip():
+        return None
+    return match.group("location").strip()
 
 
 def location_path(location: str) -> str | None:
@@ -141,8 +149,8 @@ def parse_course_scopes(index_path: Path) -> tuple[list[CourseScope], list[Scope
             findings.append(ScopeFinding(line_no, "INDEX_SCOPE_ROW", "학습 범위 row must have six cells"))
             continue
         scope_id, source_id, title, raw_included, raw_boundary, note = cells
-        included = split_locations(raw_included)
-        boundary = split_locations(raw_boundary)
+        included = split_units(raw_included)
+        boundary = split_units(raw_boundary)
         scopes.append(CourseScope(scope_id, source_id, title, included, boundary, note, line_no))
     return scopes, findings
 
@@ -191,22 +199,37 @@ def validate_course_scopes(
             findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_SOURCE", f"{scope.source_id} does not belong to this course INDEX", affected))
         if not scope.title or scope.title == "none":
             findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_VALUE", "Scope Title must be concrete", affected))
-        if not scope.included_locations:
-            findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_VALUE", "Scope requires one or more Included locations", affected))
+        if not scope.included_units:
+            findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_VALUE", "Scope requires one or more Included units", affected))
         if not scope.note or scope.note == "none":
             findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_VALUE", "Scope Note must be concrete", affected))
-        overlap = set(scope.included_locations).intersection(scope.boundary_locations)
-        if overlap:
-            findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_OVERLAP", "Included locations and Boundary context must not overlap: " + ", ".join(sorted(overlap)), affected))
-        for label, locations in (("Included", scope.included_locations), ("Boundary", scope.boundary_locations)):
-            if len(locations) != len(set(locations)):
-                findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_DUPLICATE", f"{label} locations contain duplicates", affected))
-            for location in locations:
+        included_locations = [unit_location(unit) for unit in scope.included_units]
+        boundary_locations = [unit_location(unit) for unit in scope.boundary_units]
+        for label, units, locations in (
+            ("Included", scope.included_units, included_locations),
+            ("Boundary", scope.boundary_units, boundary_locations),
+        ):
+            if len(units) != len(set(units)):
+                findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_DUPLICATE", f"{label} units contain duplicates", affected))
+            for unit, location in zip(units, locations, strict=True):
+                if location is None:
+                    findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_UNIT", f"{label} unit needs a concrete title and one [source locator] anchor: {unit}", affected))
+                    continue
                 if location_path(location) != source_path:
-                    findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_LOCATION", f"{label} location must point to {source_path}: {location}", affected))
+                    findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_LOCATION", f"{label} unit anchor must point to {source_path}: {location}", affected))
                     continue
                 if not source_location_exists(repo_root, location):
-                    findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_LOCATION", f"{label} location is absent or out of range: {location}", affected))
+                    findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_LOCATION", f"{label} unit anchor is absent or out of range: {location}", affected))
+        valid_included = [location for location in included_locations if location is not None]
+        valid_boundary = [location for location in boundary_locations if location is not None]
+        overlap = [
+            f"{included} <> {boundary}"
+            for included in valid_included
+            for boundary in valid_boundary
+            if locations_overlap(included, boundary)
+        ]
+        if overlap:
+            findings.append(ScopeFinding(scope.line, "INDEX_SCOPE_OVERLAP", "Included units and Boundary units must not overlap: " + ", ".join(sorted(overlap)), affected))
     return scopes, findings
 
 
@@ -228,7 +251,11 @@ def source_location_exists(repo_root: Path, location: str) -> bool:
         if match is None:
             return False
         count = pdf_page_count(candidate)
-        return count is not None and 1 <= int(match.group(1)) <= count
+        if count is None:
+            return False
+        start = int(match.group(1))
+        end = int(match.group(2) or start)
+        return 1 <= start <= end <= count
     try:
         text = candidate.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
@@ -246,42 +273,44 @@ def source_location_exists(repo_root: Path, location: str) -> bool:
     return any(_normalize_fragment(line) == fragment for line in text.splitlines())
 
 
+def _pdf_page_range(location: str) -> tuple[int, int] | None:
+    match = PDF_FRAGMENT_RE.fullmatch(_location_fragment(location))
+    if match is None:
+        return None
+    start = int(match.group(1))
+    return start, int(match.group(2) or start)
+
+
+def locations_overlap(left: str, right: str) -> bool:
+    if location_path(left) != location_path(right):
+        return False
+    left_pages = _pdf_page_range(left)
+    right_pages = _pdf_page_range(right)
+    if left_pages is not None and right_pages is not None:
+        return max(left_pages[0], right_pages[0]) <= min(left_pages[1], right_pages[1])
+    return _location_fragment(left) == _location_fragment(right)
+
+
+def _location_is_covered_by_unit(location: str, unit: str) -> bool:
+    anchor = unit_location(unit)
+    if anchor is None or location_path(anchor) != location_path(location):
+        return False
+    location_pages = _pdf_page_range(location)
+    anchor_pages = _pdf_page_range(anchor)
+    if location_pages is not None and anchor_pages is not None:
+        return anchor_pages[0] <= location_pages[0] and location_pages[1] <= anchor_pages[1]
+    return _location_fragment(anchor) == _location_fragment(location)
+
+
 def location_is_included(location: str, scope: CourseScope) -> bool:
     path = location_path(location)
     if path is None:
         return False
-    fragment = _location_fragment(location)
-    page_match = PDF_FRAGMENT_RE.fullmatch(fragment)
-    if page_match is not None:
-        page = int(page_match.group(1))
-        for included in scope.included_locations:
-            included_match = PDF_FRAGMENT_RE.fullmatch(_location_fragment(included))
-            if location_path(included) == path and included_match is not None and int(included_match.group(1)) == page:
-                return True
-        return False
-    return any(
-        location_path(included) == path
-        and _location_fragment(included) == fragment
-        for included in scope.included_locations
-    )
+    return any(_location_is_covered_by_unit(location, included) for included in scope.included_units)
 
 
 def location_is_boundary(location: str, scope: CourseScope) -> bool:
     path = location_path(location)
     if path is None:
         return False
-    fragment = _location_fragment(location)
-    page_match = PDF_FRAGMENT_RE.fullmatch(fragment)
-    if page_match is not None:
-        page = int(page_match.group(1))
-        return any(
-            location_path(boundary) == path
-            and (match := PDF_FRAGMENT_RE.fullmatch(_location_fragment(boundary))) is not None
-            and int(match.group(1)) == page
-            for boundary in scope.boundary_locations
-        )
-    return any(
-        location_path(boundary) == path
-        and _location_fragment(boundary) == fragment
-        for boundary in scope.boundary_locations
-    )
+    return any(_location_is_covered_by_unit(location, boundary) for boundary in scope.boundary_units)

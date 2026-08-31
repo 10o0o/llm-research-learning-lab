@@ -116,13 +116,13 @@ def test_confirmed_evidence_is_captured_in_cursor_not_manual_scratchpad(
     scratch.parent.mkdir(parents=True)
     scratch.write_text("사용자가 직접 적은 메모\n", encoding="utf-8")
     before = scratch.read_bytes()
-    code, message = append_evidence(handoff, "E001", repo_root=tmp_path)
+    code, message = append_evidence(handoff, "E001", repo_root=tmp_path, now=NOW)
     assert code == 0, message
     assert scratch.read_bytes() == before
     cursor = load_flow(tmp_path)
     assert cursor["cycles"][0]["learner_evidence"][0]["content"] == "두 축의 의미를 구분하고 결과 shape를 설명했다."
     assert "- capture_state: captured" in handoff.read_text(encoding="utf-8")
-    code, message = append_evidence(handoff, "E001", repo_root=tmp_path)
+    code, message = append_evidence(handoff, "E001", repo_root=tmp_path, now=NOW)
     assert (code, message) == (0, "ALREADY_CAPTURED E001")
 
 

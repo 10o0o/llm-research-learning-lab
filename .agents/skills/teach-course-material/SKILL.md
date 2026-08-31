@@ -12,8 +12,9 @@ one-off questions, and knowledge-note deepening remain handoff-free.
 
 ## Deliver a meaningful session
 
-- Default to the `standard` 60–90 minute Module Plan. A small focused review
-  slice is not a reason to create a micro lesson.
+- Default to the `standard` 60–90 minute Module Plan. A focused source unit,
+  even when its validation anchor is a short page range, is not a reason to
+  create a micro lesson.
 - Cover motivation, concept model, at least two worked examples, a contrast or
   limitation, at least two learner applications, and an integrated transfer.
 - Begin an unconfirmed prerequisite with its purpose and one tiny trace.

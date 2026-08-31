@@ -7,6 +7,7 @@ import argparse
 import os
 import sys
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 
@@ -63,6 +64,7 @@ def append_evidence(
     *,
     repo_root: Path | str | None = None,
     cursor: str = DEFAULT_CURSOR_PATH,
+    now: datetime | None = None,
 ) -> tuple[int, str]:
     report = validate_handoff(handoff_path, repo_root=repo_root, check_draft=False)
     if not report.ok or report.document is None:
@@ -101,8 +103,9 @@ def append_evidence(
                 "content_sha256": item.values["content_sha256"],
                 "captured_at": item.values["captured_at"],
             },
+            now=now,
         )
-        save_flow(state, doc.repo_root, path=cursor)
+        save_flow(state, doc.repo_root, path=cursor, now=now)
     except (FlowError, ValueError) as exc:
         error = ValidationError(item.line, "FLOW_STATE", str(exc))
         return 1, _render_error(report.path, error)

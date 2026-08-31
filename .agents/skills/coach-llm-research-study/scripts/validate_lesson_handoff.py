@@ -33,8 +33,10 @@ from source_scopes import (  # noqa: E402
     CourseScope,
     location_is_boundary,
     location_is_included,
+    locations_overlap,
     parse_course_scopes,
-    split_locations,
+    split_units,
+    unit_location,
 )
 
 
@@ -369,8 +371,8 @@ class LessonSourceScope:
     primary_id: str
     scope_kind: str
     scope_id: str
-    included_locations: tuple[str, ...]
-    boundary_locations: tuple[str, ...]
+    included_units: tuple[str, ...]
+    boundary_units: tuple[str, ...]
     outside_disposition: str
     registered_scope: CourseScope | None
     line: int
@@ -910,11 +912,15 @@ def _location_exists(location: str, repo_root: Path) -> bool:
         return False
     anchor = _normalize_location_fragment(location.rsplit("#", 1)[1])
     if candidate.suffix.lower() == ".pdf":
-        match = re.fullmatch(r"page-(\d+)(?:: .+)?", anchor, re.IGNORECASE)
+        match = re.fullmatch(r"page-(\d+)(?:--(\d+))?(?:: .+)?", anchor, re.IGNORECASE)
         if match is None:
             return False
         page_count = _pdf_page_count(candidate)
-        return page_count is not None and 1 <= int(match.group(1)) <= page_count
+        if page_count is None:
+            return False
+        start = int(match.group(1))
+        end = int(match.group(2) or start)
+        return 1 <= start <= end <= page_count
     try:
         text = candidate.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
@@ -1570,8 +1576,8 @@ def _parse_source_scope_map(
             "Primary ID",
             "Scope kind",
             "Scope ID",
-            "Included locations",
-            "Boundary context",
+            "Included units",
+            "Boundary units",
             "Outside-scope disposition",
         ],
         doc,
@@ -1616,31 +1622,42 @@ def _parse_source_scope_map(
             continue
         if scope_kind not in SCOPE_KINDS:
             errors.append(ValidationError(line_no, "SCHEMA", f"invalid scope kind: {scope_kind}"))
-        included = split_locations(raw_included)
-        boundary = split_locations(raw_boundary)
+        included = split_units(raw_included)
+        boundary = split_units(raw_boundary)
         registered_scope: CourseScope | None = None
 
         if scope_kind == "entire-source":
             if doc.coverage_mode != "full-source":
                 errors.append(ValidationError(line_no, "LESSON_SCOPE", "entire-source is allowed only in full-source mode"))
             if scope_id != "none" or raw_included != "entire-source" or boundary or outside_disposition != "none":
-                errors.append(ValidationError(line_no, "LESSON_SCOPE", "entire-source requires Scope ID none, Included locations entire-source, Boundary context none, and disposition none"))
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", "entire-source requires Scope ID none, Included units entire-source, Boundary units none, and disposition none"))
             included = ()
         else:
             if doc.coverage_mode != "focused":
                 errors.append(ValidationError(line_no, "LESSON_SCOPE", f"{scope_kind} is allowed only in focused mode"))
             if not included:
-                errors.append(ValidationError(line_no, "LESSON_SCOPE", f"{scope_kind} requires Included locations"))
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", f"{scope_kind} requires Included units"))
             if not outside_disposition or outside_disposition == "none":
                 errors.append(ValidationError(line_no, "LESSON_SCOPE", "focused source scope requires one coarse outside-scope disposition"))
-            overlap = set(included).intersection(boundary)
+            included_anchors = [unit_location(unit) for unit in included]
+            boundary_anchors = [unit_location(unit) for unit in boundary]
+            overlap = [
+                f"{included_anchor} <> {boundary_anchor}"
+                for included_anchor in included_anchors
+                if included_anchor is not None
+                for boundary_anchor in boundary_anchors
+                if boundary_anchor is not None and locations_overlap(included_anchor, boundary_anchor)
+            ]
             if overlap:
-                errors.append(ValidationError(line_no, "LESSON_SCOPE", "Included locations and Boundary context overlap: " + ", ".join(sorted(overlap))))
-            for location in included + boundary:
+                errors.append(ValidationError(line_no, "LESSON_SCOPE", "Included units and Boundary units overlap: " + ", ".join(sorted(overlap))))
+            for unit, location in zip(included + boundary, included_anchors + boundary_anchors, strict=True):
+                if location is None:
+                    errors.append(ValidationError(line_no, "LESSON_SCOPE", f"scope unit needs a concrete title and one [source locator] anchor: {unit}"))
+                    continue
                 if _location_path(location) != primary.path:
-                    errors.append(ValidationError(line_no, "LESSON_SCOPE", f"scope location must point to {primary.path}: {location}"))
+                    errors.append(ValidationError(line_no, "LESSON_SCOPE", f"scope unit anchor must point to {primary.path}: {location}"))
                 elif not _location_exists(location, doc.repo_root):
-                    errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"scope location is absent: {location}"))
+                    errors.append(ValidationError(line_no, "SOURCE_LOCATION", f"scope unit anchor is absent: {location}"))
 
         if scope_kind == "registered-slice":
             if primary.role != "primary" or scope_id == "none":
@@ -1670,8 +1687,8 @@ def _parse_source_scope_map(
                         registered_scope = matches[0]
                         if source_paths_by_id.get(registered_scope.source_id, ()) != (primary.path,):
                             errors.append(ValidationError(line_no, "LESSON_SCOPE", f"registered scope {scope_id} does not resolve to {primary.path}"))
-                        if included != registered_scope.included_locations or boundary != registered_scope.boundary_locations:
-                            errors.append(ValidationError(line_no, "LESSON_SCOPE", f"registered scope {scope_id} locations must exactly match the course INDEX row"))
+                        if included != registered_scope.included_units or boundary != registered_scope.boundary_units:
+                            errors.append(ValidationError(line_no, "LESSON_SCOPE", f"registered scope {scope_id} units must exactly match the course INDEX row"))
         elif scope_kind == "ephemeral-slice":
             if scope_id != "none":
                 errors.append(ValidationError(line_no, "LESSON_SCOPE", "ephemeral-slice must use Scope ID none"))
@@ -1711,8 +1728,8 @@ def _validate_contract_locations_against_scopes(
             scope.scope_id,
             "none",
             "ephemeral",
-            scope.included_locations,
-            scope.boundary_locations,
+            scope.included_units,
+            scope.boundary_units,
             scope.outside_disposition,
             scope.line,
         )

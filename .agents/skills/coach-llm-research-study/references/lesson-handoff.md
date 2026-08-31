@@ -82,17 +82,20 @@ Every primary has one `Source Scope Map` row:
 - `registered-slice`: a valid scope declared in the course INDEX;
 - `ephemeral-slice`: an exact lesson-local scope for a cached official source.
 
-`focused` requires a registered or ephemeral slice. Objective, goal,
-guidance, and source finding locators must be inside included locations.
-Boundary context is review-only and cannot carry an objective. Outside-scope
-goals, examples, appendices, and index material are neither deferred
-objectives nor readiness blockers. The whole source hash remains in the
-manifest so byte drift still invalidates review.
+`focused` requires a registered or ephemeral unit scope. An included unit is a
+coherent topic, section, or example family with one concrete source-anchor
+locator; its anchor may use a PDF page range, but the contract must not model a
+lesson as a page-by-page checklist. Objective, goal, guidance, and source
+finding locators must be inside an included unit's anchor. Boundary units are
+review-only and cannot carry an objective. Outside-scope goals, examples,
+appendices, and index material are neither deferred objectives nor readiness
+blockers. The whole source hash remains in the manifest so byte drift still
+invalidates review.
 
-Review cost and teaching depth are independent. A three-page slice may support
-a 60–90 minute session if its concepts are developed through multiple modules,
-examples, applications, limits, and transfer. Shrinking a semantic review
-slice never silently changes the Module Plan.
+Review cost and teaching depth are independent. One focused unit may support a
+60–90 minute session if its concepts are developed through multiple modules,
+examples, applications, limits, and transfer. Shrinking a semantic review unit
+never silently changes the Module Plan.
 
 Local primaries must map through the course INDEX and Curriculum treatment.
 Every source-core primary referenced by a treatment needs its own direct

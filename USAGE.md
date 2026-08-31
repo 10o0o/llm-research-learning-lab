@@ -148,8 +148,9 @@ provider, course, offering/edition, artifact, official URL, exact scope로
 
 [`coach-llm-research-study`](./.agents/skills/coach-llm-research-study/SKILL.md)
 는 schema-v9 handoff를 준비하고 독립 검토합니다. Focused review는
-included locator, boundary context, 직접 asset과 관련 registry 행에만
-비례합니다. 책 전체를 매번 다시 감사하지 않습니다.
+선택한 topic/section/example-family unit, 그 boundary unit, 직접 asset과
+관련 registry 행에만 비례합니다. 각 unit의 source-anchor는 경계 확인용이며
+책 전체를 매번 다시 감사하지 않습니다.
 
 Review slice는 수업 길이가 아닙니다. 기본 `standard` session은 다음을
 요구합니다.
@@ -304,9 +305,13 @@ materials/private/<course>/NN-NN_title.md
 
 과정 `INDEX.md`는 정확히 하나의 uppercase `source_namespace`를
 선언하고 source path/hash/audit를 기록합니다. 반복할 bounded lesson
-범위는 선택적 `학습 범위` 표에 Source ID, included locator, boundary
-context로 등록할 수 있습니다. 이 scope는 durable coverage나 mastery가
-아닙니다.
+범위는 선택적 `학습 범위` 표에 Source ID, 연결된 단원·주제·예제군의
+`Included units`, 그리고 `Boundary units`로 등록할 수 있습니다. 각 unit은
+사람이 읽는 제목과 하나의 검증 가능한 source-anchor를 함께 적습니다.
+예를 들어 `Chapter 2 §2.1–§2.2: 조건부확률과 two-card 예시
+[materials/private/course/00-01.pdf#page-56--63]`처럼 선언합니다. 페이지를
+한 줄씩 열거하지 않으며, anchor는 검토 경계 확인용일 뿐 durable coverage나
+mastery가 아닙니다.
 
 공개 HTTPS official source는 한 reviewed lesson 동안
 `tmp/active-lesson-sources/<lesson-id>/`에 content-addressed cache할 수

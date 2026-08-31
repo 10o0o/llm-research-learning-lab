@@ -575,7 +575,7 @@ def capture_completed_session(
                 {
                     "scope_kind": scope.scope_kind,
                     "scope_id": None if scope.scope_id == "none" else scope.scope_id,
-                    "included_locations": list(scope.included_locations),
+                    "included_units": list(scope.included_units),
                 }
             )
         sources.append(source)

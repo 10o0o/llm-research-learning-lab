@@ -17,9 +17,11 @@ At a daily-flow boundary, also read the
 - Distinguish errors, assumptions, required prerequisites, acceptable
   simplifications, intentional deferrals, and useful LLM Research Engineer
   additions.
-- In `focused` mode, audit only the selected included locations, boundary
-  context, direct assets, and related INDEX/Curriculum/ROADMAP rows. This limits
-  review cost; it never shortens the teaching session.
+- In `focused` mode, audit only the selected coherent topic, section, or example
+  family, its boundary units, direct assets, and related INDEX/Curriculum/ROADMAP
+  rows. Each unit has one source-anchor locator for mechanical validation; do not
+  turn that anchor into a page-by-page lesson checklist. This limits review cost;
+  it never shortens the teaching session.
 - In `full-source` mode, preserve every source-core objective.
 - Locate every finding precisely and verify unstable technical claims with
   primary sources.

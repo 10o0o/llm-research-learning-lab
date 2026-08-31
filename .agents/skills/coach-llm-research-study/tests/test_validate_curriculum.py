@@ -138,16 +138,16 @@ class CurriculumValidatorTests(unittest.TestCase):
             index = course / "INDEX.md"
             valid_scope_row = (
                 "| SCOPE-EXAMPLE-PROB-00-01-01 | SRC-EXAMPLE-PROB-00-01 | First concept | "
-                "materials/private/example-probability/00-01_probability.pdf#page-2: selected definition | "
-                "materials/private/example-probability/00-01_probability.pdf#page-1; "
-                "materials/private/example-probability/00-01_probability.pdf#page-3 | focused fixture |"
+                "Definition unit [materials/private/example-probability/00-01_probability.pdf#page-2: selected definition] | "
+                "Previous unit [materials/private/example-probability/00-01_probability.pdf#page-1]; "
+                "Following unit [materials/private/example-probability/00-01_probability.pdf#page-3] | focused fixture |"
             )
             index.write_text(
                 "# Index\n\n- source_namespace: EXAMPLE-PROB\n\n## 강의 자료\n\n"
                 "| 파일 | 설명 |\n| --- | --- |\n"
                 "| `00-01_probability.pdf` | fixture |\n\n"
                 "## 학습 범위\n\n"
-                "| Scope ID | Source ID | Title | Included locations | Boundary context | Note |\n"
+                "| Scope ID | Source ID | Title | Included units | Boundary units | Note |\n"
                 "| --- | --- | --- | --- | --- | --- |\n"
                 + valid_scope_row
                 + "\n",
@@ -227,10 +227,10 @@ class CurriculumValidatorTests(unittest.TestCase):
                 "| `00-01_lesson.pdf` | selected |\n"
                 "| `00-02_lesson.pdf` | unrelated |\n\n"
                 "## 학습 범위\n\n"
-                "| Scope ID | Source ID | Title | Included locations | Boundary context | Note |\n"
+                "| Scope ID | Source ID | Title | Included units | Boundary units | Note |\n"
                 "| --- | --- | --- | --- | --- | --- |\n"
-                f"| SCOPE-TWO-00-01-01 | SRC-TWO-00-01 | Selected | {paths[0]}#page-1 | none | valid selected scope |\n"
-                f"| SCOPE-TWO-00-02-01 | SRC-TWO-00-02 | Unrelated | {paths[1]}#page-9 | none | stale unrelated scope |\n",
+                f"| SCOPE-TWO-00-01-01 | SRC-TWO-00-01 | Selected | Selected unit [{paths[0]}#page-1] | none | valid selected scope |\n"
+                f"| SCOPE-TWO-00-02-01 | SRC-TWO-00-02 | Unrelated | Unrelated unit [{paths[1]}#page-9] | none | stale unrelated scope |\n",
                 encoding="utf-8",
             )
             curriculum = root / "CURRICULUM.md"

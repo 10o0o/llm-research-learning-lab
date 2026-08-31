@@ -83,7 +83,7 @@ Replace with one observable lesson objective.
 
 ### Source Scope Map
 
-| Primary ID | Scope kind | Scope ID | Included locations | Boundary context | Outside-scope disposition |
+| Primary ID | Scope kind | Scope ID | Included units | Boundary units | Outside-scope disposition |
 | --- | --- | --- | --- | --- | --- |
 | I001 | entire-source | none | entire-source | none | none |
 

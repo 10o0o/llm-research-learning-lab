@@ -87,16 +87,16 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             "| 파일 | 설명 |\n| --- | --- |\n"
             "| `00-01_lesson.md` | fixture |\n\n"
             "## 학습 범위\n\n"
-            "| Scope ID | Source ID | Title | Included locations | Boundary context | Note |\n"
+            "| Scope ID | Source ID | Title | Included units | Boundary units | Note |\n"
             "| --- | --- | --- | --- | --- | --- |\n"
-            f"| SCOPE-TEST-00-01-01 | SRC-TEST-00-01 | Tensor slice | {source_path}#axes; {source_path}#shape-propagation | {source_path}#orientation | Only the selected mechanism is reviewed. |\n",
+            f"| SCOPE-TEST-00-01-01 | SRC-TEST-00-01 | Tensor shape unit | Tensor axes [{source_path}#axes]; Broadcast propagation [{source_path}#shape-propagation] | Orientation context [{source_path}#orientation] | Only the selected mechanism is reviewed. |\n",
             encoding="utf-8",
         )
         contract = CONTRACT.replace("materials/lesson.md", source_path)
         contract = contract.replace("- mode: full-source", "- mode: focused")
         contract = contract.replace(
             "| I001 | entire-source | none | entire-source | none | none |",
-            f"| I001 | registered-slice | SCOPE-TEST-00-01-01 | {source_path}#axes; {source_path}#shape-propagation | {source_path}#orientation | The rest of the source is outside this micro-lesson. |",
+            f"| I001 | registered-slice | SCOPE-TEST-00-01-01 | Tensor axes [{source_path}#axes]; Broadcast propagation [{source_path}#shape-propagation] | Orientation context [{source_path}#orientation] | The rest of the source is outside this focused unit. |",
         )
         contract = contract.replace(
             "| I001 | D001, D002, D003 | O001, O002 | G001 |",
@@ -160,9 +160,9 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             "| 파일 | 설명 |\n| --- | --- |\n"
             "| `00-01_large.pdf` | 630-page fixture |\n\n"
             "## 학습 범위\n\n"
-            "| Scope ID | Source ID | Title | Included locations | Boundary context | Note |\n"
+            "| Scope ID | Source ID | Title | Included units | Boundary units | Note |\n"
             "| --- | --- | --- | --- | --- | --- |\n"
-            f"| SCOPE-LARGE-00-01-01 | SRC-LARGE-00-01 | Three-page concept slice | {source_path}#page-14; {source_path}#page-17; {source_path}#page-18 | {source_path}#page-13; {source_path}#page-15; {source_path}#page-16; {source_path}#page-19 | Bound the lesson without a whole-book exclusion inventory. |\n",
+            f"| SCOPE-LARGE-00-01-01 | SRC-LARGE-00-01 | Three-page concept unit | Core concept sequence [{source_path}#page-14--18] | Previous context [{source_path}#page-13]; Following context [{source_path}#page-19] | Bound the lesson without a whole-book exclusion inventory. |\n",
             encoding="utf-8",
         )
         (root / "CURRICULUM.md").write_text(
@@ -183,7 +183,7 @@ class LessonHandoffValidatorTests(unittest.TestCase):
         contract = contract.replace("#orientation", "#page-18")
         contract = contract.replace(
             "| I001 | entire-source | none | entire-source | none | none |",
-            f"| I001 | registered-slice | SCOPE-LARGE-00-01-01 | {source_path}#page-14; {source_path}#page-17; {source_path}#page-18 | {source_path}#page-13; {source_path}#page-15; {source_path}#page-16; {source_path}#page-19 | The other 627 pages are outside this micro-lesson. |",
+            f"| I001 | registered-slice | SCOPE-LARGE-00-01-01 | Core concept sequence [{source_path}#page-14--18] | Previous context [{source_path}#page-13]; Following context [{source_path}#page-19] | The other 627 pages are outside this focused unit. |",
         )
         contract = contract.replace(
             "| I001 | D001, D002, D003 | O001, O002 | G001 |",
@@ -1059,8 +1059,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             root = Path(directory)
             handoff = self.build_focused_private_handoff(root)
             text = handoff.read_text(encoding="utf-8").replace(
-                "#axes; materials/private/example-course/00-01_lesson.md#shape-propagation",
-                "#axes",
+                "Tensor axes [materials/private/example-course/00-01_lesson.md#axes]; Broadcast propagation [materials/private/example-course/00-01_lesson.md#shape-propagation]",
+                "Tensor axes [materials/private/example-course/00-01_lesson.md#axes]",
                 1,
             )
             handoff.write_text(refresh_contract_hash(text), encoding="utf-8")
@@ -1097,8 +1097,8 @@ class LessonHandoffValidatorTests(unittest.TestCase):
             self.assertTrue(report.ok, report.errors)
             assert report.document is not None
             scope = report.document.lesson_source_scopes["I001"]
-            self.assertEqual(3, len(scope.included_locations))
-            self.assertEqual(4, len(scope.boundary_locations))
+            self.assertEqual(1, len(scope.included_units))
+            self.assertEqual(2, len(scope.boundary_units))
             self.assertNotIn("page-630", report.document.contract)
             self.assertNotIn("appendix", report.document.contract.lower())
             self.assertLess(len(report.document.contract), 15_000)
