@@ -33,6 +33,19 @@ one-off questions, and knowledge-note deepening remain handoff-free.
   `class Name(nn.Module):`, `def forward(...):`, concrete `nn.*(...)` call, and
   multi-stage Tensor/shape arrow flow. A vocabulary list is not a code walk.
   The walkthrough is teaching, not learner-owned implementation evidence.
+- Use only standalone `$$...$$` blocks for learner-facing mathematical
+  notation, including short symbols, Tensor shapes, and full relations; inline
+  `$...$` is not reliable in this chat renderer. Keep every display block
+  renderer-minimal: bare notation such as `h_n` uses one ordinary subscript
+  underscore, and only standard ASCII LaTeX operators may appear. Never put
+  Korean prose, an API identifier, `\text{...}`, `\_`, or a LaTex line-break
+  command inside display math. Do not replace mathematics with raw or escaped
+  source text such as `h_t` or `h\_t`, and do not use code blocks merely to
+  display a formula. Keep exact identifiers such as `h_n` in literal code only,
+  and use surrounding Korean prose for their role. Before sending, scan display
+  blocks for `\text{`, `\_`, and doubled backslashes. Code blocks remain for
+  executable code, pseudocode, or raw Markdown that the learner explicitly
+  requests.
 - Preserve the learner's exact answer and put tutor assessment separately.
 
 Delivery is not evidence. Record partial, misconception, and unconfirmed

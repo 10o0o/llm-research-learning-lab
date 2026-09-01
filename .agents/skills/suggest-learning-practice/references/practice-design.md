@@ -32,6 +32,22 @@ into a large project.
   sources and adds irrelevant search work. See [Chandler and Sweller
   (1992)](https://doi.org/10.1111/j.2044-8279.1992.tb01017.x).
 
+Apply the same principle inside code. A short `Local contract` immediately
+above the editable region repeats only the information needed at the cursor:
+input and output roles, shapes or invariants, fixed ordering, and the next
+semantic step. The longer motivation, worked trace, and progressive reasoning
+remain in the adjacent brief. Do not put a complete right-hand side, complete
+loop, expected number, or copied checker assertion in the local contract.
+
+For assignment structure only, compare the cumulative Notebook work in
+[CS231n Assignment 2](https://cs231n.github.io/assignments2026/assignment2/),
+the scaffold-and-command progression in
+[CS224N Assignment 4](https://web.stanford.edu/class/cs224n/assignments/a4_spr24_student_handout.pdf),
+and the narrow typed implementation boundary in the
+[CS336 adapter](https://github.com/stanford-cs336/assignment1-basics/blob/spring2025/tests/adapters.py#L13-L32).
+These references guide courseware structure only; they are not durable
+`SRC-*` coverage and do not establish learner evidence.
+
 ## Whole-task sizing
 
 Keep the smallest workflow that still exposes the professional boundary:
@@ -147,6 +163,12 @@ loop: implement, run the fixture, run `check_e##()`, and interpret the resulting
 state. Cell roles and check mappings live in metadata, not source markers. Do
 not create a hidden source module or test file.
 
+Fresh schema-v5 code targets delimit the learner-owned body with reviewed start
+and end comments. The implementation cell ends with the short execution order:
+implementation, adjacent fixture, then `check_e##()`. The boundaries may enclose
+one placeholder at creation and multiple learner statements later. They must
+remain inside the declared symbol and cannot overlap another target's region.
+
 ## Guided-fading ownership
 
 Choose the scaffold by evidence and by the concept's role:
@@ -203,6 +225,9 @@ A fresh reviewer returns `pass` only when all are true:
   `INDEX.md` mapping;
 - each learner target is a genuine blank core operation or response while
   routine scaffold is already usable;
+- with the brief folded, each implementation cell still explains its inputs,
+  outputs, invariants, and next semantic step, but does not expose complete code
+  that can be copied into the editable region;
 - the Notebook alone discloses every fixed requirement needed by its TODOs and
   checks, while source links remain optional provenance;
 - each internal Requirement points to natural learner-visible prose before the
@@ -249,7 +274,9 @@ specification inversion: for every public assertion or expected exception, it
 identifies the exact earlier sentence that determines the expected behavior.
 Any required guess is blocking. The same pass checks natural commercial-quality
 presentation, absence of audit leakage, the boundary between provided scaffold
-and learner work, and concept overload. Only then does the reviewer inspect
+and learner work, code-local contract sufficiency, answer leakage, and concept
+overload. These semantic judgments are not reduced to a comment-line count or
+required phrase. Only then does the reviewer inspect
 metadata and sources for coverage, anchor fidelity, ownership, and check
 traceability. The reviewer identifies concrete blocking findings, not stylistic
 preferences.

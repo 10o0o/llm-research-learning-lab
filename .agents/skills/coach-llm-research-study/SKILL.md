@@ -25,6 +25,16 @@ At a daily-flow boundary, also read the
 - In `full-source` mode, preserve every source-core objective.
 - Locate every finding precisely and verify unstable technical claims with
   primary sources.
+- In learner-facing audit or lesson-preparation prose, place every mathematical
+  symbol, shape, or relation in a standalone `$$...$$` block. Inline `$...$`
+  is not reliable in this chat renderer. Keep each display block
+  renderer-minimal: use bare notation such as `c_t` with one ordinary subscript
+  underscore and standard ASCII LaTeX operators only. Never put Korean prose,
+  API identifiers, `\text{...}`, `\_`, or a LaTex line-break command inside
+  display math. Raw or escaped notation such as `c_t` or `c\_t` must not stand
+  in for rendered math. Before sending, scan display blocks for `\text{`,
+  `\_`, and doubled backslashes. Reserve code formatting for actual code,
+  literal raw Markdown, and exact API identifiers such as `nn.Module`.
 
 ## Prepare and converge the v10 handoff
 

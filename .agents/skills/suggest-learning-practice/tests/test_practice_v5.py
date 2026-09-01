@@ -25,6 +25,7 @@ from validate_practice_artifact import validate  # noqa: E402
 from validate_practice_notebook import (  # noqa: E402
     _canonical_hash,
     _milestone_definition_hash,
+    _stage_target_exposes_semantics,
     collect_observables,
     captured_session_projection_hash,
     practice_contract_hash,
@@ -49,6 +50,48 @@ def _codes(items) -> set[str]:
 
 def _replace_once(text: str, before: str, after: str) -> str:
     return text.replace(before, after, 1)
+
+
+EDITABLE_START = "# 학습자 편집 구간 시작"
+EDITABLE_END = "# 학습자 편집 구간 끝"
+LOCAL_CONTRACT = "# Local contract: 입력 역할과 반환 shape를 유지하세요."
+
+
+def _with_editable_region(
+    code: str,
+    *,
+    marker: str,
+    placeholder: str,
+) -> str:
+    marker_line = next(line for line in code.splitlines() if marker in line)
+    indent = marker_line[: len(marker_line) - len(marker_line.lstrip())]
+    code = _replace_once(
+        code,
+        marker,
+        f"{LOCAL_CONTRACT}\n{indent}{EDITABLE_START}\n{indent}{marker}",
+    )
+    return _replace_once(code, placeholder, f"{placeholder}\n{indent}{EDITABLE_END}")
+
+
+def _add_editable_regions(payload: dict[str, object]) -> None:
+    cells_by_id = {
+        cell.get("id"): cell
+        for cell in payload["cells"]
+        if isinstance(cell, dict) and isinstance(cell.get("id"), str)
+    }
+    for target in _practice(payload)["learner_targets"]:
+        if target.get("kind") != "code":
+            continue
+        target["editable_region"] = {
+            "start_marker": EDITABLE_START,
+            "end_marker": EDITABLE_END,
+        }
+        cell = cells_by_id[target["cell_id"]]
+        cell["source"] = _with_editable_region(
+            "".join(cell["source"]),
+            marker=target["marker"],
+            placeholder=target["placeholder"],
+        ).splitlines(keepends=True)
 
 
 def _write_curriculum(root: Path) -> None:
@@ -225,6 +268,7 @@ def _v5_prelab(root: Path, *, lifecycle: str = "fresh") -> Path:
         }
     )
     if lifecycle == "fresh":
+        _add_editable_regions(payload)
         _set_pass_review(payload)
     _save(notebook, payload)
     return notebook
@@ -300,6 +344,11 @@ def _exercise_bundle(
 """
     code_requirement_id = f"C-{exercise_id}-01"
     code_target_id = f"T-{exercise_id}-01"
+    implementation = _with_editable_region(
+        implementation,
+        marker=marker,
+        placeholder=placeholder,
+    )
     observed, error = collect_observables(check)
     assert error is None
     observables = [
@@ -334,6 +383,10 @@ def _exercise_bundle(
             "marker": marker,
             "placeholder": placeholder,
             "symbol": symbol,
+            "editable_region": {
+                "start_marker": EDITABLE_START,
+                "end_marker": EDITABLE_END,
+            },
             "outcome_ids": code_outcome_ids,
             "requirement_ids": [code_requirement_id],
         }
@@ -1940,8 +1993,11 @@ def test_review_hash_tracks_api_and_scaffold_suffix_but_not_learner_edits(
     )
     data_cell["source"] = _replace_once(
         "".join(data_cell["source"]),
-        "split_values = NotImplemented",
-        "split_values = (all_x[:3], all_y[:3], all_x[3:], all_y[3:])",
+        "# TODO: 앞의 세 행과 마지막 한 행을 나누세요\n"
+        "    split_values = NotImplemented",
+        "train_values = (all_x[:3], all_y[:3])\n"
+        "    eval_values = (all_x[3:], all_y[3:])\n"
+        "    split_values = (*train_values, *eval_values)",
     ).splitlines(keepends=True)
     reflection_cell = next(
         cell for cell in learner_edit["cells"] if cell.get("id") == "e05-reflection"
@@ -1952,6 +2008,20 @@ def test_review_hash_tracks_api_and_scaffold_suffix_but_not_learner_edits(
         "학습자가 관찰한 결과를 요약합니다.",
     ).splitlines(keepends=True)
     assert practice_contract_hash(learner_edit) == baseline_hash
+
+    execution_edit = copy.deepcopy(learner_edit)
+    execution_cell = next(
+        cell for cell in execution_edit["cells"] if cell.get("id") == "e01-implementation"
+    )
+    execution_cell["execution_count"] = 42
+    execution_cell["outputs"] = [
+        {
+            "name": "stdout",
+            "output_type": "stream",
+            "text": ["learner output\n"],
+        }
+    ]
+    assert practice_contract_hash(execution_edit) == baseline_hash
 
     api_edit = _load(notebook)
     api_cell = next(
@@ -1964,6 +2034,19 @@ def test_review_hash_tracks_api_and_scaffold_suffix_but_not_learner_edits(
     ).splitlines(keepends=True)
     assert practice_contract_hash(api_edit) != baseline_hash
 
+    local_contract_edit = _load(notebook)
+    local_contract_cell = next(
+        cell
+        for cell in local_contract_edit["cells"]
+        if cell.get("id") == "e01-implementation"
+    )
+    local_contract_cell["source"] = _replace_once(
+        "".join(local_contract_cell["source"]),
+        LOCAL_CONTRACT,
+        "# Local contract: 다른 계약입니다.",
+    ).splitlines(keepends=True)
+    assert practice_contract_hash(local_contract_edit) != baseline_hash
+
     suffix_edit = _load(notebook)
     suffix_cell = next(
         cell for cell in suffix_edit["cells"] if cell.get("id") == "e01-implementation"
@@ -1974,6 +2057,151 @@ def test_review_hash_tracks_api_and_scaffold_suffix_but_not_learner_edits(
         '"training_x": x_train,',
     ).splitlines(keepends=True)
     assert practice_contract_hash(suffix_edit) != baseline_hash
+
+    boundary_edit = _load(notebook)
+    boundary_target = _practice(boundary_edit)["learner_targets"][0]
+    boundary_target["editable_region"]["start_marker"] = "# 다른 편집 시작"
+    assert practice_contract_hash(boundary_edit) != baseline_hash
+
+
+@pytest.mark.parametrize(
+    "case",
+    ["missing", "duplicate", "reversed", "outside-symbol", "malformed"],
+)
+def test_fresh_v5_rejects_invalid_editable_region(
+    tmp_path: Path,
+    case: str,
+) -> None:
+    notebook = _v5_module(tmp_path)
+    payload = _load(notebook)
+    practice = _practice(payload)
+    target = practice["learner_targets"][0]
+    cell = next(
+        item for item in payload["cells"] if item.get("id") == target["cell_id"]
+    )
+    source = "".join(cell["source"])
+
+    if case == "missing":
+        target.pop("editable_region")
+    elif case == "duplicate":
+        source = _replace_once(
+            source,
+            EDITABLE_START,
+            f"{EDITABLE_START}\n    {EDITABLE_START}",
+        )
+    elif case == "reversed":
+        source = _replace_once(source, EDITABLE_START, "# swap-boundary")
+        source = _replace_once(source, EDITABLE_END, EDITABLE_START)
+        source = _replace_once(source, "# swap-boundary", EDITABLE_END)
+    elif case == "outside-symbol":
+        source = _replace_once(source, f"    {EDITABLE_START}\n", "")
+        source = f"{EDITABLE_START}\n{source}"
+    else:
+        target["editable_region"]["extra"] = "not allowed"
+    cell["source"] = source.splitlines(keepends=True)
+    _save(notebook, payload)
+
+    assert "EDITABLE_REGION" in _codes(
+        validate(notebook, repo_root=tmp_path, check_collection=False)
+    )
+
+
+def test_fresh_v5_rejects_overlapping_editable_regions(tmp_path: Path) -> None:
+    notebook = _v5_module(tmp_path)
+    payload = _load(notebook)
+    practice = _practice(payload)
+    first_target = practice["learner_targets"][0]
+    cell = next(
+        item
+        for item in payload["cells"]
+        if item.get("id") == first_target["cell_id"]
+    )
+    outer_start = "# 바깥 편집 구간 시작"
+    outer_end = "# 바깥 편집 구간 끝"
+    source = _replace_once(
+        "".join(cell["source"]),
+        LOCAL_CONTRACT,
+        f"{outer_start}\n    {LOCAL_CONTRACT}",
+    )
+    source = _replace_once(
+        source,
+        EDITABLE_END,
+        f"{EDITABLE_END}\n    {outer_end}",
+    )
+    cell["source"] = source.splitlines(keepends=True)
+
+    claim = "같은 구현 셀의 편집 구간은 서로 겹치면 안 됩니다."
+    _append_brief_claims(payload, [claim])
+    practice["requirements"].append(
+        {
+            "id": "C-E01-02",
+            "exercise_id": "E01",
+            "kind": "derive",
+            "claim": claim,
+            "owner": "learner",
+            "source_locations": [],
+            "rationale": "",
+            "visible_cell_id": "e01-brief",
+            "target_ids": ["T-E01-02"],
+        }
+    )
+    practice["learner_targets"].insert(
+        1,
+        {
+            **first_target,
+            "id": "T-E01-02",
+            "requirement_ids": ["C-E01-02"],
+            "editable_region": {
+                "start_marker": outer_start,
+                "end_marker": outer_end,
+            },
+        },
+    )
+    practice["exercises"][0]["learner_target_ids"].append("T-E01-02")
+    _save(notebook, payload)
+
+    assert "EDITABLE_REGION" in _codes(
+        validate(notebook, repo_root=tmp_path, check_collection=False)
+    )
+
+
+def test_preserved_v5_does_not_require_editable_regions(tmp_path: Path) -> None:
+    notebook = _v5_prelab(tmp_path, lifecycle="preserved_attempt")
+    assert "EDITABLE_REGION" not in _codes(
+        validate(
+            notebook,
+            repo_root=tmp_path,
+            learner_state=True,
+            check_collection=False,
+        )
+    )
+
+
+def test_train_stage_accepts_explicit_unresolved_call_inside_epoch_loop() -> None:
+    source = f'''def fit_model(model, inputs):
+    optimizer = make_optimizer(model)
+    history = []
+    for _ in range(3):
+        optimizer.zero_grad()
+        loss = model(inputs).sum()
+        loss.backward()
+        {EDITABLE_START}
+        raise NotImplementedError("optimizer update를 완성하세요")
+        {EDITABLE_END}
+        history.append(float(loss))
+    return history
+'''
+    assert _stage_target_exposes_semantics(
+        "train",
+        cell={"source": source.splitlines(keepends=True)},
+        target={
+            "symbol": "fit_model",
+            "editable_region": {
+                "start_marker": EDITABLE_START,
+                "end_marker": EDITABLE_END,
+            },
+        },
+    )
 
 
 def test_v9_captured_cycle_cannot_claim_fresh_v5_credit(tmp_path: Path) -> None:

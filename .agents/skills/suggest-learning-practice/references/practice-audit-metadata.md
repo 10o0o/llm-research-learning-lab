@@ -170,6 +170,24 @@ output in every declared result cell.
 Fresh v5 practice records one or two `creation_reviews`. A preserved migration
 may keep an empty list because no review may be invented.
 
+Every code target in a fresh v5 artifact declares its learner-owned span:
+
+```json
+{
+  "kind": "code",
+  "symbol": "SequenceClassifier.forward",
+  "editable_region": {
+    "start_marker": "# 학습자 편집 구간 시작 — 경계 주석은 남겨 두세요.",
+    "end_marker": "# 학습자 편집 구간 끝"
+  }
+}
+```
+
+Each boundary is a distinct, non-empty whole-line marker occurring exactly once
+in the target cell. Start precedes end, both are inside the declared symbol, and
+regions in one cell do not overlap. Schema-v3/v4 artifacts and schema-v5
+`preserved_attempt` artifacts are exempt so migration remains cell-exact.
+
 ```json
 {
   "iteration": 1,
@@ -184,14 +202,23 @@ may keep an empty list because no review may be invented.
 ```
 
 The first reviewer inspects only the rendered learner surface, then the metadata
-and source fidelity. A pass requires both surfaces to pass. One repair and one
-second fresh reviewer are the maximum; iteration 2 has `recheck_of: 1`. The
-contract hash excludes learner-editable implementation/reflection bodies,
+and source fidelity. A pass requires both surfaces to pass. With the brief
+folded, the implementation cell must still disclose inputs, outputs, invariants,
+and the next semantic step without offering complete code to copy. Static
+validation does not infer that quality from line counts or fixed wording. One
+repair and one second fresh reviewer are the maximum; iteration 2 has
+`recheck_of: 1`.
+
+The contract hash excludes learner-editable implementation/reflection bodies,
 execution counts, outputs, and the review records themselves, but includes the
-briefs, fixtures, checks, topology, and all other audit metadata. For each
-target it masks only the exact syntactic TODO statement or response placeholder;
-the target marker and any provided suffix, postlude, return assembly, or later
-scaffold remain hashed.
+briefs, fixtures, checks, topology, and all other audit metadata. For fresh-v5
+code targets it masks every complete line strictly between the editable-region
+markers. The signature, `Local contract`, both markers, and any provided suffix,
+postlude, return assembly, or later scaffold remain hashed. Therefore deleting
+a TODO and replacing one placeholder with multiple learner statements does not
+stale a review; changing the public API, local contract, boundaries, or provided
+suffix does. Legacy and preserved targets retain their prior compatibility
+behavior.
 
 ## Existing graph metadata
 

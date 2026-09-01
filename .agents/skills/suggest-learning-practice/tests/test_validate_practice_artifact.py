@@ -463,7 +463,7 @@ check_e01()
             source = "".join(payload["cells"][3]["source"]).replace(
                 'raise NotImplementedError("shape를 채우세요")',
                 "shape = tuple(tensor.shape)",
-            )
+            ).replace("    # TODO: 배열의 shape를 tuple로 읽으세요\n", "")
             payload["cells"][3]["source"] = source.splitlines(keepends=True)
             payload["cells"][3]["execution_count"] = 4
             payload["cells"][3]["outputs"] = [{"output_type": "stream", "name": "stdout", "text": ["worked\n"]}]

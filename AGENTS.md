@@ -101,7 +101,7 @@ is required.
 - Base achievement judgments on learner explanations, correct examples or shapes, interpreted output, and transfer—not on lecture completion or note length.
 - Compress ordinary programming basics unless they affect shapes, gradients, numerical behavior, or model meaning. In `full-source` mode, compress explanation depth rather than deleting a source-core objective; even an evidence-backed bridge must be stated in the lesson.
 - For difficult topics, connect intuition, a small example, formulas and shapes, code, and actual ML/LLM use.
-- In user-facing tutoring and audit responses, treat inline LaTeX as unsupported. Use inline code for short symbols such as `q_i`, `d_k`, and `QK^T`; put typeset formulas in standalone `$$` blocks with blank lines around them and the delimiters on lines by themselves. Never put LaTeX in a heading, table, bullet label, or ordinary sentence, and scan for single-dollar math delimiters before sending.
+- In user-facing tutoring and audit responses, use only standalone display-math blocks: place every mathematical formula, symbol, Tensor shape, subscript, or superscript inside a `$$...$$` block with blank lines around it and the delimiters on their own lines. Do not use inline `$...$`, raw or escaped notation such as `h_t` or `h\_t`, or a code block merely to display math; refer to symbols in surrounding prose by their Korean role instead. Keep each display block renderer-minimal: use bare mathematical notation such as `h_n`, a single ordinary subscript underscore, and standard ASCII LaTeX operators only. Never put Korean prose, an API identifier, `\text{...}`, `\_`, or a LaTex line-break command inside a display block. Literal code may retain exact API identifiers such as `h_n`, but explain their mathematical role in a display block. Reserve code blocks for executable code, pseudocode, or raw Markdown explicitly requested by the learner. Before sending, scan every display block for `\text{`, `\_`, or doubled backslashes as well as unsupported inline-dollar delimiters and unrendered non-code subscripts/superscripts.
 - Do not treat tutor-generated explanations as proof of learner knowledge. Use
   only learner explanations, calculations, code, and interpreted output as
   evidence for session completion, practice, knowledge, or later TIL claims.
@@ -140,6 +140,13 @@ is required.
   directory unless the user explicitly asks for a reusable multi-file project.
 - Give every Notebook cell a stable ID and an internal role under `metadata.llm_research_lab.practice`. Keep exactly one unexecuted setup-role cell before the exercises; each exercise keeps its brief, implementation, fixture, `check_e##()`, and reflection cells adjacent.
 - Treat the generated Notebook as the learner's complete task interface. Source links are provenance, not required reading: every tested threshold, precedence rule, exact token or key, dtype/device representation, axis or inclusive boundary, aggregation, and error behavior must be stated naturally before implementation. Keep source kinds, Outcome/Requirement/Target IDs, full claims and source anchors, scaffold ownership, cell roles, and assertion traces in custom metadata only; never render them as learner-facing tables, headings, IDs, or code markers. Compression or answer withholding must never hide the problem specification.
+- Put a concise code-local contract immediately above each learner-editable
+  region. With the brief folded, the implementation cell alone must explain
+  the inputs, outputs, invariants, and next semantic step, while withholding
+  any complete right-hand side or loop that the learner could copy as the
+  answer. Fresh schema-v5 code targets declare stable start and end markers for
+  that region; structural validation checks the boundaries, while the
+  independent learner-surface review judges sufficiency and answer leakage.
 - Put folded progressive hints in the Markdown cell immediately beside each TODO, never in a global hint appendix. Read every explicitly mapped basic and advanced instructor practice first, preserve a sound starter/TODO boundary, and use its solution only for contract verification. Provide signatures, deterministic fixtures, tests, repetitive validation, return assembly, and bookkeeping; leave only session- or TIL-linked core algorithms, Tensor operations, training order, diagnosis, and interpretation learner-owned. Use `guided`, then `partial`, then evidence-backed `independent` scaffolding, with one primary concept and at most three learner targets per Exercise. Track every required written reflection as one of those targets; untracked reflection must be explicitly optional and not a completion condition. Do not overwrite learner work, include a complete answer, invent output, execute a new Notebook, or commit it unless separately asked.
 - Before reporting generated practice as ready, validate it and obtain a pass from a fresh read-only reviewer. The reviewer first inspects only the rendered learner surface for natural standalone courseware and audit leakage, then inspects metadata and sources for fidelity and traceability. Permit one revision and one second reviewer only. If review is unavailable or the second review does not pass, do not deliver it as ready.
 - When `$suggest-learning-practice` is given an exact practice path for feedback, inspect the saved code and actual traceback or test output, address one blocker at a time, and require state/output interpretation even after tests pass. Do not complete learner-owned core logic without explicit authorization.
@@ -226,7 +233,7 @@ is required.
 ## Markdown and verification
 
 - Target GitHub Markdown in repository files.
-- In repository Markdown files, use `$...$` and `$$...$$` for math. This file-writing convention does not override the no-inline-LaTeX rule for user-facing chat responses.
+- In repository Markdown files, use `$...$` and `$$...$$` for math. In user-facing explanations, use only standalone `$$...$$` blocks because inline math is not reliably rendered; reserve raw Markdown only for an explicit copy/paste request.
 - Give fenced code blocks a language identifier.
 - Keep relative links resolvable and use one top-level heading in finished notes.
 - Run the TIL validator when applicable:

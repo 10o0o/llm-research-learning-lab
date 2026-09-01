@@ -879,6 +879,55 @@ def _line_prefix(line: str) -> str:
     return match.group(0) if match is not None else ""
 
 
+def _editable_region_markers(
+    target: dict[str, object],
+) -> tuple[str, str] | None:
+    region = target.get("editable_region")
+    if not isinstance(region, dict) or set(region) != {"start_marker", "end_marker"}:
+        return None
+    start_marker = region.get("start_marker")
+    end_marker = region.get("end_marker")
+    if (
+        not isinstance(start_marker, str)
+        or not start_marker.strip()
+        or not isinstance(end_marker, str)
+        or not end_marker.strip()
+        or start_marker.strip() == end_marker.strip()
+    ):
+        return None
+    return start_marker.strip(), end_marker.strip()
+
+
+def _editable_region_line_span(
+    code: str,
+    target: dict[str, object],
+) -> tuple[int, int] | None:
+    """Return the unique inclusive boundary lines for one editable region."""
+
+    markers = _editable_region_markers(target)
+    if markers is None:
+        return None
+    start_marker, end_marker = markers
+    lines = code.splitlines()
+    start_lines = [
+        line_number
+        for line_number, line in enumerate(lines, start=1)
+        if line.strip() == start_marker
+    ]
+    end_lines = [
+        line_number
+        for line_number, line in enumerate(lines, start=1)
+        if line.strip() == end_marker
+    ]
+    if len(start_lines) != 1 or len(end_lines) != 1:
+        return None
+    start_line = start_lines[0]
+    end_line = end_lines[0]
+    if end_line <= start_line + 1:
+        return None
+    return start_line, end_line
+
+
 def _replace_line_spans(
     text: str,
     spans: list[tuple[int, int, str]],
@@ -903,11 +952,12 @@ def _implementation_contract_spans(
     code: str,
     targets: list[dict[str, object]],
 ) -> list[tuple[int, int, str]]:
-    """Locate only the syntactic statement owned by each learner TODO.
+    """Locate learner-owned code while retaining reviewed scaffold.
 
-    The target marker is reviewed scaffold, and statements after the TODO may
-    assemble or post-process the learner value.  Masking the rest of a symbol
-    would therefore hide changes to that reviewed suffix.
+    Fresh schema-v5 targets mask every line strictly between their declared
+    editable boundaries.  Legacy targets retain the single-statement fallback.
+    Boundary comments, signatures, local contracts, and provided suffixes stay
+    visible to the review hash.
     """
 
     try:
@@ -917,6 +967,23 @@ def _implementation_contract_spans(
     lines = code.splitlines(keepends=True)
     spans: list[tuple[int, int, str]] = []
     for target in targets:
+        editable_span = _editable_region_line_span(code, target)
+        if editable_span is not None:
+            start_boundary, end_boundary = editable_span
+            first_body_line = start_boundary + 1
+            prefix = (
+                _line_prefix(lines[first_body_line - 1])
+                if first_body_line - 1 < len(lines)
+                else ""
+            )
+            spans.append(
+                (
+                    first_body_line,
+                    end_boundary - 1,
+                    _replacement_line(prefix, "learner-editable-body"),
+                )
+            )
+            continue
         symbol = target.get("symbol")
         marker = target.get("marker")
         placeholder = target.get("placeholder")
@@ -1270,11 +1337,26 @@ def _stage_target_exposes_semantics(
         has_stateful_target = any(
             _statement_target_is_stateful(node) for node in todo_statements
         )
+        has_enclosing_loop = any(
+            isinstance(node, (ast.For, ast.AsyncFor, ast.While))
+            and hasattr(node, "lineno")
+            and hasattr(node, "end_lineno")
+            and any(
+                int(node.lineno) < start_line
+                and int(node.end_lineno) > end_line
+                for start_line, end_line, _ in spans
+            )
+            for node in ast.walk(symbol_node)
+        )
         has_observable_result = any(_nonempty_return(node) for node in outside_nodes)
         return (
             bool(positional_args)
             and has_control_or_data_flow
-            and (has_stateful_target or any(isinstance(node, (ast.For, ast.While)) for node in outside_nodes))
+            and (
+                has_stateful_target
+                or has_enclosing_loop
+                or any(isinstance(node, (ast.For, ast.While)) for node in outside_nodes)
+            )
             and has_observable_result
         )
     return False
@@ -2518,6 +2600,7 @@ def validate_notebook_v3(
     raw_targets = practice.get("learner_targets")
     targets: dict[str, dict[str, object]] = {}
     target_order: dict[str, list[str]] = {}
+    editable_regions_by_cell: dict[str, list[tuple[int, int, str]]] = {}
     if not isinstance(raw_targets, list):
         issues.append(NotebookIssue(1, "AUDIT_METADATA", "learner_targets must be a list"))
         raw_targets = []
@@ -2551,29 +2634,116 @@ def validate_notebook_v3(
                 issues.append(NotebookIssue(1, "TARGET_TRACE", f"{target_id} must point to a same-exercise implementation or reflection"))
         marker = item.get("marker")
         placeholder = item.get("placeholder")
-        if not isinstance(marker, str) or not marker.strip() or marker not in target_text:
+        if not isinstance(marker, str) or not marker.strip():
+            issues.append(NotebookIssue(1, "TARGET_TRACE", f"{target_id} needs an exact marker"))
+        elif not learner_state and marker not in target_text:
             issues.append(NotebookIssue(1, "TARGET_TRACE", f"{target_id} marker is missing from its learner cell"))
         if not isinstance(placeholder, str) or not placeholder.strip():
             issues.append(NotebookIssue(1, "TARGET_TRACE", f"{target_id} needs an exact placeholder"))
         elif not learner_state and placeholder not in target_text:
             issues.append(NotebookIssue(1, "PREFILLED_CORE", f"{target_id} learner target is already resolved"))
         symbol = item.get("symbol")
+        target_tree: ast.Module | None = None
+        symbol_node: ast.AST | None = None
         if symbol is not None:
             if not isinstance(symbol, str) or not symbol.strip() or target_cell is None or target_cell.get("cell_type") != "code":
                 issues.append(NotebookIssue(1, "TARGET_TRACE", f"{target_id} has an invalid symbol target"))
             else:
                 try:
-                    tree = ast.parse(target_text)
+                    target_tree = ast.parse(target_text)
                 except SyntaxError:
-                    tree = None
-                if tree is not None:
-                    node = _symbol_node(tree, symbol)
-                    if node is None:
+                    target_tree = None
+                if target_tree is not None:
+                    symbol_node = _symbol_node(target_tree, symbol)
+                    if symbol_node is None:
                         issues.append(NotebookIssue(1, "TARGET_TRACE", f"{target_id} symbol does not exist: {symbol}"))
                     elif isinstance(placeholder, str) and placeholder in target_text:
-                        segment = ast.get_source_segment(target_text, node) or ""
+                        segment = ast.get_source_segment(target_text, symbol_node) or ""
                         if placeholder not in segment:
                             issues.append(NotebookIssue(1, "TARGET_TRACE", f"{target_id} placeholder is outside symbol {symbol}"))
+        requires_editable_region = (
+            schema_version == 5
+            and practice.get("lifecycle") == "fresh"
+            and item.get("kind") == "code"
+        )
+        if requires_editable_region:
+            markers = _editable_region_markers(item)
+            if markers is None:
+                issues.append(
+                    NotebookIssue(
+                        1,
+                        "EDITABLE_REGION",
+                        f"{target_id} needs distinct start_marker and end_marker values",
+                    )
+                )
+            else:
+                start_marker, end_marker = markers
+                target_lines = target_text.splitlines()
+                start_lines = [
+                    line_number
+                    for line_number, line in enumerate(target_lines, start=1)
+                    if line.strip() == start_marker
+                ]
+                end_lines = [
+                    line_number
+                    for line_number, line in enumerate(target_lines, start=1)
+                    if line.strip() == end_marker
+                ]
+                if len(start_lines) != 1 or len(end_lines) != 1:
+                    issues.append(
+                        NotebookIssue(
+                            1,
+                            "EDITABLE_REGION",
+                            f"{target_id} editable boundaries must each occur exactly once",
+                        )
+                    )
+                else:
+                    start_line = start_lines[0]
+                    end_line = end_lines[0]
+                    if end_line <= start_line + 1:
+                        issues.append(
+                            NotebookIssue(
+                                1,
+                                "EDITABLE_REGION",
+                                f"{target_id} editable boundaries are reversed or contain no learner body",
+                            )
+                        )
+                    else:
+                        if (
+                            not isinstance(symbol, str)
+                            or symbol_node is None
+                            or not hasattr(symbol_node, "lineno")
+                            or not hasattr(symbol_node, "end_lineno")
+                            or start_line < int(symbol_node.lineno)
+                            or end_line > int(symbol_node.end_lineno)
+                        ):
+                            issues.append(
+                                NotebookIssue(
+                                    1,
+                                    "EDITABLE_REGION",
+                                    f"{target_id} editable boundaries must be inside its declared symbol",
+                                )
+                            )
+                        if isinstance(cell_id, str):
+                            editable_regions_by_cell.setdefault(cell_id, []).append(
+                                (start_line, end_line, target_id)
+                            )
+                        if not learner_state:
+                            for field_name, value in (
+                                ("marker", marker),
+                                ("placeholder", placeholder),
+                            ):
+                                if isinstance(value, str) and value in target_text:
+                                    value_start = target_text[: target_text.index(value)].count("\n") + 1
+                                    value_end = value_start + value.count("\n")
+                                    if value_start <= start_line or value_end >= end_line:
+                                        issues.append(
+                                            NotebookIssue(
+                                                1,
+                                                "EDITABLE_REGION",
+                                                f"{target_id} {field_name} must be inside its editable boundaries",
+                                            )
+                                        )
         linked_outcomes = item.get("outcome_ids")
         if not isinstance(linked_outcomes, list) or not linked_outcomes or not all(
             isinstance(value, str) and value in outcomes for value in linked_outcomes
@@ -2595,6 +2765,17 @@ def validate_notebook_v3(
                     requirement_targets = requirements[requirement_id].get("target_ids", [])
                     if not isinstance(requirement_targets, list) or target_id not in requirement_targets:
                         issues.append(NotebookIssue(1, "TARGET_OWNERSHIP", f"{target_id} and {requirement_id} must reference each other"))
+    for cell_id, regions in editable_regions_by_cell.items():
+        ordered_regions = sorted(regions, key=lambda value: (value[0], value[1], value[2]))
+        for previous, current in zip(ordered_regions, ordered_regions[1:]):
+            if current[0] <= previous[1]:
+                issues.append(
+                    NotebookIssue(
+                        1,
+                        "EDITABLE_REGION",
+                        f"{previous[2]} and {current[2]} have overlapping editable regions in {cell_id}",
+                    )
+                )
     for exercise_id, observed_ids in target_order.items():
         expected_ids = [f"T-{exercise_id}-{index:02d}" for index in range(1, len(observed_ids) + 1)]
         if observed_ids != expected_ids:

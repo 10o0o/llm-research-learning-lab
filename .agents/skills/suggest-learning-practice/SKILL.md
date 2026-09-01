@@ -80,6 +80,16 @@ contract before the TODO, keep internal IDs in metadata only, and put folded
 hints next to the relevant blank. Do not overwrite learner work or include a
 complete answer.
 
+Put a concise `Local contract` comment block immediately above each code
+target's editable region. Even with the brief folded, that implementation cell
+must state the input and output roles, shapes or other invariants, and the next
+semantic step. It must not disclose a complete right-hand side or loop that can
+be copied as the answer. Fresh schema-v5 code targets declare non-overlapping
+`editable_region.start_marker` and `end_marker` boundaries; preserve those
+markers while learner code between them grows from one placeholder into
+multiple statements. Static validation owns only boundary structure. The fresh
+learner-surface reviewer owns contract sufficiency and answer-leakage judgment.
+
 Every v5 artifact records result cells and any required interpretation's exact
 result-cell links. A `MODULE_ASSIGNMENT` contains a reusable component plus a
 bounded data → model → loss → train/eval workflow. Each workflow stage has a
