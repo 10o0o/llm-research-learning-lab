@@ -55,8 +55,9 @@ LLM Research Engineer를 목표로 공부하는 가벼운 개인 학습 저장�
 - feature 수 또는 class 수가 다른 조건으로의 한 번의 전이
 
 실행 뒤에는 gradient 흐름, `zero_grad`, `detach`, `no_grad`,
-`requires_grad`, 주요 Tensor의 역할과 첫 오류 가설을 자신의 말로
-설명합니다. 부족한 항목만 최대 두 번의 집중 bridge에서 다루고,
+`requires_grad`, 주요 Tensor의 역할을 자신의 말로 설명합니다. 오류가
+발생했다면 수정 전에 세운 첫 원인 가설과 이를 확인한 방법도 설명합니다.
+부족한 항목만 최대 두 번의 집중 bridge에서 다루고,
 Transformer·tokenizer·systems 세부사항은 CS336 진행 중 필요할 때
 보충합니다.
 
@@ -68,8 +69,17 @@ Transformer·tokenizer·systems 세부사항은 CS336 진행 중 필요할 때
 - 학습자가 과제 코드와 공식 test를 직접 작성하고 실행합니다.
 - AI는 개념 설명, 오류 메시지 해석, sanity check와 일반적인 review만
   제공합니다.
+- 학습자가 모든 bash command를 직접 실행하며, AI는 assignment repo에서
+  command를 실행하지 않습니다.
+- AI는 공식 handout에 이미 나온 command의 의미와 학습자가 제공한 실행
+  결과는 설명할 수 있지만, 과제 해결·자동화를 위한 새로운 command
+  sequence는 만들지 않습니다.
 - 명시적으로 요청해도 AI는 과제 코드, pseudocode, patch, TODO 해답을
-  제공하거나 과제 명령을 대신 실행하지 않습니다.
+  제공하지 않습니다.
+
+준비도 진단은 learning-lab의 Python 3.14 환경에서 실행합니다. 실제 과제는
+별도 sibling clone과 Python 3.12 또는 3.13의 독립 uv 환경을 사용하며,
+과제 dependency를 learning-lab이나 현재 `.venv`에 합치지 않습니다.
 
 필수 준비도를 통과하면 Agent가 Assignment 1 진입을 제안합니다. 사용자가
 승인한 뒤에만 다음 `STATE.md` 교체안을 준비합니다.

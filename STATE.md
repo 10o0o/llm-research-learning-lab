@@ -28,4 +28,5 @@
 작은 `nn.Module`과 `forward`, train/validation 분리, raw logits,
 cross-entropy, optimizer, 학습 순서, validation loss와 accuracy를 연결해
 직접 실행한다. 이어서 feature 수 또는 class 수가 다른 조건으로 한 번
-전이하고, 주요 Tensor 역할과 autograd 상태 및 첫 오류 가설을 설명한다.
+전이하고 주요 Tensor 역할과 autograd 상태를 설명한다. 오류가 발생했다면
+수정 전에 세운 첫 원인 가설과 이를 확인한 방법도 설명한다.

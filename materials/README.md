@@ -9,7 +9,7 @@
 ```text
 materials/private/kant-basic-math/  # Notion 기초 수학 19강
 materials/private/kant-advanced-machine-learning/  # Notion 머신러닝 심화 11강
-materials/private/kant-deep-learning-basics/  # Notion 딥러닝 기초 18강
+materials/private/kant-deep-learning-basics/  # 등록된 딥러닝 기초 자료; 정확한 목록은 로컬 INDEX.md 기준
 ```
 
 각 과정 폴더의 장기 보관 형식은 읽기 쉬운 Markdown입니다. Notion의 접힌 내용은 모두 펼쳐 본문에 포함하고, 필요한 그림은 가까운 `assets/` 아래에 둡니다. PDF에서 변환한 자료는 검색 가능한 텍스트와 페이지별 무손실 렌더링을 함께 보존해 수식·도표·코드 배치를 다시 확인할 수 있게 합니다. 파일 목록과 원본 링크는 같은 폴더의 로컬 `INDEX.md`에 있습니다.

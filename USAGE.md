@@ -104,7 +104,8 @@ STATE 반영해
 6. validation loss와 accuracy
 7. feature 수 또는 class 수를 바꾼 조건으로 한 번 전이
 8. gradient 흐름, `zero_grad`, `detach`, `no_grad`, `requires_grad`, 주요
-   Tensor 역할과 첫 오류 가설 설명
+   Tensor 역할 설명. 오류가 발생했다면 수정 전에 세운 첫 원인 가설과
+   이를 확인한 방법도 설명
 
 빈 파일 구현·실행·debug, autograd 상태, 행렬곱·broadcasting·softmax·
 cross-entropy 계약, baseline·validation·metric 사용을 모두 확인합니다.
@@ -117,16 +118,25 @@ Assignment 1 기준은
 [`a158843b20107949f1a8d7df1b05cd33b9166712`](https://github.com/stanford-cs336/assignment1-basics/tree/a158843b20107949f1a8d7df1b05cd33b9166712)입니다.
 이번 라우팅 변경만으로 과제를 clone하거나 다운로드하지 않습니다.
 
+준비도 진단은 현재 learning-lab의 Python 3.14 환경에서 실행합니다. 실제
+Assignment 1에 진입하면 별도 sibling clone을 만들고 공식 pyproject에 맞춘
+Python 3.12 또는 3.13의 독립 uv 환경을 사용합니다. 과제를 learning-lab의
+dependency로 추가하거나 현재 `.venv`에 설치하지 않습니다.
+
 ## CS336 과제에서 받을 수 있는 도움
 
 과제에 진입한 뒤에는 공식 AI 지침을 그대로 적용합니다.
 
 - 학습자가 코드와 test를 직접 작성합니다.
-- 학습자가 명령을 직접 실행합니다.
+- 학습자가 모든 bash command를 직접 실행하며, Agent는 assignment repo에서
+  command를 실행하지 않습니다.
 - Agent는 개념 설명, 오류 메시지 해석, sanity check, 일반적 리뷰만
   제공합니다.
-- 코드, pseudocode, patch, TODO 해답, 실행 명령은 명시적으로 요청해도
-  제공하지 않습니다.
+- 공식 handout에 이미 나온 command의 의미와 학습자가 제공한 실행 결과는
+  설명할 수 있지만, 과제 해결·자동화를 위한 새로운 command sequence는
+  만들지 않습니다.
+- 코드, pseudocode, patch, TODO 해답은 명시적으로 요청해도 제공하지
+  않습니다.
 
 ## Practice, TIL, knowledge
 

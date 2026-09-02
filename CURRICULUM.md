@@ -143,7 +143,7 @@
 
 ## 6. 현재 강의자료 Registry
 
-감사 범위는 각 과정 `INDEX.md`의 `강의 자료` 표에 있는 파일만이며 `course-provided-practice/`는 제외한다. 2026-08-27 기준 Markdown 본문 전체, 모든 로컬 그림 링크, 각 자산을 검사했고 PDF는 전 페이지를 렌더해 육안 확인했다. 아래 요약은 registry 구조와 full strict private-source 검증으로 대조한다. 현재 누락되거나 열리지 않는 파일은 없지만 `limited` 자료는 원본·변환 제약 때문에 내용 복구가 필요하다.
+감사 범위는 각 과정 `INDEX.md`의 `강의 자료` 표에 있는 파일만이며 `course-provided-practice/`는 제외한다. 아래 수치는 2026-08-27 당시 Markdown 본문 전체, 모든 로컬 그림 링크와 자산, PDF 전 페이지 렌더를 검사하고 registry 구조와 full strict private-source 검증으로 대조한 snapshot이다. 이후 자료 변경은 실제 파일과 각 과정 `INDEX.md`를 수동으로 교차 확인한다. 이 snapshot에는 누락되거나 열리지 않는 파일이 없지만 `limited` 자료는 원본·변환 제약 때문에 내용 복구가 필요하다.
 
 | 과정 수 | Source 수 | Markdown 자산 | Raster | SVG | 기타 자산 | PDF 페이지 | Limited source |
 |---:|---:|---:|---:|---:|---:|---:|---:|

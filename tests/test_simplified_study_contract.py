@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import tomllib
 from pathlib import Path
 
 
@@ -94,3 +95,58 @@ def test_state_approval_is_edit_only() -> None:
     assert "`STATE 반영해` or equivalent approval authorizes only replacement of `STATE.md`" in agents
     assert "It does not authorize a commit or push" in agents
     assert "이 문장은 `STATE.md` 수정만 허용합니다" in usage
+
+
+def test_cs336_uses_a_separate_python_environment() -> None:
+    pyproject = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
+    assert pyproject["project"]["requires-python"] == ">=3.14,<3.15"
+
+    agents = _normalized("AGENTS.md")
+    readme = _normalized("README.md")
+    usage = _normalized("USAGE.md")
+    assert "learning lab's Python 3.14 environment" in agents
+    assert "separate sibling clone" in agents
+    assert "Python 3.12 or 3.13" in agents
+    for text in (readme, usage):
+        assert "learning-lab의 Python 3.14 환경" in text
+        assert "별도 sibling clone" in text
+        assert "Python 3.12 또는 3.13" in text
+        assert "현재 `.venv`" in text
+
+
+def test_private_material_count_and_registry_snapshot_do_not_claim_live_validation() -> None:
+    materials = _normalized("materials/README.md")
+    curriculum = _normalized("CURRICULUM.md")
+    assert "딥러닝 기초 18강" not in materials
+    assert "정확한 목록은 로컬 INDEX.md 기준" in materials
+    assert "아래 수치는 2026-08-27 당시" in curriculum
+    assert "검증으로 대조한 snapshot" in curriculum
+    assert "이후 자료 변경은 실제 파일과 각 과정 `INDEX.md`를 수동으로 교차 확인한다" in curriculum
+
+
+def test_cs336_command_policy_is_consistent() -> None:
+    agents = _normalized("AGENTS.md")
+    assert "The learner writes code and tests and runs every bash command" in agents
+    assert "must not execute bash commands in the assignment repository" in agents
+    assert "already shown in the official handout" in agents
+    assert "must not create a new command sequence to solve or automate the assignment" in agents
+
+    for path in ("README.md", "USAGE.md"):
+        text = _normalized(path)
+        assert "학습자가 모든 bash command를 직접 실행" in text
+        assert "assignment repo에서 command를 실행하지 않습니다" in text
+        assert "공식 handout에 이미 나온 command의 의미와 학습자가 제공한 실행 결과" in text
+        assert "과제 해결·자동화를 위한 새로운 command sequence" in text
+
+
+def test_error_hypothesis_is_required_only_after_an_error() -> None:
+    agents = _normalized("AGENTS.md")
+    assert "if an error occurs" in agents
+    assert "before changing the code and how it was checked" in agents
+
+    korean_docs = [_normalized(path) for path in ("README.md", "USAGE.md", "STATE.md")]
+    for text in korean_docs:
+        assert "오류가 발생했다면" in text
+        assert "수정 전에 세운 첫 원인 가설" in text
+        assert "이를 확인한 방법" in text
+        assert "첫 오류 가설" not in text

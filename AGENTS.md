@@ -122,7 +122,8 @@ diagnostic from a blank Python file:
 - calculate validation loss and accuracy;
 - transfer once to a changed feature count or class count;
 - explain gradient flow, `zero_grad`, `detach`, `no_grad`, `requires_grad`, the
-  main Tensor roles, and the first hypothesis for any error.
+  main Tensor roles, and, if an error occurs, the first cause hypothesis formed
+  before changing the code and how it was checked.
 
 Readiness requires blank-file implementation, execution, and debugging;
 autograd-state explanation; matrix multiplication, broadcasting, softmax, and
@@ -132,11 +133,19 @@ tokenizer, and systems details may be learned just in time during CS336. When
 the requirements are met, propose Assignment 1 entry and wait for approval
 before changing `STATE.md`.
 
-During a CS336 assignment, follow the assignment's official AI policy strictly:
-the learner writes code and tests and runs commands. Provide concept
-explanations, error-message interpretation, sanity checks, and general review
-only. Do not provide code, pseudocode, patches, TODO solutions, or commands,
-even after an explicit request.
+Run the readiness diagnostic in this learning lab's Python 3.14 environment.
+After approved Assignment 1 entry, use a separate sibling clone and its own
+official uv environment with Python 3.12 or 3.13. Never add the assignment as a
+learning-lab dependency or install it into this repository's `.venv`.
+
+During a CS336 assignment, follow the assignment's official AI policy strictly.
+The learner writes code and tests and runs every bash command. The AI must not
+execute bash commands in the assignment repository. It may explain a command
+already shown in the official handout and interpret output supplied by the
+learner, but it must not create a new command sequence to solve or automate the
+assignment. Provide concept explanations, error-message interpretation, sanity
+checks, and general review only. Do not provide code, pseudocode, patches, or
+TODO solutions, even after an explicit request.
 
 The pilot lasts 28 days from its first simplified session. At the end, review
 manually: maintenance-time share, resume time and context failures,
