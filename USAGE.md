@@ -1,351 +1,177 @@
 # 사용법
 
-## 새 Codex 대화에서 시작하기
+## 시작과 재개
 
-이 저장소를 작업 공간으로 연 Codex는 루트 [`AGENTS.md`](./AGENTS.md)와
-`.agents/skills/`의 repository skill을 읽습니다. 보통은 target ID나
-`$skill-name`을 직접 입력하지 않아도 됩니다. 다른 저장소나 작업
-디렉터리에서 연 대화에는 이 프로젝트의 흐름이 적용되지 않습니다.
-
-### 하루 전체 흐름 시작
-
-```text
-오늘 전체 학습 흐름 시작
-```
-
-`전체 학습 흐름 시작`도 같습니다. 이 요청은 Asia/Seoul 기준 오늘
-동안 여러 cycle과 새 Codex 대화에 걸쳐 다음 순서를 계속할 권한을
-부여합니다.
-
-1. 실제 다음 target과 자료를 정합니다.
-2. 선택한 source slice를 검토하고 60~90분 표준 수업을 구성합니다.
-3. 대화형으로 배우고 학습자의 확인된 답변을 cursor에 보존합니다.
-4. target에 맞는 실습 또는 exact milestone deferral을 정합니다.
-5. 실습이면 학습자가 직접 구현·실행·해석하고, 확인된 근거로 knowledge를
-   0~3개 갱신합니다.
-6. deferral이면 cycle을 `milestone-pending`으로 보존하고 실습·knowledge를
-   완료로 꾸미지 않은 채 다음 target으로 이동합니다.
-7. 다음 target을 계산하고 다음 reviewed lesson의 첫 teaching move를
-   준비합니다.
-
-이 권한에는 완료 준비를 통과한 exact practice와 evidence-backed
-knowledge의 path-limited commit이 포함됩니다. 다음은 포함되지 않습니다.
-
-- TIL 자동 저장
-- push
-- permanent source 등록
-- 유료·로그인 자료 다운로드
-- 외부 계정 접근, 대회 참여 또는 제출
-- 학습자 대신 답하거나 learner-owned practice를 구현하는 일
-
-날짜가 바뀌면 commit 권한은 만료됩니다. 미완료 cycle과 아직 TIL에
-기록되지 않은 완료 cycle은 삭제되지 않습니다. 새 날짜에 같은 전체
-흐름 문장을 말하면 미완료 cycle을 다시 활성화합니다.
-
-### 정확한 phase 재개
-
-```text
-계속
-```
-
-`tmp/active-learning-flow.json`의 정확한 phase를 재개합니다.
-
-| phase | 이어지는 작업 |
-|---|---|
-| `SELECT_TARGET` | 다음 primary target 결정 |
-| `PREPARE_LESSON` | source 해결, handoff 작성·독립 검토·repair |
-| `TEACH` | 현재 teaching step에서 수업 재개 |
-| `DECIDE_PRACTICE` | practice action·modality·progression layer 결정 |
-| `AWAIT_PRACTICE` | exact Notebook 또는 challenge 시도 재개 |
-| `UPDATE_KNOWLEDGE` | terminal practice 근거로 knowledge 갱신 |
-| `PLAN_NEXT` | 다음 target 계산 |
-| `PAUSED` | 저장된 resume phase로 복귀 |
-
-같은 target/source의 locator, 문구, objective mapping, module, teaching
-order 문제는 Agent가 같은 흐름에서 고치고 targeted recheck합니다.
-Source 손상·접근 실패, 해결 불가능한 사실 모호성, 사용자 범위 선택만
-실제 blocker입니다. 특수 reset 문구를 다시 입력할 필요가 없습니다.
-
-### 안전하게 멈추기
-
-```text
-오늘 학습 종료
-```
-
-현재 cycle과 정확한 resume phase를 보존하고 오늘 권한을 종료합니다.
-TIL을 만들거나 불확실한 개념을 완료 처리하지 않습니다.
-
-### 한 수업만 진행
+이 저장소를 작업 공간으로 연 새 대화에서는 [`STATE.md`](./STATE.md)가
+유일한 학습 재개 북마크입니다. 다음 문장으로 현재 범위의 연결된 모듈
+하나를 시작합니다.
 
 ```text
 오늘 학습 시작
 ```
 
-Target·자료 결정과 reviewed lesson까지만 진행합니다. Practice,
-knowledge, TIL은 자동 실행하지 않습니다. 한 수업이 끝나면 session을
-capture하고 멈춥니다.
-
-### 오늘 TIL 명시적으로 저장
+같은 source나 과제 안에서 여러 모듈을 이어가고 싶다면 다음 중 하나를
+사용합니다.
 
 ```text
-오늘 TIL 저장해줘
+오늘 전체 학습 흐름 시작
+전체 학습 흐름 시작
 ```
 
-완료됐지만 아직 기록되지 않은 cycle만 날짜별 TIL에 반영합니다.
-미완료·paused cycle은 제외합니다. 같은 날 여러 번 요청하면 이전 기록을
-보존하면서 새로 완료된 cycle만 소비합니다. 이전 날짜에 완료된 pending
-cycle은 그 cycle의 완료 날짜 TIL로 저장합니다.
+이 요청은 새 강의나 새 과제로 자동 진입할 권한이 아닙니다. 현재 범위가
+끝나면 다음 선택지를 제안하고 사용자 결정을 기다립니다.
 
-### 계획만 읽기
+새 대화에서 이어갈 때는 다음처럼 말합니다.
 
 ```text
-현재 학습 근거를 확인해서 다음에 무엇을 공부할지 정해줘.
+계속
 ```
 
-Read-only planner만 사용합니다. 파일을 수정하거나 수업·캐시·실습을
-시작하지 않습니다.
+Agent는 `STATE.md`의 `다음 독립 행동`만 재개합니다. `tmp/`의 ignored
+파일이나 Notebook metadata에서 과거 phase를 복원하지 않습니다.
 
-## 운영 cursor와 영구 근거
-
-`tmp/active-learning-flow.json`은 원자적으로 갱신되는 단일 ignored
-cursor입니다. 날짜, 승인 모드, phase, exact handoff/practice, cycle별
-confirmed learner evidence와 hash, exact learning commit만 보존합니다.
-명시적으로 다시 시작한 cycle은 `superseded`로 보존되고, 여러 수업의
-근거를 누적하는 cycle은 `milestone-pending`으로 남을 수 있습니다. 둘 다
-완료나 mastery로 계산되지 않습니다.
-별도 snapshot, 진행률, mastery DB가 아닙니다.
-
-| 파일 | 역할 |
-|---|---|
-| `tmp/active-learning-flow.json` | 같은 장치·저장소에서 day flow 재개 |
-| `tmp/active-lesson-handoff.md` | 한 reviewed lesson의 계약·전달·답변 |
-| `tmp/active-lesson-sources/<lesson-id>/` | 한 lesson의 임시 official source cache |
-| `til/today.md` | 사용자가 직접 적는 수동 scratchpad |
-| `til/YYYY/MM/YYYY-MM-DD.md` | 명시적으로 저장한 날짜별 역사 기록 |
-| `knowledge/` | 학습자가 증명한 현재 reusable understanding |
-| `practice/`, `challenges/` | 직접 구현·실행·해석한 수행 근거 |
-
-Ignored cursor와 private 자료는 Git으로 동기화되지 않습니다. 다른
-장치나 clone에서 자동 복원된다고 가정하지 않습니다.
-
-## 하루 cycle의 상세 순서
-
-### 1. Target-first planning
-
-[`plan-roadmap-learning`](./.agents/skills/plan-roadmap-learning/SKILL.md)은
-ROADMAP endpoint와 이번 cycle의 실제 primary target을 분리합니다.
-
-선택 순서는 사용자 지정 target, 가장 이른 endpoint route의 blocking
-frontier, 같은 target의 부족한 evidence, 가장 많은 downstream을 여는
-frontier 순입니다. 거의 충족된 직접 선수 하나만 inline bridge가 될 수
-있습니다. 독립적인 학습이 필요한 blocker는 primary target입니다.
-
-Source 유무, 다음 chapter, 무관하거나 보류된 미완료 practice는 target
-우선순위를 바꾸지 않습니다. Platform pass만으로 prerequisite를
-satisfied 처리하지 않습니다.
-
-### 2. 자료 해결과 reviewed lesson
-
-자료는 직접 관련 existing practice, 감사된 local source, repair가 필요한
-local source, official external source 순으로 해결합니다. 외부 자료는
-provider, course, offering/edition, artifact, official URL, exact scope로
-식별합니다.
-
-[`coach-llm-research-study`](./.agents/skills/coach-llm-research-study/SKILL.md)
-는 schema-v10 handoff를 준비하고 독립 검토합니다. Focused review는
-선택한 topic/section/example-family unit, 그 boundary unit, 직접 asset과
-관련 registry 행에만 비례합니다. 각 unit의 source-anchor는 경계 확인용이며
-책 전체를 매번 다시 감사하지 않습니다.
-
-Review slice는 수업 길이가 아닙니다. 기본 `standard` session은 다음을
-요구합니다.
-
-- 실질적으로 다른 연결 module 3~5개
-- 이 module들이 묶는 연결 concept path 3~5개
-- 60~90분 예상 시간
-- 서로 다른 worked example 최소 2개
-- module마다 하나의 closing application, 평가 checkpoint는 최대 한 번
-- 성립 조건과 반례·한계
-- 모든 비보류 핵심 개념을 새 task/code 문맥에서 결합하는 마지막 전이
-- 구현·디버깅 D2 target의 실제 class/API/`forward`/data-flow walkthrough
-
-`짧게 하자`라는 명시적 시간·형식 요청이 있을 때만 `short`를
-사용합니다. `압축`, `빠르게`, `따라잡기`만으로는 standard arc를 줄이지
-않습니다. 설명하지 않은 개념을 먼저 평가하지 않으며, 한 module을
-목적·설명·worked trace/code walk·적용까지 이어서 진행합니다.
-
-### 3. 대화형 수업과 evidence
-
-[`teach-course-material`](./.agents/skills/teach-course-material/SKILL.md)은
-검토된 Module Plan을 따라 학습자의 현재 이해에 맞게 진행합니다.
-질문은 답에 따라 다음 설명이 달라질 때 사용합니다. 핵심 개념을
-확인하지 못하면 표현·예시·trace를 바꿔 계속 가르칩니다.
-
-Confirmed learner answer만 daily cursor에 저장됩니다. Tutor 설명, 단순
-동의, partial answer, misconception, source 요약, green test는 learner
-evidence가 아닙니다. 불확실한 non-deferred concept가 남으면 handoff와
-cursor를 `paused`로 보존합니다.
-
-Completed는 계획한 session arc와 exit evidence가 끝났다는 뜻이지
-Curriculum mastery가 아닙니다.
-
-### 4. Practice modality
-
-[`suggest-learning-practice`](./.agents/skills/suggest-learning-practice/SKILL.md)
-는 completed schema-v10 captured session 또는 exact finalized TIL을 새
-실습 입력으로 받습니다. Cursor의 schema-v9 legacy capture는 기존 v4
-Notebook을 `PRE_LAB / I1_MECHANISM / preserved_attempt`로 보존 분류하는
-migration에서만 쓸 수 있고, fresh milestone artifact로 승격할 수 없습니다.
-
-| 학습 성과 | 기본 modality |
-|---|---|
-| 수학·Tensor·mechanism·작은 구현 | `NOTEBOOK` |
-| latency·throughput·memory·batching·KV cache | `BENCHMARK` |
-| data·validation·metric·error analysis | `DATASET_PROJECT` |
-| 짧은 algorithm/API | `EXTERNAL_CHALLENGE` |
-| 실제 가치가 검증된 data competition | `EXTERNAL_COMPETITION` |
-
-실습은 다음 세 층으로 구분됩니다. 이 중 `PRE_LAB`은 누적 milestone
-credit이 아니라 다음 구현을 막는 blocker를 푸는 보조 층입니다.
-
-| 층 | 쓰는 때 | 최소 수행 경계 |
-|---|---|---|
-| `PRE_LAB` | 다음 구현을 막는 작은 mechanism 공백 | 계산·shape·단일 연산 |
-| `MODULE_ASSIGNMENT` | 한 module을 실제로 사용할 준비가 됐을 때 | component와 data→model→loss→train/eval |
-| `PHASE_CAPSTONE` | 여러 module assignment를 연결할 때 | baseline·통제 비교/ablation·error analysis·재현·한계 |
-
-아직 assignment 경계가 준비되지 않았으면 `DEFER_TO_MILESTONE`으로
-누적하며 `NO_EXTRA_PRACTICE`로 위장하지 않습니다.
-
-모든 새 local artifact는 metadata-v5
-`practice/<area>/<topic>.ipynb` 하나입니다. Session input은 live handoff를
-재해석하지 않고 cursor의 immutable captured-cycle projection과 hash를
-보존합니다. Historical/manual 학습은 exact finalized TIL 경로·hash를
-계속 사용할 수 있습니다. 기존 metadata-v3/v4 Notebook은
-`legacy-unclassified`로 검증되지만 milestone credit은 자동으로 받지
-않습니다.
-
-Notebook에는 자연어 명세, learner-owned TODO, deterministic fixture,
-`check_e##()`, required reflection이 인접합니다. 생성본은 실행·커밋하지
-않습니다. 학습자가 직접 구현하고 실행한 뒤 결과를 해석해야 합니다.
-Completion gate는 placeholder, reflection, 실행 순서, 최신 checker, error
-output, source/session provenance를 검사합니다.
-
-Kaggle처럼 data handling·validation·metric·error analysis가 핵심일 때만
-competition을 제안합니다. 실제 추천은 당시 official page에서 확인하고,
-계정 접근·참여·제출 전에 별도 승인을 받습니다. Kaggle 실행 Notebook은
-`practice/`, 짧은 제출 코드는 `challenges/`에 둡니다. Platform pass만
-으로 practice 완료나 knowledge 갱신을 하지 않습니다.
-
-### 5. Knowledge 갱신
-
-[`update-learning-knowledge`](./.agents/skills/update-learning-knowledge/SKILL.md)
-는 TIL 없이 completed session과 terminal practice를 읽을 수 있습니다.
-학습자가 직접 확인한 범위만 date-free concept note 0~3개에 반영합니다.
-
-실습을 만들었다면 exact artifact, 실행 순서, 해석과 path-limited commit이
-검증되기 전에는 knowledge 단계로 가지 않습니다. 동등한 수행 evidence가
-이미 있어 `NO_EXTRA_PRACTICE`인 경우 session evidence만으로 판단할 수
-있습니다. 새 durable understanding이 없으면 `NO_CHANGE`가 정상입니다.
-
-### 6. 다음 target
-
-Knowledge terminal state 뒤 planner가 새 evidence로 target graph를 다시
-계산합니다. Full-day 권한이 유효하면 다음 reviewed lesson의 첫 teaching
-move까지 준비합니다. 새로운 cycle을 시작했다는 사실 자체는 mastery를
-의미하지 않습니다.
-
-## 명시적 일일 TIL
-
-TIL은 cycle 중간 gate가 아닙니다. `오늘 TIL 저장해줘` 요청 때만
-[`save-today-til`](./.agents/skills/save-today-til/SKILL.md)이 다음을
-종합합니다.
-
-- 완료된 unconsumed cycle의 concept와 confirmed learner evidence
-- 실행·해석이 끝난 practice 또는 challenge
-- knowledge 변경 또는 `NO_CHANGE`
-- cursor가 기록한 exact path-limited commit
-- source, primary target, 실제 전달된 bridge provenance
-
-`git log` 전체를 추측해서 요약하지 않습니다. Cursor의 각 SHA에 대해
-commit 존재, committer date, subject, exact changed-path set과 현재
-artifact를 교차 확인합니다.
-
-Flow-generated TIL은 concept-first로 씁니다.
-
-1. 개념과 핵심 정의
-2. 성립 조건·작동 원리·한계
-3. 어떤 예시와 실습으로 확인했는지
-4. 실제 관찰하고 해석한 결과
-5. source·practice·knowledge 링크와 target provenance
-
-자동 생성본에는 `남은 질문`, “내 말로 설명해야 한다”, 학습 지시,
-평가 문구, 내부 marker를 넣지 않습니다. 미완료 학습은 cursor에 남겨
-다음 수업에서 해결합니다. 사용자가 직접 작성한 standalone 또는 mixed
-메모의 실제 불확실성만 coach의 한 번 검토 뒤 보존할 수 있습니다.
-
-같은 날짜 TIL이 있으면 이미 저장된 개념 기록과 provenance를 보존하고 새
-unconsumed cycle만 자연스럽게 병합·소비합니다. v9 이전 자동 생성본의 첫
-저장에서는 확인된 본문을 유지하되 잘못 종료된 `남은 질문`, 다음 학습 지시,
-내부 marker를 제거합니다. 날짜별 TIL 하나만
-`til: YYYY-MM-DD 학습 기록`으로 커밋하고 push하지 않습니다. 실패하면
-file과 cursor를 보존해 `계속`으로 재시도합니다.
-
-## 수동 scratchpad와 standalone TIL
-
-`til/today.md`는 사용자가 자유롭게 쓰는 ignored inbox입니다. Reviewed
-lesson이 자동으로 여기에 쓰지 않습니다. Standalone self-study를 이
-scratchpad에서 저장하려면 exact draft를 명시합니다.
+멈출 때는 다음처럼 말합니다.
 
 ```text
-$save-today-til을 사용해 til/today.md의 수동 학습 기록을 저장해줘.
+오늘 학습 종료
 ```
 
-수동 내용은 coach가 같은 저장 흐름에서 한 번 사실·불확실성을
-검토합니다. 이 경우에는 학습자가 실제로 남긴 질문을 보존할 수
-있습니다.
+파일은 자동으로 바뀌지 않습니다. 재개 지점이 달라졌다면 Agent가
+`STATE.md` 전체 교체안을 먼저 보여 줍니다.
 
-## 실습을 새 대화에서 재개
+## 한 모듈의 진행 방식
 
-Cursor에 exact practice path가 있는 full-day flow는 `계속`으로
-재개합니다. Cursor 밖의 manual/historical practice는 경로를 직접
-지정합니다.
+기본 수업은 다음 흐름을 사용합니다.
 
 ```text
-practice/<area>/<topic>.ipynb를 이어서 하자.
-현재 저장된 코드와 실제 check 실패부터 확인해줘.
+충분한 연결 설명
+→ 작은 수치 예제, shape trace, 또는 code/data-flow trace
+→ 조건이 모두 적힌 통합 checkpoint 하나
+→ 학습자 시도
+→ 맞은 점, 고칠 점, 이유, 빠진 핵심을 한 번에 피드백
 ```
 
-Agent는 현재 cell과 실제 traceback에서 첫 blocker만 다룹니다. 별도
-허가 없이는 learner-owned 핵심 구현을 대신 완성하지 않습니다.
+질문에 필요한 Tensor 값, shape, dtype, device, 데이터 분리, 평가 목적은
+같은 메시지 안에 모두 적습니다. 단순 계산이 학습 목표가 아니면 계산은
+Agent가 채우고 개념과 해석에 집중합니다. 이미 정확히 설명한 내용을
+다른 표현으로 반복 시험하지 않습니다. 내부 routing label, ID, review tag,
+metadata는 사용자가 요청하지 않는 한 채팅에 표시하지 않습니다.
 
-## 자료 등록과 임시 official source
-
-Private 자료는 Git에 올라가지 않는 위치에 둡니다.
+막혔을 때는 현재 파일 경로와 실제 오류 또는 출력을 함께 지정하면
+좋습니다.
 
 ```text
-materials/private/<course>/NN-NN_title.pdf
-materials/private/<course>/NN-NN_title.md
+practice/<area>/<file>을 보고 지금 난 오류 원인부터 설명해줘.
 ```
 
-과정 `INDEX.md`는 정확히 하나의 uppercase `source_namespace`를
-선언하고 source path/hash/audit를 기록합니다. 반복할 bounded lesson
-범위는 선택적 `학습 범위` 표에 Source ID, 연결된 단원·주제·예제군의
-`Included units`, 그리고 `Boundary units`로 등록할 수 있습니다. 각 unit은
-사람이 읽는 제목과 하나의 검증 가능한 source-anchor를 함께 적습니다.
-예를 들어 `Chapter 2 §2.1–§2.2: 조건부확률과 two-card 예시
-[materials/private/course/00-01.pdf#page-56--63]`처럼 선언합니다. 페이지를
-한 줄씩 열거하지 않으며, anchor는 검토 경계 확인용일 뿐 durable coverage나
-mastery가 아닙니다.
+Agent는 저장된 코드와 실제 출력에서 첫 blocker를 확인합니다. 별도 요청
+없이 학습자 구현을 덮어쓰지 않습니다.
 
-공개 HTTPS official source는 한 reviewed lesson 동안
-`tmp/active-lesson-sources/<lesson-id>/`에 content-addressed cache할 수
-있습니다. Agent가 exact URL을 발견·검증하고 helper는 그 URL만
-retrieval합니다. Login, payment, archive, dataset, weight 또는 기본
-100 MiB 초과는 승인을 기다립니다. 임시 사용은 Curriculum coverage를
-바꾸지 않습니다.
+## STATE.md 반영
 
-## Python·Notebook 환경
+`STATE.md`에는 공개 가능한 최소 정보만 둡니다.
+
+- pilot 시작일과 마지막 사용자 확인일
+- 현재 source와 범위
+- 이미 존재하는 관련 artifact의 짧은 사실
+- 다시 확인할 항목
+- 다음 독립 행동 하나
+
+답변 원문, private 경로, 내부 ID, hash, phase, 점수표, 세션 이력, metrics는
+넣지 않습니다. 공개 source를 고정하는 commit은 예외입니다.
+
+재개 지점이 바뀌면 Agent가 항상 파일 전체 교체안을 먼저 보여 줍니다.
+내용을 확인한 뒤 다음처럼 승인합니다.
+
+```text
+STATE 반영해
+```
+
+이 문장은 `STATE.md` 수정만 허용합니다. commit과 push는 각각 별도의
+명시적 요청이 필요합니다. 파일이 없거나 실제 artifact와 충돌하면 Agent는
+임의로 합치지 않고 사실관계와 교체안을 제시합니다.
+
+## 첫 통합 준비도 진단
+
+현재 첫 행동은 CS336 Assignment 1 진입 전 진단입니다. 학습자가 빈 Python
+파일에서 다음을 직접 연결합니다.
+
+1. deterministic synthetic 다중분류 데이터
+2. 작은 `nn.Module`과 `forward`
+3. train/validation 분리
+4. raw logits, cross-entropy, optimizer
+5. `zero_grad → forward → loss → backward → step`
+6. validation loss와 accuracy
+7. feature 수 또는 class 수를 바꾼 조건으로 한 번 전이
+8. gradient 흐름, `zero_grad`, `detach`, `no_grad`, `requires_grad`, 주요
+   Tensor 역할과 첫 오류 가설 설명
+
+빈 파일 구현·실행·debug, autograd 상태, 행렬곱·broadcasting·softmax·
+cross-entropy 계약, baseline·validation·metric 사용을 모두 확인합니다.
+부족한 부분만 최대 두 번의 집중 bridge로 다룹니다. 통과하면 Agent가
+Assignment 1 진입을 제안하며, 사용자가 승인한 뒤에만 `STATE.md` 교체안을
+반영합니다.
+
+Pilot의 주축은 [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)이고,
+Assignment 1 기준은
+[`a158843b20107949f1a8d7df1b05cd33b9166712`](https://github.com/stanford-cs336/assignment1-basics/tree/a158843b20107949f1a8d7df1b05cd33b9166712)입니다.
+이번 라우팅 변경만으로 과제를 clone하거나 다운로드하지 않습니다.
+
+## CS336 과제에서 받을 수 있는 도움
+
+과제에 진입한 뒤에는 공식 AI 지침을 그대로 적용합니다.
+
+- 학습자가 코드와 test를 직접 작성합니다.
+- 학습자가 명령을 직접 실행합니다.
+- Agent는 개념 설명, 오류 메시지 해석, sanity check, 일반적 리뷰만
+  제공합니다.
+- 코드, pseudocode, patch, TODO 해답, 실행 명령은 명시적으로 요청해도
+  제공하지 않습니다.
+
+## Practice, TIL, knowledge
+
+일반 학습에서는 공식 과제가 practice 역할을 합니다. 작은 실행 확인은
+채팅 과제로 제공할 수 있지만 새 metadata Notebook을 자동 생성하지
+않습니다. 별도 실험을 저장하고 싶을 때만 exact 경로와 형태를 정합니다.
+
+```text
+practice/deep-learning/<topic>.py에 이 실험 뼈대를 만들어줘.
+```
+
+CS336 과제에서는 위와 같은 코드 생성 요청도 공식 제한 때문에 수행하지
+않습니다. 기존 Notebook의 historical metadata는 실행에 영향을 주지 않는
+기록으로 보존하며 현재 학습 상태로 사용하지 않습니다.
+
+날짜별 TIL은 명시적으로 요청할 때만 작성합니다.
+
+```text
+오늘 대화에서 내가 설명한 내용과 실행한 결과로 오늘 TIL 초안을 만들어줘.
+```
+
+대화, draft, 또는 artifact를 정확히 지정해야 합니다. Agent 설명만으로
+이해를 꾸미거나 다른 기록을 자동 수집하지 않습니다. `$save-today-til`은
+이 standalone 작업을 명시적으로 고정하고 싶을 때만 사용합니다.
+
+Knowledge도 확인된 입력을 지정할 때만 갱신합니다.
+
+```text
+내 설명과 practice/<exact-path>의 실행·해석을 바탕으로 knowledge 갱신을 제안해줘.
+```
+
+`$update-learning-knowledge`는 이 작업을 명시적으로 고정하는 opt-in
+유틸리티입니다. 새로 확인된 durable understanding이 없으면 `NO_CHANGE`가
+정상입니다. TIL과 knowledge 파일 수정은 commit을 자동 허용하지 않습니다.
+
+## 자료와 Python 환경
+
+Private 자료는 `materials/private/<course>/`에 두고 공개 저장소에 올리지
+않습니다. 강의 제공 실습은 해당 course 아래
+`course-provided-practice/`에 보존하고 학습자 산출물인 top-level
+`practice/`와 섞지 않습니다.
+
+Notion이나 PDF 원본을 정리할 때는 본문, 토글, 코드 들여쓰기, 출력, 표,
+링크, 수식, 그림과 PDF 페이지를 확인합니다. 변환 무결성이 불확실하면
+원본을 삭제하지 않습니다.
 
 ```bash
 cd /home/jake/llm-research-learning-lab
@@ -353,31 +179,21 @@ uv sync
 uv run python path/to/script.py
 ```
 
-새 dependency는 `pip install` 대신 `uv add`로 추가합니다. VS Code
-Notebook kernel은 repository의 `.venv/bin/python`을 사용합니다.
+새 dependency는 `uv add`로 관리합니다. VS Code Notebook kernel은 이
+저장소의 `.venv/bin/python`을 사용합니다. 실행하지 않은 결과는 기록하지
+않고, dataset·model weight·credential·큰 생성물은 명시적 승인 없이 Git에
+추가하지 않습니다.
 
-실행하지 않은 결과는 기록하지 않습니다. Dataset, model weight,
-credential, 큰 생성물은 명시적 허가와 적절한 ignore 없이는 Git에
-넣지 않습니다.
+## 저장 권한
 
-## Skill을 직접 고정할 때
-
-자연어 진입점으로도 충분하지만 특정 단계만 실행하려면 다음처럼
-명시할 수 있습니다.
+학습 시작, 재개, 종료, `STATE 반영해`, TIL 작성, knowledge 갱신은 commit이나
+push를 암묵적으로 허용하지 않습니다. 다음처럼 작업을 각각 명시합니다.
 
 ```text
-$plan-roadmap-learning으로 다음 target만 읽기 전용으로 정해줘.
-
-$coach-llm-research-study와 $teach-course-material로
-materials/private/<course>/<lesson>을 표준 수업으로 진행해줘.
-
-$suggest-learning-practice로 현재 completed session의 practice modality를 정해줘.
-
-$update-learning-knowledge로 terminal session·practice evidence만 knowledge에 반영해줘.
-
-$save-today-til로 완료된 unconsumed cycle을 오늘 TIL에 저장해줘.
+변경 파일만 검토해줘.
+이 파일들을 commit해줘.
+방금 commit을 push해줘.
 ```
 
-하나의 거대 orchestration skill이나 별도 progress DB는 두지 않습니다.
-Daily cursor가 phase만 연결하고 각 전문 skill의 증거·권한 경계를
-유지합니다.
+Commit 요청은 push 권한이 아닙니다. Agent는 unrelated 변경을 보존하고,
+승인된 exact path만 stage한 뒤 staged diff를 확인합니다.

@@ -4,7 +4,7 @@
 
 ## 1. 목적과 비목적
 
-이 문서는 `ROADMAP.md`의 큰 방향을 실행 가능한 학습 성과로 풀고, 현재 강의 자료가 각 성과를 어느 깊이까지 직접 뒷받침하는지 판단하는 기준이다. 수업 계약은 한 번에 관련 ID 1~3개를 선택하고, 연결 자료의 관계·무결성·공백 처리를 근거로 보충 범위를 결정한다. 정적 module·milestone catalog는 역량을 누적 구현 단위에 연결하지만 학습자의 현재 상태를 기록하지 않는다.
+이 문서는 `ROADMAP.md`의 큰 방향을 실행 가능한 학습 성과로 풀고, 현재 강의 자료가 각 성과를 어느 깊이까지 직접 뒷받침하는지 판단하는 정적 참고 자료다. 현재 학습 범위와 다음 행동은 `STATE.md`만 정하며, 이 문서의 ID·선수관계·catalog가 자동으로 수업을 선택하지 않는다. 정적 module·milestone catalog는 역량을 누적 구현 단위에 연결하지만 학습자의 현재 상태를 기록하지 않는다.
 
 이 문서는 학습자의 완료 여부, 점수, 진도율, 학습 날짜 또는 mastery를 기록하지 않는다. 별도 LMS, 일일 진도표, 강의 순서 강제 장치도 아니다. 아래 자료 평가는 **자료의 충족도**이며 학습자의 이해도를 뜻하지 않는다.
 
@@ -32,7 +32,7 @@
 
 공백 처리는 `그대로 사용`, `수업 내 보충`, `별도 자료 확보`, `원본 복구 후 재감사`, `트랙 선택 시 확보` 중 하나만 쓴다.
 
-자료 registry의 무결성은 `complete`, `limited`, `blocked`, `unverified`, 감사 상태는 `complete`, `blocked`, `pending`을 쓴다. `limited`는 현재 파일을 감사할 수 있지만 변환 훼손이나 원본 누락 같은 제약이 있음을 뜻한다. 파일 hash가 registry와 달라지면 validator가 별도 상태값을 저장하지 않고 stale 오류로 계산한다.
+자료 registry의 무결성은 `complete`, `limited`, `blocked`, `unverified`, 감사 상태는 `complete`, `blocked`, `pending`을 쓴다. `limited`는 현재 파일을 감사할 수 있지만 변환 훼손이나 원본 누락 같은 제약이 있음을 뜻한다. 파일 hash가 registry와 다른지는 자료를 바꿀 때 실제 파일과 `INDEX.md`를 수동으로 교차 확인한다.
 
 실습 구현 깊이는 `I1_MECHANISM`, `I2_COMPONENT`, `I3_WORKFLOW`, `I4_EXPERIMENT`, `I5_RESEARCH` 순서다. `MODULE_ASSIGNMENT`는 실제 component와 data→model→loss→train/eval workflow를 포함하고, `PHASE_CAPSTONE`은 baseline·통제 비교 또는 ablation·error analysis·재현 조건·한계 보고를 포함한다. 개념 blocker를 푸는 `PRE_LAB`은 milestone이 아니므로 catalog에 넣지 않는다.
 
@@ -269,6 +269,6 @@
 4. 원본 누락 또는 변환 훼손이 있으면 무결성을 `limited`나 `blocked`로 두고 `충분` 판정의 단독 근거로 쓰지 않는다.
 5. 역량 연결은 `primary`, `supporting`, `context` 중 하나로 명시한다. `context`만으로 `충분`을 부여하지 않는다.
 6. 목표 깊이와 실제로 만들 수 있는 요구 근거를 비교해 충족도를 정한다. 자료가 바뀌면 관련 매핑과 오류·공백을 다시 감사한다.
-7. Registry 감사 요약 표의 과정·자료·자산·PDF 페이지·`limited` 개수는 validator 계산값과 일치시킨다. 기본 구조 검증은 `python3 .agents/skills/coach-llm-research-study/scripts/validate_curriculum.py`로, 모든 private 자료·hash·INDEX parity와 감사 요약을 포함한 검증은 같은 명령에 `--strict-sources`를 붙여 실행한다. 한 과정만 readiness 관점에서 검사할 때는 `--strict-sources --course-index materials/private/<course>/INDEX.md`를 함께 쓴다.
+7. Registry 감사 요약 표의 과정·자료·자산·PDF 페이지·`limited` 개수는 실제 파일과 각 과정 `INDEX.md`를 기준으로 교차 확인한다. 자료를 바꿀 때는 public registry와 private INDEX의 경로·hash·개수·감사 상태를 함께 점검한다.
 8. 모든 target은 정확히 하나의 module에 배정하고 각 module은 정확히 하나의 `MODULE_ASSIGNMENT`를 참조한다. 각 주요 phase는 정해진 `PHASE_CAPSTONE`으로 닫되 선택형 full-stack module은 별도 capstone이나 systems endpoint의 강제 gate로 만들지 않는다.
 9. module·milestone catalog에는 상태·날짜·점수·mastery를 기록하지 않는다. `PRE_LAB`과 보존된 이전 시도는 milestone credit으로 올리지 않으며, 실제 prerequisite readiness는 학습자가 남긴 target evidence에서 별도로 판단한다.

@@ -22,12 +22,8 @@ materials/private/<course>/course-provided-practice/
 
 이 경로의 실습은 강의 원본의 일부입니다. 학습자나 저장소 스킬이 생성하는 최상위 `practice/` 결과물과 섞지 않습니다. 각 과정 `INDEX.md`의 강의 제공 실습 표는 `Practice path`, `Related lesson path`, `Variant`, `Format`, `Original` 열로 정확한 강의 관계를 기록합니다. 파일명이나 차시 번호가 비슷하다는 이유만으로 연결하지 않습니다.
 
-매핑은 다음 명령으로 검사합니다.
-
-```bash
-python3 .agents/skills/suggest-learning-practice/scripts/validate_practice_index.py \
-  materials/private/<course>/INDEX.md
-```
+매핑을 바꿀 때는 표의 모든 경로가 실제 파일을 가리키는지, 관련 강의와
+variant가 원본 기준으로 정확한지 직접 확인합니다.
 
 ## 새 강의자료 등록
 

@@ -36,10 +36,7 @@ jobs:
         run: uv sync --frozen
 
       - name: Run public test suite
-        run: uv run --frozen pytest -q .agents/skills
-
-      - name: Validate public curriculum structure
-        run: uv run --frozen python .agents/skills/coach-llm-research-study/scripts/validate_curriculum.py
+        run: uv run --frozen pytest -q tests .agents/skills
 
       - name: Check lockfile
         run: uv lock --check

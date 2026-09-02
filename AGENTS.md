@@ -2,265 +2,186 @@
 
 ## Purpose
 
-This is a lightweight personal TIL repository for studying toward an LLM Research Engineer role. Keep learning notes easy to write, find, and revisit. Do not turn the repository into a learning-management system.
+This is a lightweight personal TIL repository for studying toward an LLM
+Research Engineer role. Keep learning easy to start, continue, and revisit.
+Do not rebuild a learning-management system, state machine, evidence database,
+or automatic curriculum orchestrator.
 
 ## Layout
 
-- `materials/`: source files. Copyrighted or private files belong in ignored `materials/private/`.
-- `til/today.md`: ignored manual scratchpad for learner-written free-form study notes. Reviewed lessons do not write it. Root `today.md` is an ignored legacy input only when explicitly named.
-- `til/`: diary-like learning records organized by date as `til/YYYY/MM/YYYY-MM-DD.md`; keep its template at `til/template.md`.
-- `knowledge/`: topic-oriented, mutable notes representing the learner's current best understanding; keep its template at `knowledge/template.md`.
-- `practice/`: executed notebooks, Kaggle work, model experiments, and benchmarks; keep its template at `practice/template.ipynb`.
-- `ROADMAP.md`: broad learning direction, not a status tracker.
-- `CURRICULUM.md`: stable competency targets, ordered modules, cumulative
-  milestones, and audited source coverage, not learner progress or mastery
-  tracking.
-- `USAGE.md`: concise instructions for writing TIL notes, storing practice, and using repository skills.
-- `archive/`: previous TIL notes; preserve them as read-only history unless the user requests a specific change.
+- `STATE.md`: public-safe resume bookmark for the simplified study pilot. It is
+  not a mastery record, scorecard, transcript, or progress database.
+- `materials/`: source files. Copyrighted or private files belong in ignored
+  `materials/private/`.
+- `practice/`: learner-run notebooks, scripts, experiments, and benchmarks.
+- `challenges/`: code submitted to external practice platforms.
+- `til/today.md`: ignored manual scratchpad.
+- `til/YYYY/MM/YYYY-MM-DD.md`: dated learning records written only on request.
+- `knowledge/`: date-free notes representing the learner's current best
+  understanding.
+- `ROADMAP.md`: broad long-term direction, not current study state.
+- `CURRICULUM.md`: stable competency and source reference, not progress.
+- `archive/`: read-only history unless the learner requests a specific change.
 
-The normal flow is:
+## Default study route
+
+The ordinary route is deliberately small:
 
 ```text
-select one primary Curriculum target and, only when needed, one bridge target
--> resolve an audited local source or one reviewed temporary official source
--> prepare and independently review one temporary lesson handoff
--> run a 60-90 minute standard session -> capture confirmed learner evidence
--> choose a pre-lab, module assignment, phase capstone, or milestone deferral
-   from that exact completed session
--> for a concrete practice, implement, execute, diagnose, and interpret the
-   required evidence, then update zero to three knowledge notes or record
-   NO_CHANGE
--> for `DEFER_TO_MILESTONE`, preserve the captured cycle as
-   `milestone-pending` and return directly to target selection
--> recompute the next target and prepare the next reviewed lesson
--> only on an explicit daily-TIL request, compose completed unconsumed cycles
+read STATE.md and the exact current source or assignment
+-> explain one connected module with enough context
+-> show one small numerical example, shape trace, or code/data-flow trace
+-> ask one self-contained integrated checkpoint
+-> wait for the learner's own attempt
+-> give complete feedback in one response
+-> propose a complete STATE.md replacement only if the resume point changed
+-> write it only after explicit approval
 ```
 
-"No extra practice" is valid only when equivalent implementation, execution,
-and interpretation evidence already covers the session outcomes or there is no
-practice-capable outcome. "No knowledge change" remains valid. No daily streak,
-promotion status, separate review log, progress table, or canonical-note gate
-is required.
+The following phrases always use this route:
 
-## Working rules
+- `오늘 학습 시작`: teach one connected module from the current scope.
+- `오늘 전체 학습 흐름 시작` or `전체 학습 흐름 시작`: repeat connected
+  modules within the same source or assignment. Do not enter a new course or
+  assignment automatically.
+- `계속`: resume the next independent action written in `STATE.md`.
+- `오늘 학습 종료`: stop. If the resume point changed, show a proposed full
+  `STATE.md` replacement, but do not write it.
 
-- Resolve exact paths with `rg --files`; Korean spelling, spaces, brackets, and parentheses are significant.
-- Preserve unrelated working-tree changes.
-- Treat review and explanation requests as read-only unless the user asks for edits.
-- Use `apply_patch` for text edits.
-- Use `tmp/active-learning-flow.json` as the single atomic daily-flow cursor.
-  It preserves the current phase, exact handoff/practice, cycle evidence hashes,
-  and exact learning commits across same-device Codex conversations. It is
-  ignored operational state, not a progress or mastery database.
-- Use `tmp/active-lesson-handoff.md` as the resumable cache for one interactive
-  lesson. Its only normative schema and lifecycle are in [the coach handoff
-  contract](./.agents/skills/coach-llm-research-study/references/lesson-handoff.md).
-- Preserve the top-level invariant: the coach owns source audit, contract
-  preparation, independent review, and evidence classification; teaching
-  consumes the reviewed handoff; practice consumes the completed session or an
-  exact finalized legacy TIL; knowledge consumes confirmed session plus terminal
-  practice evidence. TIL is never a day-flow gate.
-- During a multi-source curriculum audit, `tmp/curriculum-audit/` may hold disposable per-source recovery notes. Delete them after reviewed findings are integrated into `CURRICULUM.md`; they are not learner evidence or progress records.
-- Do not relocate, delete, or rewrite existing `archive/` notes in bulk.
-- Never invent sources, learner claims, code output, experiments, or results.
-- Verify current recommendations such as Kaggle competitions, libraries, models, and tools.
-- An unregistered official HTTPS source may be cached only for one reviewed
-  lesson under `tmp/active-lesson-sources/<lesson-id>/`. The handoff owns its
-  exact identity, hash, scope, target relation, and cleanup. This temporary use
-  never changes durable `CURRICULUM.md` coverage or silently registers a source.
-- Register private course PDFs under `materials/private/<course>/` with a stable lesson-prefixed filename such as `NN-NN_title.pdf`; verify that the whole file is readable and update that course's local `INDEX.md`. Every course INDEX declares exactly one uppercase `source_namespace`, and each source ID uses `SRC-<source_namespace>-<NN-NN>`. An INDEX may additionally register bounded lesson units in its `학습 범위` table. Declare a coherent topic, section, or example family—not a page-by-page checklist—and give each included or boundary unit one machine-checkable source-anchor locator. Those rows route a reviewed lesson but do not establish coverage or mastery.
-- Store instructor-provided practice under `materials/private/<course>/course-provided-practice/`; it is source material and must not be mixed with learner or agent-generated work under top-level `practice/`. Map every such file explicitly in that course `INDEX.md` with `Practice path`, `Related lesson path`, `Variant`, `Format`, and `Original`; never infer a relationship from numbering.
-- When normalizing a saved Notion HTML page for long-term use, write an expanded Markdown copy with a stable lesson-prefixed name. Preserve headings, toggle children, exact code indentation, output, tables, links, formulas, captions, and content images; discard browser UI assets only after the Markdown package passes a source-to-output integrity check.
-- When replacing a PDF with Markdown, preserve every page as a readable lossless page render alongside searchable extracted text. Delete the PDF only after page counts, image links, render dimensions, text extraction, and visual inspection all pass; keep the source whenever conversion is incomplete or questionable.
+Do not route these phrases through ignored files under `tmp/`. Do not perform
+automatic target selection, background source review, tracking-file generation,
+practice generation, knowledge updates, TIL composition, or next-lesson
+preparation. There is no fallback route.
+
+If `STATE.md` is missing or conflicts with a tracked artifact, report the facts
+and show a complete replacement proposal. Wait for the learner's decision; do
+not infer or backfill state from old metadata or ignored files.
+
+## State changes and authorization
+
+- `STATE.md` contains only public technical information: pilot dates, current
+  source and scope, concise observed basis, items to recheck, and one next
+  independent action.
+- Never put learner answer transcripts, private paths, internal IDs, hashes,
+  phases, readiness scores, session history, or metrics in `STATE.md`. A public
+  source commit pin is allowed.
+- Always show the exact complete replacement before editing it.
+- `STATE 반영해` or equivalent approval authorizes only replacement of
+  `STATE.md`. It does not authorize a commit or push.
+- Never synchronize `STATE.md` with old notebook metadata or ignored temporary
+  state.
 
 ## Tutoring
 
-- Use `$plan-roadmap-learning` first when the learner asks what to study next or requests a source for an unresolved target. It keeps the ordered ROADMAP endpoint as the long-term destination, chooses exactly one actual primary target, and may add one mostly satisfied inline bridge before resolving sources. A blocking prerequisite becomes the primary target, never a bridge. Source availability affects executability after selection, not target priority. The planner remains read-only. The agent selects an exact official URL when needed; the cache helper only retrieves that supplied URL and never performs discovery or background learning.
-- Keep source and understanding evaluation in `$coach-llm-research-study`, adaptive teaching in `$teach-course-material`, hands-on decisions in `$suggest-learning-practice`, and durable concept writing in `$update-learning-knowledge`.
-- For source registration, replacement, or `full-source` teaching, read the complete source. For a `focused` lesson, read and review the selected coherent unit or unit group, its declared boundary units, direct assets, and relevant INDEX/Curriculum/ROADMAP rows. Each unit's anchor establishes the machine-checkable source boundary; unrelated chapters, appendices, goals, and index entries are outside the completeness gate. The source unit bounds review cost, not lesson length. Unless the learner explicitly requests `short` or `custom`, run a `standard` session with three to five connected concepts organized into three to five connected modules, motivation, concept model, worked examples, a distinct limitation or counterexample, and a final learner-attempted transfer combining every non-reserved core concept. A fast answer may compress explanation, but cannot skip an arc role.
-- Treat vague requests such as "압축", "빠르게", or "따라잡기" as
-  `standard` unless the learner gives an explicit duration or format constraint.
-  Deliver each module as one coherent purpose -> explanation -> worked
-  trace/code walk -> application block. Ask at most one assessed checkpoint per
-  module, explain an unconfirmed prerequisite before assessing it, and resume
-  the prerequisite step when the learner says it has not been introduced.
-- A D2 lesson whose target requires implementation or debugging must include an
-  actual class/API/`forward`/Tensor or data-flow walkthrough. Scalar arithmetic
-  and shape recall alone cannot satisfy the standard-session breadth gate;
-  learner-owned implementation still belongs to practice and is not inferred
-  from the walkthrough.
-- Before first using an essential concept, check for demonstrated understanding in the current conversation, relevant `knowledge/`, learner-authored TIL, and interpreted practice. Treat missing evidence as unconfirmed understanding even when the source introduces the concept; archived notes and tutor-authored prose may provide context but do not establish mastery on their own.
-- Teach an unconfirmed essential concept before building on it, starting from the problem it solves and a tiny example. Mark it `[선수개념]` when it appears in the source or is required to follow the source, reserve `[보충]` for useful material outside the source, and use `[정정]` for substantive source corrections.
-- When deepening an existing knowledge note, treat it as the learner's starting explanation rather than as an authoritative source; follow its related source when available and verify material claims as needed.
-- For reasoning tasks, start from the learner's attempt and use the smallest useful hint, then partial setup, then a full explanation when needed or requested. Fade from worked examples toward independent explanation or transfer as understanding grows. Answer direct definitions and blocking prerequisites directly.
-- Start from the learner's note when they provide one.
-- Say what is correct, what needs correction, and what useful idea is missing.
-- When auditing lesson material, distinguish errors, missing notation or assumptions, required prerequisites, acceptable simplifications, intentional deferrals, and LLM Research Engineer-relevant additions.
-- Locate each material finding by page, slide, section, formula, or code fragment. Verify uncertain or implementation-specific claims with primary sources.
-- Keep high-leverage concepts worth knowing now in the lesson evaluation; explicitly defer low-value advanced detail.
-- Base achievement judgments on learner explanations, correct examples or shapes, interpreted output, and transfer—not on lecture completion or note length.
-- Compress ordinary programming basics unless they affect shapes, gradients, numerical behavior, or model meaning. In `full-source` mode, compress explanation depth rather than deleting a source-core objective; even an evidence-backed bridge must be stated in the lesson.
-- For difficult topics, connect intuition, a small example, formulas and shapes, code, and actual ML/LLM use.
-- In user-facing tutoring and audit responses, use only standalone display-math blocks: place every mathematical formula, symbol, Tensor shape, subscript, or superscript inside a `$$...$$` block with blank lines around it and the delimiters on their own lines. Do not use inline `$...$`, raw or escaped notation such as `h_t` or `h\_t`, or a code block merely to display math; refer to symbols in surrounding prose by their Korean role instead. Keep each display block renderer-minimal: use bare mathematical notation such as `h_n`, a single ordinary subscript underscore, and standard ASCII LaTeX operators only. Never put Korean prose, an API identifier, `\text{...}`, `\_`, or a LaTex line-break command inside a display block. Literal code may retain exact API identifiers such as `h_n`, but explain their mathematical role in a display block. Reserve code blocks for executable code, pseudocode, or raw Markdown explicitly requested by the learner. Before sending, scan every display block for `\text{`, `\_`, or doubled backslashes as well as unsupported inline-dollar delimiters and unrendered non-code subscripts/superscripts.
-- Do not treat tutor-generated explanations as proof of learner knowledge. Use
-  only learner explanations, calculations, code, and interpreted output as
-  evidence for session completion, practice, knowledge, or later TIL claims.
-- Do not use TIL as a prerequisite in the daily full flow. New practice accepts
-  the exact cursor-v2 immutable capture of a completed schema-v10 lesson
-  session. A captured schema-v9 session may
-  remain read-only legacy provenance after an explicit restart, but it is not
-  promoted to a new Curriculum target. Manual or historical practice may
-  instead use one explicitly named finalized dated TIL; never infer the latest
-  note or accept `til/today.md` as that input.
-- `$suggest-learning-practice` first returns one practice action and modality.
-  Local `NOTEBOOK`, `BENCHMARK`, and `DATASET_PROJECT` modes share exactly one
-  `practice/<area>/<topic>.ipynb`; external challenge or competition proposals
-  require current verification and approval before account access,
-  participation, or submission. `NO_EXTRA_PRACTICE` requires equivalent
-  implementation, execution, and interpretation evidence or no
-  practice-capable outcome.
-- Practice also returns a progression layer and implementation depth. Use
-  `PRE_LAB` only for a concrete mechanism blocker; it never earns milestone
-  credit. A `MODULE_ASSIGNMENT` contains a reusable component and a bounded
-  data-to-model-to-loss-to-train/eval workflow. A `PHASE_CAPSTONE` adds prior
-  artifact references, a baseline, a controlled comparison or ablation, error
-  analysis, reproducibility conditions, and limitations. Use
-  `DEFER_TO_MILESTONE` instead of generating another small Notebook when the
-  current lesson should accumulate into a later assignment.
-- Invoking `$suggest-learning-practice` with an exact eligible captured-cycle
-  input set or one finalized TIL authorizes exactly one unexecuted local Notebook when its
-  decision is `CREATE_LOCAL_PRACTICE`. Keep coherent outcomes together. When a
-  module assignment is due, missing implementation evidence calls for the
-  smallest coherent assignment that still contains its required component and
-  workflow, not another micro-practice or more files.
-- Map every major session or TIL Outcome to `implement`, `test`, `debug`,
-  `interpret`, or `design`. Use the one Notebook for deterministic calculations,
-  Tensor/Shape mechanics, small training and validation flows, debugging, and
-  local API contracts. Do not create learner `src/`, `tests/`, or a project
-  directory unless the user explicitly asks for a reusable multi-file project.
-- Give every Notebook cell a stable ID and an internal role under `metadata.llm_research_lab.practice`. Keep exactly one unexecuted setup-role cell before the exercises; each exercise keeps its brief, implementation, fixture, `check_e##()`, and reflection cells adjacent.
-- Treat the generated Notebook as the learner's complete task interface. Source links are provenance, not required reading: every tested threshold, precedence rule, exact token or key, dtype/device representation, axis or inclusive boundary, aggregation, and error behavior must be stated naturally before implementation. Keep source kinds, Outcome/Requirement/Target IDs, full claims and source anchors, scaffold ownership, cell roles, and assertion traces in custom metadata only; never render them as learner-facing tables, headings, IDs, or code markers. Compression or answer withholding must never hide the problem specification.
-- Put a concise code-local contract immediately above each learner-editable
-  region. With the brief folded, the implementation cell alone must explain
-  the inputs, outputs, invariants, and next semantic step, while withholding
-  any complete right-hand side or loop that the learner could copy as the
-  answer. Fresh schema-v5 code targets declare stable start and end markers for
-  that region; structural validation checks the boundaries, while the
-  independent learner-surface review judges sufficiency and answer leakage.
-- Put folded progressive hints in the Markdown cell immediately beside each TODO, never in a global hint appendix. Read every explicitly mapped basic and advanced instructor practice first, preserve a sound starter/TODO boundary, and use its solution only for contract verification. Provide signatures, deterministic fixtures, tests, repetitive validation, return assembly, and bookkeeping; leave only session- or TIL-linked core algorithms, Tensor operations, training order, diagnosis, and interpretation learner-owned. Use `guided`, then `partial`, then evidence-backed `independent` scaffolding, with one primary concept and at most three learner targets per Exercise. Track every required written reflection as one of those targets; untracked reflection must be explicitly optional and not a completion condition. Do not overwrite learner work, include a complete answer, invent output, execute a new Notebook, or commit it unless separately asked.
-- Before reporting generated practice as ready, validate it and obtain a pass from a fresh read-only reviewer. The reviewer first inspects only the rendered learner surface for natural standalone courseware and audit leakage, then inspects metadata and sources for fidelity and traceability. Permit one revision and one second reviewer only. If review is unavailable or the second review does not pass, do not deliver it as ready.
-- When `$suggest-learning-practice` is given an exact practice path for feedback, inspect the saved code and actual traceback or test output, address one blocker at a time, and require state/output interpretation even after tests pass. Do not complete learner-owned core logic without explicit authorization.
-- Use Kaggle only when data handling, validation, metrics, or error analysis is the point; use local code or benchmarks for mechanics and systems topics. Verify any current recommendation.
-- `오늘 전체 학습 흐름 시작` or `전체 학습 흐름 시작` authorizes a
-  same-Asia/Seoul-day sequence of cycles across new Codex conversations:
-  target/source selection; reviewed 60-90 minute lesson; confirmed evidence
-  capture; and one practice decision. Concrete practice continues through
-  learner implementation, execution, interpretation, the exact
-  completion-ready commit, and zero to three knowledge updates or `NO_CHANGE`.
-  `DEFER_TO_MILESTONE` instead preserves the cycle and returns to next-target
-  calculation without those completion claims. The flow then performs
-  preparation of the next reviewed lesson. `계속` resumes the cursor's exact phase while
-  that authorization remains current. Do not create an orchestration skill,
-  snapshot, or progress database.
-- Full-day authorization never permits learner answers, learner-owned practice,
-  permanent source registration, paid/authenticated downloads, external
-  participation or submission, TIL saving, or push. `오늘 학습 시작` authorizes
-  one reviewed lesson only. `오늘 학습 종료` pauses without a TIL and expires
-  authorization. On a new day, preserve unfinished and unconsumed completed
-  cycles but require a new full-day request before any new learning commit.
-- Only `오늘 TIL 저장해줘`, an explicit `$save-today-til` invocation, or an
-  explicitly named standalone draft authorizes TIL composition and its exact
-  dated-file commit. Flow-generated TILs include completed unconsumed cycles
-  only and are not an input to the cycles they summarize.
-- A whole interactive named-source lesson automatically pairs
-  `$coach-llm-research-study` with `$teach-course-material`, even when only the
-  teaching skill is invoked. The coach-owned readiness gate must pass before
-  teaching starts; direct definitions, short corrections, one-off questions,
-  and knowledge-note deepening remain handoff-free.
-- For an explicit learning-start or full-flow request, keep repairing an
-  evidence-free handoff for the same target and source within that request.
-  Locator, wording, objective mapping, and teaching-order findings are
-  repairable: update the contract and ask the same independent reviewer for a
-  targeted recheck. Only source integrity or access failure, irreducible factual
-  ambiguity, or a real user scope decision may stop the flow. A second
-  repairable non-pass remains `repair_pending`; do not shrink session depth
-  merely because the reviewed source slice is small. `계속` resumes that state
-  without requiring a reset phrase or a target ID.
-- During an interactive lesson, copy only confirmed learner-authored answers to
-  the daily cursor with exact content and hash. Keep partial answers,
-  misconceptions, simple agreement, copied tutor wording, source summaries, and
-  tutor assessments in the temporary handoff only; a corrected explain-back is
-  new evidence rather than a rewrite of the earlier attempt. Never write
-  reviewed-lesson evidence to `til/today.md`.
+- Start with the purpose and the problem the idea solves. Give sufficient
+  connected explanation before asking the learner to answer.
+- For Tensor, gradient, loss, or model-flow questions, include operand and
+  result shapes and one tiny concrete trace. Introduce notation after the
+  mechanism is visible.
+- Put every condition needed for a checkpoint in the same message. Do not make
+  the learner scroll up to reconstruct hidden inputs, Tensor values, shapes,
+  dtypes, devices, or evaluation goals.
+- Keep internal routing, policy, review labels, and metadata out of tutoring
+  messages unless the learner explicitly asks to inspect them.
+- Ask at most one integrated checkpoint per connected module. Avoid chains of
+  tiny recall questions.
+- After an attempt, respond once with what is correct, what needs correction,
+  why, and the useful missing idea. If calculation is not the learning goal,
+  fill in routine arithmetic and assess the reasoning.
+- If the learner says a prerequisite was never introduced, explain it before
+  assessing it. If they say they understand or want to move on after a correct
+  answer, continue rather than re-testing the same point.
+- For implementation or debugging, inspect the exact current file and actual
+  output. Address one real blocker at a time and preserve learner-owned code
+  unless editing is explicitly requested and permitted.
+- Tutor explanations, file existence, and green tests are not evidence of
+  learner understanding. Use the learner's explanation, calculation, code,
+  execution, debugging hypothesis, and output interpretation when making a
+  learning judgment.
 
-## TIL, knowledge, and practice
+In user-facing tutoring, render mathematical notation only in standalone
+display-math blocks with blank lines around them. Do not use inline dollar math,
+raw unrendered subscripts, or code blocks merely to display formulas. Executable
+code may retain exact identifiers.
 
-- Treat TIL files as chronological history. In the daily flow, compose them only
-  on explicit request from completed unconsumed cycles, terminal practice,
-  knowledge results, exact recorded commits, and source/target provenance.
-- Use one TIL per cycle completion date under `til/YYYY/MM/`. A flow-generated
-  TIL is concept-first: definition, conditions/mechanism/limits, learning and
-  practice evidence, observed interpretation, and related links. Do not include
-  `남은 질문`, learner instructions, assessment prose, TODOs, or internal
-  markers; unfinished learning remains operational state instead.
-- Repeated same-day saves preserve the exact current dated file and merge only
-  new completed cycles. The first v9 save of a legacy flow-generated note drops
-  obsolete remaining-question, next-step, and internal-marker text while
-  retaining visible confirmed history. Verify each cursor-recorded commit's existence,
-  committer date, subject, exact changed-path set, and current artifact; never
-  summarize unrelated Git history.
-- Manual or standalone TIL content may preserve explicitly learner-written
-  uncertainty after one same-flow coach review. `til/today.md` remains an
-  ignored manual inbox and is never reset or modified by reviewed lessons.
-- For source-based study, keep exact resolvable sources under `관련 기록`, one
-  exact primary `관련 역량`, an actually delivered bridge only, and complete
-  temporary external identity/scope. These IDs are provenance, not mastery.
-- Treat handoff `completed` as completion of the planned session and integrated
-  exit, never target mastery. Preserve it through downstream practice
-  provenance validation; TIL saving is independent.
-- Treat `knowledge/` as the learner's current state. Update zero to three
-  date-free concept notes from confirmed session evidence plus terminal,
-  interpreted practice without requiring a TIL. `NO_CHANGE` is valid.
-- New local practice uses metadata-v5 and records its practice layer,
-  implementation depth, optional stable milestone, captured-cycle or finalized
-  TIL inputs, prior practice, reviews, and result/interpretation cells. Existing
-  v3/v4 artifacts remain valid as legacy-unclassified without automatic
-  milestone credit.
-- Record only observed results from code that actually ran.
-- Keep datasets, model weights, credentials, and large generated files out of Git unless explicitly authorized and appropriate.
-- Treat PDFs as sources, not public notes. Include toggle children, figures, code, tables, and formulas when exporting Notion pages.
+## Simplified pilot and CS336
 
-## Markdown and verification
+The pilot spine is [Stanford CS336 Spring 2026](https://cs336.stanford.edu/).
+Its Assignment 1 reference is pinned to public commit
+`a158843b20107949f1a8d7df1b05cd33b9166712`. Do not clone, register, cache, or
+download it unless the learner separately asks.
 
-- Target GitHub Markdown in repository files.
-- In repository Markdown files, use `$...$` and `$$...$$` for math. In user-facing explanations, use only standalone `$$...$$` blocks because inline math is not reliably rendered; reserve raw Markdown only for an explicit copy/paste request.
-- Give fenced code blocks a language identifier.
-- Keep relative links resolvable and use one top-level heading in finished notes.
-- Run the TIL validator when applicable:
+Before proposing Assignment 1 entry, run one learner-owned integrated readiness
+diagnostic from a blank Python file:
+
+- create a deterministic synthetic multiclass problem;
+- define a small `nn.Module` and `forward`;
+- separate train and validation data;
+- use raw logits, cross-entropy, and an optimizer;
+- run `zero_grad -> forward -> loss -> backward -> step`;
+- calculate validation loss and accuracy;
+- transfer once to a changed feature count or class count;
+- explain gradient flow, `zero_grad`, `detach`, `no_grad`, `requires_grad`, the
+  main Tensor roles, and the first hypothesis for any error.
+
+Readiness requires blank-file implementation, execution, and debugging;
+autograd-state explanation; matrix multiplication, broadcasting, softmax, and
+cross-entropy contracts; and correct baseline, validation, and metric use.
+Teach only failed areas in at most two focused bridge modules. Transformer,
+tokenizer, and systems details may be learned just in time during CS336. When
+the requirements are met, propose Assignment 1 entry and wait for approval
+before changing `STATE.md`.
+
+During a CS336 assignment, follow the assignment's official AI policy strictly:
+the learner writes code and tests and runs commands. Provide concept
+explanations, error-message interpretation, sanity checks, and general review
+only. Do not provide code, pseudocode, patches, TODO solutions, or commands,
+even after an explicit request.
+
+The pilot lasts 28 days from its first simplified session. At the end, review
+manually: maintenance-time share, resume time and context failures,
+learner-first attempts and transfer, and seven-day recall. Do not automatically
+switch to another workflow.
+
+## TIL, knowledge, practice, and sources
+
+- Ordinary study does not create a Notebook. The official assignment is the
+  main practice; a small execution check can be given in chat.
+- Create or edit a `practice/` artifact only when the learner explicitly asks.
+  Keep setup, implementation, run, and interpretation together when practical.
+- Existing notebooks may retain historical metadata. Do not rewrite it merely
+  to fit the pilot, and do not treat it as active state.
+- Write a dated TIL only when the learner explicitly asks and identifies the
+  current conversation, draft, or artifacts to summarize. Do not infer missing
+  claims or auto-commit it.
+- Update `knowledge/` only on an explicit request and only from learner-authored
+  explanation, calculation, or executed and interpreted artifacts. `NO_CHANGE`
+  is valid.
+- Keep source material distinct from learner work. Do not copy copyrighted
+  material into public notes. Do not delete a PDF or original Notion export
+  until its text, page renders, code indentation, tables, links, formulas, and
+  assets have been checked.
+- Do not add datasets, model weights, credentials, or large generated files to
+  Git unless explicitly authorized and appropriate.
+
+Standalone formatting checks remain available:
 
 ```bash
-python3 .agents/skills/save-today-til/scripts/validate_til.py path/to/changed.md
+python3 .agents/skills/save-today-til/scripts/validate_til.py til/YYYY/MM/YYYY-MM-DD.md
+python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py knowledge/<area>/<concept>.md
 ```
 
-- Run the knowledge validator when applicable:
+## Editing and Git
 
-```bash
-python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py path/to/changed.md
-```
-
-- Read changed files, run relevant code, and check `git diff --check` before finishing.
-- For PDFs, render and visually inspect the relevant pages.
-
-## Git
-
-Do not commit or push unless the user explicitly asks. A request to commit does
-not imply permission to push. Same-day full-flow authorization narrowly permits
-only the exact completion-ready practice commit and the later zero-to-three
-evidence-backed knowledge paths defined above; it does not permit a TIL commit.
-Explicitly invoking `$save-today-til`, saying `오늘 TIL 저장해줘`, or naming a
-standalone TIL draft authorizes exactly one path-limited dated-TIL commit after
-validation. `오늘 학습 시작`, `계속`, and `오늘 학습 종료` alone do not authorize
-a TIL or any broader commit. None of these authorizes push, infrastructure or
-source-registration commits, external submission, unrelated paths, cleanup
-before applicable validation, history rewrite, or force-push. Stage only exact
-authorized paths and inspect the staged diff before every commit.
+- Resolve exact paths with `rg --files`; Korean spelling, spaces, brackets, and
+  parentheses are significant.
+- Preserve unrelated working-tree changes and historical learning artifacts.
+- Use `apply_patch` for text edits. Read changed files and run checks relevant
+  to the actual change.
+- Use `uv sync`, `uv add`, and `uv run`; do not use ad-hoc `pip install` in this
+  repository.
+- Never invent sources, learner claims, code output, experiments, or results.
+- Do not commit or push unless the learner explicitly asks for that specific
+  operation. A commit request never implies push permission. Before a commit,
+  stage only the exact authorized paths, inspect the staged name-status and
+  diff, and run `git diff --cached --check`.

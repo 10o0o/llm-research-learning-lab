@@ -1,120 +1,111 @@
 # LLM Research Engineer Learning Lab
 
-LLM Research Engineer를 목표로 **학습자료 구성 → 60~90분 대화형 수업 →
-실습 → knowledge 갱신 → 다음 목표**를 반복하는 개인 학습 저장소입니다.
+LLM Research Engineer를 목표로 공부하는 가벼운 개인 학습 저장소입니다.
+복잡한 진도 관리보다 충분한 설명, 작은 실행, 학습자의 독립 시도와 해석을
+우선합니다.
 
-진도율이나 자동 mastery 판정보다, 학습자가 직접 설명하고 구현·실행한
-뒤 결과를 해석한 근거를 우선합니다.
-
-[자세한 사용법](./USAGE.md) · [학습 로드맵](./ROADMAP.md) ·
-[역량·자료 기준](./CURRICULUM.md)
+[현재 학습 위치](./STATE.md) · [자세한 사용법](./USAGE.md) ·
+[학습 로드맵](./ROADMAP.md) · [역량 참고](./CURRICULUM.md)
 
 ## 가장 빠른 시작
 
-같은 저장소를 작업 공간으로 연 새 Codex 대화에서 target ID나 skill
-이름을 직접 고를 필요가 없습니다. 하루 동안 여러 학습 사이클을
-이어가려면 다음 한 문장으로 시작합니다.
+이 저장소를 작업 공간으로 연 Codex는 [`STATE.md`](./STATE.md)의 현재 범위와
+다음 독립 행동을 읽습니다. `STATE.md`는 재개용 북마크일 뿐, 숙달 기록이나
+점수표가 아닙니다.
+
+| 요청 | 동작 |
+|---|---|
+| `오늘 학습 시작` | 현재 범위에서 연결된 module 하나를 진행 |
+| `전체 학습 흐름 시작` 또는 `오늘 전체 학습 흐름 시작` | 같은 source·과제 안에서 module을 이어 가되 새 강의로 자동 진입하지 않음 |
+| `계속` | `STATE.md`의 다음 독립 행동을 재개 |
+| `오늘 학습 종료` | 학습을 멈추고 필요한 `STATE.md` 전체 교체안만 제시 |
+
+`STATE.md`가 없거나 실제 artifact와 충돌하면 Agent는 다른 운영 상태를
+추측하지 않습니다. 확인한 사실과 `STATE.md` 전체 교체안을 제시하고 사용자
+결정을 기다립니다.
+
+## 학습 방식
+
+기본 module은 다음 순서로 진행합니다.
 
 ```text
-오늘 전체 학습 흐름 시작
+충분한 설명
+→ 작은 수치 예시와 shape trace
+→ 하나의 자기완결적인 통합 checkpoint
+→ 학습자의 독립 시도
+→ 정답·수정점·빠진 생각을 묶은 한 번의 전체 피드백
 ```
 
-`전체 학습 흐름 시작`도 같습니다. Agent가 현재 학습 근거에서 실제
-다음 target을 정하고, 검토된 자료로 표준 60~90분 수업을 진행합니다.
-수업 뒤에는 필요할 때 pre-lab, module assignment, phase capstone 중 실제
-수행 경계에 맞는 실습을 제시합니다. 아직 누적 과제 시점이 아니면 작은
-Notebook을 반복 생성하지 않고 milestone으로 넘깁니다. 학습자가 직접
-수행할 실습이 선택되면 구현·실행·해석한 후 knowledge를 갱신합니다.
-Milestone으로 넘긴 cycle은 완료로 꾸미지 않고 보존한 뒤 바로 다음
-target을 고릅니다.
+공식 과제가 실습 역할을 합니다. 짧은 실행 확인은 대화 안의 작은 과제로
+제시할 수 있지만, 별도 metadata Notebook이나 학습 관리 artifact를 자동으로
+만들지 않습니다. 강의 완료, Tutor 설명, 파일 존재, green test만으로 이해를
+판정하지 않습니다.
 
-같은 날 새 대화를 열어도 다음처럼 이어갈 수 있습니다.
+## 첫 준비도 진단
 
-```text
-계속
-```
+현재 첫 행동은 Stanford CS336 Assignment 1 진입 전 통합 진단입니다.
+학습자는 빈 Python 파일에서 다음을 직접 연결합니다.
 
-ignored `tmp/active-learning-flow.json`이 정확한 phase와 handoff/practice
-경로를 보존합니다. 이는 운영 cursor일 뿐 진도 DB나 mastery 기록이
-아닙니다.
+- 고정 seed의 deterministic synthetic 다중분류 데이터
+- 작은 `nn.Module`과 `forward`
+- train/validation 분리
+- raw logits, cross-entropy, optimizer
+- `zero_grad → forward → loss → backward → step`
+- validation loss와 accuracy
+- feature 수 또는 class 수가 다른 조건으로의 한 번의 전이
 
-오늘 흐름을 TIL 없이 멈추려면:
+실행 뒤에는 gradient 흐름, `zero_grad`, `detach`, `no_grad`,
+`requires_grad`, 주요 Tensor의 역할과 첫 오류 가설을 자신의 말로
+설명합니다. 부족한 항목만 최대 두 번의 집중 bridge에서 다루고,
+Transformer·tokenizer·systems 세부사항은 CS336 진행 중 필요할 때
+보충합니다.
 
-```text
-오늘 학습 종료
-```
+## CS336의 엄격한 AI 경계
 
-완료된 오늘의 사이클을 나중에 한 번에 TIL로 정리하려면:
+[CS336 Assignment 1 공식 AI 지침](https://github.com/stanford-cs336/assignment1-basics/blob/a158843b20107949f1a8d7df1b05cd33b9166712/AGENTS.md)을
+따릅니다.
 
-```text
-오늘 TIL 저장해줘
-```
+- 학습자가 과제 코드와 공식 test를 직접 작성하고 실행합니다.
+- AI는 개념 설명, 오류 메시지 해석, sanity check와 일반적인 review만
+  제공합니다.
+- 명시적으로 요청해도 AI는 과제 코드, pseudocode, patch, TODO 해답을
+  제공하거나 과제 명령을 대신 실행하지 않습니다.
 
-TIL은 수업이나 실습의 선행 입력이 아닙니다. 이 명시적 요청에서만
-완료 cycle, 실행·해석한 practice, knowledge 변경과 정확한 관련 commit을
-검증해 개념 중심으로 종합하고, 날짜별 TIL 하나만 커밋합니다.
+필수 준비도를 통과하면 Agent가 Assignment 1 진입을 제안합니다. 사용자가
+승인한 뒤에만 다음 `STATE.md` 교체안을 준비합니다.
 
-한 번의 수업만 하고 practice·knowledge·TIL까지 자동으로 이어가지
-않으려면 다음처럼 말합니다.
+## 파일 변경과 저장
 
-```text
-오늘 학습 시작
-```
+학습 시작이나 `계속`은 파일 변경 권한이 아닙니다. Agent는 다음 작업을
+자동으로 하지 않습니다.
 
-명시적으로 시간이나 형식을 정해 `짧게 하자`고 할 때만 short session을
-사용합니다. `압축`이나 `따라잡기`만으로 standard 수업을 micro lesson으로
-줄이지 않습니다. 구현·디버깅 목표의 표준 수업은 실제 class·`forward`·
-Tensor/data flow를 포함합니다. Source의
-focused source unit은 검토 비용 경계일 뿐 수업을 자동으로 짧게 만들지
-않습니다. 범위는 페이지 목록이 아니라 연결된 단원·주제·예제군으로
-선언하며, 내부적으로만 하나의 검증 가능한 source-anchor로 고정합니다.
+- `STATE.md`, TIL 또는 knowledge 갱신
+- 새 practice artifact 생성
+- 다음 강의나 source 자동 선택·등록
+- commit 또는 push
 
-## 기본 흐름
+`STATE.md`를 바꿀 때는 항상 전체 교체안을 먼저 검토합니다. 사용자가 그
+문구를 승인하고 `STATE 반영해`라고 명시한 경우에만 파일을 교체합니다.
+Commit과 push는 각각 별도의 명시적 요청이 필요합니다.
 
-```text
-ROADMAP endpoint와 learner evidence
-        ↓
-이번 cycle의 primary target과 선택적 inline bridge
-        ↓
-등록된 local source 또는 검토된 임시 official source
-        ↓
-선택 slice 독립 검토 + 3~5개 concept / 3~5개 Module Plan
-        ↓
-60~90분 대화형 수업과 confirmed learner evidence
-        ↓
-pre-lab / module assignment / phase capstone
-        ↓
-Notebook / benchmark / dataset project / external challenge·competition
-        ↓
-직접 구현·실행·해석한 evidence
-        ↓
-knowledge 0~3개 갱신 또는 NO_CHANGE
-        ↓
-다음 target 계산과 다음 수업 준비
-```
-
-`DEFER_TO_MILESTONE`이면 실습·knowledge 경로를 건너뛰고 captured cycle을
-`milestone-pending`으로 보존한 뒤 다음 target 계산으로 이동합니다.
-
-강의 수강, tutor 설명, 파일 존재, green checker, platform pass만으로는
-이해나 완료를 인정하지 않습니다. 핵심 개념이 불확실하면 질문으로
-종료하지 않고 설명 방식을 바꾸거나 `paused` 상태로 보존합니다.
+날짜별 기록이 필요하면 `오늘 TIL 저장해줘` 또는 `$save-today-til`을,
+재사용할 개념 노트가 필요하면 `$update-learning-knowledge`를 명시적으로
+호출합니다. 두 도구 모두 현재 대화나 사용자가 정확히 지정한 artifact만
+사용하며, 자동 commit이나 push를 수행하지 않습니다.
 
 ## 저장소 구조
 
 | 위치 | 용도 |
 |---|---|
+| [`STATE.md`](./STATE.md) | 공개 가능한 현재 범위와 다음 독립 행동 |
 | [`materials/`](./materials/) | 강의자료와 원본; 비공개 자료는 ignored `materials/private/` |
-| [`til/`](./til/) | 명시적 요청으로 작성하는 날짜별 학습 기록 |
-| [`knowledge/`](./knowledge/) | 현재 이해를 주제별로 갱신하는 지식 베이스 |
-| [`practice/`](./practice/) | Notebook, benchmark, dataset/Kaggle 실행 |
-| [`challenges/`](./challenges/) | 짧은 외부 문제 제출 코드 |
-| [`ROADMAP.md`](./ROADMAP.md) | 장기 전문화 방향과 정적 endpoint |
-| [`CURRICULUM.md`](./CURRICULUM.md) | 목표 깊이·선수관계·정적 module/milestone·자료 coverage |
-| [`USAGE.md`](./USAGE.md) | 진입점, phase, 저장·승인 경계 |
-| [`archive/`](./archive/) | 보존하는 과거 기록 |
+| [`til/`](./til/) | 명시적으로 저장하는 날짜별 학습 기록 |
+| [`knowledge/`](./knowledge/) | 확인된 이해를 정리하는 주제별 개념 노트 |
+| [`practice/`](./practice/) | 보존된 실행 Notebook과 실험 artifact |
+| [`challenges/`](./challenges/) | 짧은 외부 문제 풀이 코드 |
+| [`ROADMAP.md`](./ROADMAP.md) | 장기 학습 방향 참고 |
+| [`CURRICULUM.md`](./CURRICULUM.md) | 역량과 기존 자료 범위 참고 |
+| [`archive/`](./archive/) | 수정하지 않고 보존하는 과거 기록 |
 
-`tmp/active-lesson-handoff.md`와
-`tmp/active-lesson-sources/<lesson-id>/`도 ignored 운영 상태입니다.
-Private 자료와 ignored cursor는 GitHub에 올라가지 않으므로 다른 clone이나
-장치로 자동 동기화되지는 않습니다.
+공개 저장소에는 답변 원문, private 경로, 내부 ID·hash, 세션 이력이나
+평가 점수를 기록하지 않습니다. 실행하지 않은 결과도 기록하지 않습니다.

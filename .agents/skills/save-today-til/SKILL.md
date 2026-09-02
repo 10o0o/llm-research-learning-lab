@@ -1,58 +1,37 @@
 ---
 name: save-today-til
-description: On the explicit request "오늘 TIL 저장해줘", compose a concept-first Korean daily TIL from completed unconsumed daily-flow cycles, exact practice and knowledge commits, and source/target provenance; review mixed manual material once; then commit only the dated TIL. Also finalize an explicitly named standalone manual draft. Do not run automatically after a lesson, include unfinished cycles, update knowledge, create practice, infer Git history, or push.
+description: Explicit standalone TIL writing from learner-authored content and exact named artifacts. Use only when the learner explicitly invokes $save-today-til. Do not activate from an ordinary TIL request or after study, read ignored state, infer evidence, update knowledge, commit, or push.
 ---
 
-# Save an Explicit Daily TIL
+# Save a Standalone TIL
 
-This skill is not a lesson-end hook. Use it only when the learner explicitly
-asks to save today's TIL or names a standalone draft. `til/today.md` is a manual
-scratchpad and is never the reviewed-lesson evidence store.
+Use only the inputs named in the current request: learner-authored explanations
+or calculations in the current conversation, an exact draft, and exact
+executed artifacts with the learner's interpretation. `STATE.md` is a resume
+bookmark, not evidence. Do not read ignored files, reconstruct old sessions,
+or scan Git history for material to include.
 
-## Daily-flow input
-
-Load `tmp/active-learning-flow.json`. Select completed, unconsumed cycles by
-their `completed_on` date; exclude active and paused cycles. For every cursor
-recorded learning commit, verify the commit exists and that its committer date,
-subject, exact changed-path set, and current artifact match. Do not scan or
-summarize unrelated `git log` entries.
-
-Merge only those unconsumed cycles into the exact current dated note. Preserve
-already-saved concept history and related provenance without asking the spec to
-repeat consumed cycles. During the first v9 save of a legacy dated note,
-preserve its visible confirmed content while removing obsolete `남은 질문`,
-next-step instructions, and internal markers. Use this order for each new
-concept:
+Write or merge one dated file under `til/YYYY/MM/YYYY-MM-DD.md`. Preserve any
+existing confirmed content. Organize new material concept-first:
 
 1. concept and core definition;
-2. validity conditions, mechanism, and limitation;
-3. examples and learner applications used to confirm it;
-4. observed and interpreted practice result;
-5. exact source, practice, knowledge, primary-target, and delivered-bridge
-   provenance.
+2. mechanism, validity conditions, and limitation;
+3. the learner's own example, calculation, or application;
+4. an observed and interpreted result when one actually ran;
+5. useful source, practice, and knowledge links.
 
-Tutor prose, delivery, file existence, and checker success are not learner
-claims. Flow-generated notes must not contain `남은 질문`, “내 말로”
-instructions, assessment language, TODOs, or internal markers. Unfinished
-learning remains in the cursor instead. If manual scratch or self-study content
-is mixed in, ask the coach for one same-flow review and use `mode: mixed` only
-after pass.
+Tutor prose, lesson delivery, file existence, and green tests are not learner
+claims. Never invent an explanation, output, experiment, or result. A manual or
+standalone note may preserve uncertainty the learner actually expressed.
 
-Use a structured JSON spec and run:
+Use `til/template.md` when creating a new file and validate the finished note:
 
 ```bash
-python3 .agents/skills/save-today-til/scripts/finalize_daily_til.py \
-  --spec <daily-til-spec.json>
+python3 .agents/skills/save-today-til/scripts/validate_til.py \
+  til/YYYY/MM/YYYY-MM-DD.md
+git diff --check -- til/YYYY/MM/YYYY-MM-DD.md
 ```
 
-The helper merges `til/YYYY/MM/YYYY-MM-DD.md`, verifies the latest cursor-saved
-file hash when one exists, validates the complete result, commits only that path
-with `til: YYYY-MM-DD 학습 기록`, then atomically records the new full-file
-hash, commit SHA, and consumed cycle IDs in the cursor. It never pushes.
-If validation or commit fails, leave the dated file and unconsumed cursor state
-for a plain `계속` retry.
-
-For an explicitly named standalone manual draft, preserve genuine uncertainty
-after the coach review and use the normal TIL validator and same path-limited
-commit rule. Never silently merge unreviewed manual prose into a flow-generated
-note.
+Show the exact changed path and validation result. TIL authorization permits
+only the requested file edit. Commit and push each require a separate explicit
+request.

@@ -1,6 +1,6 @@
 interface:
-  display_name: "오늘의 TIL 저장"
-  short_description: "명시적 요청 때 완료된 하루 cycle만 TIL로 저장합니다"
-  default_prompt: "$save-today-til을 사용해 완료됐지만 아직 기록되지 않은 daily-flow cycle, 해석이 끝난 practice, knowledge 변경과 exact commit만 concept-first TIL로 종합해줘. 미완료 cycle은 제외하고 날짜별 TIL 하나만 커밋해줘."
+  display_name: "Standalone TIL 저장"
+  short_description: "명시한 내 설명과 실행 artifact만 TIL로 정리합니다"
+  default_prompt: "$save-today-til을 사용해 현재 요청에서 지정한 내 설명, draft, 실행하고 해석한 artifact만 concept-first 날짜 TIL로 정리해줘. ignored state나 Git history를 추론하지 말고 commit하지 마."
 policy:
   allow_implicit_invocation: false

@@ -1,4 +1,0 @@
-interface:
-  display_name: "현업형 학습 실습"
-  short_description: "captured cycle 또는 TIL에서 누적 실습 단계를 판정합니다"
-  default_prompt: "$suggest-learning-practice를 사용해 cursor v2에 captured된 schema-v10 lesson cycle 또는 정확한 finalized TIL의 부족한 수행 근거를 확인하고 practice_action, practice_mode, practice_layer, implementation_depth를 정해줘. 준비된 capstone과 module assignment를 pre-lab보다 우선하고, blocker가 없으면 named milestone으로 defer해줘. 새 local artifact는 metadata-v5 Notebook 하나로 만들고 외부 challenge나 competition은 현재 공식 페이지 검증과 승인 경계를 지켜줘."

@@ -1,4 +1,6 @@
 interface:
-  display_name: "학습 지식 갱신"
-  short_description: "완료 session·실습 근거만 지식 베이스에 반영합니다"
-  default_prompt: "$update-learning-knowledge를 사용해 완료된 lesson session의 확인된 내 답변과 직접 실행·해석한 terminal practice만 읽어 knowledge를 0~3개 갱신해줘. TIL은 필수 입력으로 요구하지 말고 변경 경로만 커밋하거나 NO_CHANGE를 기록해줘."
+  display_name: "Standalone 지식 갱신"
+  short_description: "명시한 내 설명과 실행 artifact만 knowledge에 반영합니다"
+  default_prompt: "$update-learning-knowledge를 사용해 현재 요청에서 지정한 내 설명, 계산, 실행하고 해석한 artifact만 읽어 knowledge를 0~3개 갱신하거나 NO_CHANGE로 끝내줘. ignored state를 읽거나 commit하지 마."
+policy:
+  allow_implicit_invocation: false

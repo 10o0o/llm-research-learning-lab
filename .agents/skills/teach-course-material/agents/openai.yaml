@@ -1,4 +1,0 @@
-interface:
-  display_name: "맞춤형 학습 코치"
-  short_description: "검토된 60~90분 수업을 진행하고 cursor에 증거를 보존합니다"
-  default_prompt: "$coach-llm-research-study와 $teach-course-material을 사용해 exact source slice의 schema-v10 계약을 검토하고 표준 60~90분 수업을 module별 목적→설명→worked trace/code walk→적용 순서로 가르쳐줘. 설명 전이나 check_policy none 단계에서는 묻지 말고, D2에서는 실제 class/forward/nn API/Tensor shape flow를 걸으며, module당 checkpoint는 최대 한 번만 두고 확인된 내 답변만 cursor v2에 보존해줘."

@@ -27,4 +27,15 @@ knowledge/systems/kv-cache.md
 
 GPT가 가르쳐준 설명 자체는 아직 내 지식으로 간주하지 않습니다. 내가 다시 설명하거나 계산·질문·실행 결과로 이해를 드러낸 뒤, 실제로 이해한 범위만 반영합니다. 하루에 새 문서가 생기지 않아도 정상이며, 같은 개념이 있다면 새 파일 대신 기존 문서를 갱신합니다.
 
-[지식 문서 템플릿](./template.md)을 사용할 수 있습니다. `$update-learning-knowledge`를 사용하면 TIL, 학습 대화, 실행한 실습에서 확인된 이해만 골라 한 학습 흐름에서 최대 0~3개의 기존 문서를 갱신하거나 새로 만듭니다. 관련 TIL, 실습, 원본 자료 링크는 실제로 다시 찾아볼 가치가 있을 때만 추가합니다.
+[지식 문서 템플릿](./template.md)을 사용할 수 있습니다. 명시적으로
+`$update-learning-knowledge`를 사용할 때도 현재 대화의 학습자 설명·계산이나
+정확히 지정한 실행·해석 artifact만 입력으로 삼습니다. 한 번에 0~3개만
+갱신하며 새 내용이 없으면 `NO_CHANGE`가 정상입니다. 관련 TIL, 실습,
+원본 자료 링크는 실제로 다시 찾아볼 가치가 있을 때만 추가합니다.
+
+```bash
+python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py \
+  knowledge/<area>/<concept>.md
+```
+
+Knowledge 수정은 commit이나 push를 자동으로 허용하지 않습니다.

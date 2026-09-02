@@ -10,12 +10,12 @@
 
 ## 남은 질문
 
-<!-- 사용자가 직접 작성한 manual/standalone 기록의 불확실성에만 사용합니다. Daily-flow 자동 생성 TIL에서는 이 section을 생략하고 미완료 cycle을 cursor에 보존합니다. -->
+<!-- 사용자가 직접 남긴 실제 불확실성이 있을 때만 사용합니다. -->
 
 ## 다음에 할 것
 
-<!-- 사용자가 직접 정한 후속 작업이 있을 때만 적습니다. Planner의 운영 상태를 복사하지 않습니다. -->
+<!-- 사용자가 직접 정한 후속 작업이 있을 때만 적습니다. -->
 
 ## 관련 기록
 
-<!-- Exact source, practice, knowledge link와 backticked primary target의 관련 역량 줄을 남깁니다. 실제 전달된 inline bridge가 있을 때만 보충 선수 역량 줄을 추가합니다. -->
+<!-- 다시 찾을 가치가 있는 exact source, practice, knowledge link를 남깁니다. -->
