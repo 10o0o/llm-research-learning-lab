@@ -46,7 +46,60 @@ def test_study_route_does_not_restore_fixed_entry_gates() -> None:
         assert "공식 API 문서" in text
     agents = _normalized("AGENTS.md")
     assert "then return to the same course" in agents
-    assert "Do not require completing the entire KANT assignment, all CS224N lectures" in agents
+    assert "Readiness does not cancel unfinished CS224N assignments or its project" in agents
+
+
+def test_official_practice_is_preserved_across_teaching_media() -> None:
+    agents = _normalized("AGENTS.md")
+    for rule in (
+        "Video, text, and source-grounded dialogue are allowed",
+        "KANT is only for topic/progress comparison, not default practice or a completion criterion",
+        "Follow along with the full lecture implementation",
+        "attempt separate exercises independently",
+        "Completed instructor notebooks are references",
+        "Supplementary AI examples cannot replace official practice",
+        "Read the actual exercise requirements when assigning it",
+        "leave affected work incomplete",
+        "local tests or reviews are not official university grading",
+    ):
+        assert rule in agents
+    assert "must not replace viewing it" not in agents
+    assert "existing KANT practice for application" not in agents
+
+    for path in ("README.md", "USAGE.md", "practice/README.md", "ROADMAP.md"):
+        text = _normalized(path)
+        assert "KANT는 진도·주제 대조용" in text
+        assert "기본 실습이나 완료 기준으로 사용하지 않습니다" in text
+        assert "영상·문서·공식 자료 기반 대화" in text
+        assert "완성 노트북 실행이나 AI 보충 예제로 공식 실습을 대체하지 않습니다" in text
+        assert "Optional·Bonus" in text
+        assert "미완료" in text
+        assert "기존 KANT 과제가 실습 역할" not in text
+        assert "기존 KANT 실습에 연결" not in text
+    for path in ("README.md", "USAGE.md"):
+        assert "기준 자료·판본 → 직접 링크 → 이번 설명 범위 → 수행할 공식 실습 → 확인할 결과" in _normalized(path)
+
+
+def test_cs224n_official_scope_and_user_control_are_explicit() -> None:
+    agents = _normalized("AGENTS.md")
+    assert "CS224N Spring 2024 includes A1-A4 (written, mathematical, and programming work)" in agents
+    assert "one Final Project, defaulting to the official BERT project" in agents
+    assert "Only the user may change or omit the project or agreed practice" in agents
+    assert "allows AI collaboration but prohibits direct answer solicitation, copying answers, and substantial completion by AI" in agents
+    for path in ("README.md", "USAGE.md", "practice/README.md", "ROADMAP.md"):
+        text = _normalized(path)
+        assert "A1~A4" in text
+        assert "written·수학·프로그래밍" in text
+        assert "공식 BERT 프로젝트" in text or "공식 BERT Final Project" in text
+        assert "변경·생략은 사용자 결정으로만" in text
+        assert "자동 취소하지 않습니다" in text
+    roadmap = _normalized("ROADMAP.md")
+    for material in (
+        "VMj-3S1tku0", "PaCmpygFfXo", "TCH_1BHY58I",
+        "makemore_part1_bigrams.ipynb", "makemore_part2_mlp.ipynb",
+        "PLoROMvodv4rOaMFbaqxPDoLWjDaRAdP9D", "dependency parsing",
+    ):
+        assert material in roadmap
 
 
 def test_removed_learning_management_skills_do_not_return() -> None:

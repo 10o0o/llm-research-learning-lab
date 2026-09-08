@@ -30,11 +30,11 @@ The ordinary route is deliberately small:
 ```text
 read STATE.md and the exact current source or assignment
 -> follow one connected segment of the approved original course
--> support its explanation and have the learner run and interpret a small example
--> ask one self-contained integrated checkpoint to reconstruct the core
+-> introduce source/version, direct links, explanation scope, official practice, expected results
+-> explain through video, text, or source-grounded dialogue without reducing scope
+-> have the learner implement, execute, and interpret the official practice
 -> wait for the learner's own attempt
 -> give complete feedback in one response
--> connect to the existing practice when relevant
 -> propose a complete STATE.md replacement only if the resume point changed
 -> write it only after explicit approval
 ```
@@ -61,14 +61,28 @@ not infer or backfill state from old metadata or ignored files.
 Follow the approved main course sequence; use `ROADMAP.md` for the course path
 and `STATE.md` for the current lecture, segment, related practice, and next action.
 Do not start ordinary study with a new readiness diagnostic or roadmap review.
-The AI supports the original course; it must not replace viewing it with an
-AI-created substitute course. Verify the actual source segment before teaching;
+Video, text, and source-grounded dialogue are allowed; preserve the official
+content and practice regardless of medium. Verify the actual source segment before teaching;
 if unavailable, state the limitation and request the relevant excerpt or viewing
 position. Never invent video content, timestamps, or learner viewing progress.
 Repair only prerequisites needed for the current explanation, then return to
 the same course. There is no fixed remediation count. Official API documentation
 may be consulted during core reconstruction; do not require memorizing a whole
 autograd engine or repeating already demonstrated understanding.
+
+Official course implementations, exercises, and assignments are the primary
+practice. KANT is only for topic/progress comparison, not default practice or
+a completion criterion. Follow along with the full lecture implementation;
+attempt separate exercises independently under the course's assistance policy.
+Completed instructor notebooks are references. Supplementary AI examples cannot
+replace official practice, and neither can running a completed notebook.
+Read the actual exercise requirements when assigning it. Report access or runtime
+limitations and leave affected work incomplete; never fabricate a substitute completion.
+Use learner answers, code, execution, and interpretation against official requirements.
+Do not add a new exam or report to every segment; an official exercise can serve
+as the integrated checkpoint. Dialogue study is not video viewing, and local tests
+or reviews are not official university grading. Preserve Optional/Bonus labels;
+supporting references do not imply completing their entire courses.
 
 ## State changes and authorization
 
@@ -120,7 +134,16 @@ display-math blocks with blank lines around them. Do not use inline dollar math,
 raw unrendered subscripts, or code blocks merely to display formulas. Executable
 code may retain exact identifiers.
 
-## CS336 return and course-specific boundaries
+## Course-specific scope and assistance
+
+CS224N Spring 2024 includes A1-A4 (written, mathematical, and programming work)
+and one Final Project, defaulting to the official BERT project. Only the user
+may change or omit the project or agreed practice. Its
+[AI Tools Policy](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html)
+allows AI collaboration but prohibits direct answer solicitation, copying answers,
+and substantial completion by AI. Check assignment-specific instructions as well.
+
+### CS336 return and boundaries
 
 [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)
 Assignment 1 is pinned to public commit
@@ -133,9 +156,11 @@ Propose returning to the existing assignment when learner work demonstrates:
 - tracing token IDs, embeddings, attention, logits, next-token targets, and causal masks.
 
 Use actual implementation, execution, and explanation, with official API docs
-allowed. Do not require completing the entire KANT assignment, all CS224N
-lectures, or a tokenizer/Transformer implementation before returning. Preserve
-existing assignment work and wait for approval before changing `STATE.md`.
+allowed. Readiness does not cancel unfinished CS224N assignments or its project.
+When proposing a sequence change, disclose remaining work as incomplete and
+wait for the user's decision. Do not impose an extra tokenizer/Transformer
+implementation as an entry test. Preserve existing assignment work and wait
+for approval before changing `STATE.md`.
 
 Foundation practice uses this learning lab's Python 3.14 environment.
 The assignment uses a separate sibling clone and its own
@@ -159,9 +184,8 @@ switch to another workflow.
 
 ## TIL, knowledge, practice, and sources
 
-- Ordinary study does not create a Notebook. Use the main course examples and
-  existing KANT practice for application; a small execution check can be given
-  in chat. During an official assignment, that assignment is the main practice.
+- Ordinary study does not create a Notebook. Use official course implementations,
+  exercises, and assignments; small supplementary examples do not replace them.
 - Create or edit a `practice/` artifact only when the learner explicitly asks.
   Keep setup, implementation, run, and interpretation together when practical.
 - Existing notebooks may retain historical metadata. Do not rewrite it merely
