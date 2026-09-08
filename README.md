@@ -15,8 +15,8 @@ LLM Research Engineer를 목표로 공부하는 가벼운 개인 학습 저장�
 
 | 요청 | 동작 |
 |---|---|
-| `오늘 학습 시작` | 현재 범위에서 연결된 module 하나를 진행 |
-| `전체 학습 흐름 시작` 또는 `오늘 전체 학습 흐름 시작` | 같은 source·과제 안에서 module을 이어 가되 새 강의로 자동 진입하지 않음 |
+| `오늘 학습 시작` | 현재 주강의 범위에서 연결된 module 하나를 진행 |
+| `전체 학습 흐름 시작` 또는 `오늘 전체 학습 흐름 시작` | 승인된 같은 과정·과제 범위에서 module을 이어 가되 다른 과정으로 자동 진입하지 않음 |
 | `계속` | `STATE.md`의 다음 독립 행동을 재개 |
 | `오늘 학습 종료` | 학습을 멈추고 필요한 `STATE.md` 전체 교체안만 제시 |
 
@@ -29,44 +29,33 @@ LLM Research Engineer를 목표로 공부하는 가벼운 개인 학습 저장�
 기본 module은 다음 순서로 진행합니다.
 
 ```text
-충분한 설명
-→ 작은 수치 예시와 shape trace
-→ 하나의 자기완결적인 통합 checkpoint
-→ 학습자의 독립 시도
+원강의의 연결된 구간 시청과 충분한 보조 설명
+→ 작은 예제의 직접 실행과 해석
+→ 하나의 자기완결적인 통합 checkpoint에서 핵심 재구성
 → 정답·수정점·빠진 생각을 묶은 한 번의 전체 피드백
+→ 관련 PyTorch 표현과 기존 KANT 실습에 연결
 ```
 
-공식 과제가 실습 역할을 합니다. 짧은 실행 확인은 대화 안의 작은 과제로
+주강의 예제와 기존 KANT 과제가 실습 역할을 합니다. 짧은 실행 확인은 대화 안의 작은 과제로
 제시할 수 있지만, 별도 metadata Notebook이나 학습 관리 artifact를 자동으로
 만들지 않습니다. 강의 완료, Tutor 설명, 파일 존재, green test만으로 이해를
 판정하지 않습니다.
 
-## 첫 준비도 진단
+주강의의 순서와 자료별 역할은 [학습 로드맵](./ROADMAP.md)을 따릅니다.
+학습 시작은 새 준비도 진단이나 로드맵 검토가 아니라 현재 주강의 단원으로
+연결합니다. AI는 원강의를 보조하며, 확인하지 않은 영상 내용이나 시각을
+만들지 않습니다. 현재 설명에 필요한 선수개념을 보강한 뒤 같은 주강의로
+돌아갑니다. 핵심 재구성에는 공식 API 문서를 참고해도 됩니다.
 
-현재 첫 행동은 Stanford CS336 Assignment 1 진입 전 통합 진단입니다.
-학습자는 빈 Python 파일에서 다음을 직접 연결합니다.
-
-- 고정 seed의 deterministic synthetic 다중분류 데이터
-- 작은 `nn.Module`과 `forward`
-- train/validation 분리
-- raw logits, cross-entropy, optimizer
-- `zero_grad → forward → loss → backward → step`
-- validation loss와 accuracy
-- feature 수 또는 class 수가 다른 조건으로의 한 번의 전이
-
-실행 뒤에는 gradient 흐름, `zero_grad`, `detach`, `no_grad`,
-`requires_grad`, 주요 Tensor의 역할을 자신의 말로 설명합니다. 오류가
-발생했다면 수정 전에 세운 첫 원인 가설과 이를 확인한 방법도 설명합니다.
-부족한 항목만 최대 두 번의 집중 bridge에서 다루고,
-Transformer·tokenizer·systems 세부사항은 CS336 진행 중 필요할 때
-보충합니다.
+오류가 발생했다면 수정 전에 세운 첫 원인 가설과 이를 확인한 방법을
+설명합니다. 오류를 일부러 만들거나 이미 이해한 내용을 반복 시험하지 않습니다.
 
 ## CS336의 엄격한 AI 경계
 
 [CS336 Assignment 1 공식 AI 지침](https://github.com/stanford-cs336/assignment1-basics/blob/a158843b20107949f1a8d7df1b05cd33b9166712/AGENTS.md)을
 따릅니다.
 
-- 학습자가 과제 코드를 직접 작성하고, 제공된 공식 test와 모든 bash command를 직접 실행합니다.
+- 학습자가 과제 코드를 직접 작성하고 제공된 테스트를 실행합니다.
 - AI는 개념 설명, 오류 메시지 해석, sanity check와 일반적인 review만
   제공합니다.
 - 학습자가 모든 bash command를 직접 실행하며, AI는 assignment repo에서
@@ -77,12 +66,12 @@ Transformer·tokenizer·systems 세부사항은 CS336 진행 중 필요할 때
 - 명시적으로 요청해도 AI는 과제 코드, pseudocode, patch, TODO 해답을
   제공하지 않습니다.
 
-준비도 진단은 learning-lab의 Python 3.14 환경에서 실행합니다. 실제 과제는
+기초 실습은 learning-lab의 Python 3.14 환경에서 실행합니다. 실제 과제는
 별도 sibling clone과 Python 3.12 또는 3.13의 독립 uv 환경을 사용하며,
 과제 dependency를 learning-lab이나 현재 `.venv`에 합치지 않습니다.
 
-필수 준비도를 통과하면 Agent가 Assignment 1 진입을 제안합니다. 사용자가
-승인한 뒤에만 다음 `STATE.md` 교체안을 준비합니다.
+CS336 복귀는 로드맵의 구현·실행·해석 근거로 제안합니다. 기존 작업을
+보존하며, 사용자 승인 없이 현재 과정을 바꾸지 않습니다.
 
 ## 파일 변경과 저장
 

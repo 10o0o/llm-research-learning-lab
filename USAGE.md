@@ -3,14 +3,14 @@
 ## 시작과 재개
 
 이 저장소를 작업 공간으로 연 새 대화에서는 [`STATE.md`](./STATE.md)가
-유일한 학습 재개 북마크입니다. 다음 문장으로 현재 범위의 연결된 모듈
+유일한 학습 재개 북마크입니다. 다음 문장으로 현재 주강의 범위의 연결된 모듈
 하나를 시작합니다.
 
 ```text
 오늘 학습 시작
 ```
 
-같은 source나 과제 안에서 여러 모듈을 이어가고 싶다면 다음 중 하나를
+승인된 같은 과정이나 과제 범위에서 여러 모듈을 이어가고 싶다면 다음 중 하나를
 사용합니다.
 
 ```text
@@ -18,7 +18,7 @@
 전체 학습 흐름 시작
 ```
 
-이 요청은 새 강의나 새 과제로 자동 진입할 권한이 아닙니다. 현재 범위가
+이 요청은 다른 과정이나 새 과제로 자동 진입할 권한이 아닙니다. 승인된 범위가
 끝나면 다음 선택지를 제안하고 사용자 결정을 기다립니다.
 
 새 대화에서 이어갈 때는 다음처럼 말합니다.
@@ -44,11 +44,11 @@ Agent는 `STATE.md`의 `다음 독립 행동`만 재개합니다. `tmp/`의 igno
 기본 수업은 다음 흐름을 사용합니다.
 
 ```text
-충분한 연결 설명
-→ 작은 수치 예제, shape trace, 또는 code/data-flow trace
-→ 조건이 모두 적힌 통합 checkpoint 하나
-→ 학습자 시도
+원강의의 연결된 구간 시청과 충분한 보조 설명
+→ 작은 예제의 직접 실행과 해석
+→ 조건이 모두 적힌 통합 checkpoint 하나에서 핵심 재구성
 → 맞은 점, 고칠 점, 이유, 빠진 핵심을 한 번에 피드백
+→ 관련 PyTorch 표현과 기존 KANT 실습에 연결
 ```
 
 질문에 필요한 Tensor 값, shape, dtype, device, 데이터 분리, 평가 목적은
@@ -67,12 +67,27 @@ practice/<area>/<file>을 보고 지금 난 오류 원인부터 설명해줘.
 Agent는 저장된 코드와 실제 출력에서 첫 blocker를 확인합니다. 별도 요청
 없이 학습자 구현을 덮어쓰지 않습니다.
 
+오류가 발생했다면 수정 전에 세운 첫 원인 가설과 이를 확인한 방법을
+설명합니다. 오류가 없으면 오류 가설을 만들 필요가 없습니다.
+
+주강의의 순서와 자료별 역할은 [학습 로드맵](./ROADMAP.md)을 따릅니다.
+학습 시작은 새 준비도 진단이나 로드맵 검토가 아니라 현재 주강의 단원으로
+연결합니다. AI는 실제 원강의를 이해하는 보조로 사용하며 원강의 시청을
+대체하지 않습니다. 강의 구간을 확인할 수 없다면 그 사실을 알리고 관련
+발췌나 시청 위치를 요청합니다. 확인하지 않은 내용·시각은 기록하지 않습니다.
+
+현재 설명에 필요한 선수개념을 충분히 보강한 뒤 같은 주강의로 돌아갑니다.
+보강 횟수를 제한하지 않으며, 공식 API 문서를 참고하면서 핵심을 재구성해도
+됩니다. 자동미분 엔진 전체를 암기해 재작성하도록 요구하지 않습니다.
+KANT 과제의 남은 요구사항과 다음 주제에 필요한 선수지식은 구분합니다.
+
 ## STATE.md 반영
 
 `STATE.md`에는 공개 가능한 최소 정보만 둡니다.
 
-- pilot 시작일과 마지막 사용자 확인일
-- 현재 source와 범위
+- 확인된 pilot 날짜
+- 현재 주강의·정확한 강의 제목·현재 범위
+- 연결 실습과 보조 자료
 - 이미 존재하는 관련 artifact의 짧은 사실
 - 다시 확인할 항목
 - 다음 독립 행동 하나
@@ -91,43 +106,22 @@ STATE 반영해
 명시적 요청이 필요합니다. 파일이 없거나 실제 artifact와 충돌하면 Agent는
 임의로 합치지 않고 사실관계와 교체안을 제시합니다.
 
-## 첫 통합 준비도 진단
+## CS336 과제에서 받을 수 있는 도움
 
-현재 첫 행동은 CS336 Assignment 1 진입 전 진단입니다. 학습자가 빈 Python
-파일에서 다음을 직접 연결합니다.
-
-1. deterministic synthetic 다중분류 데이터
-2. 작은 `nn.Module`과 `forward`
-3. train/validation 분리
-4. raw logits, cross-entropy, optimizer
-5. `zero_grad → forward → loss → backward → step`
-6. validation loss와 accuracy
-7. feature 수 또는 class 수를 바꾼 조건으로 한 번 전이
-8. gradient 흐름, `zero_grad`, `detach`, `no_grad`, `requires_grad`, 주요
-   Tensor 역할 설명. 오류가 발생했다면 수정 전에 세운 첫 원인 가설과
-   이를 확인한 방법도 설명
-
-빈 파일 구현·실행·debug, autograd 상태, 행렬곱·broadcasting·softmax·
-cross-entropy 계약, baseline·validation·metric 사용을 모두 확인합니다.
-부족한 부분만 최대 두 번의 집중 bridge로 다룹니다. 통과하면 Agent가
-Assignment 1 진입을 제안하며, 사용자가 승인한 뒤에만 `STATE.md` 교체안을
-반영합니다.
-
-Pilot의 주축은 [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)이고,
-Assignment 1 기준은
+[Stanford CS336 Spring 2026](https://cs336.stanford.edu/) Assignment 1 기준은
 [`a158843b20107949f1a8d7df1b05cd33b9166712`](https://github.com/stanford-cs336/assignment1-basics/tree/a158843b20107949f1a8d7df1b05cd33b9166712)입니다.
-이번 라우팅 변경만으로 과제를 clone하거나 다운로드하지 않습니다.
+현재 주강의가 바뀌어도 기존 과제 작업을 보존합니다. 별도 요청 없이 과제를
+clone하거나 다운로드하지 않습니다. 복귀 근거는 로드맵을 따르며, 사용자
+승인 없이 현재 과정을 바꾸지 않습니다.
 
-준비도 진단은 현재 learning-lab의 Python 3.14 환경에서 실행합니다. 실제
-Assignment 1에 진입하면 별도 sibling clone을 만들고 공식 pyproject에 맞춘
+기초 실습은 learning-lab의 Python 3.14 환경에서 실행합니다. 실제
+Assignment 1은 별도 sibling clone과 공식 pyproject에 맞춘
 Python 3.12 또는 3.13의 독립 uv 환경을 사용합니다. 과제를 learning-lab의
 dependency로 추가하거나 현재 `.venv`에 설치하지 않습니다.
 
-## CS336 과제에서 받을 수 있는 도움
-
 과제에 진입한 뒤에는 공식 AI 지침을 그대로 적용합니다.
 
-- 학습자가 코드와 test를 직접 작성합니다.
+- 학습자가 과제 코드를 직접 작성하고 제공된 테스트를 실행합니다.
 - 학습자가 모든 bash command를 직접 실행하며, Agent는 assignment repo에서
   command를 실행하지 않습니다.
 - Agent는 개념 설명, 오류 메시지 해석, sanity check, 일반적 리뷰만
@@ -140,7 +134,8 @@ dependency로 추가하거나 현재 `.venv`에 설치하지 않습니다.
 
 ## Practice, TIL, knowledge
 
-일반 학습에서는 공식 과제가 practice 역할을 합니다. 작은 실행 확인은
+일반 학습에서는 주강의 예제와 기존 KANT 과제가 practice 역할을 합니다.
+공식 과제 진행 중에는 해당 과제가 주 실습입니다. 작은 실행 확인은
 채팅 과제로 제공할 수 있지만 새 metadata Notebook을 자동 생성하지
 않습니다. 별도 실험을 저장하고 싶을 때만 exact 경로와 형태를 정합니다.
 

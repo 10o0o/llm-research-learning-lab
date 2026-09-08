@@ -1,31 +1,31 @@
 # Study State
 
-> 이 파일은 simplified study pilot의 재개 북마크입니다. 숙달 기록,
-> 점수표, 세션 이력, evidence 저장소, progress database가 아닙니다.
+이 파일은 현재 학습 범위와 다음 행동을 위한 재개 북마크입니다.
+숙달 기록이나 진도 점수표가 아닙니다.
 
 - Pilot 시작일: 2026-09-02
-- 마지막 사용자 확인일: 2026-09-02
-- 주축: [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)
-- 기준 과제: [Assignment 1 at `a158843b20107949f1a8d7df1b05cd33b9166712`](https://github.com/stanford-cs336/assignment1-basics/tree/a158843b20107949f1a8d7df1b05cd33b9166712)
-- 현재 범위: Assignment 1 진입
+- 현재 주강의: [Karpathy — Neural Networks: Zero to Hero](https://karpathy.ai/zero-to-hero.html)
+- 현재 강의: The spelled-out intro to neural networks and backpropagation: building micrograd
+- 현재 범위: 강의 시작부터 작은 스칼라 계산의 변화율과 도함수를 이해하는 도입 구간
+- 연결 실습: `practice/딥러닝 기초 과제.ipynb`의 학습·검증 루프
+- 보조 자료: [PyTorch Learn the Basics](https://docs.pytorch.org/tutorials/beginner/basics/intro.html)
+- CS336 Assignment 1: 기존 작업을 보존하고 새 구현 진도는 잠시 보류
 
 ## 관찰된 근거
 
-- 빈 Python 파일에서 deterministic synthetic 다중분류 데이터, 작은 `nn.Module`,
-  raw logits, cross-entropy, optimizer, train/validation 흐름을 직접 구현하고 실행했다.
-- validation loss와 accuracy를 계산하고 baseline과 비교했다.
-- 입력 feature 수를 변경해 모델의 입력 및 parameter shape 전이를 확인했다.
-- `zero_grad`, `backward`, `requires_grad`, `no_grad`, `detach`와
-  parameter gradient의 저장 위치를 설명했다.
+- 기존 딥러닝 과제에 데이터 처리와 모델 구성 코드,
+  저장된 검사 출력과 설명 답안이 있다.
+- 학습·검증 루프와 이후 종합 실험에는 미완성 작업이 남아 있다.
+- 현재 micrograd 강의의 시청·실습 결과는 아직 확인하지 않았다.
 
 ## 재확인할 항목
 
-- Assignment 1의 공식 handout에 정의된 첫 구현 요구사항과 Tensor/API 계약
-- 과제별 테스트를 실행한 뒤 실패 원인과 출력 의미 해석하기
-- 과제 구현에서 train/evaluation 경계와 shape 계약 유지하기
+- 작은 입력 변화와 출력 변화의 관계를 도함수로 해석하기
+- 연결된 계산의 gradient를 손실과 parameter update로 연결하기
+- 배운 핵심을 직접 구성하고 실행 결과를 설명하기
 
 ## 다음 독립 행동
 
-Assignment 1 공식 handout의 entry section을 읽고,
-별도 sibling clone과 공식 uv 환경을 준비한 뒤 handout에 적힌 첫 검증 단계를
-직접 실행한다.
+micrograd 원강의를 처음부터 시청하며 도함수를 설명하는 도입 구간의
+작은 계산 예제를 직접 확인하고, 입력 변화에 따른 출력 변화와
+도함수의 의미를 자신의 말로 설명한다.

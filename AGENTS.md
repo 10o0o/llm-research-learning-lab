@@ -29,20 +29,21 @@ The ordinary route is deliberately small:
 
 ```text
 read STATE.md and the exact current source or assignment
--> explain one connected module with enough context
--> show one small numerical example, shape trace, or code/data-flow trace
--> ask one self-contained integrated checkpoint
+-> follow one connected segment of the approved original course
+-> support its explanation and have the learner run and interpret a small example
+-> ask one self-contained integrated checkpoint to reconstruct the core
 -> wait for the learner's own attempt
 -> give complete feedback in one response
+-> connect to the existing practice when relevant
 -> propose a complete STATE.md replacement only if the resume point changed
 -> write it only after explicit approval
 ```
 
 The following phrases always use this route:
 
-- `오늘 학습 시작`: teach one connected module from the current scope.
+- `오늘 학습 시작`: teach one connected module from the current approved course scope.
 - `오늘 전체 학습 흐름 시작` or `전체 학습 흐름 시작`: repeat connected
-  modules within the same source or assignment. Do not enter a new course or
+  modules within the approved scope of the same course or assignment. Do not enter a new course or
   assignment automatically.
 - `계속`: resume the next independent action written in `STATE.md`.
 - `오늘 학습 종료`: stop. If the resume point changed, show a proposed full
@@ -56,6 +57,18 @@ preparation. There is no fallback route.
 If `STATE.md` is missing or conflicts with a tracked artifact, report the facts
 and show a complete replacement proposal. Wait for the learner's decision; do
 not infer or backfill state from old metadata or ignored files.
+
+Follow the approved main course sequence; use `ROADMAP.md` for the course path
+and `STATE.md` for the current lecture, segment, related practice, and next action.
+Do not start ordinary study with a new readiness diagnostic or roadmap review.
+The AI supports the original course; it must not replace viewing it with an
+AI-created substitute course. Verify the actual source segment before teaching;
+if unavailable, state the limitation and request the relevant excerpt or viewing
+position. Never invent video content, timestamps, or learner viewing progress.
+Repair only prerequisites needed for the current explanation, then return to
+the same course. There is no fixed remediation count. Official API documentation
+may be consulted during core reconstruction; do not require memorizing a whole
+autograd engine or repeating already demonstrated understanding.
 
 ## State changes and authorization
 
@@ -98,43 +111,34 @@ not infer or backfill state from old metadata or ignored files.
   learner understanding. Use the learner's explanation, calculation, code,
   execution, debugging hypothesis, and output interpretation when making a
   learning judgment.
+- For debugging, if an error occurs, ask for the first cause hypothesis formed
+  before changing the code and how it was checked. Do not require an error or
+  put this general instruction in every resume bookmark.
 
 In user-facing tutoring, render mathematical notation only in standalone
 display-math blocks with blank lines around them. Do not use inline dollar math,
 raw unrendered subscripts, or code blocks merely to display formulas. Executable
 code may retain exact identifiers.
 
-## Simplified pilot and CS336
+## CS336 return and course-specific boundaries
 
-The pilot spine is [Stanford CS336 Spring 2026](https://cs336.stanford.edu/).
-Its Assignment 1 reference is pinned to public commit
+[Stanford CS336 Spring 2026](https://cs336.stanford.edu/)
+Assignment 1 is pinned to public commit
 `a158843b20107949f1a8d7df1b05cd33b9166712`. Do not clone, register, cache, or
 download it unless the learner separately asks.
 
-Before proposing Assignment 1 entry, run one learner-owned integrated readiness
-diagnostic from a blank Python file:
+Propose returning to the existing assignment when learner work demonstrates:
+- constructing, running, and interpreting a small model's training and validation;
+- adapting input feature or class counts while maintaining Tensor/loss contracts;
+- tracing token IDs, embeddings, attention, logits, next-token targets, and causal masks.
 
-- create a deterministic synthetic multiclass problem;
-- define a small `nn.Module` and `forward`;
-- separate train and validation data;
-- use raw logits, cross-entropy, and an optimizer;
-- run `zero_grad -> forward -> loss -> backward -> step`;
-- calculate validation loss and accuracy;
-- transfer once to a changed feature count or class count;
-- explain gradient flow, `zero_grad`, `detach`, `no_grad`, `requires_grad`, the
-  main Tensor roles, and, if an error occurs, the first cause hypothesis formed
-  before changing the code and how it was checked.
+Use actual implementation, execution, and explanation, with official API docs
+allowed. Do not require completing the entire KANT assignment, all CS224N
+lectures, or a tokenizer/Transformer implementation before returning. Preserve
+existing assignment work and wait for approval before changing `STATE.md`.
 
-Readiness requires blank-file implementation, execution, and debugging;
-autograd-state explanation; matrix multiplication, broadcasting, softmax, and
-cross-entropy contracts; and correct baseline, validation, and metric use.
-Teach only failed areas in at most two focused bridge modules. Transformer,
-tokenizer, and systems details may be learned just in time during CS336. When
-the requirements are met, propose Assignment 1 entry and wait for approval
-before changing `STATE.md`.
-
-Run the readiness diagnostic in this learning lab's Python 3.14 environment.
-After approved Assignment 1 entry, use a separate sibling clone and its own
+Foundation practice uses this learning lab's Python 3.14 environment.
+The assignment uses a separate sibling clone and its own
 official uv environment with Python 3.12 or 3.13. Never add the assignment as a
 learning-lab dependency or install it into this repository's `.venv`.
 
@@ -155,8 +159,9 @@ switch to another workflow.
 
 ## TIL, knowledge, practice, and sources
 
-- Ordinary study does not create a Notebook. The official assignment is the
-  main practice; a small execution check can be given in chat.
+- Ordinary study does not create a Notebook. Use the main course examples and
+  existing KANT practice for application; a small execution check can be given
+  in chat. During an official assignment, that assignment is the main practice.
 - Create or edit a `practice/` artifact only when the learner explicitly asks.
   Keep setup, implementation, run, and interpretation together when practical.
 - Existing notebooks may retain historical metadata. Do not rewrite it merely
@@ -190,6 +195,8 @@ python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py k
   to the actual change.
 - Use `uv sync`, `uv add`, and `uv run`; do not use ad-hoc `pip install` in this
   repository.
+- Check operating-document changes with `uv run --frozen pytest -q tests .agents/skills`,
+  `uv lock --check`, and `git diff --check` from this learning lab.
 - Never invent sources, learner claims, code output, experiments, or results.
 - Do not commit or push unless the learner explicitly asks for that specific
   operation. A commit request never implies push permission. Before a commit,
