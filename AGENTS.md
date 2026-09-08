@@ -139,7 +139,8 @@ official uv environment with Python 3.12 or 3.13. Never add the assignment as a
 learning-lab dependency or install it into this repository's `.venv`.
 
 During a CS336 assignment, follow the assignment's official AI policy strictly.
-The learner writes code and tests and runs every bash command. The AI must not
+The learner writes the assignment code, runs the provided tests,
+and runs every bash command. The AI must not
 execute bash commands in the assignment repository. It may explain a command
 already shown in the official handout and interpret output supplied by the
 learner, but it must not create a new command sequence to solve or automate the

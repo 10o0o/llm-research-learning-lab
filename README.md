@@ -66,7 +66,7 @@ Transformer·tokenizer·systems 세부사항은 CS336 진행 중 필요할 때
 [CS336 Assignment 1 공식 AI 지침](https://github.com/stanford-cs336/assignment1-basics/blob/a158843b20107949f1a8d7df1b05cd33b9166712/AGENTS.md)을
 따릅니다.
 
-- 학습자가 과제 코드와 공식 test를 직접 작성하고 실행합니다.
+- 학습자가 과제 코드를 직접 작성하고, 제공된 공식 test와 모든 bash command를 직접 실행합니다.
 - AI는 개념 설명, 오류 메시지 해석, sanity check와 일반적인 review만
   제공합니다.
 - 학습자가 모든 bash command를 직접 실행하며, AI는 assignment repo에서
