@@ -1,6 +1,6 @@
 ---
 title: "행렬곱과 완전연결층"
-updated: 2026-08-18
+updated: 2026-09-10
 tags:
   - matrix-multiplication
   - linear-layer
@@ -65,6 +65,24 @@ layer.bias:           (out_features,)
 Y = X @ layer.weight.T + layer.bias
 ```
 
+### One-hot 행렬곱은 행 선택이다
+
+입력 ID가 `i`인 one-hot 벡터는 i번째 성분만 1이고 나머지는 0이다.
+그 벡터와 `W`를 곱하면 `W`의 i번째 행만 남는다.
+
+```text
+one-hot: [0, 1, 0]
+W: [[10, 11], [20, 21], [30, 31]]
+결과: [20, 21]
+```
+
+입력 ID 텐서 `ids`가 `(B,)`, 가중치가 `(V, C)`이면 `W[ids]`는 `(B, C)`다.
+입력 `[0, 5, 13, 13, 1]`은 0·5·13·13·1번 행을 순서대로 가져온다.
+같은 ID가 반복되면 같은 행을 여러 번 가져온다. 입력 ID는 정답이나 확률이 아니다.
+
+따라서 one-hot을 명시적으로 만드는 대신 행 인덱싱을 사용할 수 있다.
+이는 일반 실수 특성 벡터의 행렬곱까지 행 선택으로 바꿀 수 있다는 뜻은 아니다.
+
 ## 예제 또는 적용
 
 ```text
@@ -76,6 +94,10 @@ Y:     (2, 2)
 
 첫 번째 출력 하나를 행과 열의 내적으로 계산한 값과 전체 배치 행렬곱의 같은 위치 값이 일치한다. 같은 숫자를 넣은 `nn.Linear(3, 2)`의 출력도 명시적으로 계산한 `X @ W + b`와 일치한다.
 
+Makemore에서 `W_all[all_xs]`와 `all_xenc @ W_all`의 결과 shape이
+`(228146, 27)`이고 비교가 `True`인 것을 확인했다. 행 인덱싱으로 바꾼
+학습 셀에서도 역전파와 가중치 업데이트를 실행했다.
+
 ## 주의점
 
 - 행렬곱에서는 앞 행렬의 열 수와 뒤 행렬의 행 수를 먼저 확인한다.
@@ -86,4 +108,6 @@ Y:     (2, 2)
 
 - Knowledge: [벡터 내적과 코사인 유사도](./dot-product-cosine-similarity.md) · [NumPy axis, keepdims와 broadcasting](./numpy-axis-broadcasting.md)
 - TIL: [2026-08-18](../../til/2026/08/2026-08-18.md)
+- Practice: [makemore one-hot 제거 회고](../../practice/deep-learning/makemore-bigrams.md)
+- Source: [building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo)
 - Source: [1장 3강: 행렬 연산과 딥러닝 레이어](../../materials/private/kant-basic-math/01-03_행렬_연산과_딥러닝_레이어.md)

@@ -2,6 +2,36 @@
 
 학습자가 직접 구현하고 실행한 뒤 결과를 해석한 산출물을 둡니다.
 
+## 보관한 실습
+
+- [micrograd 구현과 공식 exercises](./deep-learning/micrograd.ipynb):
+  `Value` 자동미분, 뉴런·MLP 학습, 미분 검산, `ExerciseValue`의 softmax·로그 loss,
+  PyTorch 비교를 담은 코드·출력 보관본입니다. 강의 따라 구현한 부분과 공식
+  exercises의 직접 시도·피드백 수정, 보충 예제가 함께 들어 있습니다.
+  관련 개념은 [knowledge 안내](../knowledge/README.md)에 연결했습니다.
+- 루트의 `main.ipynb`는 다음 학습을 위한 작업 공간입니다. 과거 실습을
+  확인할 때는 위 보관본을 사용합니다.
+- [makemore bigram 보관본](./deep-learning/makemore-bigrams.ipynb) ·
+  [챕터 회고](./deep-learning/makemore-bigrams.md): counting bigram/trigram,
+  분할·smoothing, 인덱싱·cross-entropy, sampling/greedy 실험입니다.
+  원본은 수정·재실행하지 않았으며, 문법 오류와 저장 출력의 한계는 회고에 명시했습니다.
+
+## 챕터 마무리
+
+`$finish-chapter` 또는 `이번 챕터 정리해줘`는
+[마무리 스킬](../.agents/skills/finish-chapter/SKILL.md)을 호출합니다.
+`practice/<area>/<chapter>.ipynb`에 원본 바이트를 보존하고, 같은 이름의
+`.md`에 과정·결과·도움·한계를 정리합니다. 개념은 knowledge와 연결합니다.
+보관본 일치와 문서 검증 후 `main.ipynb`를 빈 코드 셀로 초기화하고,
+STATE 전체 교체안 승인 후 해당 범위의 로컬 커밋까지 진행합니다.
+
+보관본은 학습 흔적이지 재실행을 검증한 완성본이 아닙니다. 과거 오류를
+지우거나 노트북을 실행해 결과를 새로 만들지 않습니다. 기존 보관본이 다른
+내용이면 덮어쓰지 않으며, 빈 노트북의 재호출로 과거 실습을 교체하지 않습니다.
+일반 `완료` 응답에는 적용하지 않고, TIL과 push는 별도 요청입니다.
+
+## 저장 위치
+
 ```text
 practice/<area>/<topic>.py
 practice/<area>/<topic>.ipynb

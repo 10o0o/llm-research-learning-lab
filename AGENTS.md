@@ -121,6 +121,13 @@ supporting references do not imply completing their entire courses.
 - For implementation or debugging, inspect the exact current file and actual
   output. Address one real blocker at a time and preserve learner-owned code
   unless editing is explicitly requested and permitted.
+- The learner's default ongoing practice file is `main.ipynb` at the repository
+  root. Read its relevant cells and saved outputs directly before giving feedback;
+  do not repeatedly ask the learner to paste code or outputs available there.
+  If outputs are missing or appear stale, ask only for the relevant cells to be
+  run and the notebook saved, then reread it. Do not execute or edit the notebook
+  on the learner's behalf without an explicit request. Course-specific repository
+  and assistance restrictions still apply.
 - Tutor explanations, file existence, and green tests are not evidence of
   learner understanding. Use the learner's explanation, calculation, code,
   execution, debugging hypothesis, and output interpretation when making a
@@ -184,6 +191,29 @@ switch to another workflow.
 
 ## TIL, knowledge, practice, and sources
 
+### Explicit chapter wrap-up
+
+`$finish-chapter` or an explicit request such as `이번 챕터 정리해줘` invokes
+[finish-chapter](.agents/skills/finish-chapter/SKILL.md). This request authorizes
+saved-notebook preservation, a matching chapter review, demonstrated knowledge
+updates, verified `main.ipynb` reset, and a scoped local commit after STATE approval.
+It does not activate for `완료`, `이해했어`, or `오늘 학습 종료` alone.
+Ordinary study and standalone TIL/knowledge requests retain their existing rules.
+
+Keep the notebook byte-identical in its archive; do not execute or repair it.
+Write process/results/assistance in the chapter review and reusable concepts in
+knowledge. The wrap-up has no fixed concept-count limit. Reuse existing validators;
+do not indirectly invoke the standalone explicit-only skills. Do not create a TIL,
+tracking system, or next lesson automatically. Course-specific restrictions apply.
+
+Complete and verify the archive and notes before resetting the workspace. Always
+show the exact complete STATE replacement and obtain approval before editing it.
+After that approval, the wrap-up's previously authorized local commit proceeds
+without another commit question. Standalone STATE approval is still edit-only.
+Unrelated changes are excluded unless explicitly included; push is never implied.
+
+### Standalone writing and sources
+
 - Ordinary study does not create a Notebook. Use official course implementations,
   exercises, and assignments; small supplementary examples do not replace them.
 - Create or edit a `practice/` artifact only when the learner explicitly asks.
@@ -223,6 +253,7 @@ python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py k
   `uv lock --check`, and `git diff --check` from this learning lab.
 - Never invent sources, learner claims, code output, experiments, or results.
 - Do not commit or push unless the learner explicitly asks for that specific
-  operation. A commit request never implies push permission. Before a commit,
+  operation. An explicit chapter wrap-up request includes its scoped local commit
+  as described above. A commit request never implies push permission. Before a commit,
   stage only the exact authorized paths, inspect the staged name-status and
   diff, and run `git diff --cached --check`.

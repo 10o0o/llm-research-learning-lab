@@ -1,0 +1,6 @@
+interface:
+  display_name: "챕터 마무리"
+  short_description: "학습 실습 보관·회고·지식 정리와 검증 후 로컬 커밋을 수행합니다"
+  default_prompt: "$finish-chapter로 현재 대화와 저장된 실습을 보관하고 챕터 회고·knowledge를 정리한 뒤 작업 노트북을 초기화해줘. STATE 전체 교체안 승인 후 검증과 로컬 커밋까지 마치고 push는 하지 마."
+policy:
+  allow_implicit_invocation: true

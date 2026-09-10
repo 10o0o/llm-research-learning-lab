@@ -38,4 +38,37 @@ python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py \
   knowledge/<area>/<concept>.md
 ```
 
-Knowledge 수정은 commit이나 push를 자동으로 허용하지 않습니다.
+단독 knowledge 수정 요청은 commit이나 push를 자동으로 허용하지 않습니다.
+[`$finish-chapter`](../.agents/skills/finish-chapter/SKILL.md)는 명시적으로
+챕터 보관·회고·지식 갱신과 로컬 커밋까지 묶은 요청입니다. 이 경우에는 3개
+제한 없이 해당 챕터의 확인된 개념을 검토하지만, 새 내용이 없는 문서를
+억지로 만들지 않습니다. STATE는 전체 교체안 승인 후 반영하며 push는 하지 않습니다.
+
+## Micrograd에서 연결한 개념
+
+다시 읽을 때는 아래 순서로 연결할 수 있습니다. 구현과 실행 출력은
+[micrograd 실습 보관본](../practice/deep-learning/micrograd.ipynb)에 있습니다.
+
+| 개념 | 다시 확인할 내용 |
+|---|---|
+| [도함수와 수치 미분](./math/derivatives-and-finite-differences.md) | 부호·크기, 편미분, 미분 규칙, 전진·중앙 차분 |
+| [계산 그래프와 역전파](./deep-learning/computational-graph-autograd.md) | Value, 클로저, 위상 순서, 누적, 객체와 숫자 구분 |
+| [MLP 구성과 경사하강 학습](./deep-learning/mlp-and-gradient-descent.md) | 뉴런·층·파라미터 수, loss, 초기화·역전파·업데이트 |
+| [Softmax와 음의 로그우도 loss](./deep-learning/softmax-negative-log-likelihood.md) | 정답 확률, 연산 구현, PyTorch 비교 |
+
+배치 학습·검증으로 연결할 때는 기존
+[다중분류 학습 loop와 autograd](./deep-learning/multiclass-training-loop.md)를 참고합니다.
+
+## Makemore bigram에서 연결한 개념
+
+[챕터 회고](../practice/deep-learning/makemore-bigrams.md)에서 질문·수정·
+도움·실험 한계를, [실습 보관본](../practice/deep-learning/makemore-bigrams.ipynb)에서
+당시 코드와 출력을 확인할 수 있습니다.
+
+| 개념 | 다시 확인할 내용 |
+|---|---|
+| [문자 n-gram 언어모델](./llm/character-ngram-models.md) | 현재/다음 문자 ID, 빈도표, 문맥별 확률 |
+| [데이터 분할과 smoothing 선택](./ml/data-split-and-smoothing.md) | 이름 단위 분할, train 집계, dev 선택, test 한계 |
+| [행렬곱과 one-hot 행 선택](./math/matrix-multiplication-linear-layer.md) | ID 목록으로 여러 가중치 행 가져오기 |
+| [Softmax와 NLL](./deep-learning/softmax-negative-log-likelihood.md) | 정답 확률, 배치 인덱싱, 안정적인 cross-entropy |
+| [Sampling과 greedy](./llm/sampling-and-greedy.md) | 확률 추출과 최대 선택, seed, 이름별 초기화 |

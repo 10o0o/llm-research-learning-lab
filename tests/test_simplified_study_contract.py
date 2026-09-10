@@ -136,12 +136,12 @@ def test_roadmap_and_curriculum_cannot_select_the_current_target() -> None:
     assert "`CC-SEQ-01`을 필수 연결 역량으로 먼저 완료" not in roadmap
 
 
-def test_remaining_utilities_are_explicit_and_never_commit() -> None:
+def test_standalone_utilities_keep_their_explicit_no_commit_contract() -> None:
     expected = {"save-today-til", "update-learning-knowledge"}
     actual = {
         path.parent.name for path in (REPO / ".agents/skills").glob("*/SKILL.md")
     }
-    assert actual == expected
+    assert actual == expected | {"finish-chapter"}
 
     for name in expected:
         entrypoint = _normalized(f".agents/skills/{name}/SKILL.md")
@@ -149,6 +149,20 @@ def test_remaining_utilities_are_explicit_and_never_commit() -> None:
         assert "Use only when the learner" in entrypoint
         assert "Commit and push each require a separate explicit request" in entrypoint
         assert "allow_implicit_invocation: false" in manifest
+
+
+def test_chapter_wrap_up_is_separate_from_ordinary_study() -> None:
+    entrypoint = _normalized(".agents/skills/finish-chapter/SKILL.md")
+    manifest = _normalized(".agents/skills/finish-chapter/agents/openai.yaml")
+    assert "allow_implicit_invocation: true" in manifest
+    assert "Do not activate for 완료, 이해했어, or 오늘 학습 종료 alone" in entrypoint
+    assert "Do not execute the learner's notebooks during wrap-up" in entrypoint
+    assert "After approval, apply the exact replacement" in entrypoint
+    assert "Never amend or push automatically" in entrypoint
+    assert "unrelated staged changes" in entrypoint
+    assert "never run commands or this helper in a CS336 assignment checkout" in entrypoint
+    for path in ("AGENTS.md", "README.md", "USAGE.md"):
+        assert "$finish-chapter" in _normalized(path)
 
 
 def test_state_is_a_public_bookmark_with_one_next_action() -> None:
