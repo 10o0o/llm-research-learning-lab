@@ -1,6 +1,6 @@
 ---
 title: "벡터 L2 정규화"
-updated: 2026-08-14
+updated: 2026-09-14
 tags:
   - vector
   - l2-norm
@@ -63,6 +63,6 @@ $$
 
 ## 관련 기록
 
-- Knowledge: [벡터](./vector.md) · [NumPy axis, keepdims와 broadcasting](./numpy-axis-broadcasting.md)
+- Knowledge: [벡터](./vector.md) · [NumPy axis, keepdims와 브로드캐스팅](./numpy-axis-broadcasting.md)
 - TIL: [2026-08-13](../../til/2026/08/2026-08-13.md)
-- Source: [1장 1강: 벡터의 수학적 정의와 기하학적 해석](../../materials/private/kant-basic-math/01-01_벡터의_정의와_기하학적_해석.md)
+- Source: KANT 기초수학, 1장 1강 「벡터의 수학적 정의와 기하학적 해석」

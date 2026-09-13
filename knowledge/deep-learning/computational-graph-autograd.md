@@ -1,6 +1,6 @@
 ---
 title: "계산 그래프와 역전파"
-updated: 2026-09-09
+updated: 2026-09-14
 tags:
   - autograd
   - chain-rule
@@ -11,7 +11,7 @@ tags:
 
 ## 핵심 요약
 
-자동미분은 순전파에서 계산 연결을 기록하고, 최종 출력에서 역방향으로 국소 기울기를 곱해 전달한다. 같은 입력에 여러 경로의 기여가 도착하면 더한다. 기울기 계산과 파라미터 업데이트는 별개다.
+자동미분은 순전파에서 계산 연결을 기록하고, 최종 출력에서 역방향으로 국소 기울기를 곱해 전달한다. 한 노드에 여러 경로의 기여가 도착하면 모두 더한다. 기울기 계산과 파라미터 업데이트는 별개다.
 
 ## 개념 정리
 
@@ -131,6 +131,6 @@ PyTorch의 뉴런 비교에서는 원소 하나인 Tensor `(1,)`를 사용했다
 
 ## 관련 기록
 
-- Knowledge: [도함수와 수치 미분](../math/derivatives-and-finite-differences.md) · [MLP와 학습 반복](./mlp-and-gradient-descent.md) · [softmax와 로그 loss](./softmax-negative-log-likelihood.md)
+- Knowledge: [도함수와 수치 미분](../math/derivatives-and-finite-differences.md) · [MLP와 학습 반복](./mlp-and-gradient-descent.md) · [Softmax와 음의 로그우도 손실](./softmax-negative-log-likelihood.md)
 - Practice: [micrograd 구현과 공식 exercises](../../practice/deep-learning/micrograd.ipynb)
 - Source: [Karpathy micrograd 공식 노트북](https://github.com/karpathy/nn-zero-to-hero/tree/master/lectures/micrograd)

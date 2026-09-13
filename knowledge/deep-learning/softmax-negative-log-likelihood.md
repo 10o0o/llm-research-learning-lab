@@ -1,13 +1,13 @@
 ---
-title: "Softmax와 음의 로그우도 loss"
-updated: 2026-09-10
+title: "Softmax와 음의 로그우도 손실"
+updated: 2026-09-14
 tags:
   - softmax
   - classification
   - negative-log-likelihood
 ---
 
-# Softmax와 음의 로그우도 loss
+# Softmax와 음의 로그우도 손실
 
 ## 핵심 요약
 
@@ -106,26 +106,26 @@ NLL은 백분율이나 정답률이 아니다. 모델이 실제 정답에 준 �
 [0.04177257, 0.83902451, 0.00565330, -0.88645038]
 ```
 
-네 값은 공식 기대값의 절대 오차 기준 `1e-5`를 만족했다. 같은 입력의 `float64` PyTorch 계산에서도 loss와 화면에 표시된 기울기가 일치했다. PyTorch 기울기 출력은 소수 네 자리로 반올림된 표시이며, 전체 자릿수의 별도 오차 비교까지 수행한 것으로 해석하지 않는다.
+네 값과 공식 기대값의 절대 오차는 `1e-5` 이하다. 같은 입력의 `float64` PyTorch 계산에서 loss와 화면에 표시된 기울기도 일치한다. PyTorch 기울기 출력은 소수 네 자리로 반올림된 표시이므로, 전체 자릿수까지 별도로 비교한 결과는 아니다.
 
 정답 logit의 기울기는 음수이므로 logits를 직접 경사하강으로 조정한다면 정답 점수는 높이고 다른 점수는 낮추는 방향이다. 모델 학습에서는 이 기울기가 파라미터까지 전달된 뒤 파라미터가 업데이트된다.
 
-Makemore 보충 실험에서 logits `[[1000, 1000, 1000]]`와 정답 `[2]`를
-직접 `exp → 정규화 → log`로 계산하면 `nan`, cross-entropy로 계산하면
-약 `1.0986`이었다. 일반적인 학습 logits에서는 수동 NLL과 cross-entropy가
-일치했다. 실험 수치와 가중치 상태의 한계는 챕터 회고에 따로 남긴다.
+연결된 실습에서 logits `[[1000, 1000, 1000]]`와 정답 `[2]`를 직접
+`exp → 정규화 → log`로 계산한 값은 `nan`이고, cross-entropy는 약
+`1.0986`이었다. 일반적인 학습 logits에서는 수동 NLL과 cross-entropy가
+일치했다. 구체적인 수치와 가중치 상태의 한계는 연결된 챕터 회고에 남아 있다.
 
 ## 주의점
 
 - `requires_grad=True`와 `backward()`만으로 가중치 값이 업데이트되지는 않는다.
 - 수동 softmax 뒤 음의 로그우도를 계산하는 이번 실습과, raw logits를 받는 `CrossEntropyLoss`의 사용 계약은 구분한다.
-- Micrograd의 직접 구현과 달리, 후속 makemore 실습에서는 큰 logits의
-  수치 안정성 차이를 확인했다. 손실 함수 구현 변경 자체가 모델 성능 향상을 뜻하지 않는다.
+- 큰 logits에서는 직접 구현한 softmax-NLL과 안정적인 cross-entropy의
+  수치 안정성이 다르다. 손실 함수 구현 변경 자체가 모델 성능 향상을 뜻하지 않는다.
 - 공식 기대값과 로컬 실행 비교는 대학의 공식 채점 결과가 아니다.
 
 ## 관련 기록
 
-- Knowledge: [계산 그래프와 역전파](./computational-graph-autograd.md) · [다중분류 학습 loop와 autograd](./multiclass-training-loop.md)
+- Knowledge: [계산 그래프와 역전파](./computational-graph-autograd.md) · [다중분류 학습 반복과 autograd](./multiclass-training-loop.md)
 - Practice: [ExerciseValue와 PyTorch 비교](../../practice/deep-learning/micrograd.ipynb)
 - Practice: [makemore NLL·cross-entropy 회고](../../practice/deep-learning/makemore-bigrams.md)
 - Source: [micrograd 공식 exercises](https://colab.research.google.com/drive/1FPTx1RXtBfc4MaTkf7viZZD4U2F9gtKN?usp=sharing)

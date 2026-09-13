@@ -1,6 +1,6 @@
 ---
 title: "행렬곱과 완전연결층"
-updated: 2026-09-10
+updated: 2026-09-14
 tags:
   - matrix-multiplication
   - linear-layer
@@ -85,18 +85,8 @@ W: [[10, 11], [20, 21], [30, 31]]
 
 ## 예제 또는 적용
 
-```text
-X:     (2, 3)
-W:     (3, 2)
-b:     (2,)
-Y:     (2, 2)
-```
-
-첫 번째 출력 하나를 행과 열의 내적으로 계산한 값과 전체 배치 행렬곱의 같은 위치 값이 일치한다. 같은 숫자를 넣은 `nn.Linear(3, 2)`의 출력도 명시적으로 계산한 `X @ W + b`와 일치한다.
-
-Makemore에서 `W_all[all_xs]`와 `all_xenc @ W_all`의 결과 shape이
-`(228146, 27)`이고 비교가 `True`인 것을 확인했다. 행 인덱싱으로 바꾼
-학습 셀에서도 역전파와 가중치 업데이트를 실행했다.
+위의 one-hot 예제에서 `[0, 1, 0] @ W`는 둘째 행 `[20, 21]`을 선택한다.
+ID가 여러 개인 `ids: (B,)`에서는 `W[ids]: (B, C)`가 같은 선택을 배치로 수행한다.
 
 ## 주의점
 
@@ -106,8 +96,8 @@ Makemore에서 `W_all[all_xs]`와 `all_xenc @ W_all`의 결과 shape이
 
 ## 관련 기록
 
-- Knowledge: [벡터 내적과 코사인 유사도](./dot-product-cosine-similarity.md) · [NumPy axis, keepdims와 broadcasting](./numpy-axis-broadcasting.md)
+- Knowledge: [벡터 내적과 코사인 유사도](./dot-product-cosine-similarity.md) · [NumPy axis, keepdims와 브로드캐스팅](./numpy-axis-broadcasting.md)
 - TIL: [2026-08-18](../../til/2026/08/2026-08-18.md)
 - Practice: [makemore one-hot 제거 회고](../../practice/deep-learning/makemore-bigrams.md)
 - Source: [building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo)
-- Source: [1장 3강: 행렬 연산과 딥러닝 레이어](../../materials/private/kant-basic-math/01-03_행렬_연산과_딥러닝_레이어.md)
+- Source: KANT 기초수학, 1장 3강 「행렬 연산과 딥러닝 레이어」

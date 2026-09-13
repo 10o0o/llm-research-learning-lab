@@ -1,6 +1,6 @@
 ---
-title: "이산분포, Binomial, 표본 변동"
-updated: 2026-09-01
+title: "이산분포, 이항분포와 표본 변동"
+updated: 2026-09-14
 tags:
   - probability
   - distribution
@@ -9,7 +9,7 @@ tags:
   - variance
 ---
 
-# 이산분포, Binomial, 표본 변동
+# 이산분포, 이항분포와 표본 변동
 
 ## 핵심 요약
 
@@ -45,7 +45,7 @@ $$
 
 ## 예제 또는 적용
 
-[PMF와 dropout-like sampling 실습](../../practice/probability/stat110-pmf-dropout-sampling-prelab.ipynb)에서 활성값 4개와 유지 확률 0.75를 사용했다. 8개 마스크의 관측 유지 개수는 `[4, 3, 3, 4, 4, 2, 4, 4]`였고, 관측 평균과 분산은 각각 3.5와 0.5였다. 같은 모델의 이론 평균과 분산은 각각 3.0과 0.75이므로, 이 차이를 유한 표본의 변동으로 해석했다.
+활성값 4개를 각각 0.75의 확률로 독립적으로 유지한 8개 마스크의 유지 개수가 `[4, 3, 3, 4, 4, 2, 4, 4]`라면, 관측 평균과 분산은 각각 3.5와 0.5다. 같은 이항분포의 이론 평균과 분산은 각각 3.0과 0.75다. 이 차이는 표본이 8개뿐일 때 생길 수 있는 유한 표본 변동이다.
 
 ## 주의점
 
@@ -55,5 +55,6 @@ $$
 
 ## 관련 기록
 
+- Knowledge: [유한 표본공간의 사건 확률](./finite-event-probability.md)
 - Practice: [PMF와 dropout-like sampling 실습](../../practice/probability/stat110-pmf-dropout-sampling-prelab.ipynb)
-- Source: [Introduction to Probability, Second Edition, Chapter 3–4](../../materials/private/harvard-stat110-probability/00-01_introduction_to_probability_2e.pdf)
+- Source: *Introduction to Probability*, Second Edition, Chapters 3–4

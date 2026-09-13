@@ -1,13 +1,13 @@
 ---
-title: "문자 n-gram 언어모델"
-updated: 2026-09-10
+title: "문자 n-gram 언어 모델"
+updated: 2026-09-14
 tags:
   - language-model
   - bigram
   - trigram
 ---
 
-# 문자 n-gram 언어모델
+# 문자 n-gram 언어 모델
 
 ## 핵심 요약
 
@@ -67,6 +67,6 @@ trigram 빈도: (V, V, V) → 앞 문자 1, 앞 문자 2, 다음 문자
 
 ## 관련 기록
 
-- Knowledge: [데이터 분할과 smoothing](../ml/data-split-and-smoothing.md) · [Softmax와 NLL](../deep-learning/softmax-negative-log-likelihood.md) · [Sampling과 greedy](./sampling-and-greedy.md)
+- Knowledge: [데이터 분할과 평활화 계수 선택](../ml/data-split-and-smoothing.md) · [Softmax와 NLL](../deep-learning/softmax-negative-log-likelihood.md) · [샘플링과 탐욕적 생성](./sampling-and-greedy.md)
 - Practice: [실습](../../practice/deep-learning/makemore-bigrams.ipynb) · [챕터 회고](../../practice/deep-learning/makemore-bigrams.md)
 - Source: [building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo)

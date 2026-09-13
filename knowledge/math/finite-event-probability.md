@@ -1,6 +1,6 @@
 ---
 title: "유한 표본공간의 사건 확률"
-updated: 2026-08-31
+updated: 2026-09-14
 tags:
   - probability
   - counting
@@ -57,6 +57,6 @@ $$
 
 ## 관련 기록
 
-- Knowledge: [라벨된 원시 표본공간과 충돌 확률](./labeled-sample-space-counting.md)
+- Knowledge: [라벨이 있는 원시 표본공간과 충돌 확률](./labeled-sample-space-counting.md)
 - Practice: [가중 사건 확률 계산기](../../practice/probability/stat110-weighted-event-union.ipynb)
-- Source: [Introduction to Probability, Second Edition, pp. 27–35](../../materials/private/harvard-stat110-probability/00-01_introduction_to_probability_2e.pdf)
+- Source: *Introduction to Probability*, Second Edition, pp. 27–35

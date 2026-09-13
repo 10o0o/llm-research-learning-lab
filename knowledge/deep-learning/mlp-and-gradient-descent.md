@@ -1,6 +1,6 @@
 ---
 title: "MLP 구성과 경사하강 학습"
-updated: 2026-09-09
+updated: 2026-09-14
 tags:
   - neural-network
   - mlp
@@ -94,13 +94,13 @@ $$
 
 ## 예제 또는 적용
 
-연결된 micrograd 실습에서 제곱 오차 합은 초기 약 5.23052에서 한 번 업데이트 후 3.12411로 감소했다. 이후 20회 추가 학습 후 약 0.03218이 되었고, 목표 `[1, -1, -1, 1]`에 대한 예측은 약 `[0.90893, -0.95325, -0.87975, 0.91494]`였다.
+입력 네 건과 목표 `[1, -1, -1, 1]`을 사용한 micrograd 예제에서 제곱 오차 합은 초기 약 5.23052, 한 번 업데이트한 뒤 3.12411, 이후 20회 추가 학습한 뒤 약 0.03218이었다. 마지막 예측은 약 `[0.90893, -0.95325, -0.87975, 0.91494]`였다.
 
 이 예제는 네 데이터에서의 학습 과정을 보여준다. 새로운 데이터에서의 일반화 성능은 이 결과로 판단하지 않는다.
 
 ## 주의점
 
-- 학습률이 고정되어 있다고 매 단계 loss 감소가 보장되지는 않는다. 실습에서도 중간에 한 번 증가했다.
+- 학습률이 고정되어 있다고 매 단계 loss 감소가 보장되지는 않는다. 이 예제에서도 중간에 한 번 증가했다.
 - 전체 오차를 줄이는 업데이트가 모든 데이터의 개별 오차를 동시에 줄일 필요는 없다.
 - 리스트 컴프리헨션은 바깥 반복문부터 쓴다. `for neuron in self.neurons` 다음에 `for p in neuron.parameters()`가 와야 현재 층의 파라미터를 모은다.
 - 이전 전역 변수 때문에 틀린 반복문도 개수만 맞을 수 있다. 파라미터 수와 함께 어떤 객체를 수집하는지 확인한다.
@@ -108,6 +108,6 @@ $$
 
 ## 관련 기록
 
-- Knowledge: [계산 그래프와 역전파](./computational-graph-autograd.md) · [다중분류 학습 loop와 autograd](./multiclass-training-loop.md) · [행렬곱과 완전연결층](../math/matrix-multiplication-linear-layer.md)
+- Knowledge: [계산 그래프와 역전파](./computational-graph-autograd.md) · [다중분류 학습 반복과 autograd](./multiclass-training-loop.md) · [행렬곱과 완전연결층](../math/matrix-multiplication-linear-layer.md)
 - Practice: [micrograd의 Neuron, Layer, MLP 및 학습 반복](../../practice/deep-learning/micrograd.ipynb)
 - Source: [Karpathy micrograd 후반부 노트북](https://github.com/karpathy/nn-zero-to-hero/blob/master/lectures/micrograd/micrograd_lecture_second_half_roughly.ipynb)

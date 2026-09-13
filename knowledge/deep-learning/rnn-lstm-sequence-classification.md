@@ -1,17 +1,17 @@
 ---
-title: "RNN/LSTM sequence classification"
-updated: 2026-09-01
+title: "RNN/LSTM 시퀀스 분류"
+updated: 2026-09-14
 tags:
   - deep-learning
   - sequence-modeling
   - pytorch
 ---
 
-# RNN/LSTM sequence classification
+# RNN/LSTM 시퀀스 분류
 
 ## 핵심 요약
 
-순서가 있는 입력을 문장 단위로 분류할 때 RNN은 이전 hidden state를 다음 위치로 전달하고, 같은 recurrent parameter를 모든 위치에서 재사용한다. LSTM은 hidden state와 별도의 cell state를 함께 이어 가며, gate로 보존·기록·노출을 조절한다. 최종 분류에는 마지막 hidden state를 linear readout에 넣어 sequence-level logits를 만든다.
+RNN과 LSTM은 순서가 있는 입력을 따라 state를 전달하고 recurrent parameter를 모든 위치에서 공유한다. 시퀀스 분류에서는 마지막 hidden state를 linear readout에 넣어 시퀀스 단위 logits를 만든다.
 
 ## 개념 정리
 
@@ -51,4 +51,5 @@ tags:
 
 ## 관련 기록
 
+- Knowledge: [다중분류 학습 반복과 autograd](./multiclass-training-loop.md)
 - Practice: [RNN/LSTM sequence modeling](../../practice/deep-learning/rnn-lstm-sequence-modeling.ipynb)

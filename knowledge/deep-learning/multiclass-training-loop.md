@@ -1,6 +1,6 @@
 ---
-title: "다중분류 학습 loop와 autograd"
-updated: 2026-09-09
+title: "다중분류 학습 반복과 autograd"
+updated: 2026-09-14
 tags:
   - deep-learning
   - pytorch
@@ -8,11 +8,11 @@ tags:
   - autograd
 ---
 
-# 다중분류 학습 loop와 autograd
+# 다중분류 학습 반복과 autograd
 
 ## 핵심 요약
 
-다중분류 모델은 입력을 class별 raw logits로 바꾸고, `CrossEntropyLoss`로 정답 class의 오차를 계산한다. 학습은 `zero_grad → forward → loss → backward → step` 순서로 진행하며, `backward()`가 계산한 gradient는 model parameter의 `.grad`에 저장된다. 검증은 `model.eval()`과 `torch.no_grad()` 아래에서 loss와 class-axis `argmax` 기반 accuracy를 계산한다.
+다중분류 모델은 입력을 class별 raw logits로 바꾸고 `CrossEntropyLoss`로 학습한다. 파라미터 update는 `zero_grad → forward → loss → backward → step` 순서이며, 검증에서는 `model.eval()`과 `torch.no_grad()`를 함께 사용한다.
 
 ## 개념 정리
 
@@ -87,13 +87,13 @@ model.fc.weight.grad
 model.fc.bias.grad
 ```
 
-`no_grad()`는 블록 안의 계산 graph 생성을 막는다. `detach()`는 특정 Tensor를 현재 graph에서 분리한다. 둘 다 parameter gradient가 validation 경로로 만들어지는 것을 막는 데 도움을 주지만, `model.eval()`은 dropout이나 batch normalization 등의 평가 동작을 전환하는 별도의 기능이다.
+`no_grad()`는 블록 안에서 수행하는 연산 전체의 계산 graph 생성을 막으므로 검증 forward의 graph 생성 비용도 줄인다. `detach()`는 이미 만들어진 특정 Tensor를 현재 graph에서 분리하지만, 그 Tensor를 만들기까지 든 forward 계산과 graph 생성 비용을 없애지는 않는다. `model.eval()`은 dropout이나 batch normalization 등의 평가 동작을 전환하는 별도의 기능이다.
 
 ## 예제 또는 적용
 
-직접 실행한 작은 분류 문제에서 입력은 `(9, 2)`였고, train/validation 분리 후 `nn.Linear(2, 3)`으로 `(batch, 3)` logits를 만들었다. 세 번째 feature를 추가해 입력을 `(N, 3)`으로 바꾸고 `nn.Linear(3, 3)`을 사용했을 때 weight는 `(3, 3)`, logits는 여전히 `(batch, 3)`이었다.
+샘플 9개와 feature 2개인 작은 분류 예제에서 train/validation으로 나누고 `nn.Linear(2, 3)`을 사용하면 logits는 `(batch, 3)`이다. 세 번째 feature를 추가해 입력을 `(N, 3)`으로 바꾸고 `nn.Linear(3, 3)`을 사용하면 weight는 `(3, 3)`, logits는 여전히 `(batch, 3)`이다.
 
-실행 결과를 해석할 때 train loss가 감소하는지, validation accuracy가 단순 baseline보다 높은지 함께 확인했다.
+결과를 해석할 때는 train loss 감소와 validation accuracy의 단순 baseline 대비 값을 함께 본다.
 
 ## 주의점
 
@@ -105,7 +105,7 @@ model.fc.bias.grad
 
 ## 관련 기록
 
-- Knowledge: [계산 그래프와 역전파](./computational-graph-autograd.md) · [MLP 구성과 경사하강 학습](./mlp-and-gradient-descent.md) · [Softmax와 음의 로그우도 loss](./softmax-negative-log-likelihood.md)
+- Knowledge: [계산 그래프와 역전파](./computational-graph-autograd.md) · [MLP 구성과 경사하강 학습](./mlp-and-gradient-descent.md) · [Softmax와 음의 로그우도 손실](./softmax-negative-log-likelihood.md)
 - TIL: [2026-09-02](../../til/2026/09/2026-09-02.md)
 - Practice: 당시 실습 파일 `main.py`는 현재 작업 트리에 없다. 학습 내용은 위 TIL에 남아 있다.
 - Source: [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)

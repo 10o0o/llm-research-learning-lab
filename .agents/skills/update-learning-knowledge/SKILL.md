@@ -6,9 +6,9 @@ description: Explicit standalone update of zero to three durable knowledge notes
 # Update Demonstrated Knowledge
 
 Maintain `knowledge/` as the learner's current reusable understanding, not a
-lecture summary, transcript, or progress record. Read `knowledge/template.md`,
-`knowledge/README.md`, relevant existing notes, and only the exact learner
-evidence named in the current request.
+lecture summary, transcript, or progress record. Read `knowledge/README.md` as
+the canonical authoring rules, then `knowledge/template.md`, relevant existing
+notes, and only the exact learner evidence named in the current request.
 
 Valid inputs are the learner's own explanation or calculation in the current
 conversation, or an exact artifact that the learner executed and interpreted.
@@ -17,8 +17,10 @@ not evidence. Never read ignored state or infer missing mastery.
 
 Select zero to three concepts with durable reuse value. Update an existing
 date-free concept note in place or create the narrowest
-`knowledge/<area>/<concept>.md`. Include only the demonstrated range: concise
-definition, mechanism, conditions, useful example, and stable cautions.
+`knowledge/<area>/<concept>.md`. Follow the README for evidence-to-reference
+prose, standalone examples, source handling, tags, and whole-note review.
+Include only the demonstrated range: concise definition, mechanism, conditions,
+useful example, and stable cautions.
 `NO_CHANGE` is correct when evidence is insufficient or existing notes already
 say the same thing.
 

@@ -1,6 +1,6 @@
 ---
 title: "조건부확률과 관측 정보"
-updated: 2026-08-31
+updated: 2026-09-14
 tags:
   - probability
   - conditional-probability
@@ -11,7 +11,7 @@ tags:
 
 ## 핵심 요약
 
-조건부확률 `P(A | B)`는 `B`가 이미 관측되었다고 두고 `B`와 양립하는 원시 결과만 남긴 뒤 그 안의 확률질량을 다시 합 1로 맞춘 확률이다. 따라서 조건을 바꾸면 남는 결과와 분모가 함께 바뀌며, `P(A | B)`와 `P(B | A)`는 일반적으로 다르다. 문장으로 전달된 정보는 표현만 보지 않고, 실제 관측·선택 과정까지 표본공간에 넣어야 한다.
+조건부확률 `P(A | B)`는 관측 `B`와 양립하는 원시 결과만 남겨 확률질량을 다시 합 1로 맞춘 뒤, 사건 `A`에 속하는 질량을 더한 값이다. 조건의 방향이나 관측·선택 과정이 달라지면 남는 결과와 확률도 달라질 수 있다.
 
 ## 개념 정리
 
@@ -37,10 +37,6 @@ $$
 
 “무작위로 만난 아이가 여자”는 가족 유형만의 사건이 아니라 가족에서 한 아이를 균등하게 고르는 수집 과정까지 포함한다. 이때 `GG`에서 여자 관측이 나올 가능성은 `1`, `GB`와 `BG`에서는 각각 `1/2`, `BB`에서는 `0`이다. 같은 사전확률에서 시작해도 관측 가능성을 곱한 가중치가 `GG: 1/4`, `GB: 1/8`, `BG: 1/8`, `BB: 0`이 되므로 여자 관측 뒤 `GG`의 확률은 `1/2`가 된다.
 
-## 예제 또는 적용
-
-[조건부확률·관측 정보 실습](../../practice/probability/stat110-conditional-information.ipynb)에서 유한 가중 표본공간의 필터·재정규화, 두 조건 방향, 무작위 관측의 likelihood 가중치를 구현하고 실행했다. 특히 가족 유형의 사전확률만 균등하다고 처리하지 않고, 각 유형에서 여자 아이가 관측될 확률을 곱한 뒤 다시 정규화했다.
-
 ## 주의점
 
 - 분모는 원래 표본공간 전체가 아니라 조건을 만족해 남은 결과의 확률질량이다.
@@ -51,4 +47,4 @@ $$
 
 - Knowledge: [유한 표본공간의 사건 확률](./finite-event-probability.md)
 - Practice: [조건부확률·관측 정보 실습](../../practice/probability/stat110-conditional-information.ipynb)
-- Source: [Introduction to Probability, Second Edition, Chapter 2 §2.1–§2.2.7](../../materials/private/harvard-stat110-probability/00-01_introduction_to_probability_2e.pdf)
+- Source: *Introduction to Probability*, Second Edition, Chapter 2 §2.1–§2.2.7

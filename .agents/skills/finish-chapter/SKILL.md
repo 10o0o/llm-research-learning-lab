@@ -54,10 +54,13 @@ that specific obstacle before archiving or resetting; do not silently redact his
    Keep confirmed existing content. Cite saved cell numbers (1-based) and distinguish
    conversational observations from content still present in the archived file.
    Do not reproduce the chat transcript or mark unresolved requirements complete.
-4. Update reusable concepts using `knowledge/template.md` and existing notes first.
+4. Read `knowledge/README.md` as the canonical authoring rules, then update
+   reusable concepts using `knowledge/template.md` and existing notes first.
    Cover the chapter's demonstrated range without a fixed concept-count cap. Keep
    process and detailed results in the review, mechanisms and small examples in
-   knowledge. `NO_CHANGE` is valid. Do not invoke the standalone TIL/knowledge
+   knowledge. Follow the README for evidence-to-reference prose, standalone
+   examples, source handling, tags, and whole-note review. `NO_CHANGE` is valid.
+   Do not invoke the standalone TIL/knowledge
    skills indirectly; their separate explicit-only contracts remain unchanged.
    Link the review, notebook and relevant concepts from the existing practice and
    knowledge indexes. Do not create a new catalog, scorecard, or progress manifest.

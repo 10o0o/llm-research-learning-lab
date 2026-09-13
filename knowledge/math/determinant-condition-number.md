@@ -1,6 +1,6 @@
 ---
 title: "행렬식과 조건수"
-updated: 2026-08-18
+updated: 2026-09-14
 tags:
   - determinant
   - condition-number
@@ -69,4 +69,4 @@ cond(M_uneven) = 1e8
 ## 관련 기록
 
 - TIL: [2026-08-18](../../til/2026/08/2026-08-18.md)
-- Source: [1장 4강: 특수 행렬과 행렬 연산 성질](../../materials/private/kant-basic-math/01-04_특수_행렬과_행렬_연산_성질.md)
+- Source: KANT 기초수학, 1장 4강 「특수 행렬과 행렬 연산 성질」

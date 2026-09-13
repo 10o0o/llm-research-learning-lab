@@ -1,6 +1,6 @@
 ---
 title: "최소제곱과 잔차 직교성"
-updated: 2026-08-19
+updated: 2026-09-14
 tags:
   - least-squares
   - residual
@@ -77,6 +77,6 @@ A.T @ r    = [0]
 
 ## 관련 기록
 
-- Knowledge: [Rank, 영공간과 연립방정식의 해](./rank-null-space-linear-systems.md)
+- Knowledge: [랭크, 영공간과 연립방정식의 해](./rank-null-space-linear-systems.md)
 - TIL: [2026-08-18](../../til/2026/08/2026-08-18.md)
-- Source: [연립선형방정식과 행렬 해법](../../materials/private/kant-basic-math/02-03_연립선형방정식과_행렬_해법.md)
+- Source: KANT 기초수학, 2장 3강 「연립선형방정식과 행렬 해법」

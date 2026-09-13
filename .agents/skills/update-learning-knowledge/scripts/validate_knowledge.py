@@ -223,14 +223,51 @@ def extract_link_targets(line: str) -> list[str]:
             return targets
 
 
+def repository_root(path: Path) -> Path | None:
+    resolved = path.resolve(strict=False)
+    for ancestor in resolved.parents:
+        if ancestor.name == "knowledge":
+            return ancestor.parent
+    return None
+
+
+def is_within(path: Path, directory: Path) -> bool:
+    try:
+        path.relative_to(directory)
+    except ValueError:
+        return False
+    return True
+
+
 def check_links(path: Path, visible: list[tuple[int, str]]) -> list[str]:
     errors: list[str] = []
+    resolved_path = path.resolve(strict=False)
+    root = repository_root(path)
+    private_materials = (
+        (root / "materials" / "private").resolve(strict=False)
+        if root is not None
+        else None
+    )
     for line_number, line in visible:
         for raw_target in extract_link_targets(line):
             target = normalize_link_target(raw_target)
             if not target or target.startswith(("#", "http://", "https://", "mailto:", "data:")):
                 continue
-            if not (path.parent / target).resolve().exists():
+            resolved_target = (resolved_path.parent / target).resolve(strict=False)
+            if root is not None and not is_within(resolved_target, root):
+                errors.append(
+                    f"{path}:{line_number}: relative link target is outside repository: {target}"
+                )
+                continue
+            if (
+                private_materials is not None
+                and is_within(resolved_target, private_materials)
+            ):
+                errors.append(
+                    f"{path}:{line_number}: relative link target is in private materials: {target}"
+                )
+                continue
+            if not resolved_target.exists():
                 errors.append(f"{path}:{line_number}: relative link target does not exist: {target}")
     return errors
 

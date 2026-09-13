@@ -1,6 +1,6 @@
 ---
 title: "행렬 곱의 순서와 특수 행렬"
-updated: 2026-08-18
+updated: 2026-09-14
 tags:
   - matrix-multiplication
   - special-matrix
@@ -72,4 +72,4 @@ x @ S @ D = [3.0, 1.5]
 
 - Knowledge: [행렬곱과 완전연결층](./matrix-multiplication-linear-layer.md)
 - TIL: [2026-08-18](../../til/2026/08/2026-08-18.md)
-- Source: [1장 4강: 특수 행렬과 행렬 연산 성질](../../materials/private/kant-basic-math/01-04_특수_행렬과_행렬_연산_성질.md)
+- Source: KANT 기초수학, 1장 4강 「특수 행렬과 행렬 연산 성질」

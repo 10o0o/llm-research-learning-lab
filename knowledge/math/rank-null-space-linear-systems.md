@@ -1,13 +1,13 @@
 ---
-title: "Rank, 영공간과 연립방정식의 해"
-updated: 2026-08-19
+title: "랭크, 영공간과 연립방정식의 해"
+updated: 2026-09-14
 tags:
   - rank
   - null-space
   - linear-system
 ---
 
-# Rank, 영공간과 연립방정식의 해
+# 랭크, 영공간과 연립방정식의 해
 
 ## 핵심 요약
 
@@ -72,4 +72,4 @@ A = [[1, 2],
 
 - Knowledge: [선형 변환과 기저벡터](./linear-transformation-basis.md) · [행렬식과 조건수](./determinant-condition-number.md)
 - TIL: [2026-08-18](../../til/2026/08/2026-08-18.md)
-- Source: [벡터공간과 선형 독립](../../materials/private/kant-basic-math/02-02_벡터공간과_선형_독립.md) · [연립선형방정식과 행렬 해법](../../materials/private/kant-basic-math/02-03_연립선형방정식과_행렬_해법.md)
+- Source: KANT 기초수학, 2장 2강 「벡터공간과 선형 독립」 · 2장 3강 「연립선형방정식과 행렬 해법」

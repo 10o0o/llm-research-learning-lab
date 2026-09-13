@@ -1,13 +1,13 @@
 ---
-title: "NumPy axis, keepdims와 broadcasting"
-updated: 2026-08-14
+title: "NumPy axis, keepdims와 브로드캐스팅"
+updated: 2026-09-14
 tags:
   - numpy
   - tensor
   - broadcasting
 ---
 
-# NumPy axis, keepdims와 broadcasting
+# NumPy axis, keepdims와 브로드캐스팅
 
 ## 핵심 요약
 

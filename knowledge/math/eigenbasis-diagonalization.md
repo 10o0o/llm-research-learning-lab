@@ -1,6 +1,6 @@
 ---
 title: "고유기저와 행렬 대각화"
-updated: 2026-08-21
+updated: 2026-09-14
 tags:
   - eigenvalue
   - eigenvector
@@ -48,4 +48,4 @@ $$
 - Knowledge: [선형 변환과 기저벡터](./linear-transformation-basis.md)
 - TIL: [2026-08-20](../../til/2026/08/2026-08-20.md)
 - Practice: [linear-algebra-recall](../../practice/math/linear-algebra-recall.ipynb)
-- Source: [고유값과 고유벡터](../../materials/private/kant-basic-math/03-01_고유값과_고유벡터.md) · [행렬 대각화와 PCA 구현](../../materials/private/kant-basic-math/03-02_행렬_대각화와_PCA_구현.md)
+- Source: KANT 기초수학, 3장 1강 「고유값과 고유벡터」 · 3장 2강 「행렬 대각화와 PCA 구현」

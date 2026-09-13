@@ -1,13 +1,13 @@
 ---
-title: "데이터 분할과 smoothing 선택"
-updated: 2026-09-10
+title: "데이터 분할과 평활화 계수 선택"
+updated: 2026-09-14
 tags:
   - train-dev-test
   - smoothing
   - model-selection
 ---
 
-# 데이터 분할과 smoothing 선택
+# 데이터 분할과 평활화 계수 선택
 
 ## 핵심 요약
 

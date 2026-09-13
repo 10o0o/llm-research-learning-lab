@@ -38,6 +38,9 @@ jobs:
       - name: Run public test suite
         run: uv run --frozen pytest -q tests .agents/skills
 
+      - name: Validate public knowledge notes
+        run: uv run --frozen python .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py knowledge/template.md knowledge/*/*.md
+
       - name: Check lockfile
         run: uv lock --check
 
