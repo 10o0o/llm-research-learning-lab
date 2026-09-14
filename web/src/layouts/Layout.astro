@@ -1,0 +1,66 @@
+---
+import '../styles/global.css';
+import 'katex/dist/katex.min.css';
+import { withBase } from '../lib/urls';
+interface Props { title?: string; description?: string }
+const { title, description = '수학에서 언어 모델까지, 이해한 개념을 연결하고 다시 읽는 개인 지식 서재.' } = Astro.props;
+const path = Astro.url.pathname;
+---
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="light dark" />
+    <title>{title ? `${title} · LLM Learning Lab` : 'LLM Learning Lab · 개념을 잇는 지식 서재'}</title>
+    <script is:inline>
+      try {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href={withBase('/')} aria-label="LLM Learning Lab 홈">
+          <span class="brand-mark" aria-hidden="true">L<span>·</span></span>
+          <span>LLM Learning Lab<small>개념을 잇는 지식 서재</small></span>
+        </a>
+        <div class="header-actions">
+          <nav class="desktop-nav" aria-label="주 탐색">
+            <a class:list={{ active: path.includes('/knowledge/') }} href={withBase('/knowledge/')}>문서</a>
+            <a class:list={{ active: path.includes('/about/') }} href={withBase('/about/')}>소개</a>
+          </nav>
+          <button class="theme-toggle icon-button" aria-label="색상 테마 변경" title="색상 테마 변경">
+            <svg class="sun-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
+          </button>
+          <details class="mobile-nav">
+            <summary aria-label="메뉴 열기">메뉴 <span aria-hidden="true">☰</span></summary>
+            <nav aria-label="모바일 탐색"><a href={withBase('/knowledge/')}>문서</a><a href={withBase('/about/')}>소개</a></nav>
+          </details>
+        </div>
+      </div>
+    </header>
+    <main id="main"><slot /></main>
+    <footer class="site-footer">
+      <div><a href={withBase('/')}>LLM Learning Lab</a><p>배운 것을 연결하고, 이해를 조금씩 고쳐 나갑니다.</p></div>
+      <a href="https://github.com/10o0o/llm-research-learning-lab">GitHub 저장소 <span aria-hidden="true">↗</span></a>
+    </footer>
+    <script>
+      document.querySelector('.theme-toggle')?.addEventListener('click', () => {
+        const root = document.documentElement;
+        const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        root.dataset.theme = dark ? 'light' : 'dark';
+        try { localStorage.setItem('theme', root.dataset.theme); } catch {}
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          document.querySelectorAll<HTMLDetailsElement>('.mobile-nav[open]').forEach((el) => { el.open = false; el.querySelector('summary')?.focus(); });
+        }
+      });
+    </script>
+  </body>
+</html>

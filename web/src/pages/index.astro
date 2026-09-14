@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro';
+import NoteCard from '../components/NoteCard.astro';
+import SearchForm from '../components/SearchForm.astro';
+import { AREAS, getNotes, getReadingPaths } from '../lib/content';
+import { noteUrl, withBase } from '../lib/urls';
+const notes = await getNotes();
+const recent = [...notes].sort((a, b) => b.updated.localeCompare(a.updated) || a.title.localeCompare(b.title, 'ko')).slice(0, 6);
+const paths = await getReadingPaths();
+---
+<Layout>
+  <div class="home-hero page-width">
+    <div class="hero-copy"><p class="eyebrow"><span class="status-dot"></span> KNOWLEDGE, CONNECTED</p>
+      <h1>하나의 개념에서,<br/><span>다음 이해로.</span></h1>
+      <p class="hero-description">수학의 기초부터 언어 모델까지.<br/>배우며 이해한 개념을 기록하고, 연결하고, 다시 읽습니다.</p>
+      <SearchForm large />
+      <p class="hero-hint">이런 개념은 어때요? <a href={`${withBase('/knowledge/')}?q=${encodeURIComponent('역전파')}`}>역전파</a><a href={`${withBase('/knowledge/')}?q=PCA`}>PCA</a><a href={`${withBase('/knowledge/')}?q=Softmax`}>Softmax</a></p>
+    </div>
+    <div class="concept-illustration" aria-hidden="true">
+      <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+      <svg class="connections" viewBox="0 0 420 320"><path d="M75 72 204 152 345 60M204 152 340 260M204 152 70 270"/><circle cx="204" cy="152" r="6"/></svg>
+      <div class="concept-node node-math"><span>01 / MATH</span><strong>수학</strong><small>이해의 바탕</small></div>
+      <div class="concept-node node-ml"><span>02 / ML</span><strong>머신러닝</strong><small>데이터에서 패턴으로</small></div>
+      <div class="concept-node node-dl"><span>03 / DEEP LEARNING</span><strong>딥러닝</strong><small>연결에서 학습으로</small></div>
+      <div class="concept-node node-llm"><span>04 / LANGUAGE MODELS</span><strong>언어 모델</strong><small>다음 토큰을 향해</small></div>
+      <span class="diagram-caption">작은 이해들이 연결되는 곳</span>
+    </div>
+  </div>
+  <div class="page-width home-content">
+    <section class="area-section" aria-labelledby="area-heading">
+      <div class="section-heading"><div><p class="eyebrow">EXPLORE BY SUBJECT</p><h2 id="area-heading">분야별로 둘러보기</h2></div><span class="quiet">{notes.length}개의 개념 · {AREAS.length}개의 분야</span></div>
+      <div class="area-grid">{AREAS.map((area, i) => <a class="area-card" href={`${withBase('/knowledge/')}?area=${area.id}`}><span class="area-symbol" aria-hidden="true">{['∑', '◈', '⌘', 'Aa'][i]}</span><div><h3>{area.label}</h3><p>{area.description}</p></div><span class="area-count">{notes.filter((note) => note.area === area.id).length}<span aria-hidden="true"> ↗</span></span></a>)}</div>
+    </section>
+    <section aria-labelledby="recent-heading">
+      <div class="section-heading"><div><p class="eyebrow">RECENTLY REVISITED</p><h2 id="recent-heading">최근 다듬은 개념</h2></div><a class="text-link" href={withBase('/knowledge/')}>모든 문서 보기 <span aria-hidden="true">→</span></a></div>
+      <div class="note-grid">{recent.map((note) => <NoteCard note={note} />)}</div>
+    </section>
+    <section class="reading-section" aria-labelledby="reading-heading">
+      <div class="section-heading"><div><p class="eyebrow">READ IN CONNECTION</p><h2 id="reading-heading">함께 읽으면 좋은 개념</h2></div><p class="quiet">하나의 구현을 여러 관점에서 살펴봅니다.</p></div>
+      <div class="reading-grid">{paths.map((path, i) => <article class="reading-card"><span class="reading-number">0{i + 1}</span><div><h3>{path.title}</h3><p>{path.description}</p><ol>{path.ids.map((id) => { const note = notes.find((n) => n.id === id); return note && <li><a href={noteUrl(id)}>{note.title}<span aria-hidden="true">→</span></a></li>; })}</ol></div></article>)}</div>
+    </section>
+  </div>
+</Layout>

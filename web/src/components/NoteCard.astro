@@ -1,0 +1,13 @@
+---
+import { AREAS, type Note } from '../lib/content';
+import { noteUrl, withBase } from '../lib/urls';
+interface Props { note: Note }
+const { note } = Astro.props;
+const area = AREAS.find((a) => a.id === note.area);
+---
+<article class="note-card">
+  <div class="card-meta"><span>{area?.label ?? note.area}</span><time datetime={note.updated}>{note.updated.replaceAll('-', '.')}</time></div>
+  <h3><a href={noteUrl(note.id)}>{note.title}</a></h3>
+  <p class="card-summary">{note.summary}</p>
+  <div class="card-bottom"><div class="tags">{note.tags.slice(0, 2).map((tag) => <a href={`${withBase('/knowledge/')}?tag=${encodeURIComponent(tag)}`}>#{tag}</a>)}</div><a class="card-arrow" href={noteUrl(note.id)} aria-label={`${note.title} 읽기`}>↗</a></div>
+</article>

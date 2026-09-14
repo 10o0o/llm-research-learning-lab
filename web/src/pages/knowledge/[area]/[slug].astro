@@ -1,0 +1,35 @@
+---
+import { render } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+import NoteCard from '../../../components/NoteCard.astro';
+import { AREAS, getNotes } from '../../../lib/content';
+import { withBase } from '../../../lib/urls';
+export async function getStaticPaths() {
+  const notes = await getNotes();
+  return notes.map((note) => ({ params: { area: note.area, slug: note.id.split('/').slice(1).join('/') }, props: { note, related: notes.filter((item) => note.relatedIds.includes(item.id)) } }));
+}
+const { note, related } = Astro.props;
+const { Content, headings } = await render(note.entry);
+const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const area = AREAS.find((item) => item.id === note.area);
+---
+<Layout title={note.title} description={note.summary}>
+  <div class="page-width article-shell">
+    <nav class="breadcrumbs" aria-label="현재 위치"><a href={withBase('/knowledge/')}>문서</a><span aria-hidden="true">/</span><a href={`${withBase('/knowledge/')}?area=${note.area}`}>{area?.label}</a></nav>
+    <div class="article-grid">
+      <article class="knowledge-article" data-pagefind-body>
+        <header class="article-header">
+          <p class="eyebrow" data-pagefind-filter="area">{area?.label}</p>
+          <h1 data-pagefind-meta="title">{note.title}</h1>
+          <div class="article-meta" data-pagefind-ignore><span>최근 수정 <time datetime={note.updated}>{note.updated.replaceAll('-', '.')}</time></span><span class="meta-dot" aria-hidden="true">·</span><a href={`https://github.com/10o0o/llm-research-learning-lab/blob/main/knowledge/${note.id}.md`}>원문 보기 ↗</a></div>
+          <div class="tags" data-pagefind-ignore>{note.tags.map((tag) => <a href={`${withBase('/knowledge/')}?tag=${encodeURIComponent(tag)}`}>#{tag}</a>)}</div>
+        </header>
+        <details class="mobile-toc" data-pagefind-ignore><summary>이 문서의 목차</summary><nav aria-label="모바일 목차">{toc.map((heading) => <a class:list={{ subheading: heading.depth === 3 }} href={`#${heading.slug}`}>{heading.text}</a>)}</nav></details>
+        <div class="prose"><Content /></div>
+        <div class="article-end" data-pagefind-ignore><span aria-hidden="true">✳</span><p>이해는 계속 다듬어집니다.</p><a href={withBase('/knowledge/')}>다른 개념 둘러보기 →</a></div>
+      </article>
+      <aside class="toc" aria-label="문서 목차" data-pagefind-ignore><div class="toc-inner"><p class="eyebrow">ON THIS PAGE</p><nav>{toc.map((heading) => <a class:list={{ subheading: heading.depth === 3 }} href={`#${heading.slug}`}>{heading.text}</a>)}</nav><a class="back-top" href="#main">맨 위로 ↑</a></div></aside>
+    </div>
+    {related.length > 0 && <section class="related-section" data-pagefind-ignore><div class="section-heading"><div><p class="eyebrow">KEEP CONNECTING</p><h2>이어 읽을 개념</h2></div></div><div class="note-grid">{related.map((item) => <NoteCard note={item}/>)}</div></section>}
+  </div>
+</Layout>

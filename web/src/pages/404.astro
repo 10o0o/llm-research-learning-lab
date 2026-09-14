@@ -1,0 +1,5 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { withBase } from '../lib/urls';
+---
+<Layout title="문서를 찾을 수 없습니다"><div class="page-width not-found"><p class="eyebrow">404 / PAGE NOT FOUND</p><h1>이 페이지는 아직 서재에 없어요.</h1><p>주소를 확인하거나 문서 목록에서 필요한 개념을 찾아보세요.</p><a class="primary-link" href={withBase('/knowledge/')}>문서 목록으로 →</a></div></Layout>

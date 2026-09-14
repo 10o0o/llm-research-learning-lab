@@ -18,3 +18,10 @@ tmp/
 
 # Local test file
 main.py
+
+# Knowledge frontend
+web/node_modules/
+web/.astro/
+web/dist/
+web/playwright-report/
+web/test-results/

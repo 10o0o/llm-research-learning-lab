@@ -7,6 +7,13 @@ LLM Research Engineer를 목표로 공부하는 가벼운 개인 학습 저장�
 [현재 학습 위치](./STATE.md) · [자세한 사용법](./USAGE.md) ·
 [학습 로드맵](./ROADMAP.md) · [역량 참고](./CURRICULUM.md)
 
+## 지식 서재 웹
+
+`knowledge/`의 개념 문서를 홈·검색·분야별 목록·상세 화면으로 읽을 수 있습니다.
+Node와 npm을 준비한 뒤 `web/`에서 `npm ci`, `npm run build`,
+`npm run preview`를 실행합니다. [실행·검증 방법](./web/README.md)을 참고하세요.
+배포는 아직 구성하지 않았습니다.
+
 ## 가장 빠른 시작
 
 이 저장소를 작업 공간으로 연 Codex는 [`STATE.md`](./STATE.md)의 현재 범위와
