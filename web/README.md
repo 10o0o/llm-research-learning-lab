@@ -54,4 +54,27 @@ SITE_BASE=/lab/ npm run build
 SITE_BASE=/lab/ npm run preview
 ```
 
-이 경우 `http://127.0.0.1:4321/lab/`으로 접속합니다. 호스팅 제공자·실제 도메인·배포 워크플로는 아직 구성하지 않았습니다. Python 환경과 기존 지식 작성·검증 절차는 저장소 루트에서 그대로 사용합니다.
+이 경우 `http://127.0.0.1:4321/lab/`으로 접속합니다.
+
+## 공개 배포
+
+이 사이트는 [GitHub Pages](https://10o0o.github.io/llm-research-learning-lab/)에서
+`/llm-research-learning-lab/` 하위 경로로 공개됩니다. `main`에 push하면
+`public-validation` workflow의 검증을 통과한 뒤 자동 배포됩니다. 재배포가 필요하면
+GitHub 저장소의 **Actions**에서 `public-validation`을 열고 `main`을 선택해
+**Run workflow**를 실행합니다. Pull request와 다른 branch는 검증만 실행하며
+배포하지 않습니다. 검증 또는 배포가 실패하면 해당 job 로그에서 원인을 확인하고
+수정한 뒤 `main`에 push하거나 workflow를 다시 실행합니다.
+
+Pages와 같은 하위 경로를 로컬에서 확인하려면 다음처럼 같은 `SITE_BASE`를 빌드,
+미리보기와 브라우저 테스트에 전달합니다.
+
+```bash
+SITE_BASE=/llm-research-learning-lab/ npm run build
+SITE_BASE=/llm-research-learning-lab/ npm run test:e2e
+```
+
+기존 `npm run preview` 프로세스가 실행 중이면 브라우저 테스트 전에 종료합니다.
+Playwright가 현재 `SITE_BASE`에 맞는 새 미리보기 서버를 시작해야 합니다.
+
+Python 환경과 기존 지식 작성·검증 절차는 저장소 루트에서 그대로 사용합니다.

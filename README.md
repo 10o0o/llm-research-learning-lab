@@ -12,7 +12,12 @@ LLM Research Engineer를 목표로 공부하는 가벼운 개인 학습 저장�
 `knowledge/`의 개념 문서를 홈·검색·분야별 목록·상세 화면으로 읽을 수 있습니다.
 Node와 npm을 준비한 뒤 `web/`에서 `npm ci`, `npm run build`,
 `npm run preview`를 실행합니다. [실행·검증 방법](./web/README.md)을 참고하세요.
-배포는 아직 구성하지 않았습니다.
+공개 사이트는 [GitHub Pages의 지식 서재](https://10o0o.github.io/llm-research-learning-lab/)입니다.
+`main`에 push하면 `public-validation` workflow의 검증을 통과한 뒤 자동으로
+배포합니다. 재배포하려면 GitHub 저장소의 **Actions**에서 `public-validation`을
+열고 `main`을 선택해 **Run workflow**를 실행합니다. Pull request와 다른 branch는
+검증만 실행하며 배포하지 않습니다. 검증이나 배포가 실패하면 실패한 job의 로그를
+확인하고 원인을 수정한 뒤 `main`에 push하거나 workflow를 다시 실행합니다.
 
 ## 가장 빠른 시작
 

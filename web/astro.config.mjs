@@ -7,6 +7,7 @@ import { unified } from '@astrojs/markdown-remark';
 
 export default defineConfig({
   output: 'static',
+  site: 'https://10o0o.github.io',
   base: process.env.SITE_BASE || '/',
   trailingSlash: 'always',
   markdown: {
