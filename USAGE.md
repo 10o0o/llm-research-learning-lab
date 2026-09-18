@@ -262,7 +262,7 @@ Notion이나 PDF 원본을 정리할 때는 본문, 토글, 코드 들여쓰기,
 원본을 삭제하지 않습니다.
 
 ```bash
-cd /home/jake/llm-research-learning-lab
+cd /home/jake/workspace/learning/llm-research-learning-lab
 uv sync
 uv run python path/to/script.py
 ```
