@@ -4,6 +4,10 @@
 
 ## 보관한 실습
 
+- [MLP E02 초기화·수동 SGD 보관본](./deep-learning/makemore-mlp-e02-initialization-training.ipynb) ·
+  [회고와 다음 학습 준비](./deep-learning/makemore-mlp-e02-initialization-training.md):
+  초기 손실, backward와 갱신의 분리, 같은 배치 10회 학습. E01·E03은 미완료입니다.
+
 - [micrograd 구현과 공식 exercises](./deep-learning/micrograd.ipynb):
   `Value` 자동미분, 뉴런·MLP 학습, 미분 검산, `ExerciseValue`의 softmax·로그 loss,
   PyTorch 비교를 담은 코드·출력 보관본입니다. 강의 따라 구현한 부분과 공식

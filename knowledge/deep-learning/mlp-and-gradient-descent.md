@@ -1,6 +1,6 @@
 ---
 title: "MLP 구성과 경사하강 학습"
-updated: 2026-09-14
+updated: 2026-09-18
 tags:
   - neural-network
   - mlp
@@ -88,11 +88,28 @@ $$
 \theta_{\mathrm{new}}=\theta-\eta\frac{\partial L}{\partial\theta}
 $$
 
-양의 학습률을 사용해 기울기를 빼면 경사하강이다. 기울기를 더하는 경사상승은 출력을 키울 때의 방향이다. `backward()`는 기울기만 계산하며 업데이트는 별도 실행한다.
+양의 학습률을 사용해 기울기를 빼면 경사하강이다. 같은 손실의 기울기를 더하는 경사상승은 그 손실을 국소적으로 키우는 방향이다. `backward()`는 기울기만 계산하며 업데이트는 별도 실행한다.
 
 기존 `loss.data`는 이전 순전파의 값이다. 업데이트 이후 loss는 바뀐 파라미터로 다시 계산해야 한다. 반복 안에서 업데이트 후 이전 loss를 출력해도 그것은 업데이트 직전 값이다.
 
 ## 예제 또는 적용
+
+### 초기화와 데이터에 의한 학습
+
+출력층의 무작위 가중치를 작게 하고 편향을 0으로 두면, 고정된 은닉층
+출력에 대한 logits의 크기와 차이를 줄일 수 있다. 초기 예측을 균등 확률에
+가깝게 만들어 근거 없는 강한 확신을 완화하는 방법이다. 정답의 gradient로
+파라미터를 조정하는 학습과는 다르며, 분산 감소가 항상 손실 감소를 보장하지 않는다.
+
+27개 문자에 동일한 확률을 주면 어떤 정답 문자에 대해서도 손실은 같다.
+
+$$
+-\log(1/27)=\log(27)\approx 3.2958
+$$
+
+이는 시작점의 기준이다. 이후 학습은 정답으로 계산한 손실의 gradient를
+이용해 파라미터를 바꾼다. 같은 배치의 손실 감소만으로 새 데이터에 대한
+성능 향상을 판단할 수는 없다.
 
 입력 네 건과 목표 `[1, -1, -1, 1]`을 사용한 micrograd 예제에서 제곱 오차 합은 초기 약 5.23052, 한 번 업데이트한 뒤 3.12411, 이후 20회 추가 학습한 뒤 약 0.03218이었다. 마지막 예측은 약 `[0.90893, -0.95325, -0.87975, 0.91494]`였다.
 
@@ -110,4 +127,5 @@ $$
 
 - Knowledge: [계산 그래프와 역전파](./computational-graph-autograd.md) · [다중분류 학습 반복과 autograd](./multiclass-training-loop.md) · [행렬곱과 완전연결층](../math/matrix-multiplication-linear-layer.md)
 - Practice: [micrograd의 Neuron, Layer, MLP 및 학습 반복](../../practice/deep-learning/micrograd.ipynb)
+- Practice: [MLP 초기화와 수동 SGD 회고](../../practice/deep-learning/makemore-mlp-e02-initialization-training.md)
 - Source: [Karpathy micrograd 후반부 노트북](https://github.com/karpathy/nn-zero-to-hero/blob/master/lectures/micrograd/micrograd_lecture_second_half_roughly.ipynb)

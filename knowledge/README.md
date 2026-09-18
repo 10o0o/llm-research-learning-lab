@@ -48,6 +48,12 @@ python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py \
 
 ## Micrograd에서 연결한 개념
 
+MLP에서 다시 연결한 초기화·수동 SGD는
+[E02 회고](../practice/deep-learning/makemore-mlp-e02-initialization-training.md)와
+[보관본](../practice/deep-learning/makemore-mlp-e02-initialization-training.ipynb)에 있습니다.
+[MLP 초기화와 경사하강](./deep-learning/mlp-and-gradient-descent.md),
+[backward와 실제 갱신](./deep-learning/multiclass-training-loop.md)을 함께 참고합니다.
+
 다시 읽을 때는 아래 순서로 연결할 수 있습니다. 구현과 실행 출력은
 [micrograd 실습 보관본](../practice/deep-learning/micrograd.ipynb)에 있습니다.
 

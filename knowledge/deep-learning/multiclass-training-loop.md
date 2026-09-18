@@ -1,6 +1,6 @@
 ---
 title: "다중분류 학습 반복과 autograd"
-updated: 2026-09-14
+updated: 2026-09-18
 tags:
   - deep-learning
   - pytorch
@@ -91,6 +91,30 @@ model.fc.bias.grad
 
 ## 예제 또는 적용
 
+### backward와 실제 갱신
+
+`loss.backward()`는 파라미터를 바꾸지 않고 각 leaf 파라미터의 `.grad`에
+기울기를 누적한다. `optimizer.step()`이 실제 파라미터를 변경한다.
+학습률 0.1, momentum과 weight decay가 없는 SGD의 갱신은
+`torch.no_grad()` 안에서 모든 파라미터에 `p -= 0.1 * p.grad`를 적용하는
+것과 대응한다. Adam 등 다른 optimizer의 규칙까지 같다는 뜻은 아니다.
+
+예를 들어 파라미터 원소가 0.5이고 gradient가 0.2라면, backward 직후
+파라미터는 여전히 0.5다. 갱신에서 0.1 × 0.2를 빼면 0.48이 된다.
+파라미터 Tensor와 gradient는 같은 shape이며 원소별로 갱신한다.
+
+### 갱신 후 손실과 반복문의 범위
+
+손실 Tensor는 그 순간의 forward 결과다. `.item()`은 저장된 숫자를
+꺼내며, 가중치가 바뀌었다고 이전 손실을 다시 계산하지 않는다.
+마지막 갱신의 결과를 평가하려면 전체 학습 반복문 밖에서 forward와
+손실을 다시 계산한다. 평가만 할 때는 `torch.no_grad()`를 사용한다.
+
+바깥 학습 반복문은 학습 횟수를, 안쪽 파라미터 반복문은 갱신할 Tensor를
+정한다. 안쪽 반복문이 끝난 뒤 남은 `p` 하나만 갱신하면 마지막 파라미터만
+변경된다. 각 파라미터 갱신마다 평가하면 중간 상태도 계산하게 되므로,
+최종 결과만 필요할 때는 모든 갱신을 마친 뒤 한 번 평가한다.
+
 샘플 9개와 feature 2개인 작은 분류 예제에서 train/validation으로 나누고 `nn.Linear(2, 3)`을 사용하면 logits는 `(batch, 3)`이다. 세 번째 feature를 추가해 입력을 `(N, 3)`으로 바꾸고 `nn.Linear(3, 3)`을 사용하면 weight는 `(3, 3)`, logits는 여전히 `(batch, 3)`이다.
 
 결과를 해석할 때는 train loss 감소와 validation accuracy의 단순 baseline 대비 값을 함께 본다.
@@ -108,4 +132,5 @@ model.fc.bias.grad
 - Knowledge: [계산 그래프와 역전파](./computational-graph-autograd.md) · [MLP 구성과 경사하강 학습](./mlp-and-gradient-descent.md) · [Softmax와 음의 로그우도 손실](./softmax-negative-log-likelihood.md)
 - TIL: [2026-09-02](../../til/2026/09/2026-09-02.md)
 - Practice: 당시 실습 파일 `main.py`는 현재 작업 트리에 없다. 학습 내용은 위 TIL에 남아 있다.
+- Practice: [MLP 초기화와 수동 SGD 회고](../../practice/deep-learning/makemore-mlp-e02-initialization-training.md)
 - Source: [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)
