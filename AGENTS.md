@@ -94,6 +94,27 @@ as the integrated checkpoint. Dialogue study is not video viewing, and local tes
 or reviews are not official university grading. Preserve Optional/Bonus labels;
 supporting references do not imply completing their entire courses.
 
+## More than one assistant
+
+The learner uses more than one AI tool. These rules live in files, not in any
+one tool's settings, so every tool gets them: `AGENTS.md` is the source and
+`CLAUDE.md` is a symlink to it. Keep both working by never writing
+tool-specific commands into these documents.
+
+- `STATE.md` is the only handoff. Conversation history, per-tool memory, and
+  settings do not cross over. Read `STATE.md` at the start of every session and
+  never rely on something "we discussed" that is not in a tracked file.
+- One session at a time. Two assistants editing against the same `STATE.md`
+  produce a conflict the bookmark cannot resolve. If the tracked files disagree
+  with `STATE.md`, report the facts and propose a complete replacement instead
+  of merging silently.
+- A second assistant is not a second chance to be handed an answer. The rules
+  on exercise code, blank-page reimplementation, and unassisted recall apply
+  identically whichever tool is running; asking elsewhere for the code defeats
+  the checks, not the rule.
+- Cross-checking explanations between tools is useful and encouraged. When they
+  disagree, the official source settles it, not the more confident assistant.
+
 ## State changes and authorization
 
 - `STATE.md` contains only public technical information: pilot dates, current
@@ -359,11 +380,12 @@ python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py k
 
 ## Editing and Git
 
-- Resolve exact paths with `rg --files`; Korean spelling, spaces, brackets, and
-  parentheses are significant.
+- Resolve exact paths by searching the tracked file list (`rg --files`,
+  `git ls-files`, or the equivalent in whatever tool is running); Korean
+  spelling, spaces, brackets, and parentheses are significant.
 - Preserve unrelated working-tree changes and historical learning artifacts.
-- Use `apply_patch` for text edits. Read changed files and run checks relevant
-  to the actual change.
+- Use whatever patch or edit mechanism the running tool provides. Read changed
+  files and run checks relevant to the actual change.
 - Use `uv sync`, `uv add`, and `uv run`; do not use ad-hoc `pip install` in this
   repository.
 - Check operating-document changes with `uv run --frozen pytest -q tests .agents/skills`,

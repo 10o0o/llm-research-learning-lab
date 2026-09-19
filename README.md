@@ -21,7 +21,7 @@ Node와 npm을 준비한 뒤 `web/`에서 `npm ci`, `npm run build`,
 
 ## 가장 빠른 시작
 
-이 저장소를 작업 공간으로 연 Codex는 [`STATE.md`](./STATE.md)의 현재 범위와
+이 저장소를 작업 공간으로 연 Agent는 [`STATE.md`](./STATE.md)의 현재 범위와
 다음 독립 행동을 읽습니다. `STATE.md`는 재개용 북마크일 뿐, 숙달 기록이나
 점수표가 아닙니다.
 

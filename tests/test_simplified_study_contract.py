@@ -199,6 +199,34 @@ def test_graded_coursework_stays_out_of_the_public_repository() -> None:
     assert "never assignment code, official problem statements, or copyrighted course material" in agents
 
 
+def test_operating_documents_stay_tool_neutral() -> None:
+    """The rules travel as files, so they must not name one tool's commands."""
+    for path in ("AGENTS.md", "README.md", "USAGE.md", "practice/README.md"):
+        text = _normalized(path)
+        assert "apply_patch" not in text
+        assert "Codex" not in text
+    agents = _normalized("AGENTS.md")
+    assert "More than one assistant" in agents
+    assert "`STATE.md` is the only handoff" in agents
+    assert "One session at a time" in agents
+    assert "not a second chance to be handed an answer" in agents
+    assert "the official source settles it, not the more confident assistant" in agents
+    usage = _normalized("USAGE.md")
+    assert "AI 도구를 두 개 쓸 때" in usage
+    assert "동시에 두 개를 돌리지 않습니다" in usage
+    assert "답을 받아낼 두 번째 기회가 아닙니다" in usage
+
+
+def test_usage_documents_the_session_loop() -> None:
+    usage = _normalized("USAGE.md")
+    assert "하루 세션 운영" in usage
+    assert "한 세션은 **모듈 하나**입니다" in usage
+    # Nothing is written without approval, so an interrupted session is safe.
+    assert "승인하지 않으면 파일은 바뀌지 않으므로" in usage
+    for standing in ("빈 파일 재구현", "deep-ml", "논문", "무보조 구술", "전환 점검"):
+        assert standing in usage
+
+
 def test_understanding_is_verified_by_unassisted_recall() -> None:
     """Coverage is not evidence; the repo needs a mechanism that tests recall."""
     agents = _normalized("AGENTS.md")
