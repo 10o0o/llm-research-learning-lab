@@ -4,7 +4,12 @@
 
 ## 1. 목적과 비목적
 
-이 문서는 장기 참고 catalog이며 현재 학습 범위를 정하지 않는다. 이번 경로에서 뺀 자료와 복귀 조건은 `DEFERRED.md`에 있고, 실제 수행 순서와 시간 예산은 `ROADMAP.md`의 Phase 표에 있다. `CC-STAT-01`·`CC-STAT-02`처럼 충족도가 `없음`인 역량은 `P0`에서, `CC-PROB-02`·`CC-PROB-03`·`CC-ML-02`의 `부분`은 `P0`~`P1`에서 메운다. `SRC-KAM-*`와 `SRC-KDL-*`는 주제 대조용으로만 유지하며 주자료로 쓰지 않는다.
+이 문서는 장기 참고 catalog이며 현재 학습 범위를 정하지 않는다. 이번 경로에서
+뺀 자료와 복귀 조건은 `DEFERRED.md`, 실제 수행 순서와 시간 예산은
+`ROADMAP.md`에 있다. `SRC-KAM-*`, `SRC-KDL-*`, `SRC-KBM-*`와 아래 registry는
+과거에 실제 감사한 자료의 snapshot으로 보존한다. 새 주과정은 `ROADMAP.md`에서
+역할과 공식 과제를 지정하며, 원본 전체 감사를 마치기 전에는 기존 `SRC-*`
+registry의 일부인 것처럼 기록하지 않는다.
 
 이 문서는 `ROADMAP.md`의 큰 방향을 실행 가능한 학습 성과로 풀고, 현재 강의 자료가 각 성과를 어느 깊이까지 직접 뒷받침하는지 판단하는 정적 참고 자료다. 현재 학습 범위와 다음 행동은 `STATE.md`만 정하며, 이 문서의 ID·선수관계·catalog가 자동으로 수업을 선택하지 않는다. 정적 module·milestone catalog는 역량을 누적 구현 단위에 연결하지만 학습자의 현재 상태를 기록하지 않는다.
 
@@ -45,7 +50,70 @@
 
 실습 구현 깊이는 `I1_MECHANISM`, `I2_COMPONENT`, `I3_WORKFLOW`, `I4_EXPERIMENT`, `I5_RESEARCH` 순서다. `MODULE_ASSIGNMENT`는 실제 component와 data→model→loss→train/eval workflow를 포함하고, `PHASE_CAPSTONE`은 baseline·통제 비교 또는 ablation·error analysis·재현 조건·한계 보고를 포함한다. 개념 blocker를 푸는 `PRE_LAB`은 milestone이 아니므로 catalog에 넣지 않는다.
 
-## 3. 공통 핵심 역량
+## 3. 핵심 개념과 설명 기준
+
+이 표는 개념을 자기 말로 설명하고 계산·구현·실험에 연결할 때의 정적 기준이다.
+완료 체크·점수·답변집이 아니며 모든 행을 별도 시험이나 Phase gate로 만들지 않는다.
+해당 개념을 다루는 연결된 학습 단위에서 목적·원리·가정·한계를 1~2분 무보조로
+설명하고 조건을 바꾼 사례 하나에 적용한다. Tensor 문제의 shape와 흐름은 학습자가
+직접 제시한다. AI는 한 번에 피드백하고 knowledge는 무보조 초안 이후에만 교정한다.
+
+출처 열은 설명·연습의 기준을 연결한다. 프로젝트는 적용 장소이며 공식 출처를
+대신하지 않는다. 새 자료를 다운로드하거나 전체 감사한 것으로 기록하지 않는다.
+
+| 영역 | 핵심 개념 | 설명·근거 기준 | 공식 출처와 적용 범위 |
+|---|---|---|---|
+| 선형대수 | 선형변환, rank | 기저·좌표·행렬 shape를 연결하고 입력 차원이나 rank가 변할 때 표현과 해의 공간이 어떻게 바뀌는지 작은 계산으로 보인다 | [MML][mml] 2~3장 |
+| 선형대수 | 최소제곱, 고유분해·SVD, 조건수 | 투영과 잔차를 설명하고 해의 존재·유일성, 저랭크 근사, 입력 오차에 대한 민감도를 구분한다. rank가 부족한 경우와 불안정한 해법을 설명한다 | [MML][mml] 2~4장; [CS229][cs229] notes |
+| 미분 | gradient, Jacobian, chain rule | scalar loss와 vector 출력의 미분 shape를 구분하고 합성 함수·분기·공유 파라미터의 기울기를 작은 계산 그래프로 계산한다 | [MML][mml] 5장; [Karpathy][karpathy] |
+| 최적화 | convexity, gradient 기반 최적화 | 목적함수와 업데이트를 연결하고 convexity의 의미, 최솟값·유일성·수렴을 보장하는 조건을 구분한다 | [MML][mml] 7장; [CS229][cs229] |
+| 미적분 선수 | 단변수 미분, 정적분 | 변화율과 누적량을 계산하고 확률밀도의 적분이나 다변수 chain rule에서 필요한 연결을 설명한다 | 막힐 때만 [MIT 18.01SC][mit1801] 해당 기초 단원 |
+| 확률 | 조건부확률·독립성, 확률변수·분포 | 사건·확률변수·관측값을 구분하고 조건이 바뀐 확률을 계산한다. 독립성과 배반, 이산 확률과 연속 밀도를 혼동하지 않는다 | [MIT 18.05][mit1805] class materials·PS1~11 |
+| 확률 | 기댓값·분산, LLN·CLT | 기댓값·분산을 계산하고 표본 수가 바뀔 때 평균의 안정화와 분포 근사의 차이·성립 조건을 설명한다 | [MIT 18.05][mit1805] |
+| 통계 | likelihood, MLE·MAP | 데이터와 파라미터 중 무엇을 고정하는지 밝히고 likelihood·prior·posterior를 구분한다. 작은 모델에서 추정 목적을 유도한다 | [MIT 18.05][mit1805]; [CS229][cs229] |
+| 통계 | 신뢰구간, Bayesian inference | 추정값과 불확실성을 구분하고 신뢰수준의 반복 표집 해석과 사후확률 해석의 차이를 설명한다 | [MIT 18.05][mit1805] |
+| 통계 | 가설검정·검정력 | 귀무·대립가설, p-value, 유의수준, 오류와 검정력을 구분하고 표본 수·효과 크기가 결론에 주는 영향을 설명한다 | [MIT 18.05][mit1805] |
+| 통계 | bootstrap·다중비교 | 재표집 단위와 성립 가정을 설명하고 반복 검정의 오류 증가, 보정·검정력의 관계를 해석한다 | [MIT 18.05][mit1805]; [ISLP][islp] 5·13장 본문·lab |
+| ML | 모델의 가정·목적함수 | 선형·로지스틱 회귀를 포함한 지정 모델의 입력·출력·가정과 손실을 연결하고 목적함수·기울기를 유도한다 | [CS229 Summer 2020][cs229] notes·PS1~PS3 |
+| ML | 일반화·규제 | train·validation 차이와 bias·variance를 연결하고 표본 수·모델 복잡도·규제 강도를 바꿀 때의 가설을 세운다 | [CS229][cs229]; [ISLP][islp] 6장 |
+| 실험 | 데이터 분할·누수, 교차검증 | 독립 표본 단위를 정하고 시간·그룹 의존성, 전처리 fit, 모델 선택과 test 사용의 경계를 설명한다 | [ISLP][islp] 5장; [Made With ML][mwml]; P1 프로젝트에 적용 |
+| 평가 | metric·threshold·calibration | 비용·불균형에 따른 지표와 threshold를 고르고 순위 성능과 확률의 신뢰성을 구분한다. 튜닝·보정 데이터와 평가 데이터를 분리한다 | [Made With ML][mwml]; [scikit-learn calibration][calibration] 보강; P1 프로젝트에 적용 |
+| ML | 트리·앙상블 | 분할 기준, bagging·random forest·boosting의 학습 방식과 bias·variance 차이를 설명하고 적절한 통제 비교를 설계한다 | [ISLP][islp] 8장 |
+| ML | 군집·PCA | k-means 목적과 초기화·스케일 민감성, PCA의 분산·투영 목적을 구분하고 계산·차원·정보 손실을 해석한다 | [CS229][cs229] notes·지정 과제 |
+| DL | 역전파·초기화 | 순전파·loss·local derivative·기울기 누적·갱신을 shape와 함께 추적하고 초기화가 activation·gradient에 미치는 영향을 해석한다 | [Karpathy][karpathy] makemore 2~4; [CS231n][cs231n] L2~6·A2 |
+| DL | optimizer·normalization | SGD·momentum·Adam의 상태와 업데이트, normalization의 축·학습/평가 차이를 설명하고 학습률·배치 변경의 영향을 진단한다 | [CS231n][cs231n] L2~6·A2 Q1~Q5; [PyTorch][pytorch] |
+| DL | CNN·과적합 진단 | convolution의 shape·공유 가중치·수용영역을 설명하고 train/eval 곡선·통제 실험으로 구현 오류와 일반화 문제를 구분한다 | [CS231n][cs231n] L2~6·A2 Q1~Q5 |
+| NLP | embedding, RNN·LSTM | token ID와 embedding의 계약, 시간에 따른 state·gate·기울기를 추적하고 recurrence의 목적과 한계를 설명한다 | [CS224N Spring 2024][cs224n] 강의·A1~A4 |
+| NLP | attention·masking·positional information | Q·K·V와 score·softmax·출력 shape를 제시하고 causal/padding mask의 위치·역할, 위치 정보와 recurrence의 차이를 설명한다 | P2 끝 [Karpathy GPT·Tokenizer][karpathy]; P3 [CS224N][cs224n] |
+| LM | autoregressive objective | 토큰화·입력·next-token target·logit·loss·generation 흐름을 연결하고 미래 정보 누수·학습/생성 차이를 설명한다 | [Karpathy][karpathy]; [CS224N][cs224n]; [CS336][cs336] A1 |
+| 시스템 | 메모리 계층·계산량·메모리 사용량, GPU 병목 | 연산량·저장량·메모리 이동을 구분하고 shape·dtype·배치가 비용에 주는 영향을 추산한다. profiler로 계산·대역폭 병목 가설을 검증한다 | [CS336 Spring 2026][cs336] 관련 강의·A1·A2 |
+| 시스템 | 분산 통신 | 데이터 분할·gradient 동기화·collective 흐름을 설명하고 연산/통신량·동기화가 scaling에 주는 영향을 측정한다 | [CS336][cs336] A2와 관련 강의 |
+| 추론 | prefill/decode·KV cache·batching | 두 단계의 작업량을 구분하고 cache shape·증가량·정확성 조건, 배칭의 메모리·대기시간 영향을 설명한다 | [CS336][cs336] 2026 Lecture 10; P5 고정 workload에 적용 |
+| 추론 실험 | latency·throughput·품질 trade-off | workload·warmup·반복·동기화·품질 계약을 고정하고 성능·메모리를 비교한다. 측정 오차와 다른 환경에 일반화할 수 없는 한계를 밝힌다 | [CS336][cs336] A2 측정·Lecture 10; P5 한 연구 질문의 통제 비교 |
+
+[mml]: https://mml-book.github.io/
+[mit1801]: https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/
+[mit1805]: https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/
+[cs229]: https://cs229.stanford.edu/summer2020/
+[islp]: https://islp.readthedocs.io/en/latest/labs.html
+[mwml]: https://madewithml.com/
+[calibration]: https://scikit-learn.org/stable/modules/calibration.html
+[karpathy]: https://karpathy.ai/zero-to-hero.html
+[cs231n]: https://cs231n.stanford.edu/2024/schedule.html
+[pytorch]: https://docs.pytorch.org/tutorials/beginner/basics/intro.html
+[cs224n]: https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html
+[cs336]: https://cs336.stanford.edu/
+
+이후 기존 공통 역량과 module·milestone catalog는 더 세밀한 장기 참고다. 그 안의
+`필수`는 catalog 구조상의 연결을 뜻하며 현재 P0~P5에 추가 과제나 별도 capstone을
+자동으로 부과하지 않는다.
+
+## 4. 공통 핵심 역량
+
+이하 `자료 연결·충족도·공백 처리`는 기존 보유 자료를 감사한 과거 snapshot이다.
+3절과 `ROADMAP.md`에 새로 연결한 MIT·CS229·CS231n·CS224N·CS336의 현재 범위를
+평가한 결과가 아니다. `없음`은 그 당시 감사 자료의 공백이며 현재 경로에 강의가
+없다는 뜻이 아니다. 당시의 첫 학습 범위·후속 심화 문구도 현재 순서를 바꾸지 않는다.
 
 | ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |
 |---|---|---|---|---|---|---|---|---|
@@ -92,7 +160,7 @@
 | CC-RES-02 | 가설·baseline·ablation·confounder를 통제한 실험을 설계하고 반증 가능성을 높인다. | D3 | CC-STAT-02, CC-RES-01 | explain, calculate, interpret, design, transfer | context:SRC-KAM-03-01,SRC-KAM-05-01 | 없음 | 별도 자료 확보 | 모델 진단·후보 비교는 있으나 연구 ablation과 confounder 통제를 가르치지 않는다. |
 | CC-RES-03 | 재현 절차·artifact·환경·부정적 결과·한계를 검증 가능하게 보고한다. | D3 | CC-RES-01, CC-ML-05 | explain, implement, debug, interpret, design, transfer | context:SRC-KAM-05-02,SRC-KDL-07-04 | 없음 | 별도 자료 확보 | seed 고정과 모델 저장·재로드는 있으나 연구 재현 패키지와 한계 보고가 없다. |
 
-## 4. 선택 전문 트랙
+## 5. 선택 전문 트랙
 
 모든 선택 트랙의 목표 깊이는 `D3`다. 트랙을 선택하기 전에는 자료가 없어도 즉시 확보하지 않고 `트랙 선택 시 확보`로 둔다.
 
@@ -116,7 +184,11 @@
 | TR-DATA-03 | retrieval·RAG pipeline을 구현하고 검색·생성 오류를 분해 평가한다. | D3 | CC-NLP-02, CC-TRF-03, CC-EVAL-01 | explain, implement, debug, interpret, design, transfer | context:SRC-KAM-02-03 | 없음 | 트랙 선택 시 확보 | RAG 사례에서 SHAP을 언급할 뿐 retrieval을 가르치지 않는다. |
 | TR-DATA-04 | data-centric ablation으로 데이터 품질·양·구성이 결과에 미치는 영향을 검증한다. | D3 | TR-DATA-02, CC-RES-02 | calculate, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
 
-## 5. 정적 module·milestone catalog
+## 6. 정적 module·milestone catalog
+
+아래는 이전 설계의 장기 참고 구조다. `필수`·readiness·endpoint 표현은 이 catalog
+내부 관계이며 현재 P0~P5의 추가 졸업 조건이나 진입 시험으로 사용하지 않는다.
+과거 `ROADMAP 2C` 같은 표기는 당시 경로 명칭으로 보존하며 현재 Phase를 가리키지 않는다.
 
 이 catalog는 누적 구현 구조와 endpoint closure만 정의한다. 각 target은 정확히 하나의 module에 속하지만 이 배정은 완료·진도·mastery를 뜻하지 않는다. 필수 module의 순서는 학습 순서 힌트일 뿐 기존 학습에 새 milestone credit을 소급 부여하거나 이후 milestone을 막는 gate가 아니다. 실제 readiness는 target의 선수 역량 근거로 판단한다. 선택형 full-stack systems는 inference endpoint를 막지 않는 별도 branch다.
 
@@ -150,7 +222,7 @@
 | PC-SYSTEMS-INFERENCE-01 | PHASE_CAPSTONE | MOD-SYSTEMS-INFERENCE-01 | I5_RESEARCH | MA-SYSTEMS-INFERENCE-01, MA-EVALUATION-01 | TR-SYS-03, TR-SYS-04 | serving 연구 질문의 baseline·통제 비교·error analysis·재현 artifact·한계 보고 |
 | PC-POSTTRAIN-EVALUATION-01 | PHASE_CAPSTONE | MOD-POSTTRAIN-01, MOD-EVALUATION-01 | I5_RESEARCH | MA-POSTTRAIN-01, MA-EVALUATION-01 | TR-MOD-03, TR-EVAL-02, TR-EVAL-05 | post-training과 evaluation을 결합한 재현 가능 연구 cycle과 부정적 결과·한계 보고 |
 
-## 6. 현재 강의자료 Registry
+## 7. 현재 강의자료 Registry
 
 감사 범위는 각 과정 `INDEX.md`의 `강의 자료` 표에 있는 파일만이며 `course-provided-practice/`는 제외한다. 아래 수치는 2026-08-27 당시 Markdown 본문 전체, 모든 로컬 그림 링크와 자산, PDF 전 페이지 렌더를 검사하고 registry 구조와 full strict private-source 검증으로 대조한 snapshot이다. 이후 자료 변경은 실제 파일과 각 과정 `INDEX.md`를 수동으로 교차 확인한다. 이 snapshot에는 누락되거나 열리지 않는 파일이 없지만 `limited` 자료는 원본·변환 제약 때문에 내용 복구가 필요하다.
 
@@ -232,7 +304,7 @@
 | SRC-KDL-08-08 | `materials/private/kant-deep-learning-basics/08-08_MLP_종합_실습.md` | HTML 토글 펼침 Markdown | `61e45f90bc6a396c3b8dc784fdd7f9095cc1d18e3c3ff658efa2a34a2ce19d6d` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; `best_state`는 메모리 내 model weight 보존이며 checkpoint/resume은 아님 |
 | SRC-HARV-STAT110-2E-00-01 | `materials/private/harvard-stat110-probability/00-01_introduction_to_probability_2e.pdf` | PDF | `65d94135d05322b3892b49473a397998adf8a305de19844b5c8403f76f40d681` | complete | complete | 2026-08-27 | 사용자 제공 2판 PDF의 전체 내용·텍스트·630쪽 렌더 확인; 본문 쪽수 1~619와 13개 장·부록·참고문헌·색인 완결; 로컬 PDF 630쪽과 출판사 인쇄본 서지 634쪽을 구분 |
 
-## 7. 감사 중 발견된 주요 오류와 공백
+## 8. 감사 중 발견된 주요 오류와 공백
 
 ### 즉시 정정할 내용
 
@@ -265,12 +337,15 @@
 
 ### 커리큘럼 공백
 
+이 절은 2026-08-27 보유 자료 감사의 공백 요약이다. 새 공식 자료를 반영한
+현재 수행 범위나 학습자의 이해를 평가한 결과로 읽지 않는다.
+
 - 현재 71개 자료의 강점은 선형대수·확률 기초·tensor shape·MLP와 activation·손실·optimizer·autodiff·기본 데이터 파이프라인·train-validation-test 루프·기본 attention·전통 ML 평가와 leakage 방지다.
 - likelihood·MLE를 포함한 통계 추론, RNN recurrence·LSTM gate·state와 실제 sequence task 비교, NLP 전처리와 tokenizer, 완전한 Transformer·causal LM, pretraining·post-training, LLM 평가, 분산·추론 시스템, 논문 읽기·실험 설계·재현 보고는 직접 자료가 없거나 현재 채택한 범위로는 부분 충족·맥락 언급뿐이다.
 - 딥러닝 기초 `SRC-KDL-01-00`은 14개 장의 향후 구성을 제시하지만 현재 registry에는 8개 장 40강만 있다. 등록되지 않은 미래 계획은 현재 자료 충족 근거로 세지 않는다.
 - 전문 트랙은 모두 D3가 목표이며 현재 과정은 어떤 트랙도 직접 충족하지 않는다. 트랙을 선택한 뒤 해당 자료를 확보한다.
 
-## 8. 갱신 규칙
+## 9. 갱신 규칙
 
 1. ID는 의미를 바꾸거나 재사용하지 않는다. 성과가 새로 필요하면 새 ID를 추가한다.
 2. 자료를 추가·교체하면 정확한 상대 경로와 SHA-256을 registry에 기록하고 해당 과정 `INDEX.md`와 양방향 일치를 확인한다. 각 INDEX는 `source_namespace`를 정확히 한 번 선언하며 모든 source ID가 그 namespace를 사용하고 다른 과정과 공유하지 않게 한다.
@@ -279,5 +354,5 @@
 5. 역량 연결은 `primary`, `supporting`, `context` 중 하나로 명시한다. `context`만으로 `충분`을 부여하지 않는다.
 6. 목표 깊이와 실제로 만들 수 있는 요구 근거를 비교해 충족도를 정한다. 자료가 바뀌면 관련 매핑과 오류·공백을 다시 감사한다.
 7. Registry 감사 요약 표의 과정·자료·자산·PDF 페이지·`limited` 개수는 실제 파일과 각 과정 `INDEX.md`를 기준으로 교차 확인한다. 자료를 바꿀 때는 public registry와 private INDEX의 경로·hash·개수·감사 상태를 함께 점검한다.
-8. 모든 target은 정확히 하나의 module에 배정하고 각 module은 정확히 하나의 `MODULE_ASSIGNMENT`를 참조한다. 각 주요 phase는 정해진 `PHASE_CAPSTONE`으로 닫되 선택형 full-stack module은 별도 capstone이나 systems endpoint의 강제 gate로 만들지 않는다.
+8. 모든 target은 정확히 하나의 module에 배정하고 각 module은 정확히 하나의 `MODULE_ASSIGNMENT`를 참조한다. catalog 내부의 주요 묶음은 정해진 `PHASE_CAPSTONE`으로 연결하되, 이를 `ROADMAP.md` P0~P5의 추가 종료 gate로 적용하지 않는다. 선택형 full-stack module도 systems endpoint의 강제 gate가 아니다.
 9. module·milestone catalog에는 상태·날짜·점수·mastery를 기록하지 않는다. `PRE_LAB`과 보존된 이전 시도는 milestone credit으로 올리지 않으며, 실제 prerequisite readiness는 학습자가 남긴 target evidence에서 별도로 판단한다.

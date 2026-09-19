@@ -4,6 +4,7 @@
 숙달 기록이나 진도 점수표가 아닙니다.
 
 - Pilot 시작일: 2026-09-02
+- 현재 ROADMAP Phase: P0
 - 현재 주강의: [Karpathy — Neural Networks: Zero to Hero](https://karpathy.ai/zero-to-hero.html)
 - 현재 강의: Building makemore Part 2: MLP
 - 현재 범위: 강의 전체 구현과 공식 exercises E01~E03

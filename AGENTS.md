@@ -216,13 +216,20 @@ the learner already answered correctly.
   missing, wrong, or imprecise. Never draft the note first and have the learner
   confirm it. What the learner could not produce from memory is the finding, and
   it is more informative than a complete note.
-- **The end-of-module checkpoint is a blank-page explanation.** Name the concept
-  and ask for the explanation. Do not supply the shapes, values, or setup you
-  would provide in a teaching message; producing those is part of the answer.
-  This is the one place the "put every condition in the same message" rule does
-  not apply, and only because recall is the thing being measured.
-- **Weekly, ask for three concepts from the previous week, cold.** Pick them
-  yourself from `knowledge/` and recent practice. Do not warn in advance.
+- **The end-of-module checkpoint is a blank-page explanation.** Ask for a
+  1-2 minute unassisted explanation of the purpose, mechanism, assumptions,
+  and limitations, then use one changed-condition case to check transfer.
+  These are two parts of one integrated checkpoint, followed by one complete
+  response covering what is correct, incorrect, and missing. Do not re-test
+  what the learner has already explained correctly. During recall, the learner
+  supplies the shapes and model flow; do not supply the shapes, values, or setup
+  used in a teaching message. This is the one exception to the "put every
+  condition in the same message" rule because recall is being measured.
+- **Weekly, ask for two concepts from the previous week and one older concept,
+  cold.** Pick them from `knowledge/` and learner practice without advance
+  warning and combine them in one review. If no older material exists yet, say
+  so instead of inventing learning history. Do not start ordinary lessons with
+  this diagnostic or build a recall tracker.
 - **At the end of a Phase, the learner explains the whole Phase without notes.**
   Treat it as an interview rehearsal: ask why, not what, and follow up on the
   parts that sound memorized rather than understood.
@@ -235,9 +242,12 @@ the learner already answered correctly.
   `ROADMAP.md`, the posting is right and the ladder needs fixing. A rejected
   application is information about scope, not a learning failure, and is never
   recorded as one.
-- **Competitions and papers are proposed, never invented.** `ROADMAP.md` gives
-  each Phase a competition tier and a paper load. When a Phase reaches one,
-  propose it, but do not name a specific Kaggle competition without checking
+- **Competitions and papers are proposed, never invented.** Follow the required
+  and optional scope in `ROADMAP.md`. Kaggle is required only in P1; P0, P2,
+  and P3 participation is optional after the relevant core learning. P0 needs
+  the ability to produce predictions, not a previous submission: the first
+  submission is the proposed experience. Do not name a specific Kaggle competition
+  without checking
   that it is actually open, and never state a deadline, prize, metric, or
   dataset licence you have not read. If you cannot check, say so and ask the
   learner to pick from the live list. The same holds for papers: never cite a
@@ -250,18 +260,24 @@ the learner already answered correctly.
   themselves, and then point out misreadings. A reproduction that failed with
   a diagnosed cause is a valid outcome; never record it as a success, and never
   fill a gap in a reproduction with a plausible number.
-- **Code is rebuilt from an empty file, not only from a lecture.** When a module
-  ends, the learner closes the lecture, the notebook, and their own notes and
-  writes the same thing again from nothing. Give no code and no skeleton during
+- **Code is rebuilt from an empty file at representative implementation units.**
+  Use P0 scalar autodiff and MLP training; P1 linear/logistic regression, PCA,
+  k-means, and cross-validation; P2 a PyTorch training loop and attention;
+  P3 a Transformer block and causal mask; P4 KV cache and inference measurement.
+  Do not require rewriting every module's full implementation or entire
+  assignments. The learner closes the lecture, notebook, and notes for these
+  representative attempts. Give no code and no skeleton during
   a reimplementation, not even an import list or a function signature; where
   they stall is the finding. Afterwards, compare against the original and name
-  only the differences that matter. `ROADMAP.md` lists the per-Phase targets and
-  the standing Deep-ML, timed, and algorithm-test practice. A reimplementation
-  that did not finish unaided is not recorded as passed.
+  only the differences that matter. Official assignment work and unassisted
+  reconstruction are separate evidence; assisted code is not unassisted success.
+  `ROADMAP.md` bounds supplementary Deep-ML, timed, and algorithm-test practice
+  within the same activity budget. A reimplementation that did not finish
+  unaided is not recorded as passed.
 
 A confident, fluent answer that reuses your own earlier phrasing is not
-evidence. Probe with a case the source did not cover, a changed shape, or a
-"what breaks if" question. Report what the learner could not reconstruct plainly
+evidence. Use the checkpoint's one changed-condition case for a changed shape
+or a "what breaks if" question. Report what the learner could not reconstruct plainly
 and without softening it; a comfortable review here produces an uncomfortable
 interview later.
 
@@ -269,17 +285,50 @@ interview later.
 
 The approved route runs P0 foundations -> P1 classical ML -> P2 deep learning
 and PyTorch -> P3 NLP and Transformers -> P4 LLM implementation and systems ->
-P5 portfolio and interviews. The long-term target is an LLM Research Engineer
-role; `ROADMAP.md` holds the ladder of intermediate roles that reach it, and the
-one-year plan aims at its first two rungs, with the rest continuing while
-employed. Treat the ladder as an assessment to re-check against real postings,
-not as fact, and do not record an earlier rung as a failure when the learner
-applies to it.
+P5 independent experiments and interviews. Build ML Engineer application
+evidence, then LLM Systems / Inference expertise toward the long-term LLM
+Research Engineer target. `ROADMAP.md` holds the possible intermediate roles,
+without promising employability at any Phase or date. Treat the ladder as an
+assessment to re-check against real postings. From P1 onward, compare actual
+postings with the learner's work and apply when they fit; an earlier rung is
+not a failure.
 `ROADMAP.md` holds the phases, their budgets, and the per-phase deliverable;
 `STATE.md` holds the current position. The Phase budget is a drift signal, not a
 deadline, and it never authorizes skipping ahead or entering the next Phase
 automatically. Foundations are not optional here: do not propose reordering a
 later Phase forward because the learner is impatient or a topic looks easy.
+Use 52 calendar weeks with 48 effective study weeks at 60 hours (2,880 hours)
+and four calendar slack weeks as an initial allocation hypothesis. Extend the
+schedule before cutting core assignments or oral explanation. Account for each
+activity in the Phase where it happens; do not borrow another Phase's hours.
+
+Follow the exact editions and scope in `ROADMAP.md`: P0 keeps the currently
+approved makemore Part 2 E01-E03, then fast.ai lessons 1-2, foundation repair,
+and makemore Parts 3-4. MML chapters 2-5 and 7 define the math coverage;
+already demonstrated explanation and calculation do not require repeat
+lectures. Repair gaps with the relevant text and official exercises, using
+MIT 18.01SC only for missing single-variable calculus. MIT 18.05 Spring 2022
+and Problem Sets 1-11 are the probability/statistics core, including required R
+work. Stat110 and OpenIntro remain supplementary references.
+
+P1 uses CS229 Summer 2020 PS1-PS3 in full, including required written and coding
+work; NumPy reimplementations cannot replace official problem sets. The 2018
+videos support matching topics. ISLP chapters 5, 6, 8, and 13 and their Python
+labs connect theory with experiments. P2 uses CS231n Spring 2024 Lectures 2-6
+and Assignment 2 Q1-Q5 in full, with notes/slides as the default accessible
+medium. CS231n A1, A3, and the final project are outside this route. Do not call
+either selected scope whole-course completion. Check each course's assistance
+and environment requirements before entry; required R and older assignment
+environments must not be installed into the learning lab automatically.
+
+CS336 A1-A2 and related lectures remain in P4. A2 covers training performance
+and distributed training, not completed inference serving. Connect 2026
+Lecture 10 on inference at the end of P4. P5 combines inference optimization
+and paper reproduction around one research question, with a fixed workload,
+baseline, controlled comparison, quality/memory/performance results, and
+limitations. Do not add a second reproduction project. Paid GPU use is planned
+for later work; verify service, cost, limits, and assignment compatibility before
+entry, without inventing access or replacing an unavailable official task.
 
 CS224N Spring 2024 A1-A4 are performed in full in `P3`, written and mathematical
 parts included. Its
@@ -290,9 +339,11 @@ assignment-specific instructions as well. Only the CS224N Final Project is held,
 in `DEFERRED.md`, as incomplete rather than finished; `P5` replaces it. Only the
 user may change or omit agreed practice.
 
-This repository is public and part of it is published as a site, so graded
-coursework must not land in it. CS224N and CS336 assignment solutions live in
-separate private clones, exactly as the CS336 assignment already does. What may
+This repository is public and part of it is published as a site, so official
+coursework solutions must not land in it. MIT 18.05 problem-set answers and
+CS229, CS231n, CS224N, and CS336 assignment solutions belong in separate private
+workspaces; preserve existing private clones. This includes written answers,
+code, notebooks, and saved outputs, even when self-studying without grades. What may
 be published is the learner's own concept notes, the reimplementations they
 wrote from an empty file, competition work, and the reproduction report — never
 assignment code, official problem statements, or copyrighted course material.
@@ -358,6 +409,8 @@ Write process/results/assistance in the chapter review and reusable concepts in
 knowledge. The wrap-up has no fixed concept-count limit. Reuse existing validators;
 do not indirectly invoke the standalone explicit-only skills. Do not create a TIL,
 tracking system, or next lesson automatically. Course-specific restrictions apply.
+Confirm the learner's unassisted concept drafts before knowledge edits or workspace
+reset. If a needed draft is missing, ask for it instead of writing it for them.
 
 Complete and verify the archive and notes before resetting the workspace. Always
 show the exact complete STATE replacement and obtain approval before editing it.

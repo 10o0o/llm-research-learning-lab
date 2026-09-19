@@ -1,133 +1,144 @@
 # 보류 자료
 
-이 문서는 **현재 경로에서 뺀 자료의 목록과 다시 꺼낼 조건**입니다. 여기 있는
-항목은 완료된 것도, 불필요하다고 판정된 것도 아닙니다. 모두 **미완료 보류**이며
-`ROADMAP.md`의 Phase 예산 안에서 1년 내 ML Engineer 취업이라는 목표에 직접
-기여하지 않기 때문에 뺐습니다.
+이 문서는 현재 주경로에서 뺀 범위와 다시 제안할 조건을 기록합니다. 보류는 완료나
+불필요 판정이 아닙니다. 조건이 관찰되면 필요한 부분만 제안하고, 사용자가 승인한
+뒤에만 `STATE.md`의 다음 범위를 바꿉니다.
 
-이 문서는 진도나 완료 여부를 기록하지 않습니다. 복귀 조건이 실제로 발생하면
-Agent가 해당 항목을 제안하고, 사용자가 승인한 뒤에만 `STATE.md`를 바꿉니다.
-**어떤 조건도 자동으로 학습을 시작하지 않습니다.** 보류 항목을 꺼낼 때는 그
-항목 전체가 아니라 그 시점에 필요한 범위만 꺼냅니다.
+## 공식 과정의 보류 범위
 
-## 읽는 법
+### CS224N Final Project
 
-- **무엇**: 자료와 범위
-- **왜 뺐나**: 현재 경로에서 제외한 판단 근거
-- **무엇을 열어 주나**: 이 자료가 실제로 가능하게 하는 것
-- **복귀 조건**: 이것이 관찰되면 다시 제안한다
+CS224N A1~A4는 **`P3`에서 정식 수행합니다.** Spring 2024의 written·수학·
+programming을 모두 유지합니다. 보류 대상은 Final Project뿐이며 미완료 보류입니다.
 
----
+- **왜 뺐나**: P5의 우선 산출물은 autoregressive inference의 prefill/decode,
+  KV cache, batching과 성능·품질 측정입니다. Final Project를 병렬 의무화하면
+  이 연구 시간을 잠식합니다.
+- **복귀 조건**: embedding·reranker·encoder model을 실제 serving 범위에 넣거나,
+  inference 우선 프로젝트 뒤 별도 NLP 연구 프로젝트를 하기로 결정할 때
 
-## 1. CS224N Final Project (공식 BERT 프로젝트)
+### CS336 Assignment 3·4·5
 
-CS224N A1~A4는 **`P3`에서 정식 수행합니다.** 보류 대상은 파이널 프로젝트뿐입니다.
+P4는 CS336 Spring 2026 A1 Basics와 A2 Systems 전체, Lecture 10 inference를
+수행합니다. A3 Scaling, A4 Data, A5 Alignment and Reasoning RL은 미완료 보류입니다.
 
-- **왜 뺐나**: BERT는 encoder-only입니다. 1순위 전문화의 대상인 autoregressive
-  decoder 추론(KV cache, prefill/decode 분리, continuous batching)이 BERT에는
-  존재하지 않습니다. 3~4주를 쓰고도 목표 역량에 닿지 않습니다. `P5`의 추론
-  최적화 프로젝트가 "완결된 프로젝트 경험"이라는 같은 역할을 하면서 1순위에
-  직접 기여하므로 그쪽으로 대체합니다.
-- **무엇을 열어 주나**: encoder-only·bidirectional 모델. embedding 모델과
-  reranker 서빙은 실제 추론 워크로드이므로 이 계열이 영영 무관하지는 않습니다.
-- **복귀 조건**: embedding·reranker 서빙을 실제로 다루게 될 때. 또는 `P5`에서
-  추론 최적화 프로젝트에 encoder 모델 케이스를 하나 추가할 때 — 프로젝트 전체를
-  꺼내지 말고 BERT 구조 부분만 참고합니다
+- **왜 뺐나**: A1·A2와 P5 inference 연구가 현재 1순위 systems 경로를 채웁니다.
+- **복귀 조건**: scaling 실험이면 A3, data pipeline이면 A4, post-training이면
+  A5를 그 목적에 필요한 범위부터 제안
 
----
+### CS231n Assignment 1·3와 Final Project
 
-## 2. CS336 Assignment 3·4·5
+P2의 CS231n 범위는 Spring 2024 Lecture 2~6와 Assignment 2 Q1~Q5 전체입니다.
+이 범위와 PyTorch 보강 뒤 Karpathy GPT·Tokenizer를 P2 끝에서 수행하며, CS231n
+Assignment 1·3와 Final Project만 이 절의 보류 대상입니다.
 
-[CS336 Spring 2026](https://cs336.stanford.edu/). `P4`는 A1(Basics)과
-A2(Systems)까지만 수행합니다.
+- **왜 뺐나**: A2가 이 경로에 필요한 optimization, backprop, CNN, normalization과
+  PyTorch 학습 진단을 집중적으로 다룹니다. 나머지 CV 과제는 LLM systems 주경로의
+  핵심이 아닙니다.
+- **복귀 조건**: multimodal의 vision encoder, detection·segmentation, generative
+  vision 또는 CV 직무를 실제 목표로 추가할 때 해당 부분만 제안
 
-- **A3 Scaling**: scaling law 적합과 모델 확장 예측
-- **A4 Data**: Common Crawl 원본에서 사전학습 데이터 생성, 필터링·중복 제거
-- **A5 Alignment and Reasoning RL**: SFT와 강화학습으로 수학 추론 학습
-- **왜 뺐나**: A1·A2만으로 1년 예산이 찹니다. 셋 다 1순위 전문화의 본체가
-  아니라 인접 영역입니다.
-- **무엇을 열어 주나**: A3는 실험 설계와 외삽, A4는 데이터 파이프라인,
-  A5는 2순위 전문화(Post-training)의 실제 구현
-- **복귀 조건**: `P5` 완료 후 2순위 트랙에 진입할 때 A5를 먼저 꺼냅니다.
-  A4는 데이터 중심 직무를 보게 될 때, A3는 실험 설계 역량이 필요해질 때
+## 과정·자료의 보류 범위
 
----
+### CS229 최종 프로젝트·공식 시험
 
-## 3. Post-training과 Evaluation 트랙
+- **왜 뺐나**: Summer 2020 notes·PS1~PS3의 필수 written·coding과 P1 배포
+  프로젝트가 이번 지정 범위입니다. 최종 프로젝트·시험까지 수행한 것으로 세지 않습니다.
+- **복귀 조건**: 사용자가 해당 공식 요구사항까지 확장하기로 결정할 때
 
-`ROADMAP.md` endpoint `TR-MOD-03`, `TR-EVAL-02`, `TR-EVAL-05`.
+### ISLP 전권·MIT 18.01SC 전체 과정
 
-- **왜 뺐나**: 순서의 문제입니다. 1순위를 먼저 끝냅니다.
-- **무엇을 열어 주나**: SFT, LoRA, preference optimization, 평가 설계,
-  failure analysis, contamination 점검
-- **복귀 조건**: `P5` 완료 후. 그 시점에 CS336 A5와 CS224N A4를 함께 비교해
-  경로를 다시 설계합니다
+- **왜 뺐나**: ISLP는 5·6·8·13장 본문과 Python lab만 필요하며 MIT 18.01SC는
+  단변수 미분·정적분 공백을 메우는 보조 자료입니다.
+- **복귀 조건**: 현재 설명이나 과제에서 빠진 개념이 실제로 드러날 때 관련 절만 보강
 
----
+### fast.ai Part 1 Lesson 3 이후
 
-## 4. Karpathy makemore Part 5 — WaveNet
+- **왜 뺐나**: P0의 Lesson 1~2가 top-down workflow 역할을 맡고, 이후 modeling·
+  deployment 내용은 P1·P2의 공식 과정과 프로젝트에서 더 깊게 수행합니다.
+- **복귀 조건**: 특정 downstream task를 빠르게 prototype해야 하고 현재 주과정에
+  해당 workflow가 없을 때 필요한 lesson만 제안
 
-- **왜 뺐나**: dilated causal convolution으로 문맥을 늘리는 구조이며
-  Transformer 계열 추론 최적화로 이어지지 않습니다. 계층적 구조를 쌓는 감각은
-  Part 3·4에서 충분히 얻습니다.
-- **무엇을 열어 주나**: convolution 기반 sequence 모델, 계층적 receptive field
-- **복귀 조건**: convolution 기반 아키텍처를 실제로 다뤄야 할 때
+### Mathematics for Machine Learning 전권 완독
 
----
+- **왜 뺐나**: P0에서는 Chapter 2~5, 7의 기초 범위를 무보조 설명·계산으로
+  빠짐없이 확인하되 부족한 부분만 본문과 공식 연습문제로 보강합니다.
+  전권 완독은 Karpathy·MIT 18.05·CS229 공식 작업과 중복됩니다.
+- **복귀 조건**: linear algebra, vector calculus, optimization의 특정 공백이 현재
+  공식 과제 수행을 막고 있을 때 해당 절만 사용
 
-## 5. Computer Vision 심화
+### Stat110·OpenIntro 전체 과정
 
-`P2`에서 CS231n을 쓰지만 CNN·최적화·학습 진단 부분만 사용하고 detection,
-segmentation, 생성 모델, 비디오는 뺍니다.
+- **왜 뺐나**: MIT 18.05 Spring 2022 class materials와 PS1~PS11이 P0 확률·통계
+  주과정입니다. Stat110과 OpenIntro 전체를 추가하면 같은 개념을 세 과정으로
+  반복합니다.
+- **복귀 조건**: MIT 18.05 설명만으로 해결되지 않는 확률 또는 추론 개념에 대해
+  다른 유도·예제가 필요할 때 해당 절만 보조로 사용
 
-- **왜 뺐나**: CS231n의 가치는 이 경로에서 "딥러닝 학습을 진단하는 법"입니다.
-  CV 과제 자체는 목표 직무와 멀고 각각이 몇 주짜리입니다.
-- **무엇을 열어 주나**: CV 직무 지원 가능성, multimodal 모델의 vision 쪽 이해
-- **복귀 조건**: multimodal LLM을 다루게 될 때 vision encoder 부분만.
-  또는 CV 포지션도 함께 보기로 결정할 때
+### CS229 2018 공개 영상 전체를 별도 과정으로 수행
 
----
+- **왜 뺐나**: P1의 판본은 공개 notes와 PS1~PS3가 함께 있는 Summer 2020입니다.
+  2018 영상은 같은 주제의 설명 보조이며 별도 완료 대상으로 세지 않습니다.
+- **복귀 조건**: Summer 2020 notes의 특정 유도에 영상 설명이 필요할 때 해당 강의만
 
-## 6. Hugging Face LLM Course
+### Full Stack Deep Learning 전체 과정
 
-- **왜 뺐나**: 라이브러리 사용법 중심이며 `P0`~`P4`는 직접 구현으로 배우는
-  구간입니다. 먼저 배우면 추상화 뒤에 있는 것을 보지 않게 됩니다.
-- **무엇을 열어 주나**: 실무 표준 도구 체인, `transformers`·`tokenizers`의 관례
-- **복귀 조건**: **`P5`에서 사용합니다.** vLLM·TGI 같은 실제 서빙 구현을 읽을
-  때, 그리고 면접에서 실무 도구 경험을 물을 때 필요합니다. 자기 구현을 마친
-  뒤에 보면 대조 학습이 됩니다
+- **왜 뺐나**: P1의 Made With ML 프로젝트와 P4·P5 systems 작업이 현재 산출물을
+  직접 만듭니다. FSDL 전체 수강을 병렬 의무화하지 않습니다.
+- **복귀 조건**: 실제 ML systems design 면접이나 production 설계에서 특정 공백이
+  확인될 때 관련 강의만 제안
 
----
+### Hugging Face LLM Course
 
-## 7. MIT 6.S191과 기타 보조 강의
+- **왜 뺐나**: P0~P4는 내부 메커니즘과 공식 assignment를 직접 구현하는 구간입니다.
+- **복귀 조건**: P5 또는 취업 준비에서 `transformers`, `tokenizers`, 실제 serving
+  stack의 관례를 자기 구현과 비교해야 할 때 필요한 절만 사용
 
-- **왜 뺐나**: 전체 조망용이며 `P1`·`P2`가 같은 내용을 더 깊게 다룹니다.
-  별도 완강 목표를 만들지 않습니다.
-- **무엇을 열어 주나**: 짧은 시간의 전체 지형 파악
-- **복귀 조건**: 특정 주제의 빠른 개관이 필요할 때 해당 강의 하나만 발췌
+### MIT 6.S191과 기타 조망 강의
 
----
+- **왜 뺐나**: 별도 완강 없이 각 Phase의 주과정이 같은 내용을 더 깊게 다룹니다.
+- **복귀 조건**: 새 분야의 전체 지형을 짧게 볼 필요가 있을 때 관련 강의 하나만
 
-## 8. RNN·LSTM 심화
+### Karpathy makemore Part 5 — WaveNet
 
-`knowledge/deep-learning/rnn-lstm-sequence-classification.md`와
-`practice/deep-learning/rnn-lstm-*.ipynb`로 이미 한 차례 다뤘습니다.
-`P3`의 CS224N에서 다시 만나므로 그때 자연스럽게 보강됩니다.
+- **왜 뺐나**: convolution sequence model보다 Transformer inference가 현재
+  1순위입니다.
+- **복귀 조건**: convolution 기반 sequence architecture나 receptive field를 실제로
+  다룰 때
 
-- **왜 뺐나**: 별도 심화 목표를 추가할 필요가 없습니다.
-- **무엇을 열어 주나**: 순차 처리와 병렬 처리의 대비. `P4`에서 Transformer가
-  왜 학습에서 병렬화되는지 설명할 때 좋은 대조군입니다
-- **복귀 조건**: 별도 학습으로 꺼내지 않습니다. state space model·Mamba
-  계열을 다루게 되면 그때 재검토합니다
+## 별도 트랙과 반복 작업
 
----
+### Post-training·LLM evaluation·data engineering
+
+- **왜 뺐나**: 현재 1순위는 systems와 inference이며 병렬로 모두 수행하면 P4·P5
+  연구가 분산됩니다.
+- **복귀 조건**: P5 이후 전문화 순위를 다시 정하거나 실제 공고·프로젝트가 SFT,
+  preference optimization, judge evaluation, data pipeline을 요구할 때
+
+### P0·P2·P3 Kaggle competition
+
+P1 tabular Kaggle만 필수입니다. 다른 Phase의 competition은 선택입니다.
+
+- **왜 뺐나**: P0의 제출은 공식 학습 근거가 아니고, P2·P3의 공식 과제와 별도
+  competition을 모두 의무화하면 중복 프로젝트가 됩니다.
+- **복귀 조건**: P0는 예측을 만들 수 있으면 첫 제출 경험을 제안하며 이전 제출
+  경험을 요구하지 않습니다. P2·P3는 핵심 학습 이후, 실제 열린 대회가 적용 능력을
+  확인하고 해당 Phase 예산 안에서 수행 가능할 때 제안합니다.
+
+### 별도 월별 논문 quota와 과제 전체 재구현
+
+- **왜 뺐나**: 공식 지정 reading은 논문 근거에 포함하고, assignment 전체를 다시
+  쓰는 대신 Phase별 대표 단위만 무보조 재구현으로 확인합니다.
+- **복귀 조건**: 공식 reading이 연구 질문을 다루지 못하거나 대표 재구현에서
+  실제 공백이 드러났을 때 필요한 논문 또는 구성요소만 추가
 
 ## 갱신 규칙
 
-1. 항목을 뺄 때는 **왜 뺐나**와 **복귀 조건**을 반드시 함께 적습니다.
-   조건 없는 보류는 사실상 삭제이므로 허용하지 않습니다.
-2. 보류 항목을 꺼낼 때는 항목 전체가 아니라 필요한 범위만 꺼내고,
-   꺼낸 범위를 이 문서에 표시하지 않습니다. 진행 상태는 `STATE.md`만 가집니다.
-3. 이 문서는 완료·날짜·점수·mastery를 기록하지 않습니다.
-4. 복귀 조건이 발생했는지 판단하는 근거는 학습자의 실제 구현·실행·해석이며,
-   Agent의 설명이나 파일 존재가 아닙니다.
+1. 항목을 뺄 때는 이유와 복귀 조건을 함께 적습니다.
+2. 보류 항목은 완료·날짜·점수·mastery를 기록하지 않습니다.
+3. 복귀 판단은 학습자의 실제 설명·계산·구현·실행·해석과 현재 외부 요구를
+   근거로 합니다.
+4. 조건이 생겨도 자동으로 시작하지 않고 필요한 범위를 제안한 뒤 사용자의
+   `STATE.md` 교체 승인을 기다립니다.
+
+어떤 조건도 자동으로 학습을 시작하지 않습니다.
