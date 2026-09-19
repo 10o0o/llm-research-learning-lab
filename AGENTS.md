@@ -19,9 +19,19 @@ or automatic curriculum orchestrator.
 - `til/YYYY/MM/YYYY-MM-DD.md`: dated learning records written only on request.
 - `knowledge/`: date-free notes representing the learner's current best
   understanding.
-- `ROADMAP.md`: broad long-term direction, not current study state.
+- `ROADMAP.md`: broad long-term direction and the Phase budget, not current
+  study state.
+- `DEFERRED.md`: material cut from the current route, with why it was cut and
+  the condition for bringing it back. Holds no progress, dates, or scores.
 - `CURRICULUM.md`: stable competency and source reference, not progress.
 - `archive/`: read-only history unless the learner requests a specific change.
+- `scripts/`: small repository utilities. `scripts/nbpeek.py` is the required
+  way to read a notebook.
+- `web/`: Astro static site that renders `knowledge/` for reading. It reads the
+  root notes directly and never copies them. It is presentation only: it is not
+  study state, not a progress record, and not a reason to change a note. Treat
+  it as frozen unless the learner explicitly asks for a site change, and never
+  enter it during ordinary study. Its own README covers Node, build, and tests.
 
 ## Default study route
 
@@ -118,12 +128,28 @@ supporting references do not imply completing their entire courses.
 - If the learner says a prerequisite was never introduced, explain it before
   assessing it. If they say they understand or want to move on after a correct
   answer, continue rather than re-testing the same point.
+- Do not write the learner's exercise code. Official implementations, exercises,
+  and assignments are the practice, and typing them is the part that teaches.
+  Explain the mechanism, name the operations and shapes needed, point at the
+  official API, review what the learner wrote, and say what is wrong and why.
+  Do not supply the line, the cell, or a rewritten version of it, even when
+  asked, and do not paste a correct version as part of feedback. This holds for
+  short code: a five-line update loop is often the whole point of the exercise.
+  If the learner is fully blocked, narrow it to the one operation they are
+  missing and let them write it. Course-specific AI policies add to this rule
+  and never relax it.
 - For implementation or debugging, inspect the exact current file and actual
   output. Address one real blocker at a time and preserve learner-owned code
   unless editing is explicitly requested and permitted.
+- Never read a notebook as a whole file. Saved plots are embedded as base64 and
+  one archived notebook here costs over 170k tokens to read that way. Use
+  `python3 scripts/nbpeek.py <notebook> --list` to see the cells, then
+  `--cells 3-7,12` for the ones that matter. Read the raw `.ipynb` only when the
+  actual JSON structure or metadata is the subject.
 - The learner's default ongoing practice file is `main.ipynb` at the repository
-  root. Read its relevant cells and saved outputs directly before giving feedback;
-  do not repeatedly ask the learner to paste code or outputs available there.
+  root. Read its relevant cells and saved outputs through `nbpeek` before giving
+  feedback; do not repeatedly ask the learner to paste code or outputs available
+  there.
   If outputs are missing or appear stale, ask only for the relevant cells to be
   run and the notebook saved, then reread it. Do not execute or edit the notebook
   on the learner's behalf without an explicit request. Course-specific repository
@@ -143,12 +169,26 @@ code may retain exact identifiers.
 
 ## Course-specific scope and assistance
 
-CS224N Spring 2024 includes A1-A4 (written, mathematical, and programming work)
-and one Final Project, defaulting to the official BERT project. Only the user
-may change or omit the project or agreed practice. Its
+The approved route is Karpathy's selected lectures -> CS336 Assignment 1 ->
+CS336 Assignment 2 (Systems) -> a self-directed inference-optimization project.
+`ROADMAP.md` holds the lecture list and the Phase budget; `STATE.md` holds the
+current position. The Phase budget is a drift signal, not a deadline, and it
+never authorizes skipping ahead or entering the next Phase automatically.
+
+CS224N Spring 2024 (A1-A4 and the BERT Final Project) is cut from this route and
+recorded in `DEFERRED.md` as incomplete, not finished. Do not treat it as done,
+and do not restart it on your own. When a `DEFERRED.md` return condition actually
+occurs, propose only the narrow excerpt that condition calls for and wait for the
+user's decision. Only the user may change or omit agreed practice. If CS224N work
+resumes, its
 [AI Tools Policy](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html)
-allows AI collaboration but prohibits direct answer solicitation, copying answers,
-and substantial completion by AI. Check assignment-specific instructions as well.
+applies again: AI collaboration is allowed but direct answer solicitation,
+copying answers, and substantial completion by AI are prohibited. Check
+assignment-specific instructions as well.
+
+One `DEFERRED.md` return is already scheduled: confidence intervals, bootstrap,
+and hypothesis testing are required before entering `P3`, because `P3` reports
+optimization deltas and an unquantified delta cannot be defended.
 
 ### CS336 return and boundaries
 

@@ -11,5 +11,5 @@
     "*.ipynb": "jupyter-notebook"
   },
   "deepml.solutionsDir": "challenges/deep-ml/solutions",
-  "deepml.pythonPath": "/home/jake/workspace/learning/llm-research-learning-lab/.venv/bin/python"
+  "deepml.pythonPath": "${workspaceFolder}/.venv/bin/python"
 }

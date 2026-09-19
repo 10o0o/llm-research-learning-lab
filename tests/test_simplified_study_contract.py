@@ -80,26 +80,50 @@ def test_official_practice_is_preserved_across_teaching_media() -> None:
         assert "기준 자료·판본 → 직접 링크 → 이번 설명 범위 → 수행할 공식 실습 → 확인할 결과" in _normalized(path)
 
 
-def test_cs224n_official_scope_and_user_control_are_explicit() -> None:
+def test_cs224n_is_deferred_as_incomplete_under_user_control() -> None:
+    """CS224N is cut from the route, but only as an incomplete hold the user controls."""
     agents = _normalized("AGENTS.md")
-    assert "CS224N Spring 2024 includes A1-A4 (written, mathematical, and programming work)" in agents
-    assert "one Final Project, defaulting to the official BERT project" in agents
-    assert "Only the user may change or omit the project or agreed practice" in agents
-    assert "allows AI collaboration but prohibits direct answer solicitation, copying answers, and substantial completion by AI" in agents
-    for path in ("README.md", "USAGE.md", "practice/README.md", "ROADMAP.md"):
+    assert "CS224N Spring 2024 (A1-A4 and the BERT Final Project) is cut from this route" in agents
+    assert "recorded in `DEFERRED.md` as incomplete, not finished" in agents
+    assert "Do not treat it as done, and do not restart it on your own" in agents
+    assert "Only the user may change or omit agreed practice" in agents
+    assert "AI collaboration is allowed but direct answer solicitation, copying answers, and substantial completion by AI are prohibited" in agents
+    for path in ("README.md", "USAGE.md"):
         text = _normalized(path)
-        assert "A1~A4" in text
-        assert "written·수학·프로그래밍" in text
-        assert "공식 BERT 프로젝트" in text or "공식 BERT Final Project" in text
-        assert "변경·생략은 사용자 결정으로만" in text
-        assert "자동 취소하지 않습니다" in text
+        assert "미완료 보류" in text
+        assert "DEFERRED.md" in text
+        assert "자동으로 다시 시작하지 않으며" in text
+        assert "직접 답 요구·복사와 AI의 실질적 과제 대행을 금지합니다" in text
+
+
+def test_deferred_material_keeps_a_return_condition() -> None:
+    """A hold without a return condition is a deletion, so every entry needs one."""
+    deferred = _normalized("DEFERRED.md")
+    assert "미완료 보류" in deferred
+    assert "복귀 조건" in deferred
+    assert "어떤 조건도 자동으로 학습을 시작하지 않습니다" in deferred
+    for item in ("A1", "A2", "A3", "A4", "Final Project", "WaveNet", "beam search"):
+        assert item in deferred
+    # The one scheduled return: P3 reports optimization deltas and needs statistics.
+    assert "`P3` 진입 직전에 필수로 보충" in deferred
+    assert "confidence intervals, bootstrap" in _normalized("AGENTS.md")
+
+
+def test_roadmap_pins_the_phase_budget_and_selected_lectures() -> None:
     roadmap = _normalized("ROADMAP.md")
+    for phase in ("`P0`", "`P1`", "`P2`", "`P3`", "`P4`"):
+        assert phase in roadmap
+    assert "마감이 아니라 **예산**" in roadmap
+    assert "DEFERRED.md" in roadmap
+    # Lectures kept on the route, including the two added for the systems track.
     for material in (
         "VMj-3S1tku0", "PaCmpygFfXo", "TCH_1BHY58I",
+        "P6sfmUTpUmc", "q8SA3rM6ckI", "kCc8FmEb1nY", "zduSFxRajkE",
         "makemore_part1_bigrams.ipynb", "makemore_part2_mlp.ipynb",
-        "PLoROMvodv4rOaMFbaqxPDoLWjDaRAdP9D", "dependency parsing",
+        "makemore_part3_bn.ipynb", "makemore_part4_backprop.ipynb",
     ):
         assert material in roadmap
+    assert "TR-SYS-03" in roadmap
 
 
 def test_removed_learning_management_skills_do_not_return() -> None:

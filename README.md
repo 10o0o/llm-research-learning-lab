@@ -5,7 +5,7 @@ LLM Research Engineer를 목표로 공부하는 가벼운 개인 학습 저장�
 우선합니다.
 
 [현재 학습 위치](./STATE.md) · [자세한 사용법](./USAGE.md) ·
-[학습 로드맵](./ROADMAP.md) · [역량 참고](./CURRICULUM.md)
+[학습 로드맵](./ROADMAP.md) · [보류 자료](./DEFERRED.md) · [역량 참고](./CURRICULUM.md)
 
 ## 지식 서재 웹
 
@@ -69,14 +69,18 @@ Node와 npm을 준비한 뒤 `web/`에서 `npm ci`, `npm run build`,
 통과로 표현하지 않습니다. Optional·Bonus는 선택 항목으로 표시하며 보조
 자료를 참고했다고 그 과정 전체의 실습을 추가하지 않습니다.
 
-## CS224N의 수행 범위와 도움
+## CS224N의 보류와 복귀 조건
 
-CS224N Spring 2024는 A1~A4의 written·수학·프로그래밍 요구사항과
-Final Project 하나를 수행합니다. 기본값은 공식 BERT 프로젝트이며,
-변경·생략은 사용자 결정으로만 합니다. CS336 준비도가 충족되어도 남은
-공식 과제를 자동 취소하지 않습니다. 순서 변경 시 미완료 범위를 알립니다.
-[공식 정책](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html)은
-AI 협업을 허용하지만 직접 답 요구·복사와 AI의 실질적 과제 대행을 금지합니다.
+CS224N Spring 2024(A1~A4와 BERT Final Project)는 이번 경로에서 뺐습니다.
+완료가 아니라 **미완료 보류**이며, 항목별 판단 근거와 복귀 조건은
+[`DEFERRED.md`](./DEFERRED.md)에 있습니다. 자동으로 다시 시작하지 않으며,
+복귀 조건이 실제로 발생하면 그 조건이 요구하는 범위만 발췌해 제안하고
+사용자 결정을 따릅니다.
+
+다시 수행하게 되면
+[공식 AI 정책](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html)이
+그대로 적용됩니다. AI 협업은 허용하지만 직접 답 요구·복사와 AI의 실질적
+과제 대행을 금지합니다. 개별 과제의 별도 지침도 확인합니다.
 
 ## CS336의 엄격한 AI 경계
 
@@ -138,7 +142,8 @@ CS336 복귀는 로드맵의 구현·실행·해석 근거로 제안합니다. �
 | [`knowledge/`](./knowledge/) | 확인된 이해를 정리하는 주제별 개념 노트 |
 | [`practice/`](./practice/) | 보존된 실행 Notebook과 실험 artifact |
 | [`challenges/`](./challenges/) | 짧은 외부 문제 풀이 코드 |
-| [`ROADMAP.md`](./ROADMAP.md) | 장기 학습 방향 참고 |
+| [`ROADMAP.md`](./ROADMAP.md) | 장기 학습 방향과 Phase 시간 예산 |
+| [`DEFERRED.md`](./DEFERRED.md) | 이번 경로에서 뺀 자료와 복귀 조건 |
 | [`CURRICULUM.md`](./CURRICULUM.md) | 역량과 기존 자료 범위 참고 |
 | [`archive/`](./archive/) | 수정하지 않고 보존하는 과거 기록 |
 
