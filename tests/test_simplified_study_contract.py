@@ -53,7 +53,7 @@ def test_official_practice_is_preserved_across_teaching_media() -> None:
     agents = _normalized("AGENTS.md")
     for rule in (
         "Video, text, and source-grounded dialogue are allowed",
-        "KANT is only for topic/progress comparison, not default practice or a completion criterion",
+        "they never substitute for another course's official exercises",
         "Follow along with the full lecture implementation",
         "attempt separate exercises independently",
         "Completed instructor notebooks are references",
@@ -68,8 +68,11 @@ def test_official_practice_is_preserved_across_teaching_media() -> None:
 
     for path in ("README.md", "USAGE.md", "practice/README.md", "ROADMAP.md"):
         text = _normalized(path)
-        assert "KANT는 진도·주제 대조용" in text
-        assert "기본 실습이나 완료 기준으로 사용하지 않습니다" in text
+        assert "다른 과정의" in text
+        assert "공식 실습을 대체하거나" in text
+        assert "완료 기준이 되지 않습니다" in text
+        # KANT is primary for P1/P2 now, so the old comparison-only line must be gone.
+        assert "KANT는 진도·주제 대조용" not in text
         assert "영상·문서·공식 자료 기반 대화" in text
         assert "완성 노트북 실행이나 AI 보충 예제로 공식 실습을 대체하지 않습니다" in text
         assert "Optional·Bonus" in text
@@ -80,20 +83,50 @@ def test_official_practice_is_preserved_across_teaching_media() -> None:
         assert "기준 자료·판본 → 직접 링크 → 이번 설명 범위 → 수행할 공식 실습 → 확인할 결과" in _normalized(path)
 
 
-def test_cs224n_is_deferred_as_incomplete_under_user_control() -> None:
-    """CS224N is cut from the route, but only as an incomplete hold the user controls."""
+def test_cs224n_assignments_are_performed_with_the_official_ai_policy() -> None:
+    """A1-A4 are back on the route in P3; only the final project stays on hold."""
     agents = _normalized("AGENTS.md")
-    assert "CS224N Spring 2024 (A1-A4 and the BERT Final Project) is cut from this route" in agents
-    assert "recorded in `DEFERRED.md` as incomplete, not finished" in agents
-    assert "Do not treat it as done, and do not restart it on your own" in agents
-    assert "Only the user may change or omit agreed practice" in agents
+    assert "CS224N Spring 2024 A1-A4 are performed in full in `P3`" in agents
     assert "AI collaboration is allowed but direct answer solicitation, copying answers, and substantial completion by AI are prohibited" in agents
-    for path in ("README.md", "USAGE.md"):
+    assert "Only the CS224N Final Project is held" in agents
+    assert "Only the user may change or omit agreed practice" in agents
+    for path in ("README.md", "USAGE.md", "practice/README.md"):
         text = _normalized(path)
-        assert "미완료 보류" in text
-        assert "DEFERRED.md" in text
-        assert "자동으로 다시 시작하지 않으며" in text
+        assert "A1~A4" in text
+        assert "`P3`" in text
         assert "직접 답 요구·복사와 AI의 실질적 과제 대행을 금지합니다" in text
+        assert "DEFERRED.md" in text
+
+
+def test_foundations_first_route_is_pinned() -> None:
+    roadmap = _normalized("ROADMAP.md")
+    for phase in ("`P0`", "`P1`", "`P2`", "`P3`", "`P4`", "`P5`"):
+        assert phase in roadmap
+    assert "마감이 아니라 **예산**" in roadmap
+    # The budget is planned below the learner's stated hours on purpose.
+    assert "주 60시간(실효)" in roadmap
+    # Every phase owes a deliverable; attending a course is not one.
+    assert "강의 수강 자체는" in roadmap
+    # CS336 prerequisites are covered in order rather than skipped.
+    assert "memory hierarchy" in roadmap
+    assert "이 순서를 앞당기지 않습니다" in roadmap
+    agents = _normalized("AGENTS.md")
+    assert "Foundations are not optional here" in agents
+    assert "do not propose reordering a later Phase forward" in agents
+    # Owned KANT material is primary for P1/P2, no longer comparison-only.
+    assert "are primary sources for `P1` and `P2`, not progress comparison" in agents
+
+
+def test_understanding_is_verified_by_unassisted_recall() -> None:
+    """Coverage is not evidence; the repo needs a mechanism that tests recall."""
+    agents = _normalized("AGENTS.md")
+    assert "Verifying understanding, not coverage" in agents
+    assert "Knowledge notes are drafted unassisted, then compared" in agents
+    assert "Never draft the note first and have the learner confirm it" in agents
+    assert "blank-page explanation" in agents
+    assert "three concepts from the previous week, cold" in agents
+    assert "explains the whole Phase without notes" in agents
+    assert "reuses your own earlier phrasing is not evidence" in agents
 
 
 def test_deferred_material_keeps_a_return_condition() -> None:
@@ -102,28 +135,10 @@ def test_deferred_material_keeps_a_return_condition() -> None:
     assert "미완료 보류" in deferred
     assert "복귀 조건" in deferred
     assert "어떤 조건도 자동으로 학습을 시작하지 않습니다" in deferred
-    for item in ("A1", "A2", "A3", "A4", "Final Project", "WaveNet", "beam search"):
+    for item in ("Final Project", "WaveNet", "Assignment 3", "Hugging Face"):
         assert item in deferred
-    # The one scheduled return: P3 reports optimization deltas and needs statistics.
-    assert "`P3` 진입 직전에 필수로 보충" in deferred
-    assert "confidence intervals, bootstrap" in _normalized("AGENTS.md")
-
-
-def test_roadmap_pins_the_phase_budget_and_selected_lectures() -> None:
-    roadmap = _normalized("ROADMAP.md")
-    for phase in ("`P0`", "`P1`", "`P2`", "`P3`", "`P4`"):
-        assert phase in roadmap
-    assert "마감이 아니라 **예산**" in roadmap
-    assert "DEFERRED.md" in roadmap
-    # Lectures kept on the route, including the two added for the systems track.
-    for material in (
-        "VMj-3S1tku0", "PaCmpygFfXo", "TCH_1BHY58I",
-        "P6sfmUTpUmc", "q8SA3rM6ckI", "kCc8FmEb1nY", "zduSFxRajkE",
-        "makemore_part1_bigrams.ipynb", "makemore_part2_mlp.ipynb",
-        "makemore_part3_bn.ipynb", "makemore_part4_backprop.ipynb",
-    ):
-        assert material in roadmap
-    assert "TR-SYS-03" in roadmap
+    # CS224N A1-A4 came off the hold list and must not read as deferred.
+    assert "CS224N A1~A4는 **`P3`에서 정식 수행합니다.**" in deferred
 
 
 def test_removed_learning_management_skills_do_not_return() -> None:
