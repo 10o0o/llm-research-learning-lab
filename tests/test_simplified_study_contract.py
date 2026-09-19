@@ -227,6 +227,26 @@ def test_usage_documents_the_session_loop() -> None:
         assert standing in usage
 
 
+def test_state_is_never_written_without_approval() -> None:
+    """The bookmark is the one place the learner, not an assistant, decides."""
+    agents = _normalized("AGENTS.md")
+    assert "`STATE.md` is never written automatically, at any checkpoint" in agents
+    assert "decided by the learner rather than inferred by an assistant" in agents
+    # The proposal is automatic even though the write is not.
+    assert "Offer the replacement without being asked whenever the resume point moved" in agents
+    assert "at a Phase transition" in agents
+    assert "자동으로 쓰이지 않으며" in _normalized("ROADMAP.md")
+
+
+def test_phase_id_in_state_does_not_reopen_progress_tracking() -> None:
+    agents = _normalized("AGENTS.md")
+    assert "The Phase ID is a static pointer into `ROADMAP.md`" in agents
+    assert "Never add a percentage, a score, a readiness judgement, an hour tally" in agents
+    assert "a Phase ID is not an opening to bring them back" in agents
+    # The old blanket ban listed "phases"; it must not contradict the new field.
+    assert "hashes, readiness scores, session history, or metrics" in agents
+
+
 def test_understanding_is_verified_by_unassisted_recall() -> None:
     """Coverage is not evidence; the repo needs a mechanism that tests recall."""
     agents = _normalized("AGENTS.md")

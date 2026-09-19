@@ -117,13 +117,28 @@ tool-specific commands into these documents.
 
 ## State changes and authorization
 
-- `STATE.md` contains only public technical information: pilot dates, current
-  source and scope, concise observed basis, items to recheck, and one next
-  independent action.
+- `STATE.md` contains only public technical information: pilot dates, the
+  current `ROADMAP.md` Phase ID, current source and scope, concise observed
+  basis, items to recheck, and one next independent action.
+- The Phase ID is a static pointer into `ROADMAP.md` (`P0`-`P5`), nothing more.
+  Never add a percentage, a score, a readiness judgement, an hour tally, a
+  checklist of finished items, or a computed next target beside it. Those are
+  the progress machinery this repository removed, and a Phase ID is not an
+  opening to bring them back.
 - Never put learner answer transcripts, private paths, internal IDs, hashes,
-  phases, readiness scores, session history, or metrics in `STATE.md`. A public
-  source commit pin is allowed.
-- Always show the exact complete replacement before editing it.
+  readiness scores, session history, or metrics in `STATE.md`. A public source
+  commit pin is allowed.
+- Always show the exact complete replacement before editing it. `STATE.md` is
+  never written automatically, at any checkpoint, however routine the change
+  looks. The learner approving it is the point: it is the one place where what
+  was actually learned gets decided by the learner rather than inferred by an
+  assistant, and it is the handoff every tool and machine resumes from.
+- Offer the replacement without being asked whenever the resume point moved:
+  at `오늘 학습 종료`, at an explicit chapter wrap-up, when a module finishes
+  mid-session, and at a Phase transition. At a Phase transition, run the
+  `ROADMAP.md` check first and include its result in the proposal, so the
+  learner approves a bookmark that says which Phase is closing, what the
+  evidence was, and what opens next.
 - `STATE 반영해` or equivalent approval authorizes only replacement of
   `STATE.md`. It does not authorize a commit or push.
 - Never synchronize `STATE.md` with old notebook metadata or ignored temporary
