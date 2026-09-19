@@ -175,6 +175,30 @@ def test_competitions_and_papers_are_tracks_that_cannot_be_fabricated() -> None:
     assert "The learner writes the paper summary" in agents
 
 
+def test_phase_check_and_hardware_prerequisite_are_pinned() -> None:
+    roadmap = _normalized("ROADMAP.md")
+    assert "중간 점검" in roadmap
+    assert "지금 당장 찔러볼 수 있는 공고는 무엇인가" in roadmap
+    # A real posting outranks the author's ladder.
+    assert "공고가 맞고 사다리가 틀린 것" in roadmap
+    assert "불합격을 학습 실패로 기록하지" in roadmap
+    # No GPU was available when this route was written; P4/P5 depend on one.
+    assert "NVIDIA GPU가 없습니다" in roadmap
+    assert "지금 시작하는 데는 장애가 없습니다" in roadmap
+    assert "대체 과제로" in roadmap
+    agents = _normalized("AGENTS.md")
+    assert "Run the phase-transition check before closing a Phase" in agents
+    assert "Never state that a company is hiring" in agents
+    assert "the posting is right and the ladder needs fixing" in agents
+
+
+def test_graded_coursework_stays_out_of_the_public_repository() -> None:
+    agents = _normalized("AGENTS.md")
+    assert "This repository is public and part of it is published as a site" in agents
+    assert "CS224N and CS336 assignment solutions live in separate private clones" in agents
+    assert "never assignment code, official problem statements, or copyrighted course material" in agents
+
+
 def test_understanding_is_verified_by_unassisted_recall() -> None:
     """Coverage is not evidence; the repo needs a mechanism that tests recall."""
     agents = _normalized("AGENTS.md")

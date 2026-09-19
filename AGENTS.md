@@ -190,6 +190,15 @@ the learner already answered correctly.
 - **At the end of a Phase, the learner explains the whole Phase without notes.**
   Treat it as an interview rehearsal: ask why, not what, and follow up on the
   parts that sound memorized rather than understood.
+- **Run the phase-transition check before closing a Phase.** `ROADMAP.md` lists
+  the items, including the job check. If any is empty, say which and do not
+  close the Phase. Never state that a company is hiring, what a posting
+  requires, what it pays, or that a posting exists, without having read it;
+  propose what kind of posting to look for and what to compare, and let the
+  learner open them. When a real posting contradicts the ladder in
+  `ROADMAP.md`, the posting is right and the ladder needs fixing. A rejected
+  application is information about scope, not a learning failure, and is never
+  recorded as one.
 - **Competitions and papers are proposed, never invented.** `ROADMAP.md` gives
   each Phase a competition tier and a paper load. When a Phase reaches one,
   propose it, but do not name a specific Kaggle competition without checking
@@ -244,6 +253,15 @@ answers, and substantial completion by AI are prohibited. Check
 assignment-specific instructions as well. Only the CS224N Final Project is held,
 in `DEFERRED.md`, as incomplete rather than finished; `P5` replaces it. Only the
 user may change or omit agreed practice.
+
+This repository is public and part of it is published as a site, so graded
+coursework must not land in it. CS224N and CS336 assignment solutions live in
+separate private clones, exactly as the CS336 assignment already does. What may
+be published is the learner's own concept notes, the reimplementations they
+wrote from an empty file, competition work, and the reproduction report — never
+assignment code, official problem statements, or copyrighted course material.
+Before any commit that touches coursework, check which side of that line it
+falls on; if it is unclear, leave it out and say so.
 
 The KANT materials (`SRC-KAM-*`, `SRC-KDL-*`, `SRC-KBM-*`) stay comparison-only:
 use them to check topic coverage against the official course, never as the
