@@ -65,7 +65,11 @@ bottom-up입니다. 기초를 놓치지 않겠다는 목표에는 맞지만, 그
 학습자가 하루 12시간을 계획하지만, 예산은 **주 60시간(실효)** 기준으로 잡습니다.
 12시간 중 깊은 기술 학습으로 실제 전환되는 시간은 그보다 적고, 그 차이를 계획에
 미리 넣어 두어야 미달이 곧 붕괴가 되지 않습니다. 초과 달성분은 버퍼입니다.
-48주 × 60시간 = 약 2,900시간이 전체 예산입니다.
+
+Phase별 시간의 합은 3,120시간(52주분)입니다. 48주 × 60시간 = 2,880시간이 그보다
+작으므로, 이 계획에는 애초에 버퍼가 없습니다. "48주 계획에 52주가 든다"고
+정직하게 두거나, Phase 시간을 실제로 줄여야 합니다. 이 문서는 후자를 택해
+아래 배분표에서 각 Phase 시간을 재조정했습니다.
 
 날짜는 마감이 아니라 **예산**입니다. 크게 밀리면 실력이 아니라 범위가 틀렸거나
 공부 외 작업이 시간을 먹고 있다는 신호로 읽습니다. 어떤 Phase도 자동으로 다음
@@ -73,16 +77,35 @@ Phase를 선택하지 않습니다.
 
 | Phase | 예산 | 시간 | 범위 |
 |---|---|---:|---|
-| `P0` 전체 경험 + 기초 | ~2026-11-15 | ~480h | **fast.ai Part 1**(top-down으로 동작하는 모델을 먼저 만든다), Karpathy makemore 마무리(Part 2 E01~E03, Part 3, Part 4), Stat110 연속분포·기댓값·MLE, 신뢰구간·bootstrap·가설검정 |
-| `P1` 고전 ML + 프로덕션 | ~2027-01-24 | ~600h | CS229 완주(유도·problem set), numpy 빈 파일 재구현, Kaggle end-to-end 프로젝트 1개, **Made With ML로 그 프로젝트를 배포·테스트·모니터링까지** |
-| `P2` 딥러닝·PyTorch | ~2027-03-14 | ~420h | CS231n **선별 수강**(CNN·최적화·학습 진단까지. detection·segmentation·생성모델 제외), PyTorch 숙련, Karpathy "Let's build GPT"와 Tokenizer |
-| `P3` NLP·Transformer | ~2027-05-16 | ~540h | CS224N A1~A4 전부(written·수학·프로그래밍) |
-| `P4` LLM 구현·시스템 | ~2027-08-08 | ~720h | 시스템 기초(메모리 계층·GPU 실행 모델), CS336 A1 Basics, CS336 A2 Systems |
-| `P5` 포트폴리오·면접 | ~2027-09-19 | ~360h | 학습 240h(추론 최적화 프로젝트, 논문 재현, **ML 시스템 설계**) + 취업 활동 120h(지원·코딩테스트·면접). 취업 활동은 학습 시간이 아니다 |
+| `P0` 전체 경험 + 기초 | ~2026-11-08 | ~420h | **fast.ai Part 1**(top-down으로 동작하는 모델을 먼저 만든다), Karpathy makemore 마무리(Part 2 E01~E03, Part 3, Part 4), Stat110 연속분포·기댓값·MLE, OpenIntro Statistics 신뢰구간·bootstrap·가설검정 |
+| `P1` 고전 ML + 프로덕션 | ~2027-01-10 | ~540h | CS229 완주(공개 강의·notes·problem set. 아래 자료 표 참고), numpy 빈 파일 재구현, Kaggle end-to-end 프로젝트 1개, **Made With ML로 그 프로젝트를 배포·테스트·모니터링까지** |
+| `P2` 딥러닝·PyTorch | ~2027-02-21 | ~380h | CS231n **선별 수강**(CNN·최적화·학습 진단까지. detection·segmentation·생성모델 제외), PyTorch 숙련, Karpathy "Let's build GPT"와 Tokenizer |
+| `P3` NLP·Transformer | ~2027-04-18 | ~480h | CS224N A1~A4 전부(written·수학·프로그래밍) |
+| `P4` LLM 구현·시스템 | ~2027-07-04 | ~640h | 시스템 기초(메모리 계층·GPU 실행 모델), CS336 A1 Basics, CS336 A2 Systems |
+| `P5` 포트폴리오·면접 | ~2027-09-19 | ~660h(학습 340h + 취업활동 320h) | 추론 최적화 프로젝트, 논문 재현, **ML 시스템 설계**, 지원·코딩테스트·면접. 취업 활동은 학습 시간이 아니다 |
 
-`P1`이 가장 긴 단일 구간입니다. ML Engineer 면접의 개념 질문은 대부분 여기서
-나오고, 나중에 보충하기 가장 어려운 부분이기도 합니다. 지원은 `P5`를 기다리지
-않고 `P4` 후반부터 병행합니다.
+합계 3,120h는 그대로 두고 배분을 조정했습니다. `P0`~`P4`는 15%씩 줄이고,
+그 여유를 지원 활동이 실제로 몰리는 `P5`에 더했습니다. `P1`이 여전히 학습
+시간 기준 가장 긴 단일 구간입니다. ML Engineer 면접의 개념 질문은 대부분
+여기서 나오고, 나중에 보충하기 가장 어려운 부분이기도 합니다. 지원은 `P5`를
+기다리지 않고 `P4` 후반부터 병행하며, 그 활동은 `P4`가 아니라 `P5`의 취업활동
+시간에 잡습니다.
+
+### Phase 내부 시간 배분
+
+각 Phase 안에서 활동별 비중의 기준입니다. 새 추적 시스템을 만들지 않고
+전환 점검에서 실제 시간과 비교하는 참고선으로만 씁니다.
+
+| 구분 | 비중 | 내용 |
+|---|---:|---|
+| 주과정·과제 | 55~65% | 그 Phase의 표에 적힌 강의·과제 |
+| 프로젝트 | 15~20% | Kaggle, 배포, 자기 구현 모델 등 그 Phase의 산출물 |
+| 복습·재구현 | 10% | 무보조 설명 준비, 빈 파일 재구현, deep-ml |
+| 논문 | 5% | 그 Phase의 논문 편수 |
+| 버퍼 | 5~10% | 막힌 디버깅, 재시도, 예상 밖 보충 |
+
+`P1`처럼 프로젝트가 산출물의 핵심인 Phase는 프로젝트 비중을 위쪽으로,
+`P3`처럼 과제 자체가 무거운 Phase는 주과정 비중을 위쪽으로 씁니다.
 
 ### 직무 사다리와 최종 목표
 
@@ -115,20 +138,32 @@ Research Scientist와 달리 Research Engineer 계열은 학위보다 실제 구
 순위가 목적이 아니라 **정해진 데이터와 평가지표 아래에서 baseline을 세우고
 개선을 측정하는 경험**이 목적입니다.
 
-| Phase | 수준 | 목적 | 기간 |
+| Phase | 수준 | 추천 근거 — 이걸 이미 보였을 때 제안한다 | 기간 |
 |---|---|---|---|
-| `P0` | Getting Started (Titanic·House Prices 급) | 제출 파이프라인과 leaderboard 감각. 점수는 무시 | 2~3일 |
-| `P1` | Playground Series 또는 tabular 정식 대회 1개 | **메인.** baseline → error analysis → 개선을 기록으로 남긴다. `P1` 산출물 | 3~4주 |
-| `P2` | 이미지 분류 대회 | CNN과 전이학습을 실제 데이터에 적용 | 1~2주 |
-| `P3` | NLP 대회 | 토큰화·사전학습 모델 활용 | 1~2주 |
+| `P0` | Getting Started (Titanic·House Prices 급) | 데이터 준비부터 예측·제출까지 한 번 통과. 점수는 무시 | 2~3일 |
+| `P1` | Playground Series 또는 tabular 정식 대회 1개 | **누수 없는 검증 분할과 baseline 비교를 직접 수행**했을 때. `P1` 산출물 | 3~4주 |
+| `P2` | 이미지 분류 대회 | **전이학습과 과적합 진단을 직접 수행**했을 때 | 1~2주 |
+| `P3` | NLP 대회 | **토큰화·평가·오류 분석을 직접 수행**했을 때 | 1~2주 |
 | `P4` | 없음 | CS336가 무겁다. 대신 자기 구현 모델의 추론 벤치마크 | — |
 | `P5` | 없음 | 면접 준비와 지원에 집중 | — |
+
+추천 근거는 **별도 입장시험이 아닙니다.** 그 Phase의 공식 실습에서 이미 보여
+준 결과를 근거로 씁니다. 근거가 아직 없으면 대회를 제안하지 않고 무엇이
+비었는지 말합니다. 근거가 확인되면 그때 실제로 열려 있는 대회 중에서
+**데이터 규모·필요 연산량·남은 기간·이번 학습 목적**에 맞는 후보를
+제안합니다. 연산량 판단에는 현재 GPU 가용성(아래 하드웨어 절)을 함께 봅니다.
 
 대회 목록과 난이도는 수시로 바뀌므로 이 문서에 특정 대회를 고정하지 않습니다.
 해당 Phase에 도달했을 때 [Kaggle Competitions](https://www.kaggle.com/competitions)에서
 실제로 열려 있는 것을 확인하고 고릅니다. 마감·상금·데이터 라이선스를 먼저
 읽습니다. 순위 정체를 학습 실패로 기록하지 않으며, 기간을 넘기면 중단하고
 그때까지의 결과를 해석해 남깁니다.
+
+`P1` 프로젝트를 배포할 때는 **"누가 어떤 입력으로 이 모델을 사용하는가"를 한
+문장으로 먼저 적습니다.** 그 문장이 없으면 무엇을 테스트하고 무엇을 모니터링할지
+정할 수 없어서 Made With ML의 절차가 형식만 남습니다. 그 문장에서 입력 스키마와
+허용 범위(테스트할 것), 입력 분포와 응답 지연(모니터링할 것), 실패 시 동작이
+따라 나옵니다.
 
 ### 논문 읽기 트랙
 
@@ -160,8 +195,8 @@ Research Engineer의 실질적 입장권은 학위가 아니라 **논문을 읽�
 
 | Phase | 주자료 | 역할 |
 |---|---|---|
-| `P0` | [fast.ai Practical Deep Learning for Coders](https://course.fast.ai/), [Karpathy — Zero to Hero](https://karpathy.ai/zero-to-hero.html), `SRC-HARV-STAT110-2E-00-01` | fast.ai로 전체 그림과 동작하는 결과물을 먼저 만들고, Karpathy로 내부를 뜯고, Stat110으로 확률·통계 공백을 메움 |
-| `P1` | [CS229](https://cs229.stanford.edu/), [Made With ML](https://madewithml.com/) | CS229는 유도와 problem set, Made With ML은 design·testing·CI/CD·monitoring. `SRC-KAM-*`는 주제 대조에만 사용 |
+| `P0` | [fast.ai Practical Deep Learning for Coders](https://course.fast.ai/), [Karpathy — Zero to Hero](https://karpathy.ai/zero-to-hero.html), `SRC-HARV-STAT110-2E-00-01`, [OpenIntro Statistics](https://www.openintro.org/book/os/) | fast.ai로 전체 그림과 동작하는 결과물을 먼저 만들고, Karpathy로 내부를 뜯고, Stat110으로 확률을, **OpenIntro Statistics 5~7장으로 신뢰구간·bootstrap·가설검정을** 메움 |
+| `P1` | CS229 공개 강의·자료(아래 참고), [Made With ML](https://madewithml.com/) | CS229는 유도와 problem set, Made With ML은 design·testing·CI/CD·monitoring. `SRC-KAM-*`는 주제 대조에만 사용 |
 | `P2` | [CS231n](https://cs231n.stanford.edu/), [PyTorch Learn the Basics](https://docs.pytorch.org/tutorials/beginner/basics/intro.html) | PyTorch 숙련도는 CS336 공식 선수 조건. `SRC-KDL-*`는 주제 대조에만 사용 |
 | `P3` | [CS224N Spring 2024](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html) | CS336이 명시한 선수 배경 중 하나 |
 | `P4` | [CS336 Spring 2026](https://cs336.stanford.edu/) A1, A2 | A2가 1순위 전문화 `TR-SYS-03`·`TR-SYS-04`의 본체 |
@@ -247,14 +282,16 @@ CPU로만 실행됩니다.
 | `P5` | **필수** | latency·throughput·메모리 측정에 실제 가속기가 필요하다 |
 
 `P4`·`P5`가 직무 사다리 3단계의 근거를 만드는 구간이므로, GPU 확보는 선택이
-아니라 경로의 전제입니다. 다만 `P0`·`P1` 약 18주 동안은 막히지 않으므로
+아니라 경로의 전제입니다. 다만 `P0`·`P1` 약 16주(420h+540h=960h) 동안은 막히지 않으므로
 **지금 시작하는 데는 장애가 없습니다.**
 
 결정 시점을 두 개로 나눕니다.
 
-- **`P2` 시작 전(~2026-11-15)**: 무료·저가 클라우드 노트북 환경을 하나 정해
-  실제로 학습이 도는지 확인한다. 이 시점에는 단일 GPU면 충분하다.
-- **`P4` 시작 전(~2027-05-16)**: 다중 GPU를 쓸 수 있는 유료 수단을 확보한다.
+- **`P1`이 끝나고 `P2`가 시작되기 전(~2027-01-10)**: 무료·저가 클라우드
+  노트북 환경을 하나 정해 실제로 학습이 도는지 확인한다. 이 시점에는 단일
+  GPU면 충분하다.
+- **`P3`이 끝나고 `P4`가 시작되기 전(~2027-04-18)**: 다중 GPU를 쓸 수 있는
+  유료 수단을 확보한다.
   CS336 A2의 분산 학습 과제는 단일 GPU로 대체되지 않는다.
 
 후보는 무료 클라우드 노트북(Kaggle·Colab), 유료 구독, 시간당 과금 GPU 대여,
@@ -262,6 +299,22 @@ CPU로만 실행됩니다.
 문서에 고정하지 않고 결정 시점에 직접 확인합니다. `P4` 이전에 확보하지
 못하면 `P4`·`P5`를 미완료로 두고 `DEFERRED.md`로 옮깁니다. 대체 과제로
 완료 처리하지 않습니다.
+
+### CS229 접근성
+
+[cs229.stanford.edu](https://cs229.stanford.edu/)의 강의 자료 링크 상당수는
+Stanford 계정 로그인이 필요합니다. 문제 세트 원문에 접근하지 못하면 "CS229
+완주"가 실행 불가능한 목표가 되므로 아래로 범위를 확정합니다.
+
+- **강의 영상**: [2018 Autumn, Andrew Ng](https://www.youtube.com/playlist?list=PLoROMvodv4rMiGQp3WXShtMGgzqpfVfbU) — 로그인 없이 공개
+- **강의 노트**: [cs229.stanford.edu/main_notes.pdf](https://cs229.stanford.edu/main_notes.pdf) — 로그인 없이 공개, supervised learning·generalized linear model·generative learning·SVM·학습이론까지 포함
+- **문제 세트**: 위 두 자료로 다루는 각 주제마다 numpy 빈 파일 재구현으로 대체한다.
+  공식 problem set 원문을 확보하지 못하는 한 "problem set을 푼다"를 완료
+  기준으로 쓰지 않는다
+
+CS229 공식 선수 조건은 "다변수 미적분·선형대수를 MATH51 수준, 확률을 CS109
+수준"입니다. `P0`의 기초수학·Stat110이 이를 담당하며, `P1` 진입 전 재확인
+대상입니다.
 
 ### 빈 파일 구현 트랙
 
@@ -310,7 +363,7 @@ learning and deep learning"(CS221·CS229·CS230·CS124·CS224N 중 하나)입니
 | Phase | 산출물 |
 |---|---|
 | `P0` | fast.ai로 배포한 동작하는 모델 하나, makemore MLP 구현과 초기화·학습 실험 보고 |
-| `P1` | Kaggle 프로젝트를 테스트·CI·모니터링까지 갖춘 배포 가능한 형태로. numpy 빈 파일 구현 모음 |
+| `P1` | Kaggle 프로젝트를 테스트·CI·모니터링까지 갖춘 배포 가능한 형태로. **누가 어떤 입력으로 쓰는지를 먼저 한 문장으로 적고 시작한다.** numpy 빈 파일 구현 모음 |
 | `P2` | 소규모 DL 프로젝트와 처음부터 구현한 GPT·BPE |
 | `P3` | CS224N A1~A4 |
 | `P4` | 자기 구현 Transformer LM과 FlashAttention2 Triton kernel |

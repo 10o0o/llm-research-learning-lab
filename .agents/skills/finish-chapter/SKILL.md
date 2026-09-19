@@ -54,7 +54,15 @@ that specific obstacle before archiving or resetting; do not silently redact his
    Keep confirmed existing content. Cite saved cell numbers (1-based) and distinguish
    conversational observations from content still present in the archived file.
    Do not reproduce the chat transcript or mark unresolved requirements complete.
-4. Read `knowledge/README.md` as the canonical authoring rules, then update
+4. Before touching `knowledge/`, confirm the learner has already written an
+   unassisted draft of each concept this wrap-up would add or change, as
+   `AGENTS.md` requires. If they have not, stop and ask for it; what they cannot
+   produce from memory is the finding, and writing the note for them destroys
+   it. Their draft is the starting text, and your part is to correct and
+   complete it, not to replace it. A wrap-up is not an exemption from this rule
+   just because it is a batch operation, and a learner asking you to skip it
+   does not remove the requirement to say what is being given up.
+   Read `knowledge/README.md` as the canonical authoring rules, then update
    reusable concepts using `knowledge/template.md` and existing notes first.
    Cover the chapter's demonstrated range without a fixed concept-count cap. Keep
    process and detailed results in the review, mechanisms and small examples in
