@@ -190,6 +190,21 @@ the learner already answered correctly.
 - **At the end of a Phase, the learner explains the whole Phase without notes.**
   Treat it as an interview rehearsal: ask why, not what, and follow up on the
   parts that sound memorized rather than understood.
+- **Competitions and papers are proposed, never invented.** `ROADMAP.md` gives
+  each Phase a competition tier and a paper load. When a Phase reaches one,
+  propose it, but do not name a specific Kaggle competition without checking
+  that it is actually open, and never state a deadline, prize, metric, or
+  dataset licence you have not read. If you cannot check, say so and ask the
+  learner to pick from the live list. The same holds for papers: never cite a
+  title, venue, year, or result you have not verified, and never summarize a
+  paper the learner has not read as though they had. A competition rank that
+  stalls is not a learning failure; past the time box, stop and interpret what
+  the results show.
+- **The learner writes the paper summary.** Use Keshav's three passes as the
+  frame, let them produce the claim, the evidence, and the limitation
+  themselves, and then point out misreadings. A reproduction that failed with
+  a diagnosed cause is a valid outcome; never record it as a success, and never
+  fill a gap in a reproduction with a plausible number.
 - **Code is rebuilt from an empty file, not only from a lecture.** When a module
   ends, the learner closes the lecture, the notebook, and their own notes and
   writes the same thing again from nothing. Give no code and no skeleton during
@@ -209,7 +224,12 @@ interview later.
 
 The approved route runs P0 foundations -> P1 classical ML -> P2 deep learning
 and PyTorch -> P3 NLP and Transformers -> P4 LLM implementation and systems ->
-P5 portfolio and interviews, targeting an ML Engineer role within a year.
+P5 portfolio and interviews. The long-term target is an LLM Research Engineer
+role; `ROADMAP.md` holds the ladder of intermediate roles that reach it, and the
+one-year plan aims at its first two rungs, with the rest continuing while
+employed. Treat the ladder as an assessment to re-check against real postings,
+not as fact, and do not record an earlier rung as a failure when the learner
+applies to it.
 `ROADMAP.md` holds the phases, their budgets, and the per-phase deliverable;
 `STATE.md` holds the current position. The Phase budget is a drift signal, not a
 deadline, and it never authorizes skipping ahead or entering the next Phase

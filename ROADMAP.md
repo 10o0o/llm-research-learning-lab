@@ -84,6 +84,74 @@ Phase를 선택하지 않습니다.
 나오고, 나중에 보충하기 가장 어려운 부분이기도 합니다. 지원은 `P5`를 기다리지
 않고 `P4` 후반부터 병행합니다.
 
+### 직무 사다리와 최종 목표
+
+최종 목표는 **대기업 LLM Research Engineer**입니다. 아래는 그 목표를 유지하되
+1년 안에 실제로 지원 가능한 지점부터 밟아 올라가는 경로이며, 저자의 판단이지
+채용 공고의 인용이 아닙니다. 지원 시점에 실제 공고의 요구사항으로 다시
+확인해야 합니다.
+
+| 단계 | 직무 | 진입 가능 시점 | 이 경로가 제공하는 근거 |
+|---|---|---|---|
+| 1 | ML Engineer / AI Engineer (주니어) | `P3` 후반 | 고전 ML 유도, 학습 파이프라인, 배포·테스트·모니터링까지 갖춘 프로젝트 |
+| 2 | LLM Application Engineer | `P3`~`P4` | Transformer 직접 구현, tokenizer, fine-tuning 이해 |
+| 3 | **LLM Systems / Inference Engineer** | `P4`~`P5` | 자기 구현 LM, Triton kernel, KV cache·batching·quantization 측정 |
+| 4 | LLM Research Engineer | `P5` 이후, 재직 병행 | 논문 재현, 실험 설계, OSS 기여 |
+
+**3단계가 이 경로의 전략적 핵심입니다.** 추론 최적화는 수요 대비 인력이 적고,
+Research Scientist와 달리 Research Engineer 계열은 학위보다 실제 구현·측정
+능력을 봅니다. 4단계로 가는 가장 현실적인 문은 논문 실적이 아니라 **희소한
+시스템 역량 + 논문 재현 능력**입니다.
+
+1년 안에 4단계에 바로 닿는 것은 현실적이지 않습니다. AI 입문에서 시작해
+12개월이면 1~2단계 지원이 현실적인 목표이고, 3단계는 `P4`·`P5`의 산출물
+품질에 달려 있습니다. 취업 후에도 `DEFERRED.md`의 2순위 트랙과 논문 트랙을
+이어가는 것을 전제로 설계했습니다. 단계를 건너뛰어 지원하는 것은 자유지만,
+낮은 단계를 **포기**로 기록하지 않습니다.
+
+### 실전 competition 트랙
+
+구현·실전 중심을 유지하기 위해 Phase마다 competition을 한 번씩 체험합니다.
+순위가 목적이 아니라 **정해진 데이터와 평가지표 아래에서 baseline을 세우고
+개선을 측정하는 경험**이 목적입니다.
+
+| Phase | 수준 | 목적 | 기간 |
+|---|---|---|---|
+| `P0` | Getting Started (Titanic·House Prices 급) | 제출 파이프라인과 leaderboard 감각. 점수는 무시 | 2~3일 |
+| `P1` | Playground Series 또는 tabular 정식 대회 1개 | **메인.** baseline → error analysis → 개선을 기록으로 남긴다. `P1` 산출물 | 3~4주 |
+| `P2` | 이미지 분류 대회 | CNN과 전이학습을 실제 데이터에 적용 | 1~2주 |
+| `P3` | NLP 대회 | 토큰화·사전학습 모델 활용 | 1~2주 |
+| `P4` | 없음 | CS336가 무겁다. 대신 자기 구현 모델의 추론 벤치마크 | — |
+| `P5` | 없음 | 면접 준비와 지원에 집중 | — |
+
+대회 목록과 난이도는 수시로 바뀌므로 이 문서에 특정 대회를 고정하지 않습니다.
+해당 Phase에 도달했을 때 [Kaggle Competitions](https://www.kaggle.com/competitions)에서
+실제로 열려 있는 것을 확인하고 고릅니다. 마감·상금·데이터 라이선스를 먼저
+읽습니다. 순위 정체를 학습 실패로 기록하지 않으며, 기간을 넘기면 중단하고
+그때까지의 결과를 해석해 남깁니다.
+
+### 논문 읽기 트랙
+
+Research Engineer의 실질적 입장권은 학위가 아니라 **논문을 읽고, 주장을
+검증하고, 재현하는 능력**입니다. 빈 파일 구현 트랙과 마찬가지로 상시입니다.
+
+읽는 방법은 [S. Keshav, "How to Read a Paper"](https://web.stanford.edu/class/ee384m/Handouts/HowtoReadPaper.pdf)의
+3-pass를 기본으로 합니다. 1회독은 제목·초록·결론과 그림으로 무엇을 주장하는지,
+2회독은 그림·표와 방법으로 어떻게 보였는지, 3회독은 가정을 의심하며 직접
+재구성합니다.
+
+| Phase | 편수 | 대상 | 산출 |
+|---|---:|---|---|
+| `P1` | 월 1편 | 고전 ML·최적화 (Dropout, Batch Normalization, Adam 급) | 한 문단 요약: 주장·근거·한계 |
+| `P2` | 월 1~2편 | 아키텍처·학습 기법 | 3회독 1편, 핵심 수식 직접 유도 |
+| `P3` | 월 2편 | Attention Is All You Need, BERT, GPT 계열. CS224N 지정 논문 포함 | 논문의 구조를 빈 파일에서 구현 |
+| `P4` | 월 2편 | FlashAttention, PagedAttention, quantization | 논문의 측정을 자기 구현으로 재현 시도 |
+| `P5` | 1편 집중 | 자유 선택 | **재현 보고서 1편.** 성공·실패·차이의 원인을 모두 기록 |
+
+`P5`의 재현 보고서가 4단계 직무 지원의 핵심 근거입니다. 재현 실패도 원인을
+규명했다면 유효한 산출물이며, 실패를 성공으로 바꿔 기록하지 않습니다.
+논문 요약은 학습자가 직접 쓰고, Agent는 오독을 지적하는 역할만 합니다.
+
 ### Phase별 자료
 
 `SRC-KBM-*`와 `SRC-HARV-STAT110-*`는 보유 자료이며 `CURRICULUM.md` registry에
@@ -168,7 +236,7 @@ learning and deep learning"(CS221·CS229·CS230·CS124·CS224N 중 하나)입니
 | `P2` | 소규모 DL 프로젝트와 처음부터 구현한 GPT·BPE |
 | `P3` | CS224N A1~A4 |
 | `P4` | 자기 구현 Transformer LM과 FlashAttention2 Triton kernel |
-| `P5` | 추론 최적화 프로젝트: latency·throughput·메모리 측정과 개선 보고. 시간 제한 재구현 통과 기록 |
+| `P5` | 추론 최적화 프로젝트: latency·throughput·메모리 측정과 개선 보고. 논문 재현 보고서 1편. 시간 제한 재구현 통과 기록 |
 
 공식 저장소의 완성 노트북은 참고 자료입니다. 강의 속 전체 구현을 수행하고
 별도 exercises도 직접 시도합니다. 영상·문서·공식 자료 기반 대화를 허용하며,

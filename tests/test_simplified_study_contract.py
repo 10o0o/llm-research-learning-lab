@@ -142,6 +142,39 @@ def test_public_curricula_are_credited_with_what_they_changed() -> None:
     assert "ML 시스템 설계" in roadmap
 
 
+def test_job_ladder_is_marked_as_assessment_not_fact() -> None:
+    roadmap = _normalized("ROADMAP.md")
+    assert "직무 사다리와 최종 목표" in roadmap
+    assert "LLM Research Engineer" in roadmap
+    for rung in ("ML Engineer / AI Engineer (주니어)", "LLM Application Engineer",
+                 "LLM Systems / Inference Engineer", "LLM Research Engineer"):
+        assert rung in roadmap
+    # The ladder is a judgement call and must not read as a quote from postings.
+    assert "저자의 판단이지" in roadmap
+    assert "실제 공고의 요구사항으로 다시" in roadmap
+    # Applying to an earlier rung is not a failure.
+    assert "포기**로 기록하지 않습니다" in roadmap
+    agents = _normalized("AGENTS.md")
+    assert "Treat the ladder as an assessment to re-check against real postings" in agents
+
+
+def test_competitions_and_papers_are_tracks_that_cannot_be_fabricated() -> None:
+    roadmap = _normalized("ROADMAP.md")
+    assert "실전 competition 트랙" in roadmap
+    assert "논문 읽기 트랙" in roadmap
+    # No specific competition is pinned, because the live list changes.
+    assert "이 문서에 특정 대회를 고정하지 않습니다" in roadmap
+    assert "3-pass" in roadmap
+    # A failed reproduction with a diagnosed cause still counts.
+    assert "재현 실패도 원인을 규명했다면 유효한 산출물" in roadmap
+    agents = _normalized("AGENTS.md")
+    assert "Competitions and papers are proposed, never invented" in agents
+    assert "do not name a specific Kaggle competition without checking" in agents
+    assert "never cite a title, venue, year, or result you have not verified" in agents
+    assert "never fill a gap in a reproduction with a plausible number" in agents
+    assert "The learner writes the paper summary" in agents
+
+
 def test_understanding_is_verified_by_unassisted_recall() -> None:
     """Coverage is not evidence; the repo needs a mechanism that tests recall."""
     agents = _normalized("AGENTS.md")
