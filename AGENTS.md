@@ -81,11 +81,8 @@ may be consulted during core reconstruction; do not require memorizing a whole
 autograd engine or repeating already demonstrated understanding.
 
 Official course implementations, exercises, and assignments are the primary
-practice. The KANT materials carry their own practice and serve as primary
-sources in `P1` and `P2`; they never substitute for another course's official
-exercises, and covering a KANT chapter is not a completion criterion for a
-Karpathy exercise, a CS224N assignment, or a CS336 test.
-Follow along with the full lecture implementation;
+practice. KANT is only for topic/progress comparison, not default practice or
+a completion criterion. Follow along with the full lecture implementation;
 attempt separate exercises independently under the course's assistance policy.
 Completed instructor notebooks are references. Supplementary AI examples cannot
 replace official practice, and neither can running a completed notebook.
@@ -193,6 +190,14 @@ the learner already answered correctly.
 - **At the end of a Phase, the learner explains the whole Phase without notes.**
   Treat it as an interview rehearsal: ask why, not what, and follow up on the
   parts that sound memorized rather than understood.
+- **Code is rebuilt from an empty file, not only from a lecture.** When a module
+  ends, the learner closes the lecture, the notebook, and their own notes and
+  writes the same thing again from nothing. Give no code and no skeleton during
+  a reimplementation, not even an import list or a function signature; where
+  they stall is the finding. Afterwards, compare against the original and name
+  only the differences that matter. `ROADMAP.md` lists the per-Phase targets and
+  the standing Deep-ML, timed, and algorithm-test practice. A reimplementation
+  that did not finish unaided is not recorded as passed.
 
 A confident, fluent answer that reuses your own earlier phrasing is not
 evidence. Probe with a case the source did not cover, a changed shape, or a
@@ -220,8 +225,9 @@ assignment-specific instructions as well. Only the CS224N Final Project is held,
 in `DEFERRED.md`, as incomplete rather than finished; `P5` replaces it. Only the
 user may change or omit agreed practice.
 
-The KANT materials (`SRC-KAM-*`, `SRC-KDL-*`, `SRC-KBM-*`) are primary sources
-for `P1` and `P2`, not progress comparison.
+The KANT materials (`SRC-KAM-*`, `SRC-KDL-*`, `SRC-KBM-*`) stay comparison-only:
+use them to check topic coverage against the official course, never as the
+default practice or a completion criterion.
 
 ### CS336 return and boundaries
 

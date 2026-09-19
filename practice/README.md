@@ -49,8 +49,7 @@ Notebook, Python script, benchmark, 작은 dataset experiment 중 목적에 가�
 
 - 일반 학습 요청만으로 새 practice 파일을 자동 생성하지 않습니다.
 - 공식 구현·exercises·assignments가 기본 실습입니다.
-- KANT 자료는 `P1`·`P2`의 정식 주자료이며 자체 실습을 포함하지만, 다른 과정의
-  공식 실습을 대체하거나 완료 기준이 되지 않습니다.
+- KANT는 진도·주제 대조용이며 기본 실습이나 완료 기준으로 사용하지 않습니다.
 - 정확한 파일을 만들거나 수정해 달라는 요청이 있을 때만 작업합니다.
 - 핵심 구현, 실행, 첫 debugging 가설, 결과 해석은 학습자가 담당합니다.
 - 함수나 Tensor를 수정한 뒤에는 영향을 받는 셀 또는 script를 다시
@@ -116,7 +115,7 @@ A1~A4는 `P3`에서 전부 수행합니다. 공식 AI 정책은 AI 협업을 허
 복귀 조건은 [`DEFERRED.md`](../DEFERRED.md)에 있습니다.
 
 Phase별 주자료와 산출물은 [`ROADMAP.md`](../ROADMAP.md)의 Phase 표를 따릅니다.
-`P1`·`P2`에서는 보유한 KANT 자료가 정식 주자료입니다.
+`P1`·`P2`의 주자료는 CS229와 CS231n이며, KANT는 주제 대조에만 씁니다.
 
 CS336 assignment에서는 공식 AI 지침이 우선합니다. 학습자가 과제 코드를
 작성하고 제공된 테스트와 모든 명령을 실행해야 하므로 Agent는 코드, pseudocode, patch, TODO

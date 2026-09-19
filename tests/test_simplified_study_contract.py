@@ -53,7 +53,7 @@ def test_official_practice_is_preserved_across_teaching_media() -> None:
     agents = _normalized("AGENTS.md")
     for rule in (
         "Video, text, and source-grounded dialogue are allowed",
-        "they never substitute for another course's official exercises",
+        "KANT is only for topic/progress comparison, not default practice or a completion criterion",
         "Follow along with the full lecture implementation",
         "attempt separate exercises independently",
         "Completed instructor notebooks are references",
@@ -68,11 +68,8 @@ def test_official_practice_is_preserved_across_teaching_media() -> None:
 
     for path in ("README.md", "USAGE.md", "practice/README.md", "ROADMAP.md"):
         text = _normalized(path)
-        assert "다른 과정의" in text
-        assert "공식 실습을 대체하거나" in text
-        assert "완료 기준이 되지 않습니다" in text
-        # KANT is primary for P1/P2 now, so the old comparison-only line must be gone.
-        assert "KANT는 진도·주제 대조용" not in text
+        assert "KANT는 진도·주제 대조용" in text
+        assert "기본 실습이나 완료 기준으로 사용하지 않습니다" in text
         assert "영상·문서·공식 자료 기반 대화" in text
         assert "완성 노트북 실행이나 AI 보충 예제로 공식 실습을 대체하지 않습니다" in text
         assert "Optional·Bonus" in text
@@ -113,8 +110,36 @@ def test_foundations_first_route_is_pinned() -> None:
     agents = _normalized("AGENTS.md")
     assert "Foundations are not optional here" in agents
     assert "do not propose reordering a later Phase forward" in agents
-    # Owned KANT material is primary for P1/P2, no longer comparison-only.
-    assert "are primary sources for `P1` and `P2`, not progress comparison" in agents
+    assert "stay comparison-only" in agents
+
+
+def test_blank_page_implementation_is_a_standing_track() -> None:
+    """Official exercises follow a lecture; writing from nothing is a separate skill."""
+    roadmap = _normalized("ROADMAP.md")
+    assert "빈 파일 구현 트랙" in roadmap
+    assert "모든 Phase에 상시로" in roadmap
+    for practice in ("재구현", "deep-ml 챌린지", "시간 제한 구현", "알고리즘 코딩 테스트"):
+        assert practice in roadmap
+    assert "통과하지 못한 항목은 완료로 기록하지 않습니다" in roadmap
+    assert _normalized("challenges/deep-ml/README.md").count("빈 파일 구현 트랙") == 1
+    agents = _normalized("AGENTS.md")
+    assert "Code is rebuilt from an empty file" in agents
+    assert "not even an import list or a function signature" in agents
+    assert "is not recorded as passed" in agents
+
+
+def test_public_curricula_are_credited_with_what_they_changed() -> None:
+    """Borrowed structure has to name its source and what it altered."""
+    roadmap = _normalized("ROADMAP.md")
+    for source in ("fast.ai", "Made With ML", "Full Stack Deep Learning", "roadmap.sh"):
+        assert source in roadmap
+    assert "top-down" in roadmap
+    # The top-down front-end supplements the bottom-up route, it does not replace it.
+    assert "앞에 짧게 붙이는** 구성입니다" in roadmap
+    # Dated sources must be flagged rather than followed for current APIs.
+    assert "판본 주의" in roadmap
+    # ML system design was the gap these curricula exposed.
+    assert "ML 시스템 설계" in roadmap
 
 
 def test_understanding_is_verified_by_unassisted_recall() -> None:
