@@ -1,6 +1,6 @@
 ---
 name: finish-chapter
-description: Finish a learning chapter when explicitly requested with $finish-chapter or a phrase such as 이번 챕터 정리해줘. Preserve the saved notebook, write a chapter review, update demonstrated knowledge, reset the workspace after verification, propose STATE, and commit locally after STATE approval. Do not activate for 완료, 이해했어, or 오늘 학습 종료 alone.
+description: Finish a learning chapter when explicitly requested with $finish-chapter or a phrase such as 이번 챕터 정리해줘. Preserve the saved notebook, write a chapter review, update demonstrated knowledge, reset the workspace after verification, update STATE from confirmed evidence, and commit locally after validation. Do not activate for 완료, 이해했어, or 오늘 학습 종료 alone.
 ---
 
 # Finish a Chapter
@@ -21,7 +21,8 @@ and index files. Do not mine ignored state, old sessions, or Git history for
 learning evidence. Use Git status/diffs only to preserve changes and bound commits.
 If the chapter is ambiguous, ask for its scope before mutating anything. A stale
 STATE is not evidence that the current conversation did not happen; report its
-discrepancy and propose a replacement at the end, without silently editing it.
+discrepancy, update it from confirmed evidence under AGENTS.md, and report the change.
+Ask only about facts that remain unclear.
 
 Identify official implementation/exercises and supplementary work from the actual
 requirements. Inspect all relevant cells, saved outputs, and learner explanations.
@@ -79,20 +80,17 @@ that specific obstacle before archiving or resetting; do not silently redact his
    new digest without re-inspecting the changed work. Reset covers the saved file,
    not an editor's unsaved buffer or live kernel; avoid editing/saving concurrently.
 
-## STATE approval and commit
+## STATE update and commit
 
-Prepare all authorized artifacts and checks first. Show the exact full STATE
-replacement as a public resume bookmark, with one next independent action inside
-the approved route. Do not include metrics, hashes, transcripts or private paths.
-Show changed paths and verification, then request its explicit approval under
-AGENTS.md. This is the only routine final approval; it is not a second commit request.
-If STATE is already accurate, no replacement approval is needed.
+Prepare all authorized artifacts and checks first. Update STATE from confirmed
+evidence without prior proposal or approval, following AGENTS.md. Keep it a public
+resume bookmark with one next independent action inside the approved route.
+Do not include metrics, hashes, transcripts or private paths. If STATE is already
+accurate, leave it unchanged. Ask only about unresolved facts or course choices.
 
-After approval, apply the exact replacement, rerun affected checks and finish the
-already authorized local commit. Standalone `STATE 반영해` does not independently
-authorize a commit: here that authorization came from the wrap-up invocation.
-If approval is declined, preserve the completed artifacts and do not commit the
-pending bundle unless the learner explicitly chooses a commit without STATE.
+Report changed paths and verification, rerun affected checks, and finish the
+already authorized local commit. Updating STATE alone does not authorize a commit:
+here that authorization came from the wrap-up invocation.
 
 Inspect `git status --short`, diffs and any existing staged changes. Stage only
 authorized chapter paths/hunks; never `git add .`. Existing work is excluded unless

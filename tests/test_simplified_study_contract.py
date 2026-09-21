@@ -409,23 +409,29 @@ def test_usage_documents_the_session_loop() -> None:
     usage = _normalized("USAGE.md")
     assert "하루 세션 운영" in usage
     assert "한 세션은 **모듈 하나**입니다" in usage
-    # The bookmark is unchanged until its replacement is approved.
-    assert "승인하지 않으면 STATE.md는 바뀌지 않으므로" in usage
+    # Confirmed resume changes do not need a separate approval turn.
+    assert "STATE.md는 확인된 재개 위치에 맞춰 사전 승인 없이 갱신됩니다" in usage
     for standing in ("빈 파일 재구현", "deep-ml", "논문", "무보조 구술", "전환 점검"):
         assert standing in usage
 
 
-def test_state_is_never_written_without_approval() -> None:
-    """The bookmark is the one place the learner, not an assistant, decides."""
+def test_state_updates_without_prior_approval_from_confirmed_evidence() -> None:
     agents = _normalized("AGENTS.md")
-    assert "`STATE.md` is never written automatically, at any checkpoint" in agents
-    assert "decided by the learner rather than inferred by an assistant" in agents
-    # The proposal is automatic even though the write is not.
-    assert "Offer the replacement without being asked whenever the resume point moved" in agents
-    assert "at a Phase transition" in agents
+    assert "Update `STATE.md` without prior proposal or approval" in agents
+    assert "distinguish completed work, planned work, and unverified claims" in agents
+    assert "does not authorize a new course, a sequence change" in agents
+    assert "At a Phase transition, run the `ROADMAP.md` check first" in agents
     usage = _normalized("USAGE.md")
-    assert "파일은 자동으로 바뀌지 않습니다" in usage
-    assert "`STATE.md` 전체 교체안을 먼저 보여 줍니다" in usage
+    assert "사전 제안이나 승인 없이 갱신" in usage
+    assert "미실행 계획과 확인되지 않은 이해를 완료로 기록하지" in usage
+    for path, obsolete in (
+        ("AGENTS.md", "write it only after explicit approval"),
+        ("README.md", "STATE 승인 후"),
+        ("USAGE.md", "STATE 전체 교체안을 보여 주며, 승인 후"),
+        (".agents/skills/finish-chapter/SKILL.md", "After approval, apply the exact replacement"),
+        (".agents/skills/finish-chapter/agents/openai.yaml", "STATE 전체 교체안 승인 후"),
+    ):
+        assert obsolete not in _normalized(path)
 
 
 def test_phase_id_in_state_does_not_reopen_progress_tracking() -> None:
@@ -436,8 +442,8 @@ def test_phase_id_in_state_does_not_reopen_progress_tracking() -> None:
     assert "a Phase ID is not an opening to bring them back" in agents
     assert "hashes, readiness scores, session history, or metrics" in agents
     assert "현재 `ROADMAP.md`의 정적 Phase ID 하나 (`P0`~`P5`)" in usage
-    assert "Phase ID도 승인 전에는 자동으로 추가하거나 바꾸지 않습니다" in usage
-    assert "이 문장은 `STATE.md` 수정만 허용합니다" in usage
+    assert "Phase 변경은 ROADMAP 전환 점검과 기존 과정 선택 규칙을 따릅니다" in usage
+    assert "자동 또는 요청에 따른 STATE 갱신은 `STATE.md` 수정만 허용합니다" in usage
     assert "hash, phase, 점수표" not in usage
 
 
@@ -535,7 +541,7 @@ def test_chapter_wrap_up_is_separate_from_ordinary_study() -> None:
     assert "allow_implicit_invocation: true" in manifest
     assert "Do not activate for 완료, 이해했어, or 오늘 학습 종료 alone" in entrypoint
     assert "Do not execute the learner's notebooks during wrap-up" in entrypoint
-    assert "After approval, apply the exact replacement" in entrypoint
+    assert "Update STATE from confirmed evidence without prior proposal or approval" in entrypoint
     assert "Never amend or push automatically" in entrypoint
     assert "unrelated staged changes" in entrypoint
     assert "never run commands or this helper in a CS336 assignment checkout" in entrypoint
@@ -572,12 +578,12 @@ def test_state_is_a_public_bookmark_with_one_next_action() -> None:
         assert forbidden not in state
 
 
-def test_state_approval_is_edit_only() -> None:
+def test_state_update_is_edit_only() -> None:
     agents = _normalized("AGENTS.md")
     usage = _normalized("USAGE.md")
-    assert "`STATE 반영해` or equivalent approval authorizes only replacement of `STATE.md`" in agents
+    assert "Updating `STATE.md`, automatically or on request, authorizes only the file edit" in agents
     assert "It does not authorize a commit or push" in agents
-    assert "이 문장은 `STATE.md` 수정만 허용합니다" in usage
+    assert "자동 또는 요청에 따른 STATE 갱신은 `STATE.md` 수정만 허용합니다" in usage
 
 
 def test_cs336_uses_a_separate_python_environment() -> None:

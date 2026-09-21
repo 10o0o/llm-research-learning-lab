@@ -45,8 +45,8 @@ read STATE.md and the exact current source or assignment
 -> have the learner implement, execute, and interpret the official practice
 -> wait for the learner's own attempt
 -> give complete feedback in one response
--> propose a complete STATE.md replacement only if the resume point changed
--> write it only after explicit approval
+-> update STATE.md from confirmed evidence if the resume point changed
+-> briefly report the update without requesting prior approval
 ```
 
 The following phrases always use this route:
@@ -56,8 +56,8 @@ The following phrases always use this route:
   modules within the approved scope of the same course or assignment. Do not enter a new course or
   assignment automatically.
 - `계속`: resume the next independent action written in `STATE.md`.
-- `오늘 학습 종료`: stop. If the resume point changed, show a proposed full
-  `STATE.md` replacement, but do not write it.
+- `오늘 학습 종료`: stop. If the resume point changed, update
+  `STATE.md` from confirmed evidence and briefly report the change.
 
 Do not route these phrases through ignored files under `tmp/`. Do not perform
 automatic target selection, background source review, tracking-file generation,
@@ -65,8 +65,9 @@ practice generation, knowledge updates, TIL composition, or next-lesson
 preparation. There is no fallback route.
 
 If `STATE.md` is missing or conflicts with a tracked artifact, report the facts
-and show a complete replacement proposal. Wait for the learner's decision; do
-not infer or backfill state from old metadata or ignored files.
+and repair the bookmark from confirmed evidence without prior approval. If the
+correct position is unclear, ask only for the missing facts; do not infer or
+backfill state from old metadata or ignored files.
 
 Follow the approved main course sequence; use `ROADMAP.md` for the course path
 and `STATE.md` for the current lecture, segment, related practice, and next action.
@@ -106,8 +107,8 @@ tool-specific commands into these documents.
   never rely on something "we discussed" that is not in a tracked file.
 - One session at a time. Two assistants editing against the same `STATE.md`
   produce a conflict the bookmark cannot resolve. If the tracked files disagree
-  with `STATE.md`, report the facts and propose a complete replacement instead
-  of merging silently.
+  with `STATE.md`, report the facts and repair it from confirmed evidence.
+  Ask about unresolved facts rather than silently merging conflicting claims.
 - A second assistant is not a second chance to be handed an answer. The rules
   on exercise code, blank-page reimplementation, and unassisted recall apply
   identically whichever tool is running; asking elsewhere for the code defeats
@@ -128,19 +129,17 @@ tool-specific commands into these documents.
 - Never put learner answer transcripts, private paths, internal IDs, hashes,
   readiness scores, session history, or metrics in `STATE.md`. A public source
   commit pin is allowed.
-- Always show the exact complete replacement before editing it. `STATE.md` is
-  never written automatically, at any checkpoint, however routine the change
-  looks. The learner approving it is the point: it is the one place where what
-  was actually learned gets decided by the learner rather than inferred by an
-  assistant, and it is the handoff every tool and machine resumes from.
-- Offer the replacement without being asked whenever the resume point moved:
-  at `오늘 학습 종료`, at an explicit chapter wrap-up, when a module finishes
-  mid-session, and at a Phase transition. At a Phase transition, run the
-  `ROADMAP.md` check first and include its result in the proposal, so the
-  learner approves a bookmark that says which Phase is closing, what the
-  evidence was, and what opens next.
-- `STATE 반영해` or equivalent approval authorizes only replacement of
-  `STATE.md`. It does not authorize a commit or push.
+- Update `STATE.md` without prior proposal or approval when the confirmed
+  resume point changes. Use learner explanations and inspected artifacts;
+  distinguish completed work, planned work, and unverified claims. Do not infer
+  understanding from tutor explanations or successful execution alone.
+- Keep the bookmark current at `오늘 학습 종료`, an explicit chapter wrap-up,
+  module completion, and a Phase transition; briefly report what changed.
+  At a Phase transition, run the `ROADMAP.md` check first and record its result.
+  This edit permission does not authorize a new course, a sequence change,
+  skipped requirements, or unverified Phase completion.
+- Updating `STATE.md`, automatically or on request, authorizes only the file edit.
+  It does not authorize a commit or push.
 - Never synchronize `STATE.md` with old notebook metadata or ignored temporary
   state.
 
@@ -370,8 +369,8 @@ Use actual implementation, execution, and explanation, with official API docs
 allowed. Readiness does not cancel unfinished CS224N assignments or its project.
 When proposing a sequence change, disclose remaining work as incomplete and
 wait for the user's decision. Do not impose an extra tokenizer/Transformer
-implementation as an entry test. Preserve existing assignment work and wait
-for approval before changing `STATE.md`.
+implementation as an entry test. Preserve existing assignment work. Once the
+learner decides on a sequence change, update `STATE.md` without a second approval.
 
 Foundation practice uses this learning lab's Python 3.14 environment.
 The assignment uses a separate sibling clone and its own
@@ -400,7 +399,7 @@ switch to another workflow.
 `$finish-chapter` or an explicit request such as `이번 챕터 정리해줘` invokes
 [finish-chapter](.agents/skills/finish-chapter/SKILL.md). This request authorizes
 saved-notebook preservation, a matching chapter review, demonstrated knowledge
-updates, verified `main.ipynb` reset, and a scoped local commit after STATE approval.
+updates, verified `main.ipynb` reset, a STATE update, and a scoped local commit after validation.
 It does not activate for `완료`, `이해했어`, or `오늘 학습 종료` alone.
 Ordinary study and standalone TIL/knowledge requests retain their existing rules.
 
@@ -412,10 +411,10 @@ tracking system, or next lesson automatically. Course-specific restrictions appl
 Confirm the learner's unassisted concept drafts before knowledge edits or workspace
 reset. If a needed draft is missing, ask for it instead of writing it for them.
 
-Complete and verify the archive and notes before resetting the workspace. Always
-show the exact complete STATE replacement and obtain approval before editing it.
-After that approval, the wrap-up's previously authorized local commit proceeds
-without another commit question. Standalone STATE approval is still edit-only.
+Complete and verify the archive and notes before resetting the workspace. Update
+STATE from confirmed evidence without prior approval, then run affected checks.
+The wrap-up's previously authorized local commit proceeds without another commit
+question. Standalone STATE updates are still edit-only.
 Unrelated changes are excluded unless explicitly included; push is never implied.
 
 ### Standalone writing and sources
