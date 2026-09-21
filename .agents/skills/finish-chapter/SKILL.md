@@ -1,13 +1,17 @@
 ---
 name: finish-chapter
-description: Finish a learning chapter when explicitly requested with $finish-chapter or a phrase such as 이번 챕터 정리해줘. Preserve the saved notebook, write a chapter review, update demonstrated knowledge, reset the workspace after verification, update STATE from confirmed evidence, and commit locally after validation. Do not activate for 완료, 이해했어, or 오늘 학습 종료 alone.
+description: Finish a learning chapter by default at a confirmed chapter transition under AGENTS.md, or when requested with $finish-chapter or 이번 챕터 정리해줘. Preserve saved notebooks, write reviews, update demonstrated knowledge, reset verified workspaces, update STATE, and commit locally. Do not activate for 완료, 이해했어, or 오늘 학습 종료 alone.
 ---
 
 # Finish a Chapter
 
 This is a repository-local wrap-up, not a course selector or completion database.
-Invocation authorizes the chapter's archive, review, knowledge edits, verified
-workspace reset, and local commit. It does not authorize push, assignment-code
+Explicit invocation or the standing chapter-transition authorization in AGENTS.md
+authorizes the chapter's archive, review, knowledge edits, verified workspace reset,
+and local commit. Run it before starting the next chapter when the boundary is
+confirmed; ordinary cells, subsections and session endings do not trigger it.
+Report unresolved requirements rather than treating a transition as mastery.
+It does not authorize push, assignment-code
 repair/execution, automatic next-course teaching, or a dated TIL. Explicit narrower
 instructions (for example, no reset or no commit) override these defaults.
 Course-specific restrictions still apply: never run commands or this helper in
@@ -16,7 +20,8 @@ a CS336 assignment checkout or copy that checkout through this workflow.
 ## Establish the chapter
 
 Read `AGENTS.md`, `STATE.md`, `ROADMAP.md`, the current conversation and saved
-`main.ipynb` (or an explicitly named artifact). Read relevant existing knowledge
+`main.ipynb` and other active chapter artifacts such as `recall.ipynb`.
+Read relevant existing knowledge
 and index files. Do not mine ignored state, old sessions, or Git history for
 learning evidence. Use Git status/diffs only to preserve changes and bound commits.
 If the chapter is ambiguous, ask for its scope before mutating anything. A stale
@@ -36,7 +41,8 @@ that specific obstacle before archiving or resetting; do not silently redact his
 
 ## Preserve, explain, and reset
 
-1. Choose `practice/<area>/<chapter>.ipynb` and matching `<chapter>.md`; use a
+1. For each active chapter notebook, choose `practice/<area>/<chapter>.ipynb`
+   and matching `<chapter>.md`; use a
    stable, descriptive slug. Inspect an existing destination before reuse. Different
    existing contents are a conflict, not permission to overwrite or invent versions.
 2. Read source bytes and calculate SHA-256. Keep that exact digest through this
@@ -59,7 +65,11 @@ that specific obstacle before archiving or resetting; do not silently redact his
    unassisted draft of each concept this wrap-up would add or change, as
    `AGENTS.md` requires. If they have not, stop and ask for it; what they cannot
    produce from memory is the finding, and writing the note for them destroys
-   it. Their draft is the starting text, and your part is to correct and
+   it. Learner-authored conceptual answers already in the conversation can be
+   the draft; do not ask for a duplicate formal note. Preserve the actual scope
+   and assistance, and do not substitute tutor prose or assent for a learner
+   draft. Keep concepts lacking learner evidence in the review as unresolved.
+   Their draft is the starting text, and your part is to correct and
    complete it, not to replace it. A wrap-up is not an exemption from this rule
    just because it is a batch operation, and a learner asking you to skip it
    does not remove the requirement to say what is being given up.
@@ -73,7 +83,8 @@ that specific obstacle before archiving or resetting; do not silently redact his
    skills indirectly; their separate explicit-only contracts remain unchanged.
    Link the review, notebook and relevant concepts from the existing practice and
    knowledge indexes. Do not create a new catalog, scorecard, or progress manifest.
-5. Validate notes and links before reset. Then repeat the archive command with the
+5. Validate notes and links before reset. For multiple notebooks, verify every
+   archive before resetting any workspace. Then repeat the archive command with the
    same paths/digest and `--reset`. It requires an already matching archive and
    leaves notebook-level metadata with one blank code cell. Verify the result and
    that the archive remains byte-identical. Never retry a mismatch by accepting a
@@ -90,7 +101,8 @@ accurate, leave it unchanged. Ask only about unresolved facts or course choices.
 
 Report changed paths and verification, rerun affected checks, and finish the
 already authorized local commit. Updating STATE alone does not authorize a commit:
-here that authorization came from the wrap-up invocation.
+here that authorization came from the explicit invocation or the standing
+chapter-transition authorization. Do not ask for the same permission again.
 
 Inspect `git status --short`, diffs and any existing staged changes. Stage only
 authorized chapter paths/hunks; never `git add .`. Existing work is excluded unless

@@ -6,7 +6,14 @@
 
 - [MLP E02 초기화·수동 SGD 보관본](./deep-learning/makemore-mlp-e02-initialization-training.ipynb) ·
   [회고와 다음 학습 준비](./deep-learning/makemore-mlp-e02-initialization-training.md):
-  초기 손실, backward와 갱신의 분리, 같은 배치 10회 학습. E01·E03은 미완료입니다.
+  초기 손실, backward와 갱신의 분리, 같은 배치 10회 학습. 당시 미완료였던
+  E01·E03의 후속 실험은 아래 보관본에 있습니다.
+- [MLP E01·E03 실험 보관본](./deep-learning/makemore-mlp-e01-e03.ipynb) ·
+  [회고](./deep-learning/makemore-mlp-e01-e03.md): 학습률 비교, 논문 읽기,
+  직접 연결 비교와 단일 seed의 해석 한계.
+- [MLP 학습·평가 재구현 보관본](./deep-learning/makemore-mlp-training-recall.ipynb) ·
+  [회고](./deep-learning/makemore-mlp-training-recall.md): 준비 코드 제공과 API 보조를
+  구분한 학습자 구현, 실행 결과와 입력·정답 대응 설명.
 
 - [micrograd 구현과 공식 exercises](./deep-learning/micrograd.ipynb):
   `Value` 자동미분, 뉴런·MLP 학습, 미분 검산, `ExerciseValue`의 softmax·로그 loss,
@@ -22,12 +29,14 @@
 
 ## 챕터 마무리
 
-`$finish-chapter` 또는 `이번 챕터 정리해줘`는
-[마무리 스킬](../.agents/skills/finish-chapter/SKILL.md)을 호출합니다.
+확인된 챕터 전환에서는 다음 챕터를 시작하기 전에
+[마무리 스킬](../.agents/skills/finish-chapter/SKILL.md)을 기본 수행합니다.
+`$finish-chapter` 또는 `이번 챕터 정리해줘`로 명시적으로 호출할 수도 있습니다.
 `practice/<area>/<chapter>.ipynb`에 원본 바이트를 보존하고, 같은 이름의
 `.md`에 과정·결과·도움·한계를 정리합니다. 개념은 knowledge와 연결합니다.
-보관본 일치와 문서 검증 후 `main.ipynb`를 빈 코드 셀로 초기화하고,
-STATE 전체 교체안 승인 후 해당 범위의 로컬 커밋까지 진행합니다.
+모든 대상 보관본의 일치와 문서 검증 후 `main.ipynb`, 해당 챕터의 `recall.ipynb`
+같은 작업 노트북을 빈 코드 셀로 초기화합니다. 확인된 근거로 STATE를 사전 승인 없이
+갱신하고 해당 범위의 로컬 커밋까지 진행합니다.
 
 보관본은 학습 흔적이지 재실행을 검증한 완성본이 아닙니다. 과거 오류를
 지우거나 노트북을 실행해 결과를 새로 만들지 않습니다. 기존 보관본이 다른
@@ -50,7 +59,7 @@ Notebook, Python script, benchmark, 작은 dataset experiment 중 목적에 가�
 - 일반 학습 요청만으로 새 practice 파일을 자동 생성하지 않습니다.
 - 공식 구현·exercises·assignments가 기본 실습입니다.
 - KANT는 진도·주제 대조용이며 기본 실습이나 완료 기준으로 사용하지 않습니다.
-- 정확한 파일을 만들거나 수정해 달라는 요청이 있을 때만 작업합니다.
+- 정확한 파일 생성·수정 요청이나 확인된 챕터 전환의 보관·회고 범위에서 작업합니다.
 - 핵심 구현, 실행, 첫 debugging 가설, 결과 해석은 학습자가 담당합니다.
 - 함수나 Tensor를 수정한 뒤에는 영향을 받는 셀 또는 script를 다시
   실행하고 최신 결과를 확인합니다.

@@ -1,6 +1,6 @@
 ---
 title: "다중분류 학습 반복과 autograd"
-updated: 2026-09-18
+updated: 2026-09-21
 tags:
   - deep-learning
   - pytorch
@@ -12,7 +12,7 @@ tags:
 
 ## 핵심 요약
 
-다중분류 모델은 입력을 class별 raw logits로 바꾸고 `CrossEntropyLoss`로 학습한다. 파라미터 update는 `zero_grad → forward → loss → backward → step` 순서이며, 검증에서는 `model.eval()`과 `torch.no_grad()`를 함께 사용한다.
+다중분류 모델은 입력을 class별 raw logits로 바꾸고 `CrossEntropyLoss`로 학습한다. 각 반복에서 forward와 loss를 계산하고, 이전 gradient를 비운 뒤 backward와 파라미터 갱신을 수행한다. 검증에서는 gradient 기록을 끄고, `nn.Module` 모델이라면 평가 모드도 설정한다.
 
 ## 개념 정리
 
@@ -59,7 +59,7 @@ optimizer.zero_grad()
 → optimizer.step()
 ```
 
-gradient는 기본적으로 누적되므로 다음 update 전에 `zero_grad()`가 필요하다. parameter는 forward에서 바뀌지 않고 `optimizer.step()`에서 바뀐다.
+gradient는 기본적으로 누적되므로 새 backward 전에 이전 gradient를 비워야 한다. forward 전이나 후 모두 가능하며, 수동 SGD에서는 각 파라미터의 `.grad`를 `None`으로 설정할 수도 있다. parameter는 forward에서 바뀌지 않고 `optimizer.step()`에서 바뀐다.
 
 검증에서는 다음을 사용한다.
 
@@ -71,6 +71,18 @@ label과 비교해 accuracy 계산
 ```
 
 baseline은 학습하지 않는 단순한 기준이다. 예를 들어 train label에서 가장 많이 등장한 class를 validation 전체에 예측해 model accuracy와 비교할 수 있다.
+
+### 미니배치의 입력과 정답 대응
+
+학습 데이터의 각 행과 같은 행 번호의 정답은 한 쌍이다. 행 번호를 한 번
+추출하고 입력과 정답 양쪽에 동일하게 적용한다. 예를 들어 행 번호가
+`[2, 0, 2, 1]`이면 입력과 정답 모두 그 순서를 따른다. 따로 무작위로 뽑으면
+입력에 엉뚱한 정답이 붙어 의도한 학습 문제가 달라진다.
+
+문맥 3개인 데이터가 `(N, 3)`, 정답이 `(N,)`일 때, 행 번호 `(B,)`로 선택한
+입력은 `(B, 3)`, 정답은 `(B,)`다. 행 번호의 상한은 데이터 행 수 `N`이고
+뽑는 개수는 배치 크기 `B`다. 두 값은 역할이 다르다. 정수 하나로 한 행을
+선택하면 배치 축이 사라지므로 모델이 요구하는 shape와 구분해야 한다.
 
 ### Autograd 상태
 
@@ -134,3 +146,6 @@ model.fc.bias.grad
 - Practice: 당시 실습 파일 `main.py`는 현재 작업 트리에 없다. 학습 내용은 위 TIL에 남아 있다.
 - Practice: [MLP 초기화와 수동 SGD 회고](../../practice/deep-learning/makemore-mlp-e02-initialization-training.md)
 - Source: [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)
+
+- Practice: [MLP 학습·평가 재구현 회고](../../practice/deep-learning/makemore-mlp-training-recall.md)
+- Knowledge: [모델 비교 실험과 결과 해석](../ml/controlled-model-comparison.md)

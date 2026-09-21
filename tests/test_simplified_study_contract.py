@@ -535,10 +535,13 @@ def test_standalone_utilities_keep_their_explicit_no_commit_contract() -> None:
         assert "allow_implicit_invocation: false" in manifest
 
 
-def test_chapter_wrap_up_is_separate_from_ordinary_study() -> None:
+def test_chapter_wrap_up_defaults_to_confirmed_transitions_only() -> None:
     entrypoint = _normalized(".agents/skills/finish-chapter/SKILL.md")
     manifest = _normalized(".agents/skills/finish-chapter/agents/openai.yaml")
     assert "allow_implicit_invocation: true" in manifest
+    assert "confirmed chapter transition" in entrypoint
+    assert "standing chapter-transition authorization" in entrypoint
+    assert "Default chapter-transition wrap-up" in _normalized("AGENTS.md")
     assert "Do not activate for 완료, 이해했어, or 오늘 학습 종료 alone" in entrypoint
     assert "Do not execute the learner's notebooks during wrap-up" in entrypoint
     assert "Update STATE from confirmed evidence without prior proposal or approval" in entrypoint

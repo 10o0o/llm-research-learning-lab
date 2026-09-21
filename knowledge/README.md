@@ -41,16 +41,20 @@ python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py \
 ```
 
 단독 knowledge 수정 요청은 commit이나 push를 자동으로 허용하지 않습니다.
-[`$finish-chapter`](../.agents/skills/finish-chapter/SKILL.md)는 명시적으로
-챕터 보관·회고·지식 갱신과 로컬 커밋까지 묶은 요청입니다. 이 경우에는 3개
+[`$finish-chapter`](../.agents/skills/finish-chapter/SKILL.md)는 확인된 챕터 전환에서
+기본 수행하며 명시적으로도 호출할 수 있습니다. 챕터 보관·회고·지식 갱신·검증 후
+초기화와 로컬 커밋까지 묶은 권한입니다. 이 경우에는 3개
 제한 없이 해당 챕터의 확인된 개념을 검토하지만, 새 내용이 없는 문서를
-억지로 만들지 않습니다. STATE는 전체 교체안 승인 후 반영하며 push는 하지 않습니다.
+억지로 만들지 않습니다. STATE는 확인된 근거로 사전 승인 없이 갱신하며 push는 하지 않습니다.
 
 교정할 knowledge 초안은 대화·강의·기존 노트를 닫고 학습자가 기억으로 먼저
 작성합니다. Agent는 그 초안 이후에만 공식 자료와 대조하여 틀리거나 빠진
 개념을 교정합니다. AI가 면접 답변집이나 완성 노트를 먼저 작성하지 않습니다.
-챕터 마무리에서도 초안을 먼저 확인하며, 없으면 학습자에게 요청한 뒤 기다립니다.
-일반 학습 중 파일 생성·갱신은 여전히 명시적인 요청이 있을 때만 수행합니다.
+챕터 마무리에서도 초안을 먼저 확인합니다. 대화에서 학습자가 직접 작성한 개념
+설명도 초안으로 사용할 수 있으며 같은 내용을 형식만 바꿔 다시 쓰도록 요구하지 않습니다.
+단순 이해 응답과 AI 설명은 초안이 아닙니다. 도움의 범위를 구분하고, 학습자 근거가
+없는 개념은 회고의 미확인 사항으로 남깁니다. 확장할 내용이 없으면 NO_CHANGE입니다.
+챕터 전환 외의 일반 학습 중 파일 생성·갱신은 여전히 명시적인 요청이 있을 때만 수행합니다.
 
 ## Micrograd에서 연결한 개념
 
@@ -86,3 +90,15 @@ MLP에서 다시 연결한 초기화·수동 SGD는
 | [행렬곱과 one-hot 행 선택](./math/matrix-multiplication-linear-layer.md) | ID 목록으로 여러 가중치 행 가져오기 |
 | [Softmax와 NLL](./deep-learning/softmax-negative-log-likelihood.md) | 정답 확률, 배치 인덱싱, 안정적인 cross-entropy |
 | [샘플링과 탐욕적 생성](./llm/sampling-and-greedy.md) | 확률 추출과 최대 선택, seed, 이름별 초기화 |
+
+## Makemore MLP에서 연결한 개념
+
+[E01·E03 회고](../practice/deep-learning/makemore-mlp-e01-e03.md)와
+[학습·평가 재구현 회고](../practice/deep-learning/makemore-mlp-training-recall.md)에
+실행 조건, 결과, 도움의 범위와 독립 설명이 남은 부분을 구분했습니다.
+
+| 개념 | 다시 확인할 내용 |
+|---|---|
+| [MLP와 경사하강](./deep-learning/mlp-and-gradient-descent.md) | 학습률, 임베딩 조회, 은닉층과 직접 연결 |
+| [학습 반복과 autograd](./deep-learning/multiclass-training-loop.md) | 같은 행 번호로 배치 추출, gradient 초기화, 학습 후 평가 |
+| [모델 비교 실험](./ml/controlled-model-comparison.md) | 조건 통제, 추가 학습의 혼동, 작은 개선의 해석 |

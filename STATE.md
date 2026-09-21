@@ -5,53 +5,40 @@
 
 - Pilot 시작일: 2026-09-02
 - 현재 ROADMAP Phase: P0
-- 현재 주강의: Karpathy — Neural Networks: Zero to Hero
-- 현재 강의: Building makemore Part 2: MLP
-- 현재 범위: 강의 전체 구현과 공식 exercises E01~E03
-- 현재 구간: E01 초안 피드백 후 E03 논문 읽기 준비
-- 공개 영상과 exercises: https://www.youtube.com/watch?v=TCH_1BHY58I
-- 공식 구현: https://github.com/karpathy/nn-zero-to-hero/blob/master/lectures/makemore/makemore_part2_mlp.ipynb
-- E03 읽기 자료: https://www.jmlr.org/papers/volume3/bengio03a/bengio03a.pdf
-- 작업 공간: main.ipynb
-- 이전 보관본: practice/deep-learning/makemore-mlp-e02-initialization-training.ipynb
-- 설명 방식: 공식 자료 기반 대화와 학습자의 직접 실행·해석
+- 현재 주강의: fast.ai — Practical Deep Learning for Coders (2022 Part 1)
+- 현재 강의: Lesson 1 — Getting started (진입 전)
+- 현재 범위: 로드맵의 Lessons 1~2, 현재는 Lesson 1의 영상·공식 실습·책 1장
+- 공식 강의: https://course.fast.ai/Lessons/lesson1.html
+- 공식 실습: https://www.kaggle.com/code/jhoward/is-it-a-bird-creating-a-model-from-your-own-data
+- 책 1장: https://github.com/fastai/fastbook/blob/master/01_intro.ipynb
+- 작업 공간: main.ipynb, recall.ipynb는 이전 챕터 보관 후 빈 셀로 초기화
+- 이전 챕터: practice/deep-learning/makemore-mlp-e01-e03.md
+- 재구현 회고: practice/deep-learning/makemore-mlp-training-recall.md
 - CS336 Assignment 1: 기존 작업 보존, 새 구현 진도 보류
 
 ## 관찰된 근거
 
-- 학습자의 명시적 예외 요청으로 AI가 기준 모델 코드를 재구성했다.
-- 학습자는 추가 학습이 dev에도 도움이 됐다고 해석하고,
-  train과 dev 손실이 반대로 움직이는 경우 과적합을 의심한다고 설명했다.
-- CUDA에서 동일한 초기 손실과 seed 설정을 사용한 세 학습률의
-  학습·평가 출력을 확인했다.
-- 앞선 두 학습률의 결과는 Markdown 표에, 세 번째 결과는 학습 셀 출력에 남아 있다.
-- 같은 횟수의 비교에서는 학습률 0.03의 train/dev 손실이 모두 가장 낮았다.
-- 선택한 학습률로 추가 학습한 뒤 train/dev 손실이 함께 감소한 출력을 확인했다.
-- 학습률을 낮춘 뒤 추가 학습한 저장 결과에서 E01의 검증 손실 목표 달성을 확인했다.
-- 학습자는 임베딩과 은닉층을 거치는 흐름, 레이어 크기 유지, train/dev/test의 역할을 설명했다.
-- 학습자는 초안에서 작은 학습률의 느린 갱신과 큰 학습률의 불안정 가능성,
-  비교 대상 외 조건을 유지하는 원칙을 설명했다.
-- 초안의 dev 역할과 인과 해석에는 보완이 필요하다. 통제된 학습률 비교와
-  학습률 감소·추가 학습을 함께 수행한 실험을 구분해야 한다.
-- E01 초안의 dev 역할과 인과 해석에 대한 피드백 후 학습자가 이해했다고 응답했다.
-- E03 논문 읽기와 아이디어 실험은 미완료다.
+- Makemore Part 2의 E01 검증 손실 목표와 E03 직접 연결의 구현·실행·해석을
+  확인했다. E02는 별도 보관본에 있다. 학습률·조건 통제·학습 반복 개념을
+  학습자의 설명과 실행·해석 근거에서 knowledge에 연결했다.
+- recall에서 학습자가 학습·평가 함수를 작성하고 train/dev 개선을 해석했다.
+  입력과 정답을 다른 행 번호로 추출하면 대응이 깨진다고 설명했다.
+- 기준 모델 재구성 및 recall의 데이터·모델 준비는 요청에 따라 AI가 제공했다.
+  구현 중 도움도 있었으므로 완전 무보조 재구현 성공으로 취급하지 않는다.
+- 학습자의 챕터 정리·초기화 요청으로 보관과 지식 정리를 진행했다.
+  fast.ai의 영상 시청·실습 실행·책 읽기는 아직 확인된 바 없다.
 
 ## 재확인할 항목
 
-- logits와 확률의 구분 및 손실·역전파·갱신 연결은 설명을 제공했지만 독립 설명은 미확인이다.
-- 현재 모델은 다른 컴퓨터의 가중치 복구본이 아니다.
-- AI가 재구성한 코드를 독립 구현의 근거로 삼지 않는다.
-- CPU와 CUDA 실험을 학습률만 바꾼 비교로 취급하지 않는다.
-- 한 seed의 결과를 모든 초기화에 일반화하지 않는다.
-- 앞선 학습의 평가 이름에는 0.01이 남았지만 당시 실행 로그는 0.03이었다.
-- 마지막 추가 학습은 실행 로그에서 학습률 0.01을 확인했다.
-- 학습률 감소와 추가 학습을 함께 수행했으므로 개선의 원인을 분리해 확정하지 않는다.
-- 저장 출력과 실행 중 커널 상태를 구분한다.
-- 초기화 셀 재실행은 모델과 학습 기록을 초기화한다.
-- test는 튜닝에 사용하지 않는다.
+- 논문 읽기와 설명 후 이해 응답을 독립 설명의 근거로 확대하지 않는다.
+  논문 전체 회상의 혼동과 실험 출력의 경계는 이전 챕터 회고에 남겼다.
+- 이번 전환은 P0 종료가 아니다. fast.ai는 Lessons 1~2 범위를 유지한다.
+- fast.ai 실행 환경은 아직 준비하지 않았다. 기존 lab 환경에 자동 설치하지 않는다.
+- 파일 초기화는 실행 중인 노트북 커널의 변수·가중치를 지우지 않는다.
 
 ## 다음 독립 행동
 
-E03 연결 논문의 Abstract와 Introduction부터 1.1 끝까지 읽고,
-문제·제안·일반화에 대한 저자의 논거와 아직 이해하지 못한 점을
-자신의 말로 짧게 적는다. 공식 영상 설명란의 E03 원문도 확인한다.
+fast.ai Lesson 1 공식 페이지에서 첫 실습 “Is it a bird?”를 열고,
+강의의 시작 구간과 함께 데이터 수집부터 분류 모델 학습·예측까지의 흐름을 따라간다.
+영상·실습·책 1장과 자기 주제의 이미지 분류기 구현이 Lesson 1 범위이며,
+자료 접근이나 실행 환경에서 막히면 그 지점부터 확인한다.

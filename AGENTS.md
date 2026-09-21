@@ -45,6 +45,7 @@ read STATE.md and the exact current source or assignment
 -> have the learner implement, execute, and interpret the official practice
 -> wait for the learner's own attempt
 -> give complete feedback in one response
+-> at a confirmed chapter transition, run finish-chapter before starting the next chapter
 -> update STATE.md from confirmed evidence if the resume point changed
 -> briefly report the update without requesting prior approval
 ```
@@ -62,7 +63,9 @@ The following phrases always use this route:
 Do not route these phrases through ignored files under `tmp/`. Do not perform
 automatic target selection, background source review, tracking-file generation,
 practice generation, knowledge updates, TIL composition, or next-lesson
-preparation. There is no fallback route.
+preparation. The chapter-transition wrap-up below is the standing authorized
+exception for archiving, demonstrated knowledge, workspace reset and local commit.
+There is no fallback route.
 
 If `STATE.md` is missing or conflicts with a tracked artifact, report the facts
 and repair the bookmark from confirmed evidence without prior approval. If the
@@ -394,12 +397,19 @@ switch to another workflow.
 
 ## TIL, knowledge, practice, and sources
 
-### Explicit chapter wrap-up
+### Default chapter-transition wrap-up
 
-`$finish-chapter` or an explicit request such as `이번 챕터 정리해줘` invokes
-[finish-chapter](.agents/skills/finish-chapter/SKILL.md). This request authorizes
-saved-notebook preservation, a matching chapter review, demonstrated knowledge
-updates, verified `main.ipynb` reset, a STATE update, and a scoped local commit after validation.
+At a confirmed chapter transition, invoke
+[finish-chapter](.agents/skills/finish-chapter/SKILL.md) before starting the next
+chapter, without a separate wrap-up request. The learner has authorized this as
+the default: preserve saved chapter notebooks, write matching reviews, update
+demonstrated knowledge, reset the verified chapter workspaces (including a
+chapter-specific recall notebook), update STATE, and make a scoped local commit
+after validation. `$finish-chapter` and `이번 챕터 정리해줘` also invoke it directly.
+Confirm the chapter boundary from the approved course and actual work; an ordinary
+cell, subsection, or session ending is not a chapter transition. Report incomplete
+requirements instead of silently marking a chapter complete. A wrap-up does not
+authorize changing courses; use the already approved next step or ask about scope.
 It does not activate for `완료`, `이해했어`, or `오늘 학습 종료` alone.
 Ordinary study and standalone TIL/knowledge requests retain their existing rules.
 
@@ -410,6 +420,11 @@ do not indirectly invoke the standalone explicit-only skills. Do not create a TI
 tracking system, or next lesson automatically. Course-specific restrictions apply.
 Confirm the learner's unassisted concept drafts before knowledge edits or workspace
 reset. If a needed draft is missing, ask for it instead of writing it for them.
+Learner-authored conceptual answers already in the conversation can serve as
+drafts; do not require a duplicate formal note. Use their actual explanation and
+interpreted artifacts, not the tutor's prose or an "understood" response, and
+preserve any assistance boundary. Concepts without learner evidence stay in the
+review as open questions, not as established knowledge.
 
 Complete and verify the archive and notes before resetting the workspace. Update
 STATE from confirmed evidence without prior approval, then run affected checks.
@@ -421,14 +436,16 @@ Unrelated changes are excluded unless explicitly included; push is never implied
 
 - Ordinary study does not create a Notebook. Use official course implementations,
   exercises, and assignments; small supplementary examples do not replace them.
-- Create or edit a `practice/` artifact only when the learner explicitly asks.
+- Create or edit a `practice/` artifact only when the learner explicitly asks
+  or the authorized chapter-transition wrap-up requires an archive and review.
   Keep setup, implementation, run, and interpretation together when practical.
 - Existing notebooks may retain historical metadata. Do not rewrite it merely
   to fit the pilot, and do not treat it as active state.
 - Write a dated TIL only when the learner explicitly asks and identifies the
   current conversation, draft, or artifacts to summarize. Do not infer missing
   claims or auto-commit it.
-- Update `knowledge/` only on an explicit request and only from learner-authored
+- Update `knowledge/` on an explicit request or during the authorized chapter
+  transition, and only from learner-authored
   explanation, calculation, or executed and interpreted artifacts. `NO_CHANGE`
   is valid.
 - Keep source material distinct from learner work. Do not copy copyrighted
@@ -459,7 +476,7 @@ python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py k
   `uv lock --check`, and `git diff --check` from this learning lab.
 - Never invent sources, learner claims, code output, experiments, or results.
 - Do not commit or push unless the learner explicitly asks for that specific
-  operation. An explicit chapter wrap-up request includes its scoped local commit
+  operation. An explicit or default chapter-transition wrap-up includes its scoped local commit
   as described above. A commit request never implies push permission. Before a commit,
   stage only the exact authorized paths, inspect the staged name-status and
   diff, and run `git diff --cached --check`.
