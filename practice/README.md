@@ -4,6 +4,11 @@
 
 ## 보관한 실습
 
+- [fast.ai Lesson 1 이미지 실습 회고](./deep-learning/fastai-lesson1-images.md) ·
+  [책 1장 회고와 미완료 범위](./deep-learning/fastai-book01-intro.md):
+  분류·분할 실행, 개념 복습, 중단된 IMDb와 미수행 예시를 구분했습니다.
+  원문·사진이 포함된 노트북 두 개는 비공개 영역에 바이트 동일하게 보존했습니다.
+
 - [MLP E02 초기화·수동 SGD 보관본](./deep-learning/makemore-mlp-e02-initialization-training.ipynb) ·
   [회고와 다음 학습 준비](./deep-learning/makemore-mlp-e02-initialization-training.md):
   초기 손실, backward와 갱신의 분리, 같은 배치 10회 학습. 당시 미완료였던

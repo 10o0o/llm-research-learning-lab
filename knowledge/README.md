@@ -102,3 +102,17 @@ MLP에서 다시 연결한 초기화·수동 SGD는
 | [MLP와 경사하강](./deep-learning/mlp-and-gradient-descent.md) | 학습률, 임베딩 조회, 은닉층과 직접 연결 |
 | [학습 반복과 autograd](./deep-learning/multiclass-training-loop.md) | 같은 행 번호로 배치 추출, gradient 초기화, 학습 후 평가 |
 | [모델 비교 실험](./ml/controlled-model-comparison.md) | 조건 통제, 추가 학습의 혼동, 작은 개선의 해석 |
+
+## fast.ai Lesson 1에서 연결한 개념
+
+[이미지 실습 회고](../practice/deep-learning/fastai-lesson1-images.md)와
+[책 1장 회고](../practice/deep-learning/fastai-book01-intro.md)에 독립 설명과
+해설로 보완한 부분을 구분했습니다. 아래 노트는 대화의 학습자 초안에서
+확인한 범위를 정리한 것이며 챕터 전체의 무보조 회상 통과를 뜻하지 않습니다.
+
+- [모델 비교와 평가](./ml/controlled-model-comparison.md): 작은 평가 표본의 한계
+- [파라미터와 하이퍼파라미터](./ml/parameters-and-hyperparameters.md): 가중치와 학습 제어 설정
+- [분류와 회귀](./ml/classification-and-regression.md): 예측 목적과 대응하는 정답
+- [예측의 피드백 루프](./ml/prediction-feedback-loops.md): 추천 노출과 클릭의 관계
+- [입력 해상도](./deep-learning/image-input-resolution.md): 계산량과 세부 정보
+- [사전학습과 계산 자원](./deep-learning/pretraining-and-compute.md): 미세조정과 처음부터 학습의 차이
