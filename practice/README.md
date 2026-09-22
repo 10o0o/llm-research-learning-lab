@@ -4,6 +4,10 @@
 
 ## 보관한 실습
 
+- [fast.ai 책 2장 회고](./deep-learning/fastai-book02-production.md): 곰 분류기 학습과
+  저장·추론, 데이터 검토와 공식 복습. 위젯·공개 배포 등 미완료를 남겼다.
+  책 원문이 포함된 노트북은 비공개 영역에 바이트 그대로 보존했다.
+
 - [fast.ai Lesson 1 이미지 실습 회고](./deep-learning/fastai-lesson1-images.md) ·
   [책 1장 회고와 미완료 범위](./deep-learning/fastai-book01-intro.md):
   분류·분할 실행, 개념 복습, 중단된 IMDb와 미수행 예시를 구분했습니다.

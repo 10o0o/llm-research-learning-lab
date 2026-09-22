@@ -25,6 +25,12 @@ tags:
 작은 버튼이나 얇은 경계는 덜 선명해질 수 있다. 계산 절약이 가능하다는 것만으로
 분류 성능이 유지된다고 단정하지 않는다. 해상도별 성능 수치는 별도 비교가 필요하다.
 
+### 잘라내기와 라벨의 타당성
+
+crop은 일부 영역을 잘라 사용하므로 판별에 필요한 특징이 사라질 수 있다.
+곰 사진을 잘랐는데 곰이 완전히 사라지면 배경만 남은 사진에 곰 라벨을 붙인
+상태가 된다. 크기를 맞췄는지뿐 아니라 변형 후에도 정답이 타당한지 확인한다.
+
 ## 주의점
 
 이 설명은 실습에 사용한 모델의 해상도 선택에 관한 것이다.
@@ -34,3 +40,5 @@ tags:
 
 - Practice: [fast.ai 이미지 실습 회고](../../practice/deep-learning/fastai-lesson1-images.md)
 - Source: [fastbook 1장](https://github.com/fastai/fastbook/blob/master/01_intro.ipynb)
+
+- Practice: [fast.ai 책 2장 회고](../../practice/deep-learning/fastai-book02-production.md)

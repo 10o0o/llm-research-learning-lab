@@ -116,3 +116,14 @@ MLP에서 다시 연결한 초기화·수동 SGD는
 - [예측의 피드백 루프](./ml/prediction-feedback-loops.md): 추천 노출과 클릭의 관계
 - [입력 해상도](./deep-learning/image-input-resolution.md): 계산량과 세부 정보
 - [사전학습과 계산 자원](./deep-learning/pretraining-and-compute.md): 미세조정과 처음부터 학습의 차이
+
+## fast.ai Lesson 2에서 연결한 개념
+
+[책 2장 회고](../practice/deep-learning/fastai-book02-production.md)에 도움과 미완료를
+구분했다. 아래 노트는 학습자의 대화 초안을 교정한 범위이며 전체 독립 회상 통과가 아니다.
+
+- [입력과 정답 대응](./ml/input-label-matching.md): 폴더 라벨과 CSV 매칭
+- [모델 저장과 추론](./deep-learning/model-export-inference.md): 구조·가중치와 입력 처리
+- [이미지 크기와 crop](./deep-learning/image-input-resolution.md): 잘린 특징과 정답 타당성
+- [모델 비교와 평가](./ml/controlled-model-comparison.md): 실제 환경과 어려운 사진의 보존
+- [예측과 행동의 피드백](./ml/prediction-feedback-loops.md): 추천 후 구매와 추가 효과

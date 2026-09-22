@@ -46,6 +46,11 @@ test는 설정 선택에 사용하지 않고 최종 평가를 위해 남겨 둔�
 한 장만 맞혔다면 모든 입력에 대한 정확도를 보장하지 않는다. 검증 세트에도
 반복적인 설정 선택이 적응할 수 있으므로 테스트는 최종 평가를 위해 분리한다.
 
+실제 카메라가 야간·어두운 환경·겨울에도 사용된다면 평가 데이터에도 그 조건이
+필요하다. 모델이 틀렸더라도 실제로 관측될 수 있고 라벨이 정확한 사진은
+점수를 높이려고 삭제하지 않는다. 필요한 학습 데이터를 별도로 보강한다.
+평가 사진 자체를 학습에 넣어 성능을 확인하면 평가의 독립성을 잃는다.
+
 ### 관찰과 일반화의 구분
 
 한 번의 실행에서 dev loss가 작아졌다면 그 실행에서의 개선은 관찰한 사실이다.
@@ -84,3 +89,5 @@ test는 설정 선택에 사용하지 않고 최종 평가를 위해 남겨 둔�
 - Practice: [학습·평가 재구현 회고](../../practice/deep-learning/makemore-mlp-training-recall.md)
 
 - Practice: [fast.ai 이미지 실습 회고](../../practice/deep-learning/fastai-lesson1-images.md)
+
+- Practice: [fast.ai 책 2장 회고](../../practice/deep-learning/fastai-book02-production.md)

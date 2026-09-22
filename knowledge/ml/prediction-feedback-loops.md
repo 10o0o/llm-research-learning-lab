@@ -26,8 +26,16 @@ tags:
 클릭 기회가 늘어난 결과일 수도 있다. 노출 조건을 고려하지 않고 총 클릭 수만
 비교해서 선호 변화라고 판단하지 않는다.
 
+### 추천 후 구매와 추천의 효과
+
+추천하지 않아도 살 상품이라면 추천 후 발생한 구매를 전부 추천의 효과로
+볼 수 없다. 추천의 목적이 추가 구매라면 추천하지 않았을 경우와 비교해야 한다.
+원래 구매 가능성이 높다는 이유만으로 증가 폭이 작다고 확정할 수도 없다.
+
 ## 관련 기록
 
 - Knowledge: [모델 비교 실험](./controlled-model-comparison.md)
 - Practice: [fast.ai 책 1장 회고](../../practice/deep-learning/fastai-book01-intro.md)
 - Source: [fastbook 1장, Limitations Inherent To Machine Learning](https://github.com/fastai/fastbook/blob/master/01_intro.ipynb)
+
+- Practice: [fast.ai 책 2장 회고](../../practice/deep-learning/fastai-book02-production.md)
