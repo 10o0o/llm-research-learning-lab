@@ -8,10 +8,10 @@
 - 현재 주강의: Mathematics for Machine Learning, Cambridge University Press (2020)
 - 사용 판본: 공식 사이트 배포 PDF, Draft 2024-01-15
 - 현재 범위: Chapter 2~5·7 수학 보강; 기존 설명·계산을 보존하고 부족한 부분을 본문·공식 연습문제로 연결
-- 현재 강의: Chapter 2, §2.7 Linear Mappings, 인쇄 쪽 48~50
+- 현재 강의: Chapter 2, §2.7.1 Matrix Representation of Linear Mappings, 인쇄 쪽 50~53
 - 공식 자료: https://mml-book.github.io/
 - 공식 PDF: https://mml-book.github.io/book/mml-book.pdf
-- 연결 실습: Exercise 2.16(c)·(d), 인쇄 쪽 68; 시도·피드백 완료
+- 연결 실습: Exercise 2.17, 인쇄 쪽 68; 변환행렬·랭크·영공간·상 미시도
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; 이번 단위는 손으로 설명·계산
 - 이전 챕터: [fast.ai 책 2장 회고](practice/deep-learning/fastai-book02-production.md)
 - CS336 Assignment 1: 기존 작업 보존, 진입 보류
@@ -71,7 +71,7 @@ Exercise 2.16(c)는 영벡터가 0이 아닌 값으로 가는 반례를 제시�
 
 ## 다음 독립 행동
 
-다음은 MML §2.7.1 Matrix Representation of Linear Mappings에서
-기저에 따른 행렬 표현과 입력·출력 차원의 관계를 연결한다.
+다음은 MML §2.7.1에서 기저벡터의 상을 열로 모아 변환행렬을 만들고,
+공식 Exercise 2.17의 첫 요구사항인 변환행렬을 직접 구하는 것이다.
 Exercise 2.12의 교집합 기저 계산은 미완료다.
 코드 실행·환경 설치·GPU 대여는 필요 없다.
