@@ -8,10 +8,10 @@
 - 현재 주강의: Mathematics for Machine Learning, Cambridge University Press (2020)
 - 사용 판본: 공식 사이트 배포 PDF, Draft 2024-01-15
 - 현재 범위: Chapter 2~5·7 수학 보강; 기존 설명·계산을 보존하고 부족한 부분을 본문·공식 연습문제로 연결
-- 현재 강의: Chapter 3, §3.4~3.5 Angles and Orthogonality · Orthonormal Basis, 인쇄 쪽 76~79
+- 현재 강의: Chapter 3, §3.7 Inner Product of Functions, 인쇄 쪽 80~81; 도입
 - 공식 자료: https://mml-book.github.io/
 - 공식 PDF: https://mml-book.github.io/book/mml-book.pdf
-- 연결 실습: Example 3.6·3.8 설명 후 기존 knowledge와 중복 범위를 대조; §3.4 직교행렬 성질 연결이 남음
+- 연결 실습: Example 3.9에서 대칭 구간의 함수 곱 적분과 직교 연결
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; 이번 단위는 손으로 설명·계산
 - 이전 챕터: [MML 2장 회고와 남은 범위](practice/math/mml-ch02-linear-algebra.md)
 - CS336 Assignment 1: 기존 작업 보존, 진입 보류
@@ -51,6 +51,8 @@ Example 3.4는 제시된 입력에서 음수 값을 직접 계산하고 양의 �
 현재 knowledge의 내적·코사인 유사도, L2 정규화, 고유기저의 전치·역행렬,
 최소제곱의 잔차 직교성 내용을 확인했다. 사용자는 기존 노트와 겹치는 설명을
 짧게 연결하고 넘어가는 진행을 요청했다. 새 개념의 숙달 근거로 대신하지 않는다.
+직교행렬의 내적 보존과 직교여공간의 정의·분해를 설명했고 이해했다고 응답했다.
+함수 내적·적분은 현재 수학 knowledge에서 관련 항목을 찾지 못해 새 내용으로 다룬다.
 
 ## 재확인할 항목
 
@@ -63,7 +65,7 @@ Example 3.4는 제시된 입력에서 음수 값을 직접 계산하고 양의 �
 
 ## 다음 독립 행동
 
-관련 knowledge를 먼저 대조해 기존 내용은 짧게 연결한다. §3.4의 직교행렬이
-길이·각도를 보존하는 이유를 보완한 뒤 §3.6 직교여공간으로 이어간다.
+관련 knowledge를 먼저 대조해 기존 내용은 짧게 연결한다. §3.7 Example 3.9의
+함수 내적과 구간에 따른 직교를 설명하고 §3.8 직교투영으로 연결한다.
 2장 미완료는 위 회고와 남은 범위에 유지한다.
 코드 실행·환경 설치·GPU 대여는 필요 없다.
