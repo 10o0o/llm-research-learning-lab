@@ -8,10 +8,10 @@
 - 현재 주강의: Mathematics for Machine Learning, Cambridge University Press (2020)
 - 사용 판본: 공식 사이트 배포 PDF, Draft 2024-01-15
 - 현재 범위: Chapter 2~5·7 수학 보강; 기존 설명·계산을 보존하고 부족한 부분을 본문·공식 연습문제로 연결
-- 현재 강의: Chapter 3, §3.2.3 Symmetric, Positive Definite Matrices, 인쇄 쪽 73~74; 도입
+- 현재 강의: Chapter 3, §3.3 Lengths and Distances, 인쇄 쪽 75~76; 도입
 - 공식 자료: https://mml-book.github.io/
 - 공식 PDF: https://mml-book.github.io/book/mml-book.pdf
-- 연결 실습: Example 3.3의 내적을 행렬로 표현한 뒤 Example 3.4로 연결
+- 연결 실습: Example 3.5에서 내적 선택에 따른 길이 비교, 벡터 차의 노름으로 거리 연결
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; 이번 단위는 손으로 설명·계산
 - 이전 챕터: [MML 2장 회고와 남은 범위](practice/math/mml-ch02-linear-algebra.md)
 - CS336 Assignment 1: 기존 작업 보존, 진입 보류
@@ -45,6 +45,8 @@ MML 2장 본문 끝까지 대화로 다뤘다. 직접 계산·설명과 피드�
 학습자는 대칭성과 각 입력에 대한 선형성을 말했으며, 양의 정부호성을
 비음수 조건으로 표현해 영벡터가 아닌 경우의 엄격한 양수 조건을 교정했다.
 Example 3.3의 자기 내적을 제곱합으로 정리하는 계산은 튜터가 제공했다.
+Example 3.4는 제시된 입력에서 음수 값을 직접 계산하고 양의 정부호가
+아님을 정확히 판단했다. 준정부호 및 영공간·대각 원소 성질은 설명으로 연결했다.
 
 ## 재확인할 항목
 
@@ -57,7 +59,7 @@ Example 3.3의 자기 내적을 제곱합으로 정리하는 계산은 튜터가
 
 ## 다음 독립 행동
 
-§3.2.3에서 내적 규칙의 행렬 표현을 연결하고, Example 3.4의 두 대칭행렬이
-양의 정부호인지 자기 내적의 부호로 판단한다.
+§3.3 Example 3.5에서 두 내적으로 잰 길이를 비교하고, 거리의 정의와
+성질 및 코시–슈바르츠 부등식을 연결한다.
 2장 미완료는 위 회고와 남은 범위에 유지한다.
 코드 실행·환경 설치·GPU 대여는 필요 없다.
