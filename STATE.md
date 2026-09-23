@@ -8,10 +8,10 @@
 - 현재 주강의: Mathematics for Machine Learning, Cambridge University Press (2020)
 - 사용 판본: 공식 사이트 배포 PDF, Draft 2024-01-15
 - 현재 범위: Chapter 2~5·7 수학 보강; 기존 설명·계산을 보존하고 부족한 부분을 본문·공식 연습문제로 연결
-- 현재 강의: Chapter 2, §2.6.2 Rank, 인쇄 쪽 47~48
+- 현재 강의: Chapter 2, §2.7 Linear Mappings, 인쇄 쪽 48~50
 - 공식 자료: https://mml-book.github.io/
 - 공식 PDF: https://mml-book.github.io/book/mml-book.pdf
-- 연결 실습: Exercise 2.11, 인쇄 쪽 66 완료; Example 2.18, 인쇄 쪽 48 피드백 완료
+- 연결 실습: Exercise 2.16(c)·(d), 인쇄 쪽 68; 아직 미시도
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; 이번 단위는 손으로 설명·계산
 - 이전 챕터: [fast.ai 책 2장 회고](practice/deep-learning/fastai-book02-production.md)
 - CS336 Assignment 1: 기존 작업 보존, 진입 보류
@@ -54,6 +54,8 @@ Exercise 2.11에서 목표 벡터의 선형결합 계수를 정확히 구했다.
 Example 2.18에서는 원래 행렬의 피벗 열 1·2를 기저로 골랐다.
 영공간 차원을 랭크와 같은 2로 답해, 열 수에서 랭크를 빼는 관계를
 튜터 피드백으로 보완했다.
+Exercise 2.12는 공통 벡터의 계수 관계와 좌표 검산까지 다뤘다.
+교집합의 기저를 학습자가 직접 구하는 단계는 남겼고, 요청에 따라 다음 절로 이동했다.
 
 ## 재확인할 항목
 
@@ -66,6 +68,6 @@ Example 2.18에서는 원래 행렬의 피벗 열 1·2를 기저로 골랐다.
 
 ## 다음 독립 행동
 
-다음은 MML Exercise 2.12, 인쇄 쪽 67의 두 부분공간 교집합에서
-기저를 찾는 것이다. 영공간 차원과 랭크의 구별은 재확인하지 않았다.
+다음은 MML §2.7에서 선형사상의 덧셈·실수배 보존을 연결하고
+공식 Exercise 2.16(c)·(d)를 시도하는 것이다. Exercise 2.12는 미완료다.
 코드 실행·환경 설치·GPU 대여는 필요 없다.
