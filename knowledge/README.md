@@ -127,3 +127,12 @@ MLP에서 다시 연결한 초기화·수동 SGD는
 - [이미지 크기와 crop](./deep-learning/image-input-resolution.md): 잘린 특징과 정답 타당성
 - [모델 비교와 평가](./ml/controlled-model-comparison.md): 실제 환경과 어려운 사진의 보존
 - [예측과 행동의 피드백](./ml/prediction-feedback-loops.md): 추천 후 구매와 추가 효과
+
+## MML 2장에서 연결한 개념
+
+[2장 회고](../practice/math/mml-ch02-linear-algebra.md)에 직접 시도와 교정,
+미완료를 구분했다. 다음 문서는 학습자의 대화 초안을 교정한 참고 노트다.
+
+- [벡터 부분공간](./math/vector-subspaces.md): 영벡터와 덧셈·실수배 닫힘
+- [선형독립과 생성 공간](./math/linear-independence-and-span.md): 피벗 판별과 조합 벡터 추가
+- [아핀 공간과 아핀 사상](./math/affine-spaces-and-mappings.md): 평행이동과 선형성의 구별
