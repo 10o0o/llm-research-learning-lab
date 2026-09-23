@@ -1,7 +1,22 @@
 import { expect, test, type Page } from '@playwright/test';
+import { readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 
 const serverOrigin = 'http://127.0.0.1:4321';
 const siteBase = normalizeBase(process.env.SITE_BASE);
+// Read the source corpus independently of the rendered list so missing pages
+// still fail, while adding a knowledge note does not require a count update.
+const knowledgeRoot = fileURLToPath(new URL('../../../knowledge/', import.meta.url));
+const expectedNoteIds = readdirSync(knowledgeRoot, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .flatMap((area) =>
+    readdirSync(path.join(knowledgeRoot, area.name), { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
+      .map((entry) => `${area.name}/${entry.name.slice(0, -3)}`),
+  )
+  .sort();
+const expectedNotePaths = expectedNoteIds.map((id) => sitePath(`/knowledge/${id}/`)).sort();
 
 function normalizeBase(base: string | undefined): string {
   const segments = (base ?? '/').split('/').filter(Boolean);
@@ -60,7 +75,7 @@ test('home and library expose the public navigation and search controls', async 
   await expect(page.getByLabel('정렬')).toBeVisible();
 });
 
-test('all 25 real knowledge pages have exactly one non-empty title', async ({ page }) => {
+test('all real knowledge pages have exactly one non-empty title', async ({ page }) => {
   test.setTimeout(120_000);
   const pageErrors: string[] = [];
   page.on('pageerror', (error) => pageErrors.push(error.message));
@@ -69,7 +84,8 @@ test('all 25 real knowledge pages have exactly one non-empty title', async ({ pa
   });
   await page.goto(siteUrl('/knowledge/'));
   const hrefs = await noteDetailLinks(page);
-  expect(hrefs).toHaveLength(25);
+  expect(expectedNoteIds.length).toBeGreaterThan(0);
+  expect(hrefs).toEqual(expectedNotePaths);
   expect(
     hrefs.every((href) => new URL(href, siteUrl('/')).pathname.startsWith(sitePath('/knowledge/'))),
   ).toBe(true);
@@ -105,11 +121,11 @@ test('renders Korean concepts, code, tables, and resolved content links', async 
 
 test('filters by area and tag and searches Korean and API terms with Pagefind', async ({ page }) => {
   await page.goto(siteUrl('/knowledge/'));
-  await expect.poll(() => visibleNoteCount(page)).toBe(25);
+  await expect.poll(() => visibleNoteCount(page)).toBe(expectedNoteIds.length);
 
   await page.getByLabel('분야').selectOption('math');
   await expect(page).toHaveURL(/area=math/u);
-  await expect.poll(() => visibleNoteCount(page)).toBe(17);
+  await expect.poll(() => visibleNoteCount(page)).toBe(expectedNoteIds.filter((id) => id.startsWith('math/')).length);
 
   await page.goto(siteUrl('/knowledge/'));
   await page.getByLabel('태그').selectOption('autograd');
@@ -176,10 +192,10 @@ test('search results open the matching concept and filters survive browser histo
   const titles = await page.locator('#note-results [data-note-id]:not([hidden]) h3').allTextContents();
   expect(titles).toEqual([...titles].sort((a, b) => a.localeCompare(b, 'ko')));
   await page.getByLabel('분야').selectOption('llm');
-  await expect.poll(() => visibleNoteCount(page)).toBe(2);
+  await expect.poll(() => visibleNoteCount(page)).toBe(expectedNoteIds.filter((id) => id.startsWith('llm/')).length);
   await page.goBack();
   await expect(page.getByLabel('분야')).toHaveValue('math');
-  await expect.poll(() => visibleNoteCount(page)).toBe(17);
+  await expect.poll(() => visibleNoteCount(page)).toBe(expectedNoteIds.filter((id) => id.startsWith('math/')).length);
   expect(errors).toEqual([]);
 });
 
@@ -198,7 +214,7 @@ test('about, not-found and static reading work without client JavaScript', async
   );
   await page.getByRole('link', { name: '문서 목록으로' }).click();
   expect(new URL(page.url()).pathname).toBe(sitePath('/knowledge/'));
-  await expect(page.locator('.note-card')).toHaveCount(25);
+  await expect(page.locator('.note-card')).toHaveCount(expectedNoteIds.length);
   const firstNoteLink = page.locator('.note-card h3 a').first();
   const firstNoteHref = await firstNoteLink.getAttribute('href');
   expect(firstNoteHref).toBeTruthy();
