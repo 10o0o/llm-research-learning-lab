@@ -8,10 +8,10 @@
 - 현재 주강의: Mathematics for Machine Learning, Cambridge University Press (2020)
 - 사용 판본: 공식 사이트 배포 PDF, Draft 2024-01-15
 - 현재 범위: Chapter 2~5·7 수학 보강; 기존 설명·계산을 보존하고 부족한 부분을 본문·공식 연습문제로 연결
-- 현재 강의: Chapter 2, §2.7.1 Matrix Representation of Linear Mappings, 인쇄 쪽 50~53
+- 현재 강의: Chapter 2, §2.7.2 Basis Change, 인쇄 쪽 53부터; 좌표 변환 도입
 - 공식 자료: https://mml-book.github.io/
 - 공식 PDF: https://mml-book.github.io/book/mml-book.pdf
-- 연결 실습: Exercise 2.17, 인쇄 쪽 68; 변환행렬·랭크·영공간·상 미시도
+- 연결 실습: Exercise 2.20(a), 인쇄 쪽 68~69; 아직 미시도, (b)~(f)도 남음
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; 이번 단위는 손으로 설명·계산
 - 이전 챕터: [fast.ai 책 2장 회고](practice/deep-learning/fastai-book02-production.md)
 - CS336 Assignment 1: 기존 작업 보존, 진입 보류
@@ -59,6 +59,9 @@ Exercise 2.12는 공통 벡터의 계수 관계와 좌표 검산까지 다뤘다
 Exercise 2.16(c)는 영벡터가 0이 아닌 값으로 가는 반례를 제시했다.
 (d)는 입력·출력 차원이 다르다는 이유로 비선형이라고 판단해,
 행렬곱의 덧셈·실수배 보존은 튜터 피드백으로 보완했다.
+Exercise 2.17은 변환행렬 구성과 안내받은 소거를 시도했다.
+행렬 원소·소거 부호를 교정했고, 영공간 차원 0과 상의 차원 3 및
+원래 피벗 열을 기저로 쓰는 이유는 튜터가 설명했다. 전체 무보조 해결은 아니다.
 
 ## 재확인할 항목
 
@@ -71,7 +74,7 @@ Exercise 2.16(c)는 영벡터가 0이 아닌 값으로 가는 반례를 제시�
 
 ## 다음 독립 행동
 
-다음은 MML §2.7.1에서 기저벡터의 상을 열로 모아 변환행렬을 만들고,
-공식 Exercise 2.17의 첫 요구사항인 변환행렬을 직접 구하는 것이다.
+다음은 §2.7.2에서 같은 벡터의 기저별 좌표를 연결하고 Exercise 2.20(a)의
+두 기저를 확인하고 그리는 것이다. 이후 (b)~(f)에서 좌표·변환행렬의 기저 변환을 다룬다.
 Exercise 2.12의 교집합 기저 계산은 미완료다.
 코드 실행·환경 설치·GPU 대여는 필요 없다.
