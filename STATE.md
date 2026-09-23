@@ -8,10 +8,10 @@
 - 현재 주강의: Mathematics for Machine Learning, Cambridge University Press (2020)
 - 사용 판본: 공식 사이트 배포 PDF, Draft 2024-01-15
 - 현재 범위: Chapter 2~5·7 수학 보강; 기존 설명·계산을 보존하고 부족한 부분을 본문·공식 연습문제로 연결
-- 현재 강의: Chapter 2, §2.6.1 Generating Set and Basis, 인쇄 쪽 44~47
+- 현재 강의: Chapter 2, §2.6.2 Rank, 인쇄 쪽 47~48
 - 공식 자료: https://mml-book.github.io/
 - 공식 PDF: https://mml-book.github.io/book/mml-book.pdf
-- 연결 실습: Exercise 2.11, 인쇄 쪽 66; 학습자 계수 제시·튜터 대입 확인 완료
+- 연결 실습: Exercise 2.11, 인쇄 쪽 66; 학습자 계수 제시·튜터 대입 확인 완료. 다음은 Example 2.18
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; 이번 단위는 손으로 설명·계산
 - 이전 챕터: [fast.ai 책 2장 회고](practice/deep-learning/fastai-book02-production.md)
 - CS336 Assignment 1: 기존 작업 보존, 진입 보류
@@ -50,7 +50,7 @@ Exercise 2.10(b)는 세 피벗이 남는다고 보고 독립으로 판단했다.
 추가하면 생성 가능한 범위는 같지만 집합은 종속이 된다는 구별은
 처음에 놓쳐 튜터 피드백으로 교정했다.
 Exercise 2.11에서 목표 벡터의 선형결합 계수를 정확히 구했다.
-한 벡터의 표현과 전체 공간의 기저 판별 차이는 아직 독립 설명하지 않았다.
+한 벡터의 표현과 전체 공간의 기저 판별 차이는 튜터가 연결 설명했다.
 
 ## 재확인할 항목
 
@@ -63,6 +63,6 @@ Exercise 2.11에서 목표 벡터의 선형결합 계수를 정확히 구했다.
 
 ## 다음 독립 행동
 
-다음은 MML §2.6.2 Rank에서 피벗 수·열공간 차원·기저의 관계를 연결한다.
-§2.6.1의 한 벡터 표현과 전체 공간의 기저 판별 차이는 재확인한다.
+다음은 MML §2.6.2의 Example 2.18에서 피벗 수·열공간 차원·기저를
+연결하고, 이후 공식 Exercise 2.12의 부분공간 교집합을 다룬다.
 코드 실행·환경 설치·GPU 대여는 필요 없다.
