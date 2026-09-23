@@ -8,10 +8,10 @@
 - 현재 주강의: Mathematics for Machine Learning, Cambridge University Press (2020)
 - 사용 판본: 공식 사이트 배포 PDF, Draft 2024-01-15
 - 현재 범위: Chapter 2~5·7 수학 보강; 기존 설명·계산을 보존하고 부족한 부분을 본문·공식 연습문제로 연결
-- 현재 강의: Chapter 2, §2.4.3 Vector Subspaces, 인쇄 쪽 39~40
+- 현재 강의: Chapter 2, §2.5 Linear Independence, 인쇄 쪽 40~44
 - 공식 자료: https://mml-book.github.io/
 - 공식 PDF: https://mml-book.github.io/book/mml-book.pdf
-- 연결 실습: Exercise 2.9, 인쇄 쪽 66; (a)~(d) 시도·피드백 완료
+- 연결 실습: Exercise 2.10, 인쇄 쪽 66; (a) 시도·피드백 완료, (b) 미시도
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; 이번 단위는 손으로 설명·계산
 - 이전 챕터: [fast.ai 책 2장 회고](practice/deep-learning/fastai-book02-production.md)
 - CS336 Assignment 1: 기존 작업 보존, 진입 보류
@@ -42,6 +42,8 @@ Exercise 2.9(d)는 실수배가 닫혀 있지 않음을 옳게 판단했다.
 조건을 바꾼 행렬식 0의 2×2 행렬 집합에서는 덧셈 닫힘이 깨짐을 판단했다.
 부분공간 지식 노트에는 직접 설명한 조건·반례와 피드백으로 보완한
 Exercise 2.9(b)·(c)의 판별을 함께 정리했다. 후자를 무보조 해결로 간주하지 않는다.
+Exercise 2.10(a)에서는 처음 독립으로 추측했으나, 세 번째 벡터를 앞의
+두 벡터로 표현하도록 안내받은 뒤 좌표를 검산하고 종속으로 바로잡았다.
 
 ## 재확인할 항목
 
@@ -54,6 +56,6 @@ Exercise 2.9(b)·(c)의 판별을 함께 정리했다. 후자를 무보조 해�
 
 ## 다음 독립 행동
 
-다음은 MML §2.5 Linear Independence, 인쇄 쪽 40~44의 정의와 판별을
-기존 이해에 연결하고 공식 Exercise 2.10(a), 인쇄 쪽 66을 시도하는 것이다.
+다음은 MML §2.5의 가우스 소거와 피벗 열 판별을 연결하고
+공식 Exercise 2.10(b), 인쇄 쪽 66을 시도하는 것이다.
 코드 실행·환경 설치·GPU 대여는 필요 없다.
