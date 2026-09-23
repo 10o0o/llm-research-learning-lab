@@ -8,10 +8,10 @@
 - 현재 주강의: Mathematics for Machine Learning, Cambridge University Press (2020)
 - 사용 판본: 공식 사이트 배포 PDF, Draft 2024-01-15
 - 현재 범위: Chapter 2~5·7 수학 보강; 기존 설명·계산을 보존하고 부족한 부분을 본문·공식 연습문제로 연결
-- 현재 강의: Chapter 2, §2.5 Linear Independence, 인쇄 쪽 40~44
+- 현재 강의: Chapter 2, §2.6.1 Generating Set and Basis, 인쇄 쪽 44~47
 - 공식 자료: https://mml-book.github.io/
 - 공식 PDF: https://mml-book.github.io/book/mml-book.pdf
-- 연결 실습: Exercise 2.10, 인쇄 쪽 66; (a)·(b) 시도·피드백 완료
+- 연결 실습: Exercise 2.11, 인쇄 쪽 66; 아직 미시도
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; 이번 단위는 손으로 설명·계산
 - 이전 챕터: [fast.ai 책 2장 회고](practice/deep-learning/fastai-book02-production.md)
 - CS336 Assignment 1: 기존 작업 보존, 진입 보류
@@ -61,7 +61,6 @@ Exercise 2.10(b)는 세 피벗이 남는다고 보고 독립으로 판단했다.
 
 ## 다음 독립 행동
 
-다음은 MML §2.6 Basis and Rank에서 생성 범위와 독립성의 차이를
-연결한다. 벡터를 추가할 때 생성 범위와 독립성이 어떻게 달라지는지는
-무보조 설명으로 재확인하지 않았다.
+다음은 MML §2.6.1의 생성 범위·기저 차이를 연결하고 공식 Exercise 2.11에서
+목표 벡터를 주어진 세 벡터의 선형결합으로 표현한다. §2.6.2 Rank는 아직 남았다.
 코드 실행·환경 설치·GPU 대여는 필요 없다.
