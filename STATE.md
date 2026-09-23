@@ -11,7 +11,7 @@
 - 현재 강의: Chapter 2, §2.7 Linear Mappings, 인쇄 쪽 48~50
 - 공식 자료: https://mml-book.github.io/
 - 공식 PDF: https://mml-book.github.io/book/mml-book.pdf
-- 연결 실습: Exercise 2.16(c)·(d), 인쇄 쪽 68; 아직 미시도
+- 연결 실습: Exercise 2.16(c)·(d), 인쇄 쪽 68; 시도·피드백 완료
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; 이번 단위는 손으로 설명·계산
 - 이전 챕터: [fast.ai 책 2장 회고](practice/deep-learning/fastai-book02-production.md)
 - CS336 Assignment 1: 기존 작업 보존, 진입 보류
@@ -56,6 +56,9 @@ Example 2.18에서는 원래 행렬의 피벗 열 1·2를 기저로 골랐다.
 튜터 피드백으로 보완했다.
 Exercise 2.12는 공통 벡터의 계수 관계와 좌표 검산까지 다뤘다.
 교집합의 기저를 학습자가 직접 구하는 단계는 남겼고, 요청에 따라 다음 절로 이동했다.
+Exercise 2.16(c)는 영벡터가 0이 아닌 값으로 가는 반례를 제시했다.
+(d)는 입력·출력 차원이 다르다는 이유로 비선형이라고 판단해,
+행렬곱의 덧셈·실수배 보존은 튜터 피드백으로 보완했다.
 
 ## 재확인할 항목
 
@@ -68,6 +71,7 @@ Exercise 2.12는 공통 벡터의 계수 관계와 좌표 검산까지 다뤘다
 
 ## 다음 독립 행동
 
-다음은 MML §2.7에서 선형사상의 덧셈·실수배 보존을 연결하고
-공식 Exercise 2.16(c)·(d)를 시도하는 것이다. Exercise 2.12는 미완료다.
+다음은 MML §2.7.1 Matrix Representation of Linear Mappings에서
+기저에 따른 행렬 표현과 입력·출력 차원의 관계를 연결한다.
+Exercise 2.12의 교집합 기저 계산은 미완료다.
 코드 실행·환경 설치·GPU 대여는 필요 없다.
