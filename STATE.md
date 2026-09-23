@@ -8,10 +8,10 @@
 - 현재 주강의: Mathematics for Machine Learning, Cambridge University Press (2020)
 - 사용 판본: 공식 사이트 배포 PDF, Draft 2024-01-15
 - 현재 범위: Chapter 2~5·7 수학 보강; 기존 설명·계산을 보존하고 부족한 부분을 본문·공식 연습문제로 연결
-- 현재 강의: Chapter 3, §3.8.2 Projection onto General Subspaces, 인쇄 쪽 88; 투영행렬과 정규직교 기저의 단순화
+- 현재 강의: Chapter 3, §3.8.4 Projection onto Affine Subspaces, 인쇄 쪽 90; 도입
 - 공식 자료: https://mml-book.github.io/
 - 공식 PDF: https://mml-book.github.io/book/mml-book.pdf
-- 연결 실습: Example 3.11의 계수·투영 벡터 계산 확인; 투영행렬 마무리 후 §3.8.3으로 연결
+- 연결 실습: Exercise 3.8 답변 확인 후 아핀 공간 투영의 이동·투영·복원 연결
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; 이번 단위는 손으로 설명·계산
 - 이전 챕터: [MML 2장 회고와 남은 범위](practice/math/mml-ch02-linear-algebra.md)
 - CS336 Assignment 1: 기존 작업 보존, 진입 보류
@@ -57,6 +57,9 @@ Example 3.4는 제시된 입력에서 음수 값을 직접 계산하고 양의 �
 단계는 질문 후 점곱 표기와 연결했고, 투영행렬의 멱등성까지 설명했다.
 Example 3.11의 정규방정식에 들어가는 두 행렬곱을 설명받은 뒤, 계수와
 투영 벡터를 정확히 구했다. 잔차 직교 검산은 튜터가 제공했다.
+Exercise 3.8에서 올바른 두 직교 방향을 제시했다. 학습자는 정규화까지
+계산했으나 입력 편의상 분모를 생략했다고 명확히 설명했다. 정규화 누락으로
+판정하지 않는다. 제곱근은 sqrt 표기나 말로 표현해도 허용한다.
 
 ## 재확인할 항목
 
@@ -69,7 +72,7 @@ Example 3.11의 정규방정식에 들어가는 두 행렬곱을 설명받은 �
 
 ## 다음 독립 행동
 
-관련 knowledge를 먼저 대조해 기존 내용은 짧게 연결한다. Example 3.11의
-투영행렬과 정규직교 기저일 때의 단순화를 마무리하고 §3.8.3 Gram-Schmidt로 이어간다.
+관련 knowledge를 먼저 대조해 기존 내용은 짧게 연결한다. §3.8.4에서 기준점을
+빼고 방향 공간에 투영한 뒤 기준점을 더하는 과정을 연결한다. 이후 §3.9 회전이다.
 2장 미완료는 위 회고와 남은 범위에 유지한다.
 코드 실행·환경 설치·GPU 대여는 필요 없다.
