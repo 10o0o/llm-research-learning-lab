@@ -8,10 +8,10 @@
 - 현재 주강의: Mathematics for Machine Learning, Cambridge University Press (2020)
 - 사용 판본: 공식 사이트 배포 PDF, Draft 2024-01-15
 - 현재 범위: Chapter 2~5·7 수학 보강; 기존 설명·계산을 보존하고 부족한 부분을 본문·공식 연습문제로 연결
-- 현재 강의: Chapter 3, §3.1 Norms, 인쇄 쪽 71~72; 도입부터 재개
+- 현재 강의: Chapter 3, §3.2.3 Symmetric, Positive Definite Matrices, 인쇄 쪽 73~74; 도입
 - 공식 자료: https://mml-book.github.io/
 - 공식 PDF: https://mml-book.github.io/book/mml-book.pdf
-- 연결 실습: Example 3.1 Manhattan Norm · Example 3.2 Euclidean Norm
+- 연결 실습: Example 3.3의 내적을 행렬로 표현한 뒤 Example 3.4로 연결
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; 이번 단위는 손으로 설명·계산
 - 이전 챕터: [MML 2장 회고와 남은 범위](practice/math/mml-ch02-linear-algebra.md)
 - CS336 Assignment 1: 기존 작업 보존, 진입 보류
@@ -41,6 +41,11 @@ MML 2장 본문 끝까지 대화로 다뤘다. 직접 계산·설명과 피드�
 그 밖에 미수행 연습을 완료로 추정하지 않는다. 기저 변환·상과 영공간·
 아핀 사상의 독립 설명도 미확인으로 유지한다.
 
+3장에서는 노름 조건, 점곱과 길이, 일반 내적을 설명했다.
+학습자는 대칭성과 각 입력에 대한 선형성을 말했으며, 양의 정부호성을
+비음수 조건으로 표현해 영벡터가 아닌 경우의 엄격한 양수 조건을 교정했다.
+Example 3.3의 자기 내적을 제곱합으로 정리하는 계산은 튜터가 제공했다.
+
 ## 재확인할 항목
 
 - 새 커널 전체 재현과 배포 환경 동작은 미검증이다.
@@ -52,7 +57,7 @@ MML 2장 본문 끝까지 대화로 다뤘다. 직접 계산·설명과 피드�
 
 ## 다음 독립 행동
 
-Chapter 3 §3.1에서 노름의 의미와 조건을 읽고 Example 3.1·3.2의
-맨해튼·유클리드 노름으로 같은 벡터의 길이를 비교한다.
+§3.2.3에서 내적 규칙의 행렬 표현을 연결하고, Example 3.4의 두 대칭행렬이
+양의 정부호인지 자기 내적의 부호로 판단한다.
 2장 미완료는 위 회고와 남은 범위에 유지한다.
 코드 실행·환경 설치·GPU 대여는 필요 없다.
