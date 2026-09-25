@@ -136,3 +136,16 @@ MLP에서 다시 연결한 초기화·수동 SGD는
 - [벡터 부분공간](./math/vector-subspaces.md): 영벡터와 덧셈·실수배 닫힘
 - [선형독립과 생성 공간](./math/linear-independence-and-span.md): 피벗 판별과 조합 벡터 추가
 - [아핀 공간과 아핀 사상](./math/affine-spaces-and-mappings.md): 평행이동과 선형성의 구별
+
+## MML 3장에서 연결한 개념
+
+[3장 회고](../practice/math/mml-ch03-analytic-geometry.md)에 직접 설명·계산,
+해설로 교정한 부분, 장말 무보조 회상에서 복원되지 않은 내용을 구분했다.
+
+- [회전행렬과 Givens 회전](./math/rotation-matrices.md): 기저벡터의 상, 능동 회전과 기저 좌표, 보존 성질, 고차원 평면 회전
+- [벡터 내적과 코사인 유사도](./math/dot-product-cosine-similarity.md): 유클리드 점곱과 방향 관계
+- [벡터 L2 정규화](./math/vector-l2-normalization.md): 노름과 단위벡터
+- [최소제곱과 잔차 직교성](./math/least-squares-residual-orthogonality.md): 투영과 직교 잔차의 기존 연결
+
+일반 내적의 조건과 비정규직교 기저·아핀 부분공간 투영은 장말에 무보조로
+복원되지 않아 새 지식 노트로 대신 작성하지 않았다.
