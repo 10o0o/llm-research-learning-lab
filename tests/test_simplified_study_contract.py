@@ -61,17 +61,18 @@ def _budget_table() -> tuple[list[str], dict[str, list[int]], list[int]]:
 def test_plain_study_phrases_use_state() -> None:
     agents = _normalized("AGENTS.md")
     for phrase in (
-        "`오늘 학습 시작`: teach one connected module",
+        "`오늘 학습 시작`",
         "`오늘 전체 학습 흐름 시작` or `전체 학습 흐름 시작`",
-        "`계속`: resume the next independent action written in `STATE.md`",
-        "`오늘 학습 종료`: stop",
+        "`계속`",
+        "`오늘 학습 종료`",
+        "`이번 주 회상`",
+        "$study-session",
     ):
         assert phrase in agents
-    assert "There is no fallback route" in agents
-    assert "follow one connected segment of the approved original course" in agents
-    assert "Do not start ordinary study with a new readiness diagnostic or roadmap review" in agents
-    assert "Do not enter a new course or assignment automatically" in agents
-    assert "Never invent video content, timestamps, or learner viewing progress" in agents
+    assert "resume the next independent action in `STATE.md`" in agents
+    assert "never enter another course automatically" in agents
+    assert "Do not begin with a new readiness diagnostic or roadmap review" in agents
+    assert "Never invent source content, timestamps, or learner viewing progress" in agents
 
 
 def test_study_route_does_not_restore_fixed_entry_gates() -> None:
@@ -86,33 +87,26 @@ def test_study_route_does_not_restore_fixed_entry_gates() -> None:
             "Pilot의 주축은",
         ):
             assert obsolete not in text
-    for path in ("README.md", "USAGE.md"):
-        text = _normalized(path)
-        assert "현재 주강의 단원으로 연결" in text
-        assert "공식 API 문서" in text
     agents = _normalized("AGENTS.md")
-    assert "then return to the same course" in agents
     assert "Readiness does not cancel unfinished CS224N assignments or its project" in agents
 
 
 def test_official_practice_is_preserved_across_teaching_media() -> None:
     agents = _normalized("AGENTS.md")
     for rule in (
-        "Video, text, and source-grounded dialogue are allowed",
-        "KANT is only for topic/progress comparison, not default practice or a completion criterion",
-        "Follow along with the full lecture implementation",
-        "attempt separate exercises independently",
-        "Completed instructor notebooks are references",
-        "Supplementary AI examples cannot replace official practice",
-        "Read the actual exercise requirements when assigning it",
-        "leave affected work incomplete",
-        "local tests or reviews are not official university grading",
+        "Use official course implementations, exercises, and assignments as primary practice",
+        "inspect actual requirements before assigning them",
+        "KANT is comparison-only",
+        "supplementary examples and completed instructor notebooks do not replace official practice",
+        "limits as incomplete",
+        "Preserve Optional/Bonus labels",
+        "do not describe dialogue as video viewing or local checks as official university grading",
     ):
         assert rule in agents
     assert "must not replace viewing it" not in agents
     assert "existing KANT practice for application" not in agents
 
-    for path in ("README.md", "USAGE.md", "practice/README.md", "ROADMAP.md"):
+    for path in ("practice/README.md", "ROADMAP.md"):
         text = _normalized(path)
         assert "KANT는 진도·주제 대조용" in text
         assert "기본 실습이나 완료 기준으로 사용하지 않습니다" in text
@@ -122,8 +116,6 @@ def test_official_practice_is_preserved_across_teaching_media() -> None:
         assert "미완료" in text
         assert "기존 KANT 과제가 실습 역할" not in text
         assert "기존 KANT 실습에 연결" not in text
-    for path in ("README.md", "USAGE.md"):
-        assert "기준 자료·판본 → 직접 링크 → 이번 설명 범위 → 수행할 공식 실습 → 확인할 결과" in _normalized(path)
 
 
 def test_cs224n_assignments_are_performed_with_the_official_ai_policy() -> None:
@@ -133,7 +125,7 @@ def test_cs224n_assignments_are_performed_with_the_official_ai_policy() -> None:
     assert "AI collaboration is allowed but direct answer solicitation, copying answers, and substantial completion by AI are prohibited" in agents
     assert "Only the CS224N Final Project is held" in agents
     assert "Only the user may change or omit agreed practice" in agents
-    for path in ("README.md", "USAGE.md", "practice/README.md"):
+    for path in ("practice/README.md",):
         text = _normalized(path)
         assert "A1~A4" in text
         assert "`P3`" in text
@@ -375,7 +367,7 @@ def test_graded_coursework_stays_out_of_the_public_repository() -> None:
     for artifact in ("written answers", "code", "notebooks", "saved outputs"):
         assert artifact in boundary
     assert "never assignment code, official problem statements, or copyrighted course material" in boundary
-    for path in ("README.md", "USAGE.md", "practice/README.md", "ROADMAP.md"):
+    for path in ("practice/README.md", "ROADMAP.md"):
         paragraphs = re.split(r"\n\s*\n", _raw(path))
         private_boundary = next(
             paragraph for paragraph in paragraphs
@@ -399,20 +391,17 @@ def test_operating_documents_stay_tool_neutral() -> None:
     assert "One session at a time" in agents
     assert "not a second chance to be handed an answer" in agents
     assert "the official source settles it, not the more confident assistant" in agents
-    usage = _normalized("USAGE.md")
-    assert "AI 도구를 두 개 쓸 때" in usage
-    assert "동시에 두 개를 돌리지 않습니다" in usage
-    assert "답을 받아낼 두 번째 기회가 아닙니다" in usage
 
 
 def test_usage_documents_the_session_loop() -> None:
-    usage = _normalized("USAGE.md")
-    assert "하루 세션 운영" in usage
-    assert "한 세션은 **모듈 하나**입니다" in usage
-    # Confirmed resume changes do not need a separate approval turn.
-    assert "STATE.md는 확인된 재개 위치에 맞춰 사전 승인 없이 갱신됩니다" in usage
-    for standing in ("빈 파일 재구현", "deep-ml", "논문", "무보조 구술", "전환 점검"):
-        assert standing in usage
+    # User guides expose the requests and link to the authoritative procedure;
+    # they need not repeat every course or permission rule verbatim.
+    for path in ("README.md", "USAGE.md"):
+        text = _raw(path)
+        for request in ("오늘 학습 시작", "계속", "오늘 학습 종료", "이번 주 회상", "$study-session"):
+            assert request in text, (path, request)
+        for target in ("AGENTS.md", "STATE.md", "ROADMAP.md", ".agents/skills/study-session/SKILL.md"):
+            assert re.search(r"\]\(\.?/?" + re.escape(target) + r"(?:#[^)]*)?\)", text), (path, target)
 
 
 def test_state_updates_without_prior_approval_from_confirmed_evidence() -> None:
@@ -421,9 +410,6 @@ def test_state_updates_without_prior_approval_from_confirmed_evidence() -> None:
     assert "distinguish completed work, planned work, and unverified claims" in agents
     assert "does not authorize a new course, a sequence change" in agents
     assert "At a Phase transition, run the `ROADMAP.md` check first" in agents
-    usage = _normalized("USAGE.md")
-    assert "사전 제안이나 승인 없이 갱신" in usage
-    assert "미실행 계획과 확인되지 않은 이해를 완료로 기록하지" in usage
     for path, obsolete in (
         ("AGENTS.md", "write it only after explicit approval"),
         ("README.md", "STATE 승인 후"),
@@ -436,30 +422,22 @@ def test_state_updates_without_prior_approval_from_confirmed_evidence() -> None:
 
 def test_phase_id_in_state_does_not_reopen_progress_tracking() -> None:
     agents = _normalized("AGENTS.md")
-    usage = _normalized("USAGE.md")
     assert "The Phase ID is a static pointer into `ROADMAP.md`" in agents
     assert "Never add a percentage, a score, a readiness judgement, an hour tally" in agents
     assert "a Phase ID is not an opening to bring them back" in agents
     assert "hashes, readiness scores, session history, or metrics" in agents
-    assert "현재 `ROADMAP.md`의 정적 Phase ID 하나 (`P0`~`P5`)" in usage
-    assert "Phase 변경은 ROADMAP 전환 점검과 기존 과정 선택 규칙을 따릅니다" in usage
-    assert "자동 또는 요청에 따른 STATE 갱신은 `STATE.md` 수정만 허용합니다" in usage
-    assert "hash, phase, 점수표" not in usage
 
 
 def test_understanding_is_verified_by_unassisted_recall() -> None:
-    """Coverage is not evidence; the repo needs a mechanism that tests recall."""
+    """Evidence and artifact permissions stay in the shared contract.
+
+    Tutoring behavior is exercised separately with isolated response cases;
+    matching prose in several guides cannot establish tutor compliance.
+    """
     agents = _normalized("AGENTS.md")
-    assert "Verifying understanding, not coverage" in agents
-    assert "Knowledge notes are drafted unassisted, then compared" in agents
-    assert "Never draft the note first and have the learner confirm it" in agents
-    assert "blank-page explanation" in agents
-    assert "two concepts from the previous week and one older concept, cold" in agents
+    assert "Tutor explanations, assent, file existence, successful execution, and green tests alone do not establish understanding" in agents
+    assert "Confirm the learner's unassisted concept drafts before knowledge edits or workspace reset" in agents
     assert "explains the whole Phase without notes" in agents
-    assert "reuses your own earlier phrasing is not evidence" in agents
-    assert "1-2 minute unassisted explanation" in agents
-    assert "one changed-condition case" in agents
-    assert "one complete response covering what is correct, incorrect, and missing" in agents
     assert "representative implementation units" in agents
     assert "Do not require rewriting every module's full implementation or entire assignments" in agents
 
@@ -467,7 +445,7 @@ def test_understanding_is_verified_by_unassisted_recall() -> None:
     assert "교정할 knowledge 초안은 대화·강의·기존 노트를 닫고 학습자가 기억으로 먼저" in knowledge
     assert "그 초안 이후에만 공식 자료와 대조" in knowledge
     assert "AI가 면접 답변집이나 완성 노트를 먼저 작성하지 않습니다" in knowledge
-    for path in ("README.md", "USAGE.md", "ROADMAP.md"):
+    for path in ("ROADMAP.md",):
         text = _normalized(path)
         assert "지난주 개념 2개와 더 이전 개념 1개" in text, path
         assert "초안" in text, path
@@ -525,7 +503,8 @@ def test_standalone_utilities_keep_their_explicit_no_commit_contract() -> None:
     actual = {
         path.parent.name for path in (REPO / ".agents/skills").glob("*/SKILL.md")
     }
-    assert actual == expected | {"finish-chapter"}
+    # Utility permissions do not depend on the number of unrelated skills.
+    assert expected | {"finish-chapter"} <= actual
 
     for name in expected:
         entrypoint = _normalized(f".agents/skills/{name}/SKILL.md")
@@ -533,6 +512,34 @@ def test_standalone_utilities_keep_their_explicit_no_commit_contract() -> None:
         assert "Use only when the learner" in entrypoint
         assert "Commit and push each require a separate explicit request" in entrypoint
         assert "allow_implicit_invocation: false" in manifest
+
+
+def test_study_skill_is_reachable_through_the_shared_contract() -> None:
+    skill = REPO / ".agents/skills/study-session/SKILL.md"
+    assert skill.is_file()
+    assert ".agents/skills/study-session/SKILL.md" in _raw("AGENTS.md")
+    claude = REPO / "CLAUDE.md"
+    assert claude.is_symlink()
+    assert claude.resolve() == REPO / "AGENTS.md"
+
+    content = skill.read_text(encoding="utf-8")
+    frontmatter = re.match(r"\A---\n(.*?)\n---\n", content, re.DOTALL)
+    assert frontmatter is not None
+    assert re.search(r"^name: study-session$", frontmatter.group(1), re.MULTILINE)
+    assert re.search(r"^description:.*\S", frontmatter.group(1), re.MULTILINE)
+    manifest = _normalized(".agents/skills/study-session/agents/openai.yaml")
+    assert "allow_implicit_invocation: true" in manifest
+    assert "$study-session" in manifest
+
+    # These are resolvable instruction resources, not a learning-state engine.
+    assert not (skill.parent / "scripts").exists()
+    reference = skill.parent / "references/tutor-cases.md"
+    assert reference.is_file()
+    assert "references/tutor-cases.md" in content
+    for target in re.findall(r"\[[^\]\n]+\]\(([^\s)]+)\)", content):
+        if "://" in target or target.startswith("#"):
+            continue
+        assert (skill.parent / target.split("#", 1)[0]).resolve().exists(), target
 
 
 def test_chapter_wrap_up_defaults_to_confirmed_transitions_only() -> None:
@@ -583,10 +590,8 @@ def test_state_is_a_public_bookmark_with_one_next_action() -> None:
 
 def test_state_update_is_edit_only() -> None:
     agents = _normalized("AGENTS.md")
-    usage = _normalized("USAGE.md")
     assert "Updating `STATE.md`, automatically or on request, authorizes only the file edit" in agents
     assert "It does not authorize a commit or push" in agents
-    assert "자동 또는 요청에 따른 STATE 갱신은 `STATE.md` 수정만 허용합니다" in usage
 
 
 def test_cs336_uses_a_separate_python_environment() -> None:
@@ -594,16 +599,9 @@ def test_cs336_uses_a_separate_python_environment() -> None:
     assert pyproject["project"]["requires-python"] == ">=3.14,<3.15"
 
     agents = _normalized("AGENTS.md")
-    readme = _normalized("README.md")
-    usage = _normalized("USAGE.md")
     assert "learning lab's Python 3.14 environment" in agents
     assert "separate sibling clone" in agents
     assert "Python 3.12 or 3.13" in agents
-    for text in (readme, usage):
-        assert "learning-lab의 Python 3.14 환경" in text
-        assert "별도 sibling clone" in text
-        assert "Python 3.12 또는 3.13" in text
-        assert "현재 `.venv`" in text
 
 
 def test_private_material_count_and_registry_snapshot_do_not_claim_live_validation() -> None:
@@ -625,25 +623,8 @@ def test_cs336_command_policy_is_consistent() -> None:
     assert "Do not provide code, pseudocode, patches, or TODO solutions, even after an explicit request" in agents
     assert "a158843b20107949f1a8d7df1b05cd33b9166712" in agents
 
-    for path in ("README.md", "USAGE.md"):
-        text = _normalized(path)
-        assert "학습자가 과제 코드를 직접 작성하고 제공된 테스트를 실행" in text
-        assert "학습자가 모든 bash command를 직접 실행" in text
-        assert "assignment repo에서 command를 실행하지 않습니다" in text
-        assert "공식 handout에 이미 나온 command의 의미와 학습자가 제공한 실행 결과" in text
-        assert "과제 해결·자동화를 위한 새로운 command sequence" in text
-        assert "코드, pseudocode, patch, TODO 해답" in text
-        assert "a158843b20107949f1a8d7df1b05cd33b9166712" in text
-
-
 def test_error_hypothesis_is_required_only_after_an_error() -> None:
     agents = _normalized("AGENTS.md")
-    assert "if an error occurs" in agents
-    assert "before changing the code and how it was checked" in agents
-
-    korean_docs = [_normalized(path) for path in ("README.md", "USAGE.md")]
-    for text in korean_docs:
-        assert "오류가 발생했다면" in text
-        assert "수정 전에 세운 첫 원인 가설" in text
-        assert "이를 확인한 방법" in text
-        assert "첫 오류 가설" not in text
+    assert "If an error occurred" in agents
+    assert "first cause hypothesis formed before changing the code and how they checked it" in agents
+    assert "do not require an error when none occurred" in agents

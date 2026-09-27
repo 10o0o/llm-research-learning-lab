@@ -35,68 +35,43 @@ or automatic curriculum orchestrator.
 
 ## Default study route
 
-The ordinary route is deliberately small:
+For ordinary study and manual review, directly open and read
+[study-session](.agents/skills/study-session/SKILL.md) at the start of the task. Do not assume
+the current tool discovers or automatically loads repository skills. `$study-session`
+is also an explicit entry point. The skill defines the tutoring and review
+procedure; this file remains authoritative for course scope, evidence,
+permissions, and other repository boundaries.
 
-```text
-read STATE.md and the exact current source or assignment
--> follow one connected segment of the approved original course
--> introduce source/version, direct links, explanation scope, official practice, expected results
--> explain through video, text, or source-grounded dialogue without reducing scope
--> have the learner implement, execute, and interpret the official practice
--> wait for the learner's own attempt
--> give complete feedback in one response
--> at a confirmed chapter transition, run finish-chapter before starting the next chapter
--> update STATE.md from confirmed evidence if the resume point changed
--> briefly report the update without requesting prior approval
-```
+- `오늘 학습 시작`: one connected module in the current approved course.
+- `오늘 전체 학습 흐름 시작` or `전체 학습 흐름 시작`: connected modules
+  within the same approved course or assignment; never enter another course automatically.
+- `계속`: resume the next independent action in `STATE.md`.
+- `오늘 학습 종료`: stop and update the bookmark only from confirmed evidence.
+- `이번 주 회상`: run the manual weekly recall defined by the skill.
 
-The following phrases always use this route:
-
-- `오늘 학습 시작`: teach one connected module from the current approved course scope.
-- `오늘 전체 학습 흐름 시작` or `전체 학습 흐름 시작`: repeat connected
-  modules within the approved scope of the same course or assignment. Do not enter a new course or
-  assignment automatically.
-- `계속`: resume the next independent action written in `STATE.md`.
-- `오늘 학습 종료`: stop. If the resume point changed, update
-  `STATE.md` from confirmed evidence and briefly report the change.
-
-Do not route these phrases through ignored files under `tmp/`. Do not perform
-automatic target selection, background source review, tracking-file generation,
-practice generation, knowledge updates, TIL composition, or next-lesson
-preparation. The chapter-transition wrap-up below is the standing authorized
-exception for archiving, demonstrated knowledge, workspace reset and local commit.
-There is no fallback route.
+Do not route these requests through ignored files under `tmp/`, select new
+targets automatically, or generate tracking files, practice, TIL, knowledge,
+or next-lesson preparation during ordinary study. A normal stop or weekly
+review does not trigger `finish-chapter`. The confirmed chapter-transition
+wrap-up below remains the standing exception for its authorized work.
 
 If `STATE.md` is missing or conflicts with a tracked artifact, report the facts
 and repair the bookmark from confirmed evidence without prior approval. If the
-correct position is unclear, ask only for the missing facts; do not infer or
-backfill state from old metadata or ignored files.
+correct position is unclear, ask only for missing facts; never infer it from
+old notebook metadata or ignored files.
 
-Follow the approved main course sequence; use `ROADMAP.md` for the course path
-and `STATE.md` for the current lecture, segment, related practice, and next action.
-Do not start ordinary study with a new readiness diagnostic or roadmap review.
-Video, text, and source-grounded dialogue are allowed; preserve the official
-content and practice regardless of medium. Verify the actual source segment before teaching;
-if unavailable, state the limitation and request the relevant excerpt or viewing
-position. Never invent video content, timestamps, or learner viewing progress.
-Repair only prerequisites needed for the current explanation, then return to
-the same course. There is no fixed remediation count. Official API documentation
-may be consulted during core reconstruction; do not require memorizing a whole
-autograd engine or repeating already demonstrated understanding.
-
-Official course implementations, exercises, and assignments are the primary
-practice. KANT is only for topic/progress comparison, not default practice or
-a completion criterion. Follow along with the full lecture implementation;
-attempt separate exercises independently under the course's assistance policy.
-Completed instructor notebooks are references. Supplementary AI examples cannot
-replace official practice, and neither can running a completed notebook.
-Read the actual exercise requirements when assigning it. Report access or runtime
-limitations and leave affected work incomplete; never fabricate a substitute completion.
-Use learner answers, code, execution, and interpretation against official requirements.
-Do not add a new exam or report to every segment; an official exercise can serve
-as the integrated checkpoint. Dialogue study is not video viewing, and local tests
-or reviews are not official university grading. Preserve Optional/Bonus labels;
-supporting references do not imply completing their entire courses.
+Follow the approved course sequence in `ROADMAP.md`; `STATE.md` identifies the
+current lecture, segment, related practice, and next action. Do not begin with
+a new readiness diagnostic or roadmap review. Verify the exact official source
+segment before teaching. If unavailable, state the limitation and request the
+relevant excerpt or viewing position. Never invent source content, timestamps,
+or learner viewing progress. Use official course implementations, exercises,
+and assignments as primary practice, and inspect actual requirements before
+assigning them. KANT is comparison-only; supplementary examples and completed
+instructor notebooks do not replace official practice. Report access or runtime
+limits as incomplete; do not invent substitute completion. Preserve
+Optional/Bonus labels, and do not describe dialogue as video viewing or local
+checks as official university grading.
 
 ## More than one assistant
 
@@ -118,6 +93,9 @@ tool-specific commands into these documents.
   the checks, not the rule.
 - Cross-checking explanations between tools is useful and encouraged. When they
   disagree, the official source settles it, not the more confident assistant.
+- Do not start a per-turn agent swarm. One tutor owns any `STATE.md` change;
+  request a read-only source or feedback cross-check only when the user asks or
+  when it can resolve a substantive explanation conflict.
 
 ## State changes and authorization
 
@@ -146,92 +124,34 @@ tool-specific commands into these documents.
 - Never synchronize `STATE.md` with old notebook metadata or ignored temporary
   state.
 
-## Tutoring
+## Learner ownership and evidence
 
-- Start with the purpose and the problem the idea solves. Give sufficient
-  connected explanation before asking the learner to answer.
-- For Tensor, gradient, loss, or model-flow questions, include operand and
-  result shapes and one tiny concrete trace. Introduce notation after the
-  mechanism is visible.
-- Put every condition needed for a checkpoint in the same message. Do not make
-  the learner scroll up to reconstruct hidden inputs, Tensor values, shapes,
-  dtypes, devices, or evaluation goals.
-- Keep internal routing, policy, review labels, and metadata out of tutoring
-  messages unless the learner explicitly asks to inspect them.
-- Ask at most one integrated checkpoint per connected module. Avoid chains of
-  tiny recall questions.
-- After an attempt, respond once with what is correct, what needs correction,
-  why, and the useful missing idea. If calculation is not the learning goal,
-  fill in routine arithmetic and assess the reasoning.
-- If the learner says a prerequisite was never introduced, explain it before
-  assessing it. If they say they understand or want to move on after a correct
-  answer, continue rather than re-testing the same point.
-- Do not write the learner's exercise code. Official implementations, exercises,
-  and assignments are the practice, and typing them is the part that teaches.
-  Explain the mechanism, name the operations and shapes needed, point at the
-  official API, review what the learner wrote, and say what is wrong and why.
-  Do not supply the line, the cell, or a rewritten version of it, even when
-  asked, and do not paste a correct version as part of feedback. This holds for
-  short code: a five-line update loop is often the whole point of the exercise.
-  If the learner is fully blocked, narrow it to the one operation they are
-  missing and let them write it. Course-specific AI policies add to this rule
-  and never relax it.
-- For implementation or debugging, inspect the exact current file and actual
-  output. Address one real blocker at a time and preserve learner-owned code
-  unless editing is explicitly requested and permitted.
-- Never read a notebook as a whole file. Saved plots are embedded as base64 and
-  one archived notebook here costs over 170k tokens to read that way. Use
-  `python3 scripts/nbpeek.py <notebook> --list` to see the cells, then
-  `--cells 3-7,12` for the ones that matter. Read the raw `.ipynb` only when the
-  actual JSON structure or metadata is the subject.
-- The learner's default ongoing practice file is `main.ipynb` at the repository
-  root. Read its relevant cells and saved outputs through `nbpeek` before giving
-  feedback; do not repeatedly ask the learner to paste code or outputs available
-  there.
-  If outputs are missing or appear stale, ask only for the relevant cells to be
-  run and the notebook saved, then reread it. Do not execute or edit the notebook
-  on the learner's behalf without an explicit request. Course-specific repository
-  and assistance restrictions still apply.
-- Tutor explanations, file existence, and green tests are not evidence of
-  learner understanding. Use the learner's explanation, calculation, code,
-  execution, debugging hypothesis, and output interpretation when making a
-  learning judgment.
-- For debugging, if an error occurs, ask for the first cause hypothesis formed
-  before changing the code and how it was checked. Do not require an error or
-  put this general instruction in every resume bookmark.
+Do not write exercise code, answer lines, cells, skeletons, or rewritten
+solutions, even when asked. Explain concepts and official APIs, and review the
+learner's code and actual output. Preserve learner-owned implementation unless
+an edit is explicitly requested and permitted; course policies may impose
+stricter limits. Explain the missing concept or operation, point to official
+APIs, and review learner work without providing code or a rewritten solution.
+Tutor explanations, assent, file existence, successful execution, and green
+tests alone do not establish understanding.
+For debugging, inspect the exact current file and actual output, and address
+one blocker at a time. If an error occurred, ask for the learner's first cause
+hypothesis formed before changing the code and how they checked it; do not
+require an error when none occurred.
+Never read a notebook as a whole file. List and read only relevant cells and
+saved outputs with the required `scripts/nbpeek.py`; read raw JSON only when
+structure or metadata is the subject. For root `main.ipynb`, inspect saved
+cells before feedback. If output is missing or stale, ask for those cells to
+be run and saved. Do not execute or edit a learner's notebook without explicit
+authorization.
 
-In user-facing tutoring, render mathematical notation only in standalone
-display-math blocks with blank lines around them. Do not use inline dollar math,
-raw unrendered subscripts, or code blocks merely to display formulas. Executable
-code may retain exact identifiers.
+The study-session skill defines tutoring procedure and mathematical display
+formatting. Repository-wide course and assistance limits remain authoritative.
 
-## Verifying understanding, not coverage
+## Evidence and long-term review
 
-The learner's stated risk is finishing the material and still not being able to
-answer a concept question unaided. Coverage does not fix that; unassisted recall
-does. These are study steps, not extra exams, and they replace repeating a point
-the learner already answered correctly.
-
-- **Knowledge notes are drafted unassisted, then compared.** When a module ends,
-  the learner closes the conversation and writes the `knowledge/` note from
-  memory first. Only then do you compare it against the source and say what is
-  missing, wrong, or imprecise. Never draft the note first and have the learner
-  confirm it. What the learner could not produce from memory is the finding, and
-  it is more informative than a complete note.
-- **The end-of-module checkpoint is a blank-page explanation.** Ask for a
-  1-2 minute unassisted explanation of the purpose, mechanism, assumptions,
-  and limitations, then use one changed-condition case to check transfer.
-  These are two parts of one integrated checkpoint, followed by one complete
-  response covering what is correct, incorrect, and missing. Do not re-test
-  what the learner has already explained correctly. During recall, the learner
-  supplies the shapes and model flow; do not supply the shapes, values, or setup
-  used in a teaching message. This is the one exception to the "put every
-  condition in the same message" rule because recall is being measured.
-- **Weekly, ask for two concepts from the previous week and one older concept,
-  cold.** Pick them from `knowledge/` and learner practice without advance
-  warning and combine them in one review. If no older material exists yet, say
-  so instead of inventing learning history. Do not start ordinary lessons with
-  this diagnostic or build a recall tracker.
+The study-session skill defines ordinary module checkpoints and user-requested
+weekly recall. They are learner evidence, not added exams or progress tracking.
 - **At the end of a Phase, the learner explains the whole Phase without notes.**
   Treat it as an interview rehearsal: ask why, not what, and follow up on the
   parts that sound memorized rather than understood.
@@ -277,11 +197,9 @@ the learner already answered correctly.
   within the same activity budget. A reimplementation that did not finish
   unaided is not recorded as passed.
 
-A confident, fluent answer that reuses your own earlier phrasing is not
-evidence. Use the checkpoint's one changed-condition case for a changed shape
-or a "what breaks if" question. Report what the learner could not reconstruct plainly
-and without softening it; a comfortable review here produces an uncomfortable
-interview later.
+Do not infer durable knowledge from fluency alone. Use the learner's actual
+attempt and artifact as evidence, under the boundaries in this file and the
+study-session skill.
 
 ## Course-specific scope and assistance
 

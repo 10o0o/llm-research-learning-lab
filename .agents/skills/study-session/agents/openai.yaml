@@ -1,0 +1,7 @@
+interface:
+  display_name: "학습 세션"
+  short_description: "현재 승인된 학습 코스를 이어가고 주간 회상 진행"
+  default_prompt: "$study-session으로 현재 승인된 코스를 이어 학습하거나 이번 주 회상을 진행해 주세요."
+
+policy:
+  allow_implicit_invocation: true
