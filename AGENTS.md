@@ -46,7 +46,9 @@ permissions, and other repository boundaries.
 - `오늘 전체 학습 흐름 시작` or `전체 학습 흐름 시작`: connected modules
   within the same approved course or assignment; never enter another course automatically.
 - `계속`: resume the next independent action in `STATE.md`.
-- `오늘 학습 종료`: stop and update the bookmark only from confirmed evidence.
+- `오늘 학습 종료` (or an equivalent explicit study-stop request): stop, update
+  the bookmark from confirmed evidence, then validate, commit, and push the
+  session's authorized changes using the study-session closing procedure.
 - `이번 주 회상`: run the manual weekly recall defined by the skill.
 
 Do not route these requests through ignored files under `tmp/`, select new
@@ -120,7 +122,8 @@ tool-specific commands into these documents.
   This edit permission does not authorize a new course, a sequence change,
   skipped requirements, or unverified Phase completion.
 - Updating `STATE.md`, automatically or on request, authorizes only the file edit.
-  It does not authorize a commit or push.
+  An explicit study-stop request is the standing exception: the learner has
+  authorized a scoped commit and push without another confirmation.
 - Never synchronize `STATE.md` with old notebook metadata or ignored temporary
   state.
 
@@ -347,8 +350,9 @@ review as open questions, not as established knowledge.
 Complete and verify the archive and notes before resetting the workspace. Update
 STATE from confirmed evidence without prior approval, then run affected checks.
 The wrap-up's previously authorized local commit proceeds without another commit
-question. Standalone STATE updates are still edit-only.
-Unrelated changes are excluded unless explicitly included; push is never implied.
+question. Standalone STATE updates are still edit-only except at an explicit
+study stop. Unrelated changes are excluded unless explicitly included; a chapter
+wrap-up alone does not authorize push, while the study-stop procedure does.
 
 ### Standalone writing and sources
 
@@ -394,7 +398,8 @@ python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py k
   `uv lock --check`, and `git diff --check` from this learning lab.
 - Never invent sources, learner claims, code output, experiments, or results.
 - Do not commit or push unless the learner explicitly asks for that specific
-  operation. An explicit or default chapter-transition wrap-up includes its scoped local commit
+  operation or invokes the authorized study-stop procedure (scoped commit and push).
+  An explicit or default chapter-transition wrap-up includes its scoped local commit
   as described above. A commit request never implies push permission. Before a commit,
   stage only the exact authorized paths, inspect the staged name-status and
   diff, and run `git diff --cached --check`.

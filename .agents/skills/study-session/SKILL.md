@@ -12,11 +12,32 @@ Follow the repository's [AGENTS.md](../../../AGENTS.md) for course scope, eviden
 - `오늘 학습 시작`: one connected module in the current approved course.
 - `오늘 전체 학습 흐름 시작` or `전체 학습 흐름 시작`: connected modules within that same approved course or assignment.
 - `계속`: resume the next independent action in `STATE.md`.
-- `오늘 학습 종료`: stop; update the existing bookmark only when the resume position changed and the evidence and edit are authorized by AGENTS.
+- `오늘 학습 종료` or an equivalent explicit study-stop request: stop and follow the closing procedure below, including the authorized commit and push.
 - `이번 주 회상`: run the manual weekly recall below.
 - `$study-session`: follow the requested study or review mode.
 
 Do not choose a new target, change sequence, skip official scope, route to another course automatically, or insert per-turn confirmations or readiness gates. Do not create separate tracking artifacts. Give the exact source title and version, direct link, assigned scope, official practice, and expected outputs. Verify details against the source and actual practice requirements. Video, text, and source-grounded dialogue are all valid ways to learn; do not describe dialogue as video viewing. The learner completes full lecture implementations and official exercises. Keep each official exercise a separate learner task and follow its AI and environment policies. A tutor example or completed notebook must never replace learner practice.
+
+## Close a study session
+
+The learner has authorized automatic commit and push at an explicit study stop;
+do not ask for confirmation again. Update the existing STATE bookmark from
+confirmed evidence, preserving unanswered work as the next action. This does
+not authorize new notes, practice artifacts, or a chapter wrap-up by itself.
+
+Inspect the working tree and include only STATE and other already-authorized
+changes from this study session. Preserve unrelated edits and staged changes;
+never use blanket staging. Apply AGENTS publication restrictions and required
+validation, inspect the exact staged paths and diff, run the staged diff check,
+and commit. If there are no scoped changes, do not create an empty commit.
+
+Check the current branch, configured upstream, and every outgoing commit before
+pushing; include prior authorized study commits awaiting publication. Push to
+the configured upstream without force. If the destination is unclear, unrelated
+outgoing commits cannot be safely separated, or validation/authentication/push
+fails, preserve the work and report the specific blocker. Do not reset, force
+push, or rewrite history to complete this procedure. Verify remote success and
+report the commit, destination, and next resume action briefly.
 
 ## Teach and review
 

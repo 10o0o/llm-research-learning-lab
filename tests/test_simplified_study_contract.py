@@ -588,10 +588,11 @@ def test_state_is_a_public_bookmark_with_one_next_action() -> None:
         assert forbidden not in state
 
 
-def test_state_update_is_edit_only() -> None:
+def test_state_update_is_edit_only_except_explicit_study_stop() -> None:
     agents = _normalized("AGENTS.md")
     assert "Updating `STATE.md`, automatically or on request, authorizes only the file edit" in agents
-    assert "It does not authorize a commit or push" in agents
+    assert "An explicit study-stop request is the standing exception" in agents
+    assert "authorized a scoped commit and push without another confirmation" in agents
 
 
 def test_cs336_uses_a_separate_python_environment() -> None:
