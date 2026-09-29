@@ -4,7 +4,7 @@
 
 ## 보관한 실습
 
-- [MML 4장 진행 중 기록](./math/mml-ch04-matrix-decompositions.md): 기존 북마크의 §4.1~4.2 관찰과 재확인 항목을 옮겼으며, 장 완료나 노트북 보관본을 뜻하지 않습니다.
+- [MML 4장 회고](./math/mml-ch04-matrix-decompositions.md): 본문·선택 연습의 직접 설명과 계산, 튜터 계산, 보류 증명을 구분했다. 빈 작업 노트북은 새 보관본을 만들지 않았다.
 
 - [MML 2장 회고](./math/mml-ch02-linear-algebra.md): 대화 계산·설명과 교정,
   미완료 연습을 구분했다. 빈 작업 노트북은 새 보관본을 만들지 않았다.

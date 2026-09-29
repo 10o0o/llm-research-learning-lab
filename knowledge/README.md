@@ -149,3 +149,15 @@ MLP에서 다시 연결한 초기화·수동 SGD는
 
 일반 내적의 조건과 비정규직교 기저·아핀 부분공간 투영은 장말에 무보조로
 복원되지 않아 새 지식 노트로 대신 작성하지 않았다.
+
+## MML 4장에서 연결한 개념
+
+[4장 회고](../practice/math/mml-ch04-matrix-decompositions.md)에 학습자 설명을
+초안으로 사용한 범위와 피드백·튜터 계산·미수행 증명을 구분했다.
+
+- [SVD의 입력·출력 기저와 특잇값](./math/singular-value-decomposition.md): 인자 크기, 길이 배율과 방향, 성분 소실
+- [SVD 저랭크 근사와 오차](./math/svd-low-rank-approximation.md): 영인 기여 생략, 양의 기여를 버리는 근사, 최대 단위 입력 오차
+- [전치행렬 곱과 양의 준정부호](./math/gram-matrix-positive-semidefinite.md): 변환 결과의 길이 제곱과 대칭성의 구분
+
+고유공간·대각화·Cholesky 조건과 최적성 증명의 독립 설명 공백은 회고에
+남겼으며, 기존 노트가 있다는 사실만으로 현재 숙달을 판단하지 않는다.
