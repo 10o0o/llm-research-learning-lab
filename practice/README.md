@@ -4,6 +4,8 @@
 
 ## 보관한 실습
 
+- [MML 5장 회고](./math/mml-ch05-vector-calculus.md): 편미분·야코비안·자동미분·Hessian·Taylor 설명과 선택 공식 연습의 도움·미수행을 구분했다. 빈 작업 노트북은 새 보관본을 만들지 않았다.
+
 - [MML 4장 회고](./math/mml-ch04-matrix-decompositions.md): 본문·선택 연습의 직접 설명과 계산, 튜터 계산, 보류 증명을 구분했다. 빈 작업 노트북은 새 보관본을 만들지 않았다.
 
 - [MML 2장 회고](./math/mml-ch02-linear-algebra.md): 대화 계산·설명과 교정,
