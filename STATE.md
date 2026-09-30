@@ -5,13 +5,13 @@
 
 - Pilot 시작일: 2026-09-02
 - 현재 ROADMAP Phase: P0
-- 현재 주강의: Mathematics for Machine Learning, Cambridge University Press (2020)
-- 사용 판본: 공식 사이트 배포 PDF, Draft 2024-01-15
-- 현재 범위: Chapter 2~5·7 수학 보강; 설명·계산한 내용은 보존하고 부족한 부분을 본문·공식 연습문제로 연결
-- 현재 강의: Chapter 7 Continuous Optimization, 도입·§7.1 Optimization Using Gradient Descent, 인쇄 쪽 225~228
-- 공식 자료: [MML](https://mml-book.github.io/) · [PDF](https://mml-book.github.io/book/mml-book.pdf)
-- 연결 실습: 손실을 줄이는 음의 기울기 방향과 학습률, 행벡터 gradient와 열벡터 매개변수의 갱신 크기
-- 학습 공간: `main.ipynb`·`recall.ipynb`는 빈 상태; 이번 단위는 손으로 설명·계산
+- 현재 주강의: MIT 18.05 Introduction to Probability and Statistics
+- 사용 판본: MIT OpenCourseWare, Spring 2022
+- 현재 범위: MIT 18.05 본문과 PS1~PS11, R 요구 포함; MML의 남은 공백과 보류는 회고·DEFERRED에 보존
+- 현재 강의: Unit 1 Probability, Class 1 Introduction·Counting and Sets 진입 전
+- 공식 자료: [MIT 18.05 Spring 2022](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/) · [Class 자료](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)
+- 연결 실습: Class 1 공식 문제의 요구 확인 후 직접 시도; 아직 미착수
+- 학습 공간: main.ipynb·recall.ipynb는 빈 상태; MIT 공식 답안은 별도 비공개 공간에 저장하며 새 공간·환경은 아직 만들지 않았다
 - 학습 방식: 교재를 직접 열지 않고 튜터가 제공한 설명으로 학습; 질문에 필요한 정의·표기·조건을 대화 안에 먼저 제공하고, 답 검토 후 다음 내용까지 바로 연결. 승인된 핵심 범위를 유지하며 항등식마다 추가 손계산을 붙이지 않고 미분의 개념·shape와 모델 학습의 연결을 중심으로 설명
 
 ## 관찰된 근거와 남은 범위
@@ -28,10 +28,12 @@ Exercise 4.5는 피드백을 거쳤고 4.8은 영공간 방향 이후 튜터가 
 
 MML [5장 회고](practice/math/mml-ch05-vector-calculus.md)에 편미분·연쇄법칙의 직접 계산, 야코비안 크기·조립 교정, 역행렬 미분의 부호 공백, 자동미분·Taylor의 튜터 설명과 미수행을 보존했다. 선택 Exercises 5.2·5.3의 도함수는 제공된 규칙·경로 안내 뒤 직접 구했다. 5.7(a,b)·5.8(b)는 합산·첨자·덧셈 및 과제 뜻을 설명한 뒤 수정·계산했으며 무보조 풀이로 보지 않는다. 혼합 편미분의 의미와 결합 항 제거의 인과관계는 직접 설명해 개념 초안으로 사용했다. 전체 Hessian·야코비안·Taylor 계수의 독립 구성과 장말 미수행 문제는 미완료다. 빈 작업 노트북은 보관본 생성·실행·초기화 없이 유지했다. 7장 이동은 전체 문제 완료나 전체 숙달 판정이 아니다.
 
-7장 도입과 §7.1의 목적함수·음의 기울기·학습률·열벡터 갱신식은 공식 원문을 확인한 설명으로 이어간다. 5장의 미분 결과를 실제 매개변수 변화에 사용하는 연결을 중심으로 다루며, 직접 적용과 설명은 아직 미확인이다.
+MML [7장 회고](practice/math/mml-ch07-continuous-optimization.md)에 경사하강·모멘텀·SGD·제약·볼록성의 직접 설명, 튜터 유도와 미수행 공식 연습을 보존했다. Exercise 7.2는 조건과 대상 기울기를 제공받은 뒤 갱신 방법을 말로 정확히 표현했다. 전체 장 무보조 숙달이나 장말 전 문제 완료를 뜻하지 않는다. 볼록 켤레의 추가 유도·증명을 필수 관문으로 두지 않는 사용자 동의를 DEFERRED에 반영했다. 빈 main.ipynb·recall.ipynb는 실행·보관본 생성·초기화 없이 유지했다.
 
-CS336 Assignment 1은 기존 작업을 보존하고 진입을 보류한다. MML 이후 승인 순서는 MIT 18.05 Spring 2022 PS1~PS11(R 포함), makemore Parts 3~4와 공식 exercises다. 범위 생략·자동 설치는 승인되지 않았으며 실습 전 CPU/GPU 요구·환경·비용을 확인한다. 자세한 범위는 [ROADMAP](ROADMAP.md)을 따른다.
+다음은 기존 승인 순서의 MIT 18.05 Spring 2022이다. 공식 syllabus에서 R 사용과 자기 말로 답안 작성·협력자 및 외부 출처 표기 요구를 확인했다. 강의 자료 목록에서 Class 1의 Introduction, Counting and Sets를 확인했으며 실제 본문 학습과 공식 문제 수행은 아직 시작하지 않았다. R 실행 환경·공식 온라인 문제 접근·과제별 요구는 실습 전에 확인하며 자동 설치하지 않는다. PS1~PS11의 R 포함 수행과 비공개 답안 저장 원칙을 유지한다.
+
+CS336 Assignment 1은 기존 작업을 보존하고 진입을 보류한다. MIT 18.05 이후 승인 순서는 makemore Parts 3~4와 공식 exercises다. 이 이동은 P0 종료나 다른 미완료 범위의 생략이 아니다.
 
 ## 다음 독립 행동
 
-경사하강 설명을 바탕으로 손실을 줄일 때 기울기를 빼는 이유와 학습률의 역할을 설명한다. 조건을 바꾸어 학습률을 크게 하면 손실 감소가 항상 보장되는지 생각한다. 공식 Example 7.1의 전체 계산·§7.1.1 이후 내용은 아직 수행한 것으로 보지 않는다. 추가 선수 퀴즈나 새 실습 파일을 만들지 않고 같은 최적화 범위로 이어간다.
+MIT 18.05 Spring 2022 Class 1의 Introduction·Counting and Sets 공식 본문과 in-class 문제를 확인하고, 경우의 수와 집합을 확률에 연결하는 첫 학습 단위를 시작한다. 정의·조건을 대화에 제공하며 공식 문제는 학습자가 직접 답한다. R 사용 구간 전에 환경을 확인하고 PS1~PS11을 대체하거나 생략하지 않는다.

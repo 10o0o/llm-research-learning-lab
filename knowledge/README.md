@@ -172,3 +172,12 @@ MLP에서 다시 연결한 초기화·수동 SGD는
 위 노트는 학습자의 비대각원소 설명과 조건 변경 이유를 초안으로 사용한
 범위다. 야코비안 조립·역행렬 미분·Taylor 계수의 독립 설명 공백은 회고에
 남겼다. 기존 도함수·자동미분 노트의 존재를 새 무보조 회상의 증거로 보지 않는다.
+
+## MML 7장에서 연결한 개념
+
+[7장 회고](../practice/math/mml-ch07-continuous-optimization.md)에 학습자 초안·튜터 교정과 미수행을 구분했다. 다음 노트는 확인된 대화 초안을 교정한 범위이며 장 전체 숙달을 뜻하지 않는다.
+
+- [미니배치 기울기와 SGD](./deep-learning/mini-batch-gradient.md)
+- [모멘텀과 이동 방향의 누적](./deep-learning/momentum-directions.md)
+- [볼록함수의 합과 최적해의 유일성](./math/convex-function-combinations.md)
+- [제약 최적화와 최솟값의 상한·하한](./math/constrained-optimum-bounds.md)
