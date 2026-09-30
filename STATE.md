@@ -8,9 +8,9 @@
 - 현재 주강의: MIT 18.05 Introduction to Probability and Statistics
 - 사용 판본: MIT OpenCourseWare, Spring 2022
 - 현재 범위: MIT 18.05 본문과 PS1~PS11, R 요구 포함; MML의 남은 공백과 보류는 회고·DEFERRED에 보존
-- 현재 강의: Unit 1 Probability, Class 1 Introduction·Counting and Sets 진입 전
+- 현재 강의: Unit 1 Probability, Class 1 Counting and Sets의 조합·등확률 조건 통합 확인
 - 공식 자료: [MIT 18.05 Spring 2022](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/) · [Class 자료](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)
-- 연결 실습: Class 1 공식 문제의 요구 확인 후 직접 시도; 아직 미착수
+- 연결 실습: 동전의 앞면 확률을 바꾼 조건에서 결과열 개수와 확률 계산의 차이 설명; 질문 제시 후 미응답
 - 학습 공간: main.ipynb·recall.ipynb는 빈 상태; MIT 공식 답안은 별도 비공개 공간에 저장하며 새 공간·환경은 아직 만들지 않았다
 - 학습 방식: 교재를 직접 열지 않고 튜터가 제공한 설명으로 학습; 질문에 필요한 정의·표기·조건을 대화 안에 먼저 제공하고, 답 검토 후 다음 내용까지 바로 연결. 승인된 핵심 범위를 유지하며 항등식마다 추가 손계산을 붙이지 않고 미분의 개념·shape와 모델 학습의 연결을 중심으로 설명
 
@@ -30,10 +30,10 @@ MML [5장 회고](practice/math/mml-ch05-vector-calculus.md)에 편미분·연�
 
 MML [7장 회고](practice/math/mml-ch07-continuous-optimization.md)에 경사하강·모멘텀·SGD·제약·볼록성의 직접 설명, 튜터 유도와 미수행 공식 연습을 보존했다. Exercise 7.2는 조건과 대상 기울기를 제공받은 뒤 갱신 방법을 말로 정확히 표현했다. 전체 장 무보조 숙달이나 장말 전 문제 완료를 뜻하지 않는다. 볼록 켤레의 추가 유도·증명을 필수 관문으로 두지 않는 사용자 동의를 DEFERRED에 반영했다. 빈 main.ipynb·recall.ipynb는 실행·보관본 생성·초기화 없이 유지했다.
 
-다음은 기존 승인 순서의 MIT 18.05 Spring 2022이다. 공식 syllabus에서 R 사용과 자기 말로 답안 작성·협력자 및 외부 출처 표기 요구를 확인했다. 강의 자료 목록에서 Class 1의 Introduction, Counting and Sets를 확인했으며 실제 본문 학습과 공식 문제 수행은 아직 시작하지 않았다. R 실행 환경·공식 온라인 문제 접근·과제별 요구는 실습 전에 확인하며 자동 설치하지 않는다. PS1~PS11의 R 포함 수행과 비공개 답안 저장 원칙을 유지한다.
+다음은 기존 승인 순서의 MIT 18.05 Spring 2022이다. 공식 syllabus에서 R 사용과 자기 말로 답안 작성·협력자 및 외부 출처 표기 요구를 확인했다. 강의 자료 목록에서 Class 1의 Introduction, Counting and Sets를 확인했으며 Reading 1a·1b와 Class 1 in-class 문제 원문을 확인했다. 확률·통계의 방향 차이와 등확률 조건·곱의 법칙을 튜터가 설명했다. 학습자는 Concept questions 2~3에서 반복 허용 여부에 따른 경우의 수를 정확히 구성했다. 반복 허용일 때 각 칸의 선택 수가 같다는 이유를 직접 설명했고, 반복 금지의 선택 수 감소를 계산했으나 그 이유는 예외 조건으로 표현하여 이미 선택한 문자를 제외하는 구조를 튜터가 보충했다. Reading 1b §2.2~2.3.1의 집합 연산·포함배제를 튜터가 설명한 뒤, 학습자는 Board question 1의 합집합 인원수를 정확히 계산하고 교집합 인원을 두 번 센다는 이유를 직접 설명했다. 여집합·드모르간 법칙을 설명한 뒤, 학습자는 Reading 1b §2.2.2의 Think에서 합집합의 여집합에 속하는 학생들을 두 조건 모두 해당하지 않는다고 정확히 표현했다. Think의 벤다이어그램 작성은 아직 수행하지 않았다. 집합의 곱·순열을 설명한 뒤, 학습자는 Board question 2의 메달 배정 경우의 수와 단계별 선택 수를 정확히 답했다. 조합 설명 뒤 Board question 4(a,b)의 경우의 수와 확률을 정확한 식으로 구성했다. 앞면 위치 선택과 등확률 조건에 대한 독립 설명은 아직 확인하지 않았으며 피드백에서 튜터가 보충했다. Board question 3에서 전체 경우에서 금지된 색깔의 동시 착용을 빼는 구조를 직접 구성하고 설명했다. 바지 선택 수의 오류를 튜터가 지적한 뒤 해당 인자를 수정했으며, 최종 산술은 튜터가 계산했다. Concept question 1에서 순서 있는 카드 뽑기로 계산을 시도한 뒤, 튜터의 등급 선택·페어 위치 안내를 받아 정확한 확률식을 구성했다. 카드 장수 자체를 추가로 곱할 필요가 없다는 점은 직접 설명하며 수정했다. 완성된 식의 산술은 튜터가 확인했으며, 전체 풀이를 무보조 성공으로 보지 않는다. R 실행 환경·공식 온라인 문제 접근·과제별 요구는 실습 전에 확인하며 자동 설치하지 않는다. PS1~PS11의 R 포함 수행과 비공개 답안 저장 원칙을 유지한다.
 
 CS336 Assignment 1은 기존 작업을 보존하고 진입을 보류한다. MIT 18.05 이후 승인 순서는 makemore Parts 3~4와 공식 exercises다. 이 이동은 P0 종료나 다른 미완료 범위의 생략이 아니다.
 
 ## 다음 독립 행동
 
-MIT 18.05 Spring 2022 Class 1의 Introduction·Counting and Sets 공식 본문과 in-class 문제를 확인하고, 경우의 수와 집합을 확률에 연결하는 첫 학습 단위를 시작한다. 정의·조건을 대화에 제공하며 공식 문제는 학습자가 직접 답한다. R 사용 구간 전에 환경을 확인하고 PS1~PS11을 대체하거나 생략하지 않는다.
+미응답인 Class 1 통합 확인부터 재개한다. 앞면 확률이 70퍼센트인 동전을 독립적으로 10번 던져 정확히 앞면이 3번 나오는 경우에, 결과열 개수가 공정한 동전과 같은지와 해당 개수를 전체 결과열 개수로 나누어 확률을 구할 수 있는지를 이유와 함께 설명한다. 정확한 확률 계산은 요구하지 않으며 공식을 미리 채워 주지 않는다. 이미 설명한 포함배제는 다시 묻지 않는다. Think의 벤다이어그램 작성은 미수행으로 유지한다.
