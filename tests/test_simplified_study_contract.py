@@ -28,34 +28,27 @@ def _hours(cell: str) -> int:
     return int(match.group(1).replace(",", ""))
 
 
-def _budget_table() -> tuple[list[str], dict[str, list[int]], list[int]]:
+def _budget_table() -> tuple[list[str], dict[str, int], int]:
     lines = _raw("ROADMAP.md").splitlines()
-    header_index = next(
-        index for index, line in enumerate(lines) if line.startswith("| Phase |")
-    )
+    header_index = next(index for index, line in enumerate(lines)
+                        if line.startswith("| 개인 학습 활동 |"))
     headers = _markdown_cells(lines[header_index])
-    assert _markdown_cells(lines[header_index + 1])
-
-    phase_rows: dict[str, list[int]] = {}
-    total_row: list[int] | None = None
-    for line in lines[header_index + 2 :]:
+    activities: dict[str, int] = {}
+    total: int | None = None
+    for line in lines[header_index + 2:]:
         if not line.startswith("|"):
             break
         cells = _markdown_cells(line)
         assert len(cells) == len(headers), f"Malformed budget row: {line}"
-        phase = cells[0].replace("`", "").replace("*", "").strip()
-        hours = [_hours(cell) for cell in cells[2:]]
-        if phase in {f"P{index}" for index in range(6)}:
-            assert phase not in phase_rows, f"Duplicate budget row: {phase}"
-            phase_rows[phase] = hours
-        elif phase == "합계":
-            assert total_row is None, "Duplicate budget total"
-            total_row = hours
+        hours = _hours(cells[1])
+        if cells[0] == "합계":
+            assert total is None
+            total = hours
         else:
-            raise AssertionError(f"Unexpected budget label: {phase}")
-
-    assert total_row is not None, "Budget table has no total row"
-    return headers, phase_rows, total_row
+            assert cells[0] not in activities
+            activities[cells[0]] = hours
+    assert total is not None
+    return headers, activities, total
 
 
 def test_plain_study_phrases_use_state() -> None:
@@ -77,151 +70,92 @@ def test_plain_study_phrases_use_state() -> None:
 
 def test_study_route_does_not_restore_fixed_entry_gates() -> None:
     for path in ("AGENTS.md", "README.md", "USAGE.md"):
-        text = _normalized(path)
-        for obsolete in (
-            "The pilot spine is",
-            "at most two focused bridge modules",
-            "Before proposing Assignment 1 entry, run",
-            "최대 두 번",
-            "현재 첫 행동은",
-            "Pilot의 주축은",
-        ):
-            assert obsolete not in text
+        content = _normalized(path)
+        for obsolete in ("The pilot spine is", "at most two focused bridge modules",
+                         "Before proposing Assignment 1 entry, run", "최대 두 번",
+                         "현재 첫 행동은", "Pilot의 주축은"):
+            assert obsolete not in content
     agents = _normalized("AGENTS.md")
-    assert "Readiness does not cancel unfinished CS224N assignments or its project" in agents
+    assert "Do not impose a second full tokenizer/Transformer implementation as an entry test" in agents
+    assert "Entry does not cancel unfinished work" in agents
 
 
 def test_official_practice_is_preserved_across_teaching_media() -> None:
     agents = _normalized("AGENTS.md")
-    for rule in (
-        "Use official course implementations, exercises, and assignments as primary practice",
-        "inspect actual requirements before assigning them",
-        "KANT is comparison-only",
-        "supplementary examples and completed instructor notebooks do not replace official practice",
-        "limits as incomplete",
-        "Preserve Optional/Bonus labels",
-        "do not describe dialogue as video viewing or local checks as official university grading",
-    ):
+    for rule in ("Use official course implementations, exercises, and assignments as primary practice",
+                 "inspect actual requirements before assigning them", "KANT is supporting context",
+                 "supplementary examples and completed instructor notebooks do not replace official practice",
+                 "limits as incomplete", "Preserve Optional/Bonus labels",
+                 "do not describe dialogue as video viewing or local checks as official university grading"):
         assert rule in agents
-    assert "must not replace viewing it" not in agents
-    assert "existing KANT practice for application" not in agents
-
     for path in ("practice/README.md", "ROADMAP.md"):
-        text = _normalized(path)
-        assert "KANT는 진도·주제 대조용" in text
-        assert "기본 실습이나 완료 기준으로 사용하지 않습니다" in text
-        assert "영상·문서·공식 자료 기반 대화" in text
-        assert "완성 노트북 실행이나 AI 보충 예제로 공식 실습을 대체하지 않습니다" in text
-        assert "Optional·Bonus" in text
-        assert "미완료" in text
-        assert "기존 KANT 과제가 실습 역할" not in text
-        assert "기존 KANT 실습에 연결" not in text
+        content = _normalized(path)
+        for rule in ("KANT는 진도·주제 대조용", "기본 실습이나 완료 기준으로 사용하지 않습니다",
+                     "영상·문서·공식 자료 기반 대화", "Optional·Bonus", "미완료"):
+            assert rule in content, (path, rule)
+    assert "독립 품질" in _normalized("ROADMAP.md")
+    assert "공식 필수 과제 완료를 대신하지 않는다" in _normalized("ROADMAP.md")
 
 
-def test_cs224n_assignments_are_performed_with_the_official_ai_policy() -> None:
-    """A1-A4 are back on the route in P3; only the final project stays on hold."""
+def test_selected_cs224n_scope_keeps_edition_and_ai_policy() -> None:
     agents = _normalized("AGENTS.md")
-    assert "CS224N Spring 2024 A1-A4 are performed in full in `P3`" in agents
-    assert "AI collaboration is allowed but direct answer solicitation, copying answers, and substantial completion by AI are prohibited" in agents
-    assert "Only the CS224N Final Project is held" in agents
-    assert "Only the user may change or omit agreed practice" in agents
-    for path in ("practice/README.md",):
-        text = _normalized(path)
-        assert "A1~A4" in text
-        assert "`P3`" in text
-        assert "직접 답 요구·복사와 AI의 실질적 과제 대행을 금지합니다" in text
-        assert "DEFERRED.md" in text
+    for rule in ("CS224N is Spring 2024, archive 1246", "A3 Q1(i) and A4 Q1-Q2 written",
+                 "Never mix Winter 2024 archive 1244",
+                 "AI collaboration is allowed but direct answer solicitation, copying answers, and substantial completion by AI are prohibited"):
+        assert rule in agents
+    for path in ("practice/README.md", "ROADMAP.md", "DEFERRED.md"):
+        content = _normalized(path)
+        assert "1246" in content and "Q1(i)" in content
+        assert "written" in content and "programming" in content
+        assert "보류" in content and "Final Project" in content
 
 
 def test_foundations_first_route_is_pinned() -> None:
     roadmap = _normalized("ROADMAP.md")
-    for phase in ("`P0`", "`P1`", "`P2`", "`P3`", "`P4`", "`P5`"):
-        assert phase in roadmap
     headings = [roadmap.index(f"## P{index} ") for index in range(6)]
     assert headings == sorted(headings)
-    assert "48개 실효 학습주" in roadmap
-    assert "합계 2,880시간" in roadmap
-    assert "마감이 아니라 **예산**" in roadmap
-    assert "주 60시간(실효)" in roadmap
+    for phase in ("`P0`", "`P1`", "`P2`", "`P3`", "`P4`", "`P5`"):
+        assert phase in roadmap
+    assert "개인 LLM Research Engineer" in roadmap
+    assert "잠정 **Systems / Inference**" in roadmap
+    assert "평가를 P5까지 미루지 않는다" in roadmap
     assert "강의 수강 자체는" in roadmap
-    assert "공식 핵심 과제나 무보조 설명·해석 단계를 잘라" in roadmap
     agents = _normalized("AGENTS.md")
     assert "Foundations are not optional here" in agents
-    assert "do not propose reordering a later Phase forward" in agents
-    assert "stay comparison-only" in agents
+    assert "Do not propose reordering a later Phase forward" in agents
 
 
-def test_roadmap_budget_table_has_the_approved_shape_and_sums() -> None:
-    headers, phases, total = _budget_table()
-    assert headers == [
-        "Phase",
-        "실효 주",
-        "주과정·공식 과제·지정 독서",
-        "프로젝트",
-        "구술·재구현",
-        "지원 활동",
-        "작업 버퍼",
-        "합계",
-    ]
-    expected = {
-        "P0": [330, 30, 72, 0, 48, 480],
-        "P1": [330, 120, 90, 0, 60, 600],
-        "P2": [225, 45, 54, 0, 36, 360],
-        "P3": [330, 0, 72, 30, 48, 480],
-        "P4": [390, 0, 90, 60, 60, 600],
-        "P5": [0, 120, 36, 168, 36, 360],
-    }
-    assert phases == expected
-    for phase, row in phases.items():
-        assert sum(row[:-1]) == row[-1], f"Activity sum differs for {phase}"
-    assert total == [1605, 315, 414, 258, 288, 2880]
-    assert [sum(phases[phase][column] for phase in expected) for column in range(5)] == total[:5]
-    assert sum(total[:5]) == total[5]
-    assert sum(row[-1] for row in phases.values()) == total[-1]
+def test_personal_budget_example_has_no_hidden_activity_hours() -> None:
+    headers, activities, total = _budget_table()
+    assert headers == ["개인 학습 활동", "예시"]
+    assert activities == {"공식 읽기·수학·통계": 18, "학습자 구현·디버깅": 27,
+                          "실험·평가·해석": 9, "지연 회상·전이·정리": 6}
+    assert sum(activities.values()) == total == 60
 
 
-def test_relative_weeks_match_phase_hours_without_hidden_job_hours() -> None:
-    _, phases, _ = _budget_table()
-    rows = re.findall(
-        r"^\| `(?P<phase>P[0-5])` \| (?P<start>\d+)~(?P<end>\d+) \|",
-        _raw("ROADMAP.md"),
-        re.MULTILINE,
-    )
-    assert len(rows) == 6
-    next_week = 1
-    for phase, start, end in rows:
-        assert int(start) == next_week
-        assert (int(end) - int(start) + 1) * 60 == phases[phase][-1]
-        next_week = int(end) + 1
-    assert next_week == 49
+def test_budget_is_an_excluded_activity_intent_not_a_fixed_calendar() -> None:
     roadmap = _normalized("ROADMAP.md")
-    assert "52주 달력 안의 48개 실효 학습주" in roadmap
-    assert "나머지 4주" in roadmap
-    assert "초기 배분 가설" in roadmap
-    assert "각 활동은 수행하는 Phase에 한 번만 계산" in roadmap
-    assert "P5의 지정 독서만 통합 프로젝트 시간에 포함" in roadmap
-    assert "지원 활동이 0인 Phase에 실제 지원하기로 하면" in roadmap
+    for rule in ("개인 학습 주 60시간 이상", "KANT 수업 주 40시간",
+                 "알고리즘 약 2시간/일, 취업 준비는 제외", "초기 배분 가설",
+                 "첫 1~2주", "확정 기본값으로 계승하지 않는다"):
+        assert rule in roadmap
+    assert not re.search(r"^\| `P[0-5]` \| \d+~\d+ \|", _raw("ROADMAP.md"), re.MULTILINE)
+    assert "Use 52 calendar weeks with 48 effective study weeks" not in _normalized("AGENTS.md")
 
 
 def test_approved_course_scope_and_phase_boundary_are_explicit() -> None:
     roadmap = _normalized("ROADMAP.md")
-    assert "MIT 18.05 Spring 2022" in roadmap
-    assert "PS1~PS11을 R 요구까지 모두 수행" in roadmap
-    assert "CS229 Summer 2020" in roadmap
-    assert "PS1, PS2, PS3의 필수 written과 coding을 모두 수행" in roadmap
-    assert "공식 문제를 임의 NumPy 연습으로 대체하지 않습니다" in roadmap
-    assert "CS231n Spring 2024" in roadmap
-    assert "Lecture 2~6" in roadmap
-    assert "Assignment 2" in roadmap and "Q1~Q5" in roadmap
-    assert "P2 마지막에는" in roadmap
-    assert "GPT와 BPE를 직접 구현합니다" in roadmap
-    assert "P2 끝에서 GPT와 BPE 구현을 마친 것을 전제로" in roadmap
-    assert "CS224N Spring 2024" in roadmap
-    assert "Assignment 1~4를 **written·수학·programming 요구사항까지 전부 수행**" in roadmap
-
+    for scope in ("MIT 18.05 Spring 2022", "PS1~PS11", "R 요구까지 모두 수행",
+                  "CS229 Summer 2020", "PS1, PS2, PS3의 필수 written과 coding을 모두 수행",
+                  "PS3 Q1 RL와 Q6 ICA는 기존 필수 범위로 유지",
+                  "공식 문제를 임의 NumPy 연습으로 대체하지 않습니다",
+                  "CS231n Spring 2024 Lecture 2~6", "A2 Q1~Q3",
+                  "CS224N Spring 2024", "Q1(i)", "Q1 Attention Exploration",
+                  "Q2 Position Embeddings Exploration", "GPT bridge"):
+        assert scope in roadmap
     agents = _normalized("AGENTS.md")
     assert "NumPy reimplementations cannot replace official problem sets" in agents
-    assert "CS224N Spring 2024 A1-A4 are performed in full in `P3`" in agents
+    assert "PS3 Q1 RL and Q6 ICA stay required" in agents
 
 
 def test_blank_page_implementation_is_a_standing_track() -> None:
@@ -253,19 +187,23 @@ def test_foundation_repair_preserves_math_scope_and_r_requirements() -> None:
     assert "Stat110과 OpenIntro는 다른 설명이 필요할 때만" in p0
 
 
-def test_systems_training_and_single_inference_research_have_distinct_scope() -> None:
+def test_lm_training_systems_and_inference_have_distinct_scope() -> None:
     roadmap = _normalized("ROADMAP.md")
+    p3 = roadmap.split("## P3 —", 1)[1].split("## P4 —", 1)[0]
+    for scope in ("Assignment 1 Basics", "v26.0.3",
+                  "a158843b20107949f1a8d7df1b05cd33b9166712", "교육용 핵심 구현",
+                  "임의 축소 실험", "공식 A1 수행", "CPU/MPS", "TinyStories"):
+        assert scope in p3
     p4 = roadmap.split("## P4 —", 1)[1].split("## P5 —", 1)[0]
-    assert "Assignment 1 Basics" in p4 and "Assignment 2 Systems 전체" in p4
-    assert "P4 끝에 2026 Lecture 10 inference" in p4
-    assert "training systems 과제이지 serving 과제가 아닙니다" in p4
-    assert "a158843b20107949f1a8d7df1b05cd33b9166712" in p4
-    p5 = roadmap.split("## P5 —", 1)[1].split("## 실전 competition", 1)[0]
+    for scope in ("v26.1.3", "ca8bc81a59b70516f7ebb2da4808daade877c736",
+                  "학습 성능·분산 학습 과제", "B200", "2/4/6 GPU", "OPTIONAL",
+                  "prefill", "decode", "TTFT", "ITL", "queueing", "EOS"):
+        assert scope in p4
+    assert "공식 전체 A2는 현재 필수 관문이 아니다" in p4
+    p5 = roadmap.split("## P5 —", 1)[1].split("## 평가와 대표 관문", 1)[0]
     assert "프로젝트와 논문 재현을 따로 만들지 않습니다" in p5
-    for item in ("고정 workload", "baseline", "통제 비교", "품질", "memory",
-                 "latency", "throughput", "남은 한계"):
+    for item in ("baseline", "통제 조건", "ablation", "실패 사례", "claim limits", "최대 세 산출물"):
         assert item in p5
-    assert "quantization은 baseline과 측정 계약이 안정된 뒤의 선택 항목" in p5
 
 
 def test_current_explanation_criteria_do_not_relabel_historical_source_audits() -> None:
@@ -284,18 +222,13 @@ def test_current_explanation_criteria_do_not_relabel_historical_source_audits() 
 
 
 def test_public_curricula_are_credited_with_what_they_changed() -> None:
-    """Borrowed structure has to name its source and what it altered."""
     roadmap = _normalized("ROADMAP.md")
-    for source in ("fast.ai", "Made With ML", "Full Stack Deep Learning", "roadmap.sh"):
+    for source in ("fast.ai", "Made With ML", "Full Stack Deep Learning", "roadmap.sh",
+                   "CMU", "smol-course", "Raschka"):
         assert source in roadmap
-    assert "top-down" in roadmap
-    # The top-down front-end supplements the bottom-up route, it does not replace it.
-    assert "fast.ai를 앞에 짧게 붙이는 구성은" in roadmap
-    # Dated sources must be flagged rather than followed for current APIs.
-    assert "판본 주의" in roadmap
-    # ML system design was the gap these curricula exposed.
-    assert "ML 시스템 설계" in roadmap
-    assert "전체 과정을 별도 졸업 조건으로 추가하지 않습니다" in roadmap
+    for rule in ("top-down", "판본 주의", "ML 시스템 설계",
+                 "전체 과정을 별도 졸업 조건으로 추가하지 않습니다"):
+        assert rule in roadmap
 
 
 def test_job_ladder_is_marked_as_assessment_not_fact() -> None:
@@ -305,7 +238,7 @@ def test_job_ladder_is_marked_as_assessment_not_fact() -> None:
     assert "실제 공고 3~5건" in roadmap
     assert "공고가 경로와 다르면 공고를 기준으로 경로를 재검토합니다" in roadmap
     agents = _normalized("AGENTS.md")
-    assert "Treat the ladder as an assessment to re-check against real postings" in agents
+    assert "Treat the job-role comparisons as an assessment to re-check against real postings" in agents
     assert "without promising employability at any Phase or date" in agents
     assert "an earlier rung is not a failure" in agents
 
@@ -315,7 +248,7 @@ def test_competitions_and_papers_are_tracks_that_cannot_be_fabricated() -> None:
     assert "Kaggle은 P1만 필수입니다" in roadmap
     assert "P0·P2·P3은 선택" in roadmap
     assert "실제 목록" in roadmap
-    assert "P5만 논문 주장 하나를 독립 연구 질문 안에서 집중 재현합니다" in roadmap
+    assert "한 연구 질문" in roadmap and "논문 주장 하나" in roadmap
     agents = _normalized("AGENTS.md")
     assert "Competitions and papers are proposed, never invented" in agents
     assert "do not name a specific kaggle competition without checking" in agents.lower()
@@ -341,14 +274,12 @@ def test_kaggle_recommendation_trigger_does_not_require_a_p0_submission() -> Non
     assert "P2·P3는 핵심 학습 이후" in deferred
 
 
-def test_phase_check_and_hardware_prerequisite_are_pinned() -> None:
+def test_phase_check_does_not_require_paid_gpu_for_available_local_work() -> None:
     roadmap = _normalized("ROADMAP.md")
-    assert "P2 시작 전에 단일 GPU 환경에서 CS231n A2와 PyTorch workload가 실행되는지" in roadmap
-    assert "P4 시작 전에는 CS336 A2 공식 요구를 수행할 유료 GPU 수단" in roadmap
-    assert "과제를 미완료로 두며 대체 과제로 완료 처리하지 않습니다" in roadmap
-    assert "실제 공고 3~5건" in roadmap
-    assert "Phase 종료 전 아래를 확인하고 필수 항목이 비면 Phase를 닫지 않습니다" in roadmap
-    assert "지정 범위의 직접 수행, 실행·해석과 재현 가능성" in roadmap
+    for scope in ("로컬 필수 검증", "축소·추가 자원 검증의 경계", "공식 저자원 경로",
+                  "VRAM뿐 아니라 연산시간·장치 수·공식 지정 hardware", "가능한 로컬 학습을 계속",
+                  "필수 항목이 비면 Phase를 닫지 않는다", "교육적 타당성 검토와 다르며"):
+        assert scope in roadmap
     agents = _normalized("AGENTS.md")
     assert "Run the phase-transition check before closing a Phase" in agents
     assert "Never state that a company is hiring" in agents
@@ -437,6 +368,8 @@ def test_understanding_is_verified_by_unassisted_recall() -> None:
     agents = _normalized("AGENTS.md")
     assert "Tutor explanations, assent, file existence, successful execution, and green tests alone do not establish understanding" in agents
     assert "Confirm the learner's unassisted concept drafts before knowledge edits or workspace reset" in agents
+    assert "Separate API-doc-assisted practical implementation from closed-book recall" in agents
+    assert "Same-day success does not establish delayed recall or transfer" in agents
     assert "explains the whole Phase without notes" in agents
     assert "representative implementation units" in agents
     assert "Do not require rewriting every module's full implementation or entire assignments" in agents
@@ -460,8 +393,8 @@ def test_deferred_material_keeps_a_return_condition() -> None:
     assert "조건이 생겨도 자동으로 시작하지 않고" in deferred
     for item in ("Final Project", "WaveNet", "Assignment 3", "Hugging Face"):
         assert item in deferred
-    # CS224N A1-A4 came off the hold list and must not read as deferred.
-    assert "CS224N A1~A4는 **`P3`에서 정식 수행합니다.**" in deferred
+    assert "기존 A1~A4 전체 의무를 이번 승인 재설계로 줄였으며" in deferred
+    assert "나머지 written·programming·Final Project" in deferred
 
 
 def test_removed_learning_management_skills_do_not_return() -> None:

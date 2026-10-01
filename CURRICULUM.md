@@ -4,7 +4,9 @@
 
 ## 1. 목적과 비목적
 
-이 문서는 장기 참고 catalog이며 현재 학습 범위를 정하지 않는다. 이번 경로에서
+이 문서는 장기 참고 catalog이며 현재 학습 범위를 정하지 않는다. 중심은 개인
+LLM Research Engineer 성장과 취업이며 KANT는 보조다. 평가 공통 핵심은 P0부터,
+독립 연구는 선수와 learner-owned 실험 근거 뒤에 연결한다. 이번 경로에서
 뺀 자료와 복귀 조건은 `DEFERRED.md`, 실제 수행 순서와 시간 예산은
 `ROADMAP.md`에 있다. `SRC-KAM-*`, `SRC-KDL-*`, `SRC-KBM-*`와 아래 registry는
 과거에 실제 감사한 자료의 snapshot으로 보존한다. 새 주과정은 `ROADMAP.md`에서
@@ -54,8 +56,9 @@ registry의 일부인 것처럼 기록하지 않는다.
 
 이 표는 개념을 자기 말로 설명하고 계산·구현·실험에 연결할 때의 정적 기준이다.
 완료 체크·점수·답변집이 아니며 모든 행을 별도 시험이나 Phase gate로 만들지 않는다.
-해당 개념을 다루는 연결된 학습 단위에서 목적·원리·가정·한계를 1~2분 무보조로
-설명하고 조건을 바꾼 사례 하나에 적용한다. Tensor 문제의 shape와 흐름은 학습자가
+대표 연결 단위에서 목적·원리·가정·한계를 1~2분 무보조로 설명하고 조건을 바꾼
+사례에 적용한다. API 문서를 본 실무 구현·당일 성공·지연 회상/전이는 구분하며
+모든 절을 반복 퀴즈로 만들지 않는다. Tensor 문제의 shape와 흐름은 학습자가
 직접 제시한다. AI는 한 번에 피드백하고 knowledge는 무보조 초안 이후에만 교정한다.
 
 출처 열은 설명·연습의 기준을 연결한다. 프로젝트는 적용 장소이며 공식 출처를
@@ -80,16 +83,19 @@ registry의 일부인 것처럼 기록하지 않는다.
 | 평가 | metric·threshold·calibration | 비용·불균형에 따른 지표와 threshold를 고르고 순위 성능과 확률의 신뢰성을 구분한다. 튜닝·보정 데이터와 평가 데이터를 분리한다 | [Made With ML][mwml]; [scikit-learn calibration][calibration] 보강; P1 프로젝트에 적용 |
 | ML | 트리·앙상블 | 분할 기준, bagging·random forest·boosting의 학습 방식과 bias·variance 차이를 설명하고 적절한 통제 비교를 설계한다 | [ISLP][islp] 8장 |
 | ML | 군집·PCA | k-means 목적과 초기화·스케일 민감성, PCA의 분산·투영 목적을 구분하고 계산·차원·정보 손실을 해석한다 | [CS229][cs229] notes·지정 과제 |
-| DL | 역전파·초기화 | 순전파·loss·local derivative·기울기 누적·갱신을 shape와 함께 추적하고 초기화가 activation·gradient에 미치는 영향을 해석한다 | [Karpathy][karpathy] makemore 2~4; [CS231n][cs231n] L2~6·A2 |
-| DL | optimizer·normalization | SGD·momentum·Adam의 상태와 업데이트, normalization의 축·학습/평가 차이를 설명하고 학습률·배치 변경의 영향을 진단한다 | [CS231n][cs231n] L2~6·A2 Q1~Q5; [PyTorch][pytorch] |
-| DL | CNN·과적합 진단 | convolution의 shape·공유 가중치·수용영역을 설명하고 train/eval 곡선·통제 실험으로 구현 오류와 일반화 문제를 구분한다 | [CS231n][cs231n] L2~6·A2 Q1~Q5 |
-| NLP | embedding, RNN·LSTM | token ID와 embedding의 계약, 시간에 따른 state·gate·기울기를 추적하고 recurrence의 목적과 한계를 설명한다 | [CS224N Spring 2024][cs224n] 강의·A1~A4 |
-| NLP | attention·masking·positional information | Q·K·V와 score·softmax·출력 shape를 제시하고 causal/padding mask의 위치·역할, 위치 정보와 recurrence의 차이를 설명한다 | P2 끝 [Karpathy GPT·Tokenizer][karpathy]; P3 [CS224N][cs224n] |
+| DL | 역전파·초기화 | scalar loss까지 shape·VJP·기울기 누적·SGD 갱신 부호를 추적하고 초기화·작은 배치 과적합·대표 오류를 해석한다 | P0 기존 MLP·[Karpathy][karpathy] makemore 3~4; [CS231n][cs231n] 필요한 설명·A2 Q1 |
+| DL | optimizer·normalization | SGD·momentum·Adam의 상태와 업데이트, normalization의 축·학습/평가 차이를 설명하고 학습률·배치 변경의 영향을 진단한다 | [CS231n][cs231n] 필요한 L2~6·A2 Q1~Q3; [PyTorch][pytorch] |
+| DL | CNN·과적합 진단 | convolution의 shape·공유 가중치·수용영역을 설명하고 train/eval 곡선·통제 실험으로 구현 오류와 일반화 문제를 구분한다 | CV 공백이 확인될 때만 [CS231n][cs231n] A2 Q4~Q5; 현재 미완료 보류 |
+| NLP | embedding, RNN·LSTM | token ID와 embedding의 계약, 시간에 따른 state·gate·기울기를 추적하고 recurrence의 목적과 한계를 설명한다 | [CS224N Spring 2024, 1246][cs224n] 필요한 비교 설명; 전체 A1~A4는 현재 의무 아님 |
+| NLP | attention·masking·positional information | Q·K·V와 score·softmax·출력 shape를 제시하고 causal/padding mask의 위치·역할, 위치 정보와 recurrence의 차이를 설명한다 | P2/P3 [CS224N 1246][cs224n] A3 Q1(i)·A4 Q1~Q2 written; P3 [CS336][cs336] A1; GPT bridge는 필요할 때만 |
 | LM | autoregressive objective | 토큰화·입력·next-token target·logit·loss·generation 흐름을 연결하고 미래 정보 누수·학습/생성 차이를 설명한다 | [Karpathy][karpathy]; [CS224N][cs224n]; [CS336][cs336] A1 |
-| 시스템 | 메모리 계층·계산량·메모리 사용량, GPU 병목 | 연산량·저장량·메모리 이동을 구분하고 shape·dtype·배치가 비용에 주는 영향을 추산한다. profiler로 계산·대역폭 병목 가설을 검증한다 | [CS336 Spring 2026][cs336] 관련 강의·A1·A2 |
-| 시스템 | 분산 통신 | 데이터 분할·gradient 동기화·collective 흐름을 설명하고 연산/통신량·동기화가 scaling에 주는 영향을 측정한다 | [CS336][cs336] A2와 관련 강의 |
-| 추론 | prefill/decode·KV cache·batching | 두 단계의 작업량을 구분하고 cache shape·증가량·정확성 조건, 배칭의 메모리·대기시간 영향을 설명한다 | [CS336][cs336] 2026 Lecture 10; P5 고정 workload에 적용 |
-| 추론 실험 | latency·throughput·품질 trade-off | workload·warmup·반복·동기화·품질 계약을 고정하고 성능·메모리를 비교한다. 측정 오차와 다른 환경에 일반화할 수 없는 한계를 밝힌다 | [CS336][cs336] A2 측정·Lecture 10; P5 한 연구 질문의 통제 비교 |
+| 시스템 | 메모리 계층·계산량·메모리 사용량, GPU 병목 | 연산량·저장량·메모리 이동을 구분하고 shape·dtype·배치가 비용에 주는 영향을 추산한다. profiler로 계산·대역폭 병목 가설을 검증한다 | [CS336 Spring 2026][cs336] A1·A2 v26.1.3 선택; 자원별 검증은 ROADMAP |
+| 시스템 | 분산 통신 | 데이터 분할·gradient 동기화·collective 흐름을 설명하고 연산/통신량·동기화가 scaling에 주는 영향을 측정한다 | [CS336][cs336] A2 개념·로컬 기능 연습; GPU scaling은 실제 다중 장치 실행 전까지 미검증 |
+| 추론 | prefill/decode·KV cache·batching | 두 단계의 작업량을 구분하고 cache shape·증가량·정확성 조건, 배칭의 메모리·대기시간 영향을 설명한다 | [CS336][cs336] 2026 Lecture 10; P4 별도 inference·운영 workload, P5 한 연구 질문 |
+| 추론 실험 | latency·throughput·품질 trade-off | 독립변수 외 조건을 고정하고 cache logits 허용 오차·quantization 품질 범위를 확인한다. 요청 도착·concurrency·queueing·TTFT·ITL·tail·오류/OOM·관측성을 해석한다 | [CS336][cs336] A2 측정 기초·Lecture 10; 별도 P4 harness·P5 통제 연구 |
+| 평가 | 표본 단위·누수·불확실성·오류 분석 | 반복 시도와 독립 질문 수를 구분하고 bootstrap 단위·held-out 평가·dedup/contamination·metric variance·실패 사례를 설명한다 | P0~P5 공통 핵심; [MIT 18.05][mit1805]·[ISLP][islp]·선택 LM 실험 |
+| Post-training | base/instruct·chat template·label masking·SFT/LoRA | Transformer 이후 작은 비교에서 loss와 held-out 품질·다른 능력 퇴행을 구분한다. DPO/RLVR는 별도 선수 후 연구 질문 하나로 제한한다 | P3 제한 노출; 선택한 P4 Eval / Post-training; [smol-course](https://huggingface.co/learn/smol-course/en/unit0/1) |
+| 재현 | 환경·수치·통계적 재현 | seed만으로 완전 재현을 주장하지 않고 새 환경 실행, 사전 수치 허용 오차, 여러 seed/표본의 결과 변동을 구분한다 | [PyTorch reproducibility](https://docs.pytorch.org/docs/2.14/notes/randomness.html); 기존 MLP·P3~P5 |
 
 [mml]: https://mml-book.github.io/
 [mit1801]: https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/

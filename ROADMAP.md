@@ -1,334 +1,362 @@
 # LLM Research Engineer Roadmap
 
-이 문서는 장기 학습 경로와 시간 예산을 정하는 참고 지도입니다.
-현재 학습 범위와 다음 행동은 [`STATE.md`](./STATE.md)만 정합니다. 역량·자료 감사는
+이 문서는 개인 LLM Research Engineer 성장과 취업을 위한 승인된 학습 설계다.
+현재 학습 범위와 다음 행동은 [`STATE.md`](./STATE.md)만 정합니다. 역량 참고는
 [`CURRICULUM.md`](./CURRICULUM.md), 제외 범위와 복귀 조건은
-[`DEFERRED.md`](./DEFERRED.md)에 있습니다.
+[`DEFERRED.md`](./DEFERRED.md)에 있습니다. KANT는 필요한 설명과 과제를 연결하는
+보조 과정이며 개인 학습의 순서·속도·완료 판정을 정하지 않는다.
 
-목표는 기초 개념을 자기 말로 설명하고 수식·구현·실험으로 뒷받침하며 낯선 조건에
-적용하는 능력입니다. 이를 바탕으로 ML Engineer 지원 근거를 만들고, LLM systems와
-inference를 깊게 구현·측정하여 장기적으로 LLM Research Engineer를 준비합니다.
+기존 소프트웨어 개발 경험을 실험 코드·재현성·운영 측정에 연결한다. Python,
+PyTorch, 수학은 이미 한 작업과 남은 공백을 구분해 보강한다. 처음부터 다시
+시작하거나 현재 결과를 연구 역량으로 확대하지 않는다. 특정 Phase가 취업이나
+지원 자격을 보장하지 않습니다. 9개월 또는 고정 달력 안의 완료도 보장하지 않는다.
 
 ```text
-P0 수학·확률·통계와 학습 루프
--> P1 고전 ML·실험·프로덕션
--> P2 딥러닝·PyTorch
--> P3 NLP·Transformer
--> P4 LLM 구현·학습 시스템·추론 기초
--> P5 독립 inference 연구·포트폴리오·지원
+P0 실행 가능한 수학·확률·통계 + PyTorch 학습 루프
+→ P1 ML 목적함수·일반화 + 실험 근거
+→ P2 신경망 진단·attention 구성요소
+→ P3 자기 작은 Transformer LM + 독립 공식 구현
+→ P4 하나의 잠정 전문화: Systems / Inference (평가는 전 과정 공통)
+→ P5 한 질문의 독립 연구·재현 + 근거에 맞는 지원
 ```
 
 ## 시간 구조
 
-1년은 **52주 달력 안의 48개 실효 학습주**를 참고선으로 둡니다. 주 60시간(실효),
-합계 2,880시간이며 나머지 4주는 실행 장애와 밀린 공식 과제를 위한 달력
-여유입니다. 아래 값은 실제 소요시간이 입증된 예측이 아니라 **초기 배분 가설**입니다.
-기간은 마감이 아니라 **예산**입니다. 깊이에 시간이 더 들면 이후 일정을 옮기며,
-공식 핵심 과제나 무보조 설명·해석 단계를 잘라 날짜를 맞추지 않습니다.
+확인된 의도는 **개인 학습 주 60시간 이상**이다. **KANT 수업 주 40시간,
+알고리즘 약 2시간/일, 취업 준비는 제외**한 예산이다. 이를 전체 활동을 합친
+60시간으로 바꾸지 않는다. 이 구분은 합계 100시간 이상의 주간 달력이 이미
+실행 가능하다는 판단이 아니다.
 
-각 활동은 수행하는 Phase에 한 번만 계산하며 다른 Phase 예산으로 넘기지 않습니다.
-공식 과제와 지정 독서는 첫 열에, P5의 지정 독서만 통합 프로젝트 시간에 포함합니다.
-P0·P2 프로젝트 열은 기존 구현의 비교·해석과 선택 실험을 위한 시간이며 추가
-Kaggle 의무가 아닙니다. P1·P2의 짧은 공고 대조는 구술·재구현 열의 Phase 전환
-점검에 포함합니다. 지원 활동이 0인 Phase에 실제 지원하기로 하면 다른 Phase에서
-시간을 빌려 계산하지 않고 그 Phase의 배분이나 이후 일정을 명시적으로 조정합니다.
+다음은 개인 학습 60시간의 **초기 배분 가설**이며 최적 비율이나 의무 시간표가 아니다.
 
-| Phase | 실효 주 | 주과정·공식 과제·지정 독서 | 프로젝트 | 구술·재구현 | 지원 활동 | 작업 버퍼 | 합계 |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| `P0` | 1~8 | 330h | 30h | 72h | 0h | 48h | 480h |
-| `P1` | 9~18 | 330h | 120h | 90h | 0h | 60h | 600h |
-| `P2` | 19~24 | 225h | 45h | 54h | 0h | 36h | 360h |
-| `P3` | 25~32 | 330h | 0h | 72h | 30h | 48h | 480h |
-| `P4` | 33~42 | 390h | 0h | 90h | 60h | 60h | 600h |
-| `P5` | 43~48 | 0h | 120h | 36h | 168h | 36h | 360h |
-| **합계** | **48주** | **1,605h** | **315h** | **414h** | **258h** | **288h** | **2,880h** |
+| 개인 학습 활동 | 예시 |
+|---|---:|
+| 공식 읽기·수학·통계 | 18h |
+| 학습자 구현·디버깅 | 27h |
+| 실험·평가·해석 | 9h |
+| 지연 회상·전이·정리 | 6h |
+| 합계 | 60h |
 
-### Phase별 필수 결과
+첫 1~2주 동안 실제 확보 시간, 새 환경 재현, 도움 없이 설명·구현한 결과를
+수동 확인한다. 필요하면 이후 달력 길이와 배분을 조정하며 목표 깊이를 낮추거나
+핵심 학습을 잘라 날짜를 맞추지 않는다. 기존 52주·2,880시간 표는 이번 재설계의
+확정 기본값으로 계승하지 않는다. 자동 일정이나 새 시간 추적기는 만들지 않는다.
 
-| Phase | 공식 학습·프로젝트에서 확인할 결과 |
-|---|---|
-| `P0` | 행렬·미분·확률·통계의 설명과 계산, MIT 18.05 PS1~PS11 직접 수행, MLP 학습·검증·초기화 비교 해석 |
-| `P1` | CS229 PS1~PS3 written·coding, 지정 ISLP lab, 누수 없는 모델 비교와 사용 시나리오가 있는 배포 프로젝트 |
-| `P2` | CS231n A2 Q1~Q5, PyTorch 학습 진단과 CNN, 작은 GPT·BPE 구현·설명 |
-| `P3` | CS224N A1~A4 written·수학·프로그래밍 전체와 RNN·LSTM·attention·Transformer 연결 설명 |
-| `P4` | CS336 A1·A2 모델·커널·분산 학습의 구현·측정, Lecture 10에 근거한 추론 병목 설명 |
-| `P5` | 한 추론 연구 질문의 baseline·통제 비교·논문 재현 보고서, 성능·품질·메모리 해석과 기초·시스템 면접 연습 |
+## 기존 범위에서 무엇이 바뀌었나
 
-이 결과와 아래 무보조 설명·대표 재구현으로 Phase 전환을 검토합니다. 날짜가
-되었다는 이유로 다음 Phase에 진입하거나 기존 과제를 완료 처리하지 않습니다.
+이 표는 범위 결정이며 완료 기록이 아니다. 빠진 요구는 미완료 보류로 남는다.
+기존 코드·노트북·회고·실험 출력은 보존한다.
 
-## 자료 역할
-
-- **주과정**은 지정 범위와 공식 과제를 모두 수행합니다.
-- **보조 자료**는 막힌 설명이나 다른 관점에 필요한 절만 봅니다.
-- **비교 자료**인 `SRC-KAM-*`, `SRC-KDL-*`, `SRC-KBM-*`는 기본 실습이나 완료
-  기준이 아닙니다.
-- **선택 범위**는 Phase별 추천 근거와 예산에 맞춰 제안합니다. P0 첫 제출은
-  예측 능력을 근거로 하며, P2·P3 Kaggle은 핵심 학습을 마친 뒤에만 제안합니다.
-
-`CURRICULUM.md`의 정적 catalog는 장기 선수관계 참고이며 Phase gate가 아닙니다.
-현재 설명에 필요한 선수만 보충하고 같은 주과정으로 돌아갑니다.
-
-KANT는 진도·주제 대조용이며 기본 실습이나 완료 기준으로 사용하지 않습니다.
-영상·문서·공식 자료 기반 대화를 허용하되 공식 구현과 필수 과제의 범위는 유지합니다.
-완성 노트북 실행이나 AI 보충 예제로 공식 실습을 대체하지 않습니다. 문제 본문을
-읽고 Optional·Bonus 표시를 유지하며 접근·실행 제약이 있으면 미완료로 남깁니다.
-강의 수강 자체는 구현·실행·해석의 근거가 아니며 로컬 검사는 공식 대학 채점이 아닙니다.
-새 자료를 여기 연결하는 것은 다운로드·전체 감사·환경 설치 완료를 뜻하지 않습니다.
-
-### 참고한 공개 커리큘럼과 반영 내용
-
-| 출처 | 반영한 설계 | 수행 범위 |
+| 기존 규칙 | 이번 승인 범위 | 이유·남은 범위 |
 |---|---|---|
-| [fast.ai](https://course.fast.ai/) | 동작하는 모델로 전체 흐름을 먼저 보는 top-down 입문 | P0 Lesson 1~2만 |
-| [Made With ML](https://madewithml.com/) | 사용자·데이터 계약에서 테스트·배포·모니터링으로 연결 | P1의 같은 Kaggle 프로젝트에 적용 |
-| [Full Stack Deep Learning 2022](https://fullstackdeeplearning.com/course/2022/) | ML 시스템 설계, 학습 진단과 배포 관점 비교 | 필요한 절만 보조, 전체 과정은 보류 |
-| [roadmap.sh AI Engineer](https://roadmap.sh/ai-engineer) | 응용 구현과 모델·시스템 역량의 범위 비교 | 직무 구분 참고, 추가 수강 의무 없음 |
+| 현재 위치를 makemore Part 2로 적은 로드맵 | 현재 MIT Class 1 북마크 유지; 기존 MLP 새 커널 재현을 다음 실무 관문으로 연결 | fast.ai Lesson 1~2와 MML의 미검증 항목은 회고에 남기고 필요한 공백만 보강 |
+| MIT 18.05 PS1~PS11·R | 유지 | 공식 읽기·in-class·PS·R을 대화나 Python 실행으로 대체하지 않음 |
+| CS229 Summer 2020 PS1~PS3 written·coding | 유지 | PS3의 RL·ICA까지 보존; GP·ICA 추가 심화·넓은 RL 과정은 보류 |
+| CS231n 2024 L2~6·A2 Q1~Q5 전체 | 필요한 설명 + A2 Q1~Q3의 FC/backprop·optimizer·normalization·dropout | Q4 CNN·Q5 CIFAR-10, A1·A3·Final Project는 미완료 보류 |
+| Karpathy GPT·Tokenizer 전체 후 CS224N 전체 | 흐름이 막힐 때 GPT 설명만 선택 | A1 이전 보조; A1 중에는 공식 정책에 따라 다른 구현을 참고하지 않음 |
+| CS224N Spring 2024 A1~A4 전체 | 1246 판본 A3 Q1(i), A4 Q1~Q2 written | 나머지 written·programming·Final Project는 미완료 보류 |
+| CS336 A1·A2 모두 P4 전체 의무 | A1은 P3의 공식 독립 구현 기준; A2는 P4 학습 systems 기초 선택 | A1 공식 저자원 경로 인정; A2 B200·다중 GPU 측정은 별도 자원 조건·미검증 범위 |
+| LLM evaluation·post-training 전문화는 P5 이후 보류 | P0부터 공통 평가; Transformer 기초 후 작은 SFT/eval 비교 | 기존 P1 ML 평가도 유지; 전문화 두 트랙을 병렬 의무화하지 않음 |
+| Phase마다 새 포트폴리오 | 최대 세 산출물을 점진적으로 발전 | 작은 LM, serving/eval harness, 독립 연구 보고서 |
 
-fast.ai를 앞에 짧게 붙이는 구성은 기초 → ML → DL → NLP → systems의 선수 순서를
-바꾸지 않습니다. 판본 주의: fast.ai Part 1과 FSDL 2022의 도구 사용법은 실행 시점의
-공식 문서와 대조합니다. 참고 커리큘럼의 전체 과정을 별도 졸업 조건으로 추가하지 않습니다.
+## 자료 역할과 판본
 
-### Karpathy 공식 구현 연결
+공식 자료의 짧은 본문 → 개념 대화 → 학습자 첫 시도 → 학습자 실행 → 실제 코드·
+출력 피드백 → 가설 검증 → 지연 회상·전이가 기본 순서다. 공식 문서를 볼 수 있는
+실무 구현과 자료를 닫은 대표 회상은 다른 근거다. 강의 수강 자체는 구현·실행·
+해석의 근거가 아니며 로컬 검사는 공식 대학 채점이 아니다.
 
-기존 실습과 지식은 보존합니다. 아래는 자료 위치이며 완료 기록이 아닙니다.
+| 자료 | 고정 범위와 역할 |
+|---|---|
+| [MIT 18.05 Spring 2022 syllabus](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/syllabus/) | P0 공식 읽기·in-class·PS1~PS11·R |
+| [MML](https://mml-book.github.io/) | Chapter 2~5, 7의 확인된 공백만 보강 |
+| [Karpathy Zero to Hero](https://karpathy.ai/zero-to-hero.html) | P0 makemore 3·4와 공식 exercises; 기존 micrograd·bigram·MLP 보존; GPT는 필요할 때만 |
+| [CS229 Summer 2020 syllabus](https://cs229.stanford.edu/summer2020/syllabus-summer2020.html) | P1 notes·PS1~PS3; 현재 홈페이지의 다른 연도로 교체하지 않음 |
+| [ISLP 공식 labs](https://islp.readthedocs.io/en/latest/labs.html) | P1 Chapter 5·6·8·13 본문·Python lab 유지 |
+| [CS231n Spring 2024 A2](https://cs231n.github.io/assignments2024/assignment2/) | P2 Q1~Q3; Q4·Q5와 구분 |
+| [CS224N Spring 2024, 1246](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html) | P2/P3 attention written 선택; Winter 2024, 1244와 혼용하지 않음 |
+| [CS336 Spring 2026](https://cs336.stanford.edu/) | P3 A1 Basics, P4 A2 Systems 선택 및 Lecture 10 inference |
+| [CMU Deep Learning Systems](https://dlsyscourse.org/) | 메모리·autodiff·kernel·parallelism 공백만; 추가 전체 과정 아님 |
+| [Hugging Face smol-course](https://huggingface.co/learn/smol-course/en/unit0/1) | Transformer·PyTorch 기초 후 chat template·SFT·평가 비교에 필요한 절 |
+| [Berkeley Deep RL](https://rail.eecs.berkeley.edu/deeprlcourse/) | DPO/RLVR 질문에 실제 필요한 RL 개념만; P0/P1 전체 RL 병렬 과정 아님 |
+| [Raschka LLMs from Scratch](https://www.sebastianraschka.com/llms-from-scratch/) | LM 흐름 설명의 선택 reference; CS336과 같은 모델을 다시 전부 구현하는 의무 없음 |
 
-| 범위 | 공개 영상 | 공식 구현 |
+판본 주의: 현재 API는 사용하는 버전의 공식 문서로 확인한다.
+[Karpathy training recipe](https://karpathy.github.io/2019/04/25/recipe/)는 작은 배치
+과적합·단순 baseline 진단의 보조다. [fast.ai](https://course.fast.ai/) Lesson 1~2는
+이미 시도한 top-down 작업이며 미검증 재현·배포는 완료가 아니다.
+[Made With ML](https://madewithml.com/)은 같은 P1 실험에 ML 시스템 설계·테스트·
+배포를 연결한다. [Full Stack Deep Learning 2022](https://fullstackdeeplearning.com/course/2022/)와
+[roadmap.sh](https://roadmap.sh/ai-engineer)는 비교 참고이며 전체 과정을 별도 졸업 조건으로 추가하지 않습니다.
+
+KANT는 진도·주제 대조용 보조다. 기본 실습이나 완료 기준으로 사용하지 않습니다.
+독립 품질이 확인된 같은 주제의 과제는 출처·도움·공개 권한을 밝히고 중복 연습을
+줄이는 데 재사용할 수 있으나 공식 필수 과제 완료를 대신하지 않는다.
+영상·문서·공식 자료 기반 대화를 허용한다. 완성 노트북 실행이나 AI 보충 예제로
+공식 실습을 대체하지 않습니다. Optional·Bonus를 유지하고 제약은 미완료 또는
+공식 허용 조정 수행으로 구분한다. 새 자료를 여기 연결하는 것은 다운로드·전체 감사·환경 설치 완료를 뜻하지 않습니다.
+비공개 KANT 상세 일정·문제·슬라이드·내부 링크는 공개 문서에 옮기지 않는다.
+
+## P0 — 현재 기초를 실행 가능한 근거로 연결
+
+현재 MIT 18.05 Unit 1, Class 1 미응답 질문부터 이어 간다. 새로운 입문 과정이나
+전체 재진단으로 시작하지 않는다. Class 1의 남은 공식 요구 확인 뒤 기존 MLP의
+data → train → eval 새 환경 재현을 **다음 실무 관문**으로 연결한다. MIT 전체가
+끝날 때까지 미루지 않으며 같은 STATE로 인계한다. Agent가 노트북을 수정하거나 실행해 통과시키지 않는다.
+
+기존 [MLP 학습·평가 회고](practice/deep-learning/makemore-mlp-training-recall.md)는
+학습자 train/eval 함수와 AI의 데이터·모델·API 도움을 구분했다.
+[E01·E03 회고](practice/deep-learning/makemore-mlp-e01-e03.md)의 초기화·배치 통제
+설명은 당시 해석이며 셀 이력은 새 커널 재현을 입증하지 않는다. 기존 결과를
+독립 모델·데이터 구현 또는 새 커널 성공으로 승격하지 않는다.
+
+- [MIT class reading·in-class](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)와
+  [PS1~PS11](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/problem-sets/)을
+  R 요구까지 모두 수행한다. 조건부확률·독립·분포·기댓값·분산·LLN·CLT·likelihood·
+  Bayes·검정·신뢰구간·bootstrap을 연결한다. R이 필요한 과제는 R로 수행하며 Python 대체로 완료 처리하지 않습니다.
+- MML Chapter 2~5, 7의 행렬·투영·분해·chain rule·gradient·Jacobian·최적화 공백을
+  본문·공식 연습문제의 무보조 설명·계산으로 보강한다. 이미 설명·계산한 내용을 반복 수강하지 않습니다.
+  미분·정적분이 막히면 [MIT 18.01SC Fall 2010](https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/)의
+  해당 절만 사용한다. 별도 수학 과정 전체를 추가하지 않습니다.
+- 학습자가 MLP의 데이터 출처·split·seed·초기화·배치 순서·dtype·device·의존성을
+  설명하고 새 커널에서 실행한다. 작은 배치 과적합, train/eval 모드, label/loss
+  계약, zero_grad·backward·갱신을 확인한다. 저장 출력만으로 독립 수행을 판단하지 않는다.
+- MIT 이후 makemore Parts 3~4와 공식 exercises를 유지한다. Python 함수·객체·
+  indexing·환경 사용은 실제 막힌 동작만 보강한다.
+
+fast.ai Lesson 1~2 미완료와 MML 미확인 연습은 기존 회고·DEFERRED에 남는다.
+Stat110과 OpenIntro는 다른 설명이 필요할 때만 쓰며 새 전체 과정이 아니다.
+
+## P1 — ML 목적함수와 믿을 수 있는 실험
+
+회귀·분류·likelihood·최적화·규제 → split·CV·baseline → 오류 분석·불확실성을 연결한다.
+CS229 Summer 2020 **PS1, PS2, PS3의 필수 written과 coding을 모두 수행**한다.
+[PS1](https://cs229.stanford.edu/summer2020/ps1.pdf), [PS2](https://cs229.stanford.edu/summer2020/ps2.pdf),
+[PS3](https://cs229.stanford.edu/summer2020/ps3.pdf)의 공식 PDF·starter ZIP·환경을 사용한다.
+공식 문제를 임의 NumPy 연습으로 대체하지 않습니다. 2018 영상은 보조다.
+
+선수관계 예외: **PS3 Q1 RL와 Q6 ICA는 기존 필수 범위로 유지**한다. 해당 문제 전에
+MDP·Bellman, likelihood·분포·행렬 미분에 필요한 notes를 읽는다. GP·ICA 추가 심화·
+전체 RL 과정 보류가 PS3 삭제를 뜻하지 않는다. 이 작은 RL 문제만으로 독립 RLVR
+연구 준비를 인정하지 않는다.
+
+ISLP Chapter 5·6·8·13 본문·Python lab을 유지한다. 전처리 fit은 train 안에서 하고
+독립 표본·시간·그룹 단위로 split한다. CV로 모델 선택을 하고 test를 반복 보며
+튜닝하지 않는다. baseline·규제·트리/앙상블 비교에서 error slice와 bootstrap의
+재표집 단위·가정·불확실성을 해석한다.
+
+Kaggle은 P1만 필수입니다. 실제 열린 tabular 대회 하나의 데이터·지표·기한·라이선스·
+연산량을 읽고 선택한다. 같은 실험에 입력 계약·작은 배포·CI·모니터링을 연결하며
+향후 harness의 출발점으로 재사용한다. 별도 거대 포트폴리오를 추가하지 않는다.
+
+## P2 — PyTorch 진단과 LM 구성요소
+
+P0/P1의 loss·gradient·split을 tensor·module·optimizer·data pipeline으로 연결한다.
+[PyTorch 기초](https://docs.pytorch.org/tutorials/beginner/basics/intro.html)와 공식 API는
+공백만 보수한다. feature·class·batch 차원을 바꿔도 loss 계약을 지키고 작은 배치
+과적합·validation·gradient·수치 안정성을 진단한다.
+
+CS231n Spring 2024 Lecture 2~6의 필요한 설명과 **A2 Q1~Q3**를 선택한다.
+FC/backprop·optimizer·batch/layer normalization·dropout을 다루고 Q4 CNN·Q5
+CIFAR-10 전체는 보류한다. 전체 A2·과정 완주라고 하지 않는다.
+
+token ID·embedding → attention score·softmax → causal mask → 출력 shape를 연결한다.
+[CS224N Spring 2024 A3 written](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/assignments/a3_spr24_student_handout.pdf)의
+Q1(i)의 attention 비교와 [A4 written](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/assignments/a4_spr24_student_handout.pdf)의
+Q1 Attention Exploration·Q2 Position Embeddings Exploration을 사용한다. 나머지 written·programming은 보류다. RNN/LSTM·
+seq2seq는 비교 설명이 필요한 부분만 쓴다. Karpathy GPT bridge는 연결이 막힐 때만
+쓰며 완성 GPT·BPE·CS224N·CS336 전체를 연속으로 반복하지 않는다. A1 진입 전에
+전체 Transformer를 추가 구현하는 시험은 만들지 않는다.
+
+## P3 — 자기 작은 Transformer LM과 공식 독립 구현
+
+P2의 train/validation 실행·해석, 바뀐 tensor/loss 계약 적용, token·attention·mask
+흐름이 확인되면 기존 CS336 Assignment 1 Basics 작업으로 돌아간다. **A1 자체가
+독립 구현의 공식 기준**이다. 모든 보조 과정을 완강해야 진입하는 구조가 아니다.
+
+tokenization·embedding·attention·causal mask·block·next-token target·cross-entropy·
+sampling·checkpoint 저장/재개를 같은 작은 LM에서 연결한다. 데이터 출처·사용 권한·
+중복·tokenizer 학습 범위·train/dev/test 경계를 명시한다. 미래 token 누수·target
+shift를 확인하고 평가 데이터로 tokenizer나 모델을 튜닝하지 않는다.
+
+공식 A1 [handout v26.0.3](https://github.com/stanford-cs336/assignment1-basics/blob/a158843b20107949f1a8d7df1b05cd33b9166712/cs336_assignment1_basics.pdf)은
+Spring 2026, 공개 commit `a158843b20107949f1a8d7df1b05cd33b9166712`다. README의
+이전 연도 표기보다 PDF 판본을 기준으로 한다. 기존 private clone을 보존하고
+별도 요청 없이 clone·설치하지 않는다. 다음 범위를 구분한다.
+
+| 범위 | 확인할 증거·표현 |
+|---|---|
+| 교육용 핵심 구현 | 학습자 LM 구성요소·train/eval·sampling·resume의 실행·설명; P3 핵심 확인이며 공식 전체 완료 아님 |
+| 임의 축소 실험 | 작은 model/data/step로 correctness·학습 곡선 확인; 바꾼 요구·미수행을 밝히고 공식 완료로 세지 않음 |
+| 공식 A1 수행 | BPE·Transformer·AdamW·훈련 인프라·실험의 해당 필수 요구; 기본 또는 공식 허용 저자원 경로와 결과를 명시 |
+
+**공식 저자원 경로를 자원 부족만으로 불완료라고 판정하지 않는다.** v26.0.3 인쇄
+40쪽 `learning_rate` Low-Resource Tip은 CPU/MPS에서 총 처리량을 40,000,000 tokens,
+validation loss 목표를 2.00으로 조정할 수 있게 한다. 이는 CUDA 8GB에 같은 목표를
+임의 적용하는 허가가 아니다. 인쇄 44쪽은 GPU가 제한된 온라인 학습자가 OWT 대신
+TinyStories에서 변경 실험을 이어가는 경로를 제시한다. 적용한 조정·해당 written/
+실험 요구·남은 항목을 명시해 공식 허용 저자원 수행으로 기록한다. 임의 toy Run All,
+대학 채점, OWT 성능 재현과 구분한다. Leaderboard 제출은 선택이며 공식 A1
+경로 완료의 필수 조건이 아니다.
+
+P3의 지정 과제 범위는 선택한 공식 A1 경로의 필수 요구다. 교육용 핵심 확인이나
+임의 축소 실험만으로 전체 A1 또는 P3 종료를 선언하지 않는다. 공식적으로 허용된
+조정은 그 경로의 수행으로 인정하고, 허용되지 않은 생략은 미완료로 남긴다.
+
+Transformer·PyTorch 기초 후 작은 base/instruct와 SFT/eval 비교를 한 번 제한된
+범위로 한다. chat template·label masking·SFT/LoRA 설정과 held-out 품질·퇴행을
+설명하며 loss 감소만으로 성공이라 하지 않는다. 학교의 같은 주제와 연결할 수
+있으나 전문화 선택의 참고이며 독립 DPO/RL 완료나 필수 병렬 트랙으로 세지 않는다.
+
+## P4 — 잠정 Systems / Inference 전문화
+
+현재 1순위는 잠정 **Systems / Inference**다. 자기 LM과 기존 backend 경험을
+serving·측정에 연결하고 P3 SFT/eval 비교와 실제 공고로 방향을 검토한다.
+
+### 학습 systems 기초와 자원 범위
+
+[A2 Systems v26.1.3](https://github.com/stanford-cs336/assignment2-systems/blob/ca8bc81a59b70516f7ebb2da4808daade877c736/cs336_assignment2_systems.pdf),
+공개 commit `ca8bc81a59b70516f7ebb2da4808daade877c736`의 profiling·메모리/FLOPs·
+mixed precision·activation checkpointing·attention kernel·parallelism을 필요 범위로 사용한다. **A2는 주로
+학습 성능·분산 학습 과제**다. inference serving 전체를 대신하지 않는다.
+8GB 단일 장치의 로컬·축소 작업을 A2 전체 완료로 세지 않는다. 공식 전체 A2는
+현재 필수 관문이 아니다. CMU는 공백 reference이며 추가 full course가 아니다.
+
+| 작업 | 로컬 필수 검증 | 축소·추가 자원 검증의 경계 |
 |---|---|---|
-| P0 makemore Part 2 | [MLP](https://www.youtube.com/watch?v=TCH_1BHY58I) | [notebook](https://github.com/karpathy/nn-zero-to-hero/blob/master/lectures/makemore/makemore_part2_mlp.ipynb) |
-| P0 makemore Part 3 | [Activations, Gradients, BatchNorm](https://www.youtube.com/watch?v=P6sfmUTpUmc) | [notebook](https://github.com/karpathy/nn-zero-to-hero/blob/master/lectures/makemore/makemore_part3_bn.ipynb) |
-| P0 makemore Part 4 | [Backprop Ninja](https://www.youtube.com/watch?v=q8SA3rM6ckI) | [notebook](https://github.com/karpathy/nn-zero-to-hero/blob/master/lectures/makemore/makemore_part4_backprop.ipynb) |
-| P2 GPT | [영상](https://www.youtube.com/watch?v=kCc8FmEb1nY) | [공식 구현](https://github.com/karpathy/nn-zero-to-hero/tree/master/lectures/ng-video-lecture) |
-| P2 Tokenizer | [영상](https://www.youtube.com/watch?v=zduSFxRajkE) | [minbpe](https://github.com/karpathy/minbpe) |
+| P0 MLP·MIT·P1 CS229/ISLP | 학습자가 CPU/단일 GPU에서 재현·해석; R은 공식 요구대로 | 작은 data 실험으로 PS 요구를 삭제하지 않음; 과제 환경 호환성 확인 후 실행 |
+| P2 CS231n Q1~Q3·attention written | gradient·optimizer·norm/dropout 요구와 작은 구성요소 | Q4·Q5·미선택 programming은 미완료 보류 |
+| P3 LM/A1 | 구성요소 correctness·fresh kernel·sampling/resume; 선택한 공식 경로 요구 | 공식 저자원 조정과 임의 축소 구분; 큰 실행은 자원 확인 후 학습자가 수행 |
+| P4 profiling·mixed precision | 들어갈 크기의 forward/backward/step·메모리/FLOPs·수치 오차 비교 | A2 큰 model/context sweep은 미검증; 로컬 성능을 다른 장치로 일반화하지 않음 |
+| P4 kernel | 단일 GPU 호환성·작은 shape의 FlashAttention-2 forward 및 PyTorch/torch.compile backward 출력·gradient 비교 | A2 인쇄 28쪽 B200 benchmark·큰 sweep은 외부 자원 검증; Triton backward는 **OPTIONAL** |
+| P4 parallelism | collective·DDP·optimizer sharding·FSDP 구조/비용 설명; CPU Gloo 기능 연습 | 인쇄 32쪽 2/4/6 GPU all-reduce와 2 GPU DDP/FSDP 측정은 다중 장치 필요; CPU는 GPU scaling 증거 아님 |
+| P4 harness·P5 연구 | 한 장치의 작은 workload·정확성·품질·부하 시험 | cluster·다른 accelerator·대규모 serving은 실행 전까지 미검증 |
 
-micrograd와 bigram의 기존 작업은 다시 완료 판정을 내리지 않습니다. makemore
-Part 5 WaveNet의 복귀 조건은 `DEFERRED.md`를 따릅니다.
+kernel·mixed precision의 장치/driver 지원을 먼저 확인한다. 외부 GPU 검토는
+VRAM뿐 아니라 연산시간·장치 수·공식 지정 hardware 요구를 근거로 한다. 필요한
+검증·장치·비용·한도를 확인해 별도 승인받기 전 구매·등록·실행하지 않는다.
+그동안 해당 검증은 미수행으로 두고 가능한 로컬 학습을 계속한다.
 
-## P0 — 수학·확률·통계와 학습 루프
+### 별도 inference·운영 측정
 
-현재 `STATE.md`의 makemore Part 2를 그대로 이어 다음 순서로 진행합니다.
+[CS336 2026 Lecture 10](https://cs336.stanford.edu/)을 연결해 같은 LM/harness에서
+prefill·decode·KV cache·batching을 구현·측정한다. workload·warmup·반복·동기화·
+측정 경계를 명시한다. **독립변수로 정한 축을 제외한 model revision·데이터·장치·
+workload·sampling 조건을 고정**한다. batching 비교에서 batch, quantization
+비교에서 precision을 고정하라는 모순된 규칙을 만들지 않는다.
 
-1. Karpathy makemore Part 2 전체 구현과 공식 exercises E01~E03
-2. [fast.ai Practical Deep Learning for Coders](https://course.fast.ai/) Lesson 1~2
-3. [Mathematics for Machine Learning](https://mml-book.github.io/) Chapter 2~5, 7을
-   기준 범위로 삼아 개념별 무보조 설명·계산을 확인하고 부족한 부분만 본문·공식
-   연습문제로 보강
-4. [MIT 18.05 Spring 2022](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/)의
-   [class reading·in-class materials](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)와
-   [problem sets](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/problem-sets/) 순서로 probability,
-   Bayes, NHST, confidence interval, bootstrap, regression을 학습하고
-   **PS1~PS11을 R 요구까지 모두 수행**
-5. Karpathy makemore Part 3, Part 4 전체 구현과 공식 exercises
+cache는 eval mode, 같은 위치·mask 조건에서 uncached 기준 logits와 사전 수치
+허용 오차를 비교한다. quantization은 baseline 이후 선택이며 bitwise 일치가 아닌
+사전 품질 허용 범위를 평가한다. 고정 생성 길이 성능 시험과 EOS를 따르는 실제
+요청 시험을 구분한다. 초기 debugging은 한 번에 한 변수로 원인을 좁히되 연구에서는
+사전 설계한 작은 batch×length 상호작용 실험도 허용한다.
 
-fast.ai Lesson 1~2는 전체 workflow를 먼저 보는 top-down 입문입니다. 나머지 Part
-1은 기본 경로가 아닙니다. MML은 두 번째 완독 과정이 아니라 확인된 선형대수·
-해석기하·행렬분해·벡터미분·최적화 약점을 고치는 reference입니다.
-Chapter 2 선형대수, 3 해석기하, 4 행렬분해, 5 다변수 미분, 7 최적화의 핵심을
-빠짐없이 다루되 이미 설명·계산한 내용을 반복 수강하지 않습니다. 현재 연결된
-학습 단위에서 확인하며 매 세션 새 진단으로 시작하지 않습니다. 단변수 미분이나
-정적분이 막히면 [MIT 18.01SC Fall 2010](https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/)의
-해당 기초 단원만 보강합니다. 별도 수학 과정 전체를 추가하지 않습니다.
+같은 harness에 요청 도착 패턴·concurrency·queueing, TTFT·ITL·tail latency·
+throughput, 취소·오류·OOM과 복구 동작, metrics/logs/traces, 재현 가능한 부하 시험을
+붙인다. 코드 변경 뒤에는 같은 요청 부하와 품질 허용 범위에서 TTFT·ITL·tail·
+오류·OOM의 부하 회귀를 검사한다. 단일 요청·평균 latency를 운영 역량 전체로 확대하지 않는다. Linux·배포·
+API 계약은 기존 경험과 연결해 검증하고 다른 언어 경력으로 Python/FastAPI 실무를
+이미 갖췄다고 주장하지 않는다.
 
-MIT 18.05가 확률·통계의 주과정입니다. 보유 Stat110과 OpenIntro는 다른 설명이
-필요할 때만 쓰며 전체 과정 요구가 아닙니다. P0 산출은 makemore MLP 초기화·학습
-비교와 학습자가 직접 실행·해석한 통계 problem set입니다.
-R이 필요한 과제는 R로 수행하며 Python 대체로 완료 처리하지 않습니다.
-기존 Stat110 자료와 학습 기록은 그대로 보존합니다. 분포·기댓값·분산·LLN·CLT,
-likelihood·MLE·MAP, Bayesian inference와 빈도주의 추론, 검정력·bootstrap의
-설명 기준은 `CURRICULUM.md`에 연결하며 다중비교는 P1 ISLP 13장에서 보완합니다.
+### 대안 Eval / Post-training
 
-## P1 — 고전 ML·실험·프로덕션
+선택하면 held-out eval·dedup·contamination·metric variance → base/instruct·chat
+template·label masking·SFT/LoRA → 독립 평가 → **하나의 DPO 또는 RLVR 질문**으로
+간다. SFT loss·held-out 품질·다른 능력 퇴행을 분리한다. DPO는 preference data·
+reference policy·목적함수, RLVR는 reward/verifier·policy gradient·variance·평가의
+선수를 확인한 뒤 연구한다. 두 방법·넓은 RL을 동시에 졸업 요건으로 추가하지 않는다.
+학교 노출은 독립 연구 증거가 아니며 공통 평가 핵심은 어느 분기에서도 유지한다.
 
-주과정은 [CS229 Summer 2020](https://cs229.stanford.edu/summer2020/)입니다.
-공개 [syllabus](https://cs229.stanford.edu/summer2020/syllabus-summer2020.html)와 공식 notes를 따라가며 **PS1, PS2, PS3의 필수 written과 coding을 모두
-수행**합니다. 공식 PDF와 Python starter ZIP을 사용하며, 공식 문제를 임의 NumPy
-연습으로 대체하지 않습니다. 2018 공개 영상은 설명 보조일 뿐 Summer 2020 과정
-완료 근거가 아닙니다.
-최종 프로젝트와 공식 시험은 수행 범위에 포함하지 않으며 이 범위를 마쳤다고
-“CS229 완주”라고 표현하지 않습니다.
+## P5 — 한 질문의 독립 연구와 재현
 
-실제 tabular model selection은 [ISLP](https://www.statlearning.com/) Chapter 5,
-6, 8, 13 텍스트와 [공식 lab](https://islp.readthedocs.io/en/latest/labs.html)으로
-보강합니다. Python판 5장 교차검증·bootstrap, 6장 규제, 8장 트리·앙상블,
-13장 다중검정의 본문과 공식 Python lab을 수행합니다. 비교 실험을 같은 P1
-프로젝트에 연결하며 전체 책 완독은 추가하지 않습니다.
+프로젝트와 논문 재현을 따로 만들지 않습니다. 선택한 전문화의 **한 연구 질문**에서
+논문 주장 하나를 baseline·통제 조건·ablation·재현·작은 variation으로 확인한다.
+학습자가 주장·근거·한계를 먼저 읽고 쓰며 paper와 local model·data·hardware·
+workload 차이를 실험 전에 명시한다.
 
-P1의 유일한 필수 competition은 도달 시점에 열린 tabular 대회 하나입니다.
-데이터·평가지표·마감·라이선스·연산량을 읽고 선택합니다. 같은 프로젝트에
-[Made With ML](https://madewithml.com/)의 design, testing, reproducibility,
-CI/CD, monitoring 절을 적용해 사용 시나리오가 있는 배포 프로젝트를 만듭니다.
-시작 전에 사용자, 입력 schema와 허용 범위, split과
-leakage 경계, 감시할 오류·입력 분포·응답 지연, 실패 동작을 고정합니다.
-순위가 아니라 누수 없는 비교·오류 분석·재현성과 use case의 일관성이 근거입니다.
+환경·실행 방법·측정 오차·품질·memory·latency·throughput 또는 선택한 eval 지표,
+실패 사례·부정적 결과·claim limits를 보고한다. 코드·도움·자기 기여를 밝히고
+논문 전체 결과를 재현했다고 일반화하지 않는다. 실패는 원인·한계를 보고한 유효한
+결과이며 성공이나 가상 수치로 채우지 않는다. 한 cycle을 끝낼 작은 범위로 잡는다.
 
-## P2 — 딥러닝·PyTorch
+최대 세 산출물: **재현 가능한 작은 LM, serving/eval harness, 독립 연구 보고서**.
+과제·대회·대화를 모두 별도 포트폴리오로 늘리지 않는다. 공식 과제 답안은 비공개다.
 
-주과정은 [CS231n Spring 2024 schedule](https://cs231n.stanford.edu/2024/schedule.html) Lecture 2~6과
-[Assignment 2](https://cs231n.github.io/assignments2024/assignment2/) Q1~Q5
-전체입니다. Assignment 1, Assignment 3, final project는 기본 경로에서 제외합니다.
-설명 매체는 공개 notes·slides를 기본으로 하며 접근 불가능한 영상을 본 것으로
-취급하지 않습니다. A2의 fully-connected network, batch normalization, dropout,
-CNN, PyTorch Q1~Q5를 빠짐없이 수행합니다.
-[PyTorch Learn the Basics](https://docs.pytorch.org/tutorials/beginner/basics/intro.html)와
-공식 API 문서로 tensor·autograd·module·optimizer·data pipeline·train/eval loop를
-보수합니다. 이미지 Kaggle은 공식 A2와 PyTorch 흐름을 끝낸 뒤 전이학습·과적합
-진단을 실제로 보여 준 경우에만 선택합니다.
+## 평가와 대표 관문
 
-P2 마지막에는 Karpathy의
-[GPT](https://www.youtube.com/watch?v=kCc8FmEb1nY)와
-[Tokenizer](https://www.youtube.com/watch?v=zduSFxRajkE)를 따라 GPT와 BPE를 직접
-구현합니다. CS231n 지정 범위와 PyTorch 보강 뒤에 tokenization, causal mask,
-autoregressive loss, generation의 전체 흐름을 연결하고 나서 P3에 진입합니다.
+P0 split·train/eval·실험 단위 → P1 leakage·CV·baseline·error analysis·bootstrap →
+P2/P3 LM dev/test·target shift·dedup·contamination·metric variance → P4/P5 품질을
+보존한 시스템 비교·주장 한계를 확인한다. 평가를 P5까지 미루지 않는다.
 
-## P3 — NLP·Transformer
+질문 **10개를 두 번 실행한 것은 20회 시도이며 독립 질문 20개가 아니다**.
+질문·문서·사용자 같은 독립 표본 단위를 정하고 seed/응답 반복은 그 안의 변동으로
+다룬다. 불확실성 해석에서 재표집 단위와 가정을 설명한다.
 
-P2 끝에서 GPT와 BPE 구현을 마친 것을 전제로
-[CS224N Spring 2024](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html)
-Assignment 1~4를 **written·수학·programming 요구사항까지 전부 수행**합니다.
-RNN·LSTM·attention·Transformer는 이 과정 안에서 연결합니다.
-2024 notes와 assignment가 주자료이고, 공개 2023 영상은 설명 보조입니다. 판본을
-섞어 과제 요구를 바꾸지 않습니다. Final Project는 완료가 아니라 미완료 보류입니다.
-지정 reading은 논문 읽기에 포함하며 별도 월별 논문 quota나 두 번째 Transformer
-전체 구현을 겹쳐 요구하지 않습니다. NLP Kaggle은 선택입니다.
-
-
-## P4 — LLM 구현·학습 시스템·추론 기초
-
-주과정은 [CS336 Spring 2026](https://cs336.stanford.edu/) Assignment 1 Basics와
-Assignment 2 Systems 전체와 관련 강의이며 P4 끝에 2026 Lecture 10 inference를
-연결합니다. A2는 training
-systems 과제이지 serving 과제가 아닙니다. prefill/decode, KV cache, batching과
-serving 측정은 강의 10에서 P5 독립 연구로 연결합니다.
-
-공식 AI 정책과 private repository 경계를 따릅니다. 기존 assignment 작업은
-보존하며 A1의 tokenizer·LM과 A2의 kernel·분산 학습을 별도 두 번째 산출물로 다시
-요구하지 않습니다. 공식 과제와 학습자의 실행·해석이 P4 구현 근거입니다.
-기존 A1은 공개 commit
-[`a158843b20107949f1a8d7df1b05cd33b9166712`](https://github.com/stanford-cs336/assignment1-basics/tree/a158843b20107949f1a8d7df1b05cd33b9166712)에
-고정합니다. 별도 요청 없이 clone·등록·cache·다운로드하지 않습니다.
-
-## P5 — 하나의 독립 inference 연구
-
-프로젝트와 논문 재현을 따로 만들지 않습니다. **하나의 독립 inference research
-question**과 관련 논문의 주장 하나를 같은 실험 안에서 재현합니다. 고정 workload와
-모델에서 다음을 보고합니다.
-
-- prefill과 decode를 분리한 baseline
-- KV cache와 batching의 통제 비교
-- 출력 품질 또는 정확성 보존 조건
-- memory, latency, throughput 측정
-- workload·환경·재현 조건과 측정 오차
-- 실패한 시도, 남은 한계, 원 주장과의 차이
-
-논문 선택 때 이 연구 질문에 직접 연결되는 주장을 확인하고 원 논문과 현재
-환경·모델·workload의 차이를 먼저 명시합니다. 논문 전체 성능을 재현했다고
-일반화하지 않고 실제 비교한 범위의 결과만 보고합니다.
-
-quantization은 baseline과 측정 계약이 안정된 뒤의 선택 항목입니다. 지원·코딩테스트·
-시스템 면접 준비도 P5 예산에 포함합니다. 실패해도 원인을 진단하고 측정 한계를
-보고했다면 유효한 결과이며 성공으로 바꾸어 기록하지 않습니다.
-
-## 실전 competition 트랙과 논문 읽기
-
-Kaggle은 P1만 필수입니다. P0·P2·P3은 선택이며, P0는 예측을 만들 수 있으면
-첫 제출 경험을 제안합니다. **이전 제출 경험을 요구하지 않습니다.** P2·P3는
-핵심 학습 이후 선택하며 제출 결과가 다음 Phase의 선수조건은 아닙니다.
-이 문서에 특정 대회를 고정하지 않습니다. 실제 후보는 도달 시점에
-[실제 목록](https://www.kaggle.com/competitions)을 확인합니다.
-데이터 규모·필요 연산량·남은 기간·라이선스와 학습 목적을 읽고 후보를 고르며,
-참여 시 해당 Phase 예산 안의 시간 상한을 정합니다. 순위 정체는 학습 실패가
-아니며 상한에 도달하면 결과를 해석하고 중단합니다.
-
-공식 과정의 지정 reading을 논문 시간에 포함하고 별도 월별 quota를 더하지 않습니다.
-P5만 논문 주장 하나를 독립 연구 질문 안에서 집중 재현합니다.
-읽기는 [Keshav의 3-pass](https://web.stanford.edu/class/ee384m/Handouts/HowtoReadPaper.pdf)를
-틀로 삼습니다. 학습자가 주장·근거·한계를 먼저 요약하고 Agent는 오독을 짚습니다.
-재현 실패도 원인을 규명했다면 유효한 산출물이며 가상의 수치나 성공으로 채우지 않습니다.
-
-## 무보조 설명과 빈 파일 구현 트랙
-
-연결된 학습 단위를 마치면 먼저 1~2분 안에 목적·원리·가정·한계를 말하고 조건 하나를
-바꾼 후속 질문 하나에 답합니다. Agent는 정답·수정점·빠진 생각을 한 번에
-피드백합니다. 설명과 조건 변경 사례는 하나의 통합 checkpoint이며 이미 이해한
-부분은 반복 시험하지 않습니다. Tensor·모델 문제에서는 학습자가 shape와 흐름을
-직접 제시합니다. knowledge는 학습자가 대화를 닫고 기억으로 쓴 초안 이후에만
-교정하며 AI가 면접 답변집을 먼저 작성하지 않습니다.
-주간 점검은 지난주 개념 2개와 더 이전 개념 1개를 예고 없이 묶어 확인합니다.
-일반 수업을 매번 진단으로 시작하거나 별도 회상 추적 시스템을 만들지 않습니다.
-
-| Phase | 대표 무보조 재구현 |
+| Phase | 대표 확인 행동 |
 |---|---|
-| `P0` | scalar autodiff와 MLP training 흐름 |
-| `P1` | linear/logistic regression, PCA, k-means, CV loop |
-| `P2` | PyTorch train/eval loop와 scaled dot-product attention |
-| `P3` | Transformer block과 causal mask |
-| `P4` | KV cache와 inference measurement |
+| `P0` | 새 표본공간의 개수·확률과 조건부확률 분모 설명; 차원이 바뀐 작은 계산에서 scalar loss까지 shape·VJP와 SGD 한 step 부호 예상; MLP fresh kernel·작은 배치 과적합·label/zero_grad 대표 오류 진단 |
+| `P1` | 회귀/분류·규제 유도/실행; 누수 없는 CV·baseline·error slice·bootstrap 단위 설명; PS1~PS3·지정 lab 증거 |
+| `P2` | feature/class/batch 변경의 train/eval 계약·gradient·norm/dropout 진단; scaled dot-product attention shape·mask 설명/구현 |
+| `P3` | token→target→logits→CE→sampling/resume 설명/실행; target shift·미래 정보 누수 진단; 핵심·축소·공식 A1 경로별 결과 표기 |
+| `P4` | cache correctness·prefill/decode·batching 품질·메모리·성능·운영 부하 측정; 또는 선택한 SFT/eval held-out 품질·퇴행·variance 독립 해석 |
+| `P5` | baseline·통제 비교·ablation·재현 variation·실패 사례로 한 주장과 일반화 한계를 설명 |
 
-공식 과제 수행과 무보조 재구현은 서로 다른 근거입니다. 전체 모듈의 구현이나
-전체 과제를 다시 쓰는 의무를 추가하지 않고 위 대표 단위를 확인합니다. 강의·
-노트·완성 코드를 닫고 코드·뼈대·import 목록·함수 signature 도움 없이 시도하며,
-도움받은 구현을 무보조 성공으로 기록하지 않습니다. deep-ml 챌린지, 시간 제한
-구현, 알고리즘 코딩 테스트는 부족한 부분을 보강하는 선택 수단입니다. 해당 Phase의
-구술·재구현 또는 지원 활동 예산 안에서 사용하며 별도 문제 수를 졸업 조건으로
-추가하지 않습니다. 통과하지 못한 항목은 완료로 기록하지 않습니다.
+대표 무보조 재구현은 P0 scalar autodiff·MLP loop, P1 linear/logistic regression·
+PCA, k-means·CV loop, P2 train/eval·attention, P3 block·causal mask, P4 cache·측정
+경계다. 공식 과제 수행과 무보조 재구현은 서로 다른 근거다. 전체 과제를 다시 쓰는
+의무를 추가하지 않고 대표 단위만 확인한다. 강의·노트·코드를 닫고 import 목록·
+signature·뼈대 도움 없이 시도하며 도움받은 구현을 무보조 성공으로 기록하지 않습니다.
+이 **빈 파일 구현 트랙**의 Deep-ML·짧은 시간제한 시도는 관찰된 공백만 보강하고
+개인 구현·회상 예시 배분 안에 포함한다. 별도 취업 알고리즘 연습의 제외 시간과
+중복 계산하거나 새 주간 문제 수·필수 트랙으로 만들지 않는다.
 
-## GPU, 취업, Phase 전환 점검
+같은 날 성공과 **며칠 뒤 자료 없이 복원하고 차원·분포·표현을 바꾼 전이**를 구분한다.
+요청한 주간 회상은 지난주 개념 2개와 더 이전 개념 1개를 묶고 실제 학습 시기로
+선택한다. 기존 회고에 첫 시도·도움 시점·오류 가설·실제 결과만 짧게 남긴다.
+knowledge는 학습자 무보조 초안 이후 교정한다. 공백만 보강하고 Phase 전체를 다시
+시작하지 않는다. 별도 작은 퀴즈·dashboard·회상 추적기를 계속 만들지 않는다.
 
-P2 시작 전에 단일 GPU 환경에서 CS231n A2와 PyTorch workload가 실행되는지
-확인합니다. P4 시작 전에는 CS336 A2 공식 요구를 수행할 유료 GPU 수단을 포함해
-환경을 확보합니다. 서비스·비용·사용 한도·공식 요구 충족 여부는 해당 과제 진입 전에
-확인하며 현재 설치나 구매를 자동 진행하지 않습니다. 확보하지 못하면
-과제를 미완료로 두며 대체 과제로 완료 처리하지 않습니다.
+[PyTorch reproducibility](https://docs.pytorch.org/docs/2.14/notes/randomness.html)에 따라
+seed 고정과 완전 수치 재현을 동일시하지 않는다. 환경 재구성, 같은 환경의 사전
+수치 허용 오차 내 재현, 여러 seed/표본에서 통계적 결과 재현을 구분한다. 실제
+실행·해석한 범위만 주장한다. Run All은 확률·미분·독립 구현 관문을 대신하지 않는다.
 
-특정 Phase가 취업이나 지원 자격을 보장하지 않습니다. 학위 선호, 직무명, systems
-수요를 고정 사실로 두지 않습니다. P1부터 Phase 종료 때 실제 공고 3~5건을 학습자가
-열어 요구 역량과 learner-owned 산출물, 빠진 필수 요건, 지원 여부를 대조합니다.
-공고가 경로와 다르면 공고를 기준으로 경로를 재검토합니다.
+## 취업 근거와 Phase 전환
 
-### 직무 사다리와 최종 목표
+P1부터 전환 때 실제 공고 3~5건을 읽어 필수 경력·학위 또는 동등 경험·지역·언어·
+실험/운영 요건과 자기 산출물을 대조한다. 공고가 경로와 다르면 공고를 기준으로
+경로를 재검토합니다. 채용 여부·요건·급여는 원문을 읽고 확인한다. 지원 자격을
+이미 갖췄다고 추정하지 않으며 더 이른 적합한 역할 지원이나 불합격은 학습 실패가 아니다.
 
-다음 연결은 저자의 판단이지 채용 공고의 인용이나 취업 시점의 보장이 아닙니다.
-지원할 때 실제 공고의 요구사항으로 다시 확인합니다.
-
-| 검토할 직무 | 비교할 학습자 산출물 |
+| 비교할 역할 | 실제로 확인할 근거 |
 |---|---|
-| ML Engineer / AI Engineer (주니어) | 고전 ML 설명, 검증·배포·테스트·모니터링 프로젝트 |
-| LLM Application Engineer | Transformer·입력 계약·평가 이해와 실제 응용 요구 사이의 차이 |
-| LLM Systems / Inference Engineer | 모델·커널·분산 구현과 품질·메모리·성능 측정 |
-| LLM Research Engineer | 독립 연구 질문·통제 실험·논문 재현·한계 보고 |
+| ML Engineer / Research Engineer | PyTorch 학습 pipeline·실험 주도·재현·오류 분석·자기 기여 |
+| LLM Systems / Inference | Linux·profiling·memory/kernel·KV·TTFT/tail/throughput·부하·오류 대응 |
+| Model enablement | 모델 구조·kernel·수치 정확성·backend 검증 |
+| Eval / Post-training | 독립 eval 설계·통계·운영 신뢰성·Python·held-out 품질 |
+| Python ML Backend / LLM Application | 해당 framework의 실제 API·운영 경험, 평가·입력 계약; 다른 언어 경력을 자동 환산하지 않음 |
 
-더 이른 단계 지원을 포기나 실패로 기록하지 않습니다. 불합격도 학습 실패로
-기록하지 않고 요구 범위를 재검토하는 정보로 사용합니다.
+Phase 종료 전 지정 범위의 직접 수행, 실행·해석과 재현 가능성, 노트 없는 핵심
+연결 설명·대표 전이, 남은 자원/보류 요구, 실제 시간과 다음 달력, P1부터 공고
+대조를 확인한다. 필수 항목이 비면 Phase를 닫지 않는다. 문서·링크·테스트 검사는
+교육적 타당성 검토와 다르며 실제 학습 효과·독립 수행은 학습자 실행·지연 회상 후
+확인할 수 있다.
 
-Phase 종료 전 아래를 확인하고 필수 항목이 비면 Phase를 닫지 않습니다.
+재개 지점이 확인되면 `STATE.md`를 사전 승인 없이 수정하고 알린다. 이는 새 과정·
+보류 트랙 진입·선수 생략 권한이 아니다. Phase ID는 정적 위치이며 점수·누적 시간·
+완료 목록을 붙이지 않는다. 승인된 현재 경로의 수업은 반복 승인 질문 없이 진행한다.
 
-| 항목 | 확인 내용 |
-|---|---|
-| 공식 과제·산출물 | 지정 범위의 직접 수행, 실행·해석과 재현 가능성 |
-| 무보조 설명 | Phase의 핵심을 노트 없이 연결하고 바뀐 조건에도 답하는가 |
-| 대표 재구현 | 위 대표 단위를 도움 없이 수행했는가, 도움과 미완료를 구분했는가 |
-| 지정 독서 | 해당 과정 reading 또는 P5 통합 재현의 주장·근거·한계를 설명하는가 |
-| 시간 | 현재 Phase 예산 초과가 이후 일정에 주는 영향 |
-| 직무 | P1부터 실제 공고와 산출물·빠진 요건·지원 여부를 대조했는가 |
-| 범위 | 다음 Phase의 필수 범위와 보류 항목을 혼동하지 않는가 |
+## 실전 competition·논문·공개 경계
 
-재개 지점이 바뀌면 닫히는 Phase·관찰된 근거·다음 범위를 담은 `STATE.md` 전체
-교체안을 먼저 보여 줍니다. **자동으로 쓰이지 않으며 승인해야 반영됩니다.**
-Phase ID는 `P0`~`P5`의 정적 위치 참조이며 점수·시간 합계·완료 목록을 넣지 않습니다.
-어떤 기록도 새 강의나 추가 실습을 자동으로 선택하지 않습니다.
-
-## 공식 과제의 보존과 공개 경계
+P0·P2·P3은 선택 competition이다. P0는 예측을 만들 수 있으면 첫 제출 경험을
+제안합니다. 이전 제출 경험을 요구하지 않습니다. P2·P3는 핵심 학습 뒤 선택하고
+제출 결과가 다음 Phase의 선수조건은 아닙니다. [실제 목록](https://www.kaggle.com/competitions)의
+지표·라이선스·연산량을 확인해 시간 상한을 정한다. 지정 reading을 논문 학습에
+포함하고 월별 quota는 더하지 않는다. [Keshav 3-pass](https://web.stanford.edu/class/ee384m/Handouts/HowtoReadPaper.pdf)로
+학습자가 주장·근거·한계를 먼저 요약한다.
 
 MIT 18.05 문제 세트 답안과 CS229·CS231n·CS224N·CS336 공식 과제 답안은
-written·코드·노트북·저장 출력 모두 별도 비공개 작업 공간에 보존합니다.
-공개 저장소에는 공식 문제 원문·과제 답안·저작권 자료를 넣지 않습니다. 자신의
-개념 노트, 공식 답안과 분리된 빈 파일 재구현, 공개 가능한 대회 작업과 재현
-보고서만 남깁니다. 자습에도 적용하며 과목별 AI 정책은 `AGENTS.md`를 따릅니다.
-
-## 전문화 방향
-
-1순위는 LLM Systems와 Inference Optimization입니다. latency, throughput, memory,
-prefill/decode, batching, KV cache를 직접 구현·측정·디버깅합니다. Post-training,
-evaluation, data engineering, multimodal은 현재 경로의 병렬 의무가 아니며 복귀
-조건은 `DEFERRED.md`에 둡니다. 이 우선순위는 수학·통계·ML·딥러닝·NLP 선수를
-생략한다는 뜻이 아닙니다.
+written·코드·노트북·저장 출력 모두 별도 비공개 작업 공간에 보존한다. 공개 저장소에는
+공식 문제 원문·과제 답안·저작권 자료를 넣지 않는다. 자신의 개념 노트, 공식 답안과
+분리된 빈 파일 재구현, 공개 가능한 대회 작업과 재현 보고서만 남긴다. 비공개 KANT
+자료·고객 데이터·개인 정보·비밀정보는 넣지 않는다.

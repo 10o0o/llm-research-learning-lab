@@ -6,44 +6,70 @@
 
 ## 공식 과정의 보류 범위
 
-### CS224N Final Project
+### CS224N 미선택 written·programming·Final Project
 
-CS224N A1~A4는 **`P3`에서 정식 수행합니다.** Spring 2024의 written·수학·
-programming을 모두 유지합니다. 보류 대상은 Final Project뿐이며 미완료 보류입니다.
+Spring 2024, archive 1246의 A3 Q1(i) attention 비교와 A4 Q1~Q2 written만
+P2/P3에서 사용한다. 기존 A1~A4 전체 의무를 이번 승인 재설계로 줄였으며
+나머지 written·programming·Final Project는 **미완료 보류**다.
 
-- **왜 뺐나**: P5의 우선 산출물은 autoregressive inference의 prefill/decode,
-  KV cache, batching과 성능·품질 측정입니다. Final Project를 병렬 의무화하면
-  이 연구 시간을 잠식합니다.
-- **복귀 조건**: embedding·reranker·encoder model을 실제 serving 범위에 넣거나,
-  inference 우선 프로젝트 뒤 별도 NLP 연구 프로젝트를 하기로 결정할 때
+- **왜 뺐나**: 작은 autoregressive LM을 CS336 A1에서 독립 구현하는 경로와
+  전체 NLP 과정을 중복 의무화하지 않기 위해서다. 선택 written 수행은 A1~A4
+  전체 완료나 대학 채점 통과가 아니다.
+- **복귀 조건**: word-vector·dependency parsing·RNN/LSTM·seq2seq·encoder 모델의
+  실제 공백 또는 연구/직무 요구가 확인될 때 해당 요구만 제안한다. Winter 2024,
+  archive 1244의 과제 번호·환경으로 교체하지 않는다.
+
+### CS336 Assignment 2의 미선택·외부 hardware 검증
+
+A1은 P3의 공식 독립 구현 기준이며 v26.0.3의 공식 저자원 경로와 임의 축소
+실험을 구분한다. A2 v26.1.3 전체는 현재 의무가 아니다. P4에서 training
+profiling·memory/FLOPs·mixed precision·activation checkpointing·kernel·parallelism을
+선택하고 별도 inference/운영 workload를 설계한다.
+
+- **왜 뺐나**: B200 benchmark와 2/4/6 GPU all-reduce, 2 GPU DDP/FSDP 측정을
+  단일 8GB 장치로 모두 검증했다고 할 수 없다. 로컬/축소 결과는 해당 범위의
+  근거이며 공식 A2 전체 완료가 아니다. Triton backward는 OPTIONAL로 유지한다.
+- **복귀 조건**: 질문이나 직무가 해당 GPU benchmark·distributed scaling을 실제로
+  요구하고, VRAM·연산시간·장치 수·공식 지정 hardware·비용·한도를 확인한 뒤
+  외부 자원 사용을 별도 승인했을 때 필요한 검증부터 수행한다. 그 전에도
+  가능한 로컬 학습·측정은 진행한다.
 
 ### CS336 Assignment 3·4·5
 
-P4는 CS336 Spring 2026 A1 Basics와 A2 Systems 전체, Lecture 10 inference를
-수행합니다. A3 Scaling, A4 Data, A5 Alignment and Reasoning RL은 미완료 보류입니다.
+A3 Scaling, A4 Data, A5 Alignment and Reasoning RL의 전체 과제는 미완료 보류다.
 
-- **왜 뺐나**: A1·A2와 P5 inference 연구가 현재 1순위 systems 경로를 채웁니다.
-- **복귀 조건**: scaling 실험이면 A3, data pipeline이면 A4, post-training이면
-  A5를 그 목적에 필요한 범위부터 제안
+- **왜 뺐나**: 작은 LM·한 전문화·한 독립 연구 cycle에 집중하고 대규모 과제
+  전체를 병렬 의무화하지 않기 위해서다. split·leakage·dedup·contamination·
+  uncertainty·error analysis는 공통 핵심이므로 함께 보류하지 않는다.
+- **복귀 조건**: scaling 질문이면 A3, data pipeline 질문이면 A4, Eval /
+  Post-training 분기에서 선수가 확인된 SFT/RL 질문이면 A5의 필요한 범위부터
+  제안한다. Transformer 이후의 작은 SFT/eval 노출은 이미 ROADMAP 범위이며
+  P5까지 기다리는 별도 복귀 승인을 요구하지 않는다.
 
-### CS231n Assignment 1·3와 Final Project
+### CS231n A2 Q4·Q5, Assignment 1·3와 Final Project
 
-P2의 CS231n 범위는 Spring 2024 Lecture 2~6와 Assignment 2 Q1~Q5 전체입니다.
-이 범위와 PyTorch 보강 뒤 Karpathy GPT·Tokenizer를 P2 끝에서 수행하며, CS231n
-Assignment 1·3와 Final Project만 이 절의 보류 대상입니다.
+Spring 2024 Lecture 2~6 필요한 설명과 A2 Q1~Q3를 선택한다. 기존 Q1~Q5
+전체 의무에서 빠진 Q4 CNN·Q5 CIFAR-10도 미완료 보류이며 수행 완료가 아니다.
 
-- **왜 뺐나**: A2가 이 경로에 필요한 optimization, backprop, CNN, normalization과
-  PyTorch 학습 진단을 집중적으로 다룹니다. 나머지 CV 과제는 LLM systems 주경로의
-  핵심이 아닙니다.
-- **복귀 조건**: multimodal의 vision encoder, detection·segmentation, generative
-  vision 또는 CV 직무를 실제 목표로 추가할 때 해당 부분만 제안
+- **왜 뺐나**: FC/backprop·optimizer·normalization·dropout이 현재 LM 경로의
+  직접 선수다. 전체 CV 과제와 별도 GPT 구현을 함께 요구하지 않는다.
+- **복귀 조건**: multimodal vision encoder·CNN·CV 연구 또는 실제 직무 공백이
+  확인될 때 해당 부분만 제안한다.
+
+### Karpathy GPT·Tokenizer의 별도 전체 구현
+
+- **왜 뺐나**: CS336 A1에서 BPE·Transformer LM을 독립 구현한다. 동일한 모델을
+  세 과정으로 반복하는 별도 전체 구현은 현재 의무가 아니다. GPT 설명 bridge는
+  A1 전에 막힌 개념만 사용하고 공식 A1 중에는 다른 구현을 참고하지 않는다.
+- **복귀 조건**: A1 진입 전 개념 연결이 막힌 경우의 필요한 구간, 또는 별도
+  tokenizer 연구를 선택하고 공식 과제 정책과 중복 범위를 검토한 경우다.
 
 ## 과정·자료의 보류 범위
 
 ### CS229 최종 프로젝트·공식 시험
 
-- **왜 뺐나**: Summer 2020 notes·PS1~PS3의 필수 written·coding과 P1 배포
-  프로젝트가 이번 지정 범위입니다. 최종 프로젝트·시험까지 수행한 것으로 세지 않습니다.
+- **왜 뺐나**: Summer 2020 notes·PS1~PS3 필수 written·coding과 같은 P1 실험의
+  작은 배포·검증이 지정 범위입니다. 최종 프로젝트·시험까지 수행한 것으로 세지 않습니다.
 - **복귀 조건**: 사용자가 해당 공식 요구사항까지 확장하기로 결정할 때
 
 ### ISLP 전권·MIT 18.01SC 전체 과정
@@ -96,8 +122,9 @@ Assignment 1·3와 Final Project만 이 절의 보류 대상입니다.
 ### Hugging Face LLM Course
 
 - **왜 뺐나**: P0~P4는 내부 메커니즘과 공식 assignment를 직접 구현하는 구간입니다.
-- **복귀 조건**: P5 또는 취업 준비에서 `transformers`, `tokenizers`, 실제 serving
-  stack의 관례를 자기 구현과 비교해야 할 때 필요한 절만 사용
+- **복귀 조건**: Transformer 기초 이후의 작은 SFT/eval 비교 또는 실제 serving에서
+  `transformers`, `tokenizers` 관례를 자기 구현과 비교해야 할 때 필요한 절만 사용.
+  smol-course 선택 절은 ROADMAP에 포함되어 있으며 전체 과정과 구분한다.
 
 ### MIT 6.S191과 기타 조망 강의
 
@@ -113,12 +140,23 @@ Assignment 1·3와 Final Project만 이 절의 보류 대상입니다.
 
 ## 별도 트랙과 반복 작업
 
-### Post-training·LLM evaluation·data engineering
+### GP·ICA 추가 심화·넓은 RL 과정
 
-- **왜 뺐나**: 현재 1순위는 systems와 inference이며 병렬로 모두 수행하면 P4·P5
-  연구가 분산됩니다.
-- **복귀 조건**: P5 이후 전문화 순위를 다시 정하거나 실제 공고·프로젝트가 SFT,
-  preference optimization, judge evaluation, data pipeline을 요구할 때
+- **왜 뺐나**: P1은 회귀/분류·likelihood·최적화·규제와 실험에 집중한다.
+  **CS229 Summer 2020 PS3 Q1 RL·Q6 ICA는 기존 필수 범위로 유지**하며 해당
+  선수 notes를 먼저 읽는다. 보류는 이 문제들을 조용히 삭제한다는 뜻이 아니다.
+- **복귀 조건**: 공식 필수 문제를 넘어 특정 논문·연구 질문에서 GP·ICA 또는
+  policy gradient·reward·RL 평가를 실제로 필요로 할 때 해당 개념만 보강한다.
+
+### Post-training 전문화의 전체 심화·data engineering 전체 과정
+
+- **왜 뺐나**: 현재 주전문화는 잠정 Systems / Inference다. 전 트랙 병렬 의무는
+  연구 시간을 분산한다. 평가 공통 핵심과 Transformer 이후의 작은 SFT/eval
+  비교는 보류하지 않으며 loss 감소를 held-out 품질로 대체하지 않는다.
+- **복귀 조건**: 작은 SFT/eval 비교·독립 품질·실제 공고로 전문화를 재검토하고
+  Eval / Post-training을 선택하면 held-out eval → SFT/LoRA → 독립 평가 →
+  하나의 DPO/RLVR 질문을 준비한다. data engineering 전체는 실제 data 질문이
+  있을 때만 제안한다. 학교 노출만으로 연구-level 독립 수행을 인정하지 않는다.
 
 ### P0·P2·P3 Kaggle competition
 
@@ -128,7 +166,7 @@ P1 tabular Kaggle만 필수입니다. 다른 Phase의 competition은 선택입�
   competition을 모두 의무화하면 중복 프로젝트가 됩니다.
 - **복귀 조건**: P0는 예측을 만들 수 있으면 첫 제출 경험을 제안하며 이전 제출
   경험을 요구하지 않습니다. P2·P3는 핵심 학습 이후, 실제 열린 대회가 적용 능력을
-  확인하고 해당 Phase 예산 안에서 수행 가능할 때 제안합니다.
+  확인하고 실제 확보한 개인 학습 시간 안에서 수행 가능할 때 제안합니다.
 
 ### 별도 월별 논문 quota와 과제 전체 재구현
 
@@ -143,7 +181,8 @@ P1 tabular Kaggle만 필수입니다. 다른 Phase의 competition은 선택입�
 2. 보류 항목은 완료·날짜·점수·mastery를 기록하지 않습니다.
 3. 복귀 판단은 학습자의 실제 설명·계산·구현·실행·해석과 현재 외부 요구를
    근거로 합니다.
-4. 조건이 생겨도 자동으로 시작하지 않고 필요한 범위를 제안한 뒤 사용자의
-   `STATE.md` 교체 승인을 기다립니다.
+4. 조건이 생겨도 자동으로 시작하지 않고 필요한 범위를 제안한 뒤 실질적인
+   과정·트랙 확장 결정을 확인합니다. 이미 승인된 ROADMAP 범위나 확인된
+   북마크 수정에 반복 승인을 요구하지 않습니다.
 
 어떤 조건도 자동으로 학습을 시작하지 않습니다.

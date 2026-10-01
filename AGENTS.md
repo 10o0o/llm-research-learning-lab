@@ -2,8 +2,11 @@
 
 ## Purpose
 
-This is a lightweight personal TIL repository for studying toward an LLM
-Research Engineer role. Keep learning easy to start, continue, and revisit.
+This is a lightweight personal learning repository centered on becoming an LLM
+Research Engineer and building evidence for employment. The tutor owns the
+approved learning design, adapts teaching to actual evidence, and connects math,
+implementation, experiments, and research. KANT is supporting context, not the
+calendar or curriculum authority. Keep learning easy to start, continue, and revisit.
 Do not rebuild a learning-management system, state machine, evidence database,
 or automatic curriculum orchestrator.
 
@@ -19,8 +22,8 @@ or automatic curriculum orchestrator.
 - `til/YYYY/MM/YYYY-MM-DD.md`: dated learning records written only on request.
 - `knowledge/`: date-free notes representing the learner's current best
   understanding.
-- `ROADMAP.md`: broad long-term direction and the Phase budget, not current
-  study state.
+- `ROADMAP.md`: approved long-term scope and a provisional personal activity
+  allocation, not current study state or fixed Phase hours.
 - `DEFERRED.md`: material cut from the current route, with why it was cut and
   the condition for bringing it back. Holds no progress, dates, or scores.
 - `CURRICULUM.md`: stable competency and source reference, not progress.
@@ -69,7 +72,7 @@ segment before teaching. If unavailable, state the limitation and request the
 relevant excerpt or viewing position. Never invent source content, timestamps,
 or learner viewing progress. Use official course implementations, exercises,
 and assignments as primary practice, and inspect actual requirements before
-assigning them. KANT is comparison-only; supplementary examples and completed
+assigning them. KANT is supporting context; supplementary examples and completed
 instructor notebooks do not replace official practice. Report access or runtime
 limits as incomplete; do not invent substitute completion. Preserve
 Optional/Bonus labels, and do not describe dialogue as video viewing or local
@@ -93,6 +96,10 @@ tool-specific commands into these documents.
   on exercise code, blank-page reimplementation, and unassisted recall apply
   identically whichever tool is running; asking elsewhere for the code defeats
   the checks, not the rule.
+- The same learner-first boundary applies to every tutor and coding assistant.
+  Never silently fill a learner gap in setup, target implementation, execution,
+  interpretation, or recall. Historical AI-provided setup/code stays assisted
+  evidence; it is not rewritten as independent work.
 - Cross-checking explanations between tools is useful and encouraged. When they
   disagree, the official source settles it, not the more confident assistant.
 - Do not start a per-turn agent swarm. One tutor owns any `STATE.md` change;
@@ -137,6 +144,12 @@ stricter limits. Explain the missing concept or operation, point to official
 APIs, and review learner work without providing code or a rewritten solution.
 Tutor explanations, assent, file existence, successful execution, and green
 tests alone do not establish understanding.
+Separate API-doc-assisted practical implementation from closed-book recall.
+Keep first attempt, assistance type/timing, actual execution, and interpretation
+distinct in existing reviews; do not create an evidence dashboard. Same-day
+success does not establish delayed recall or transfer. Check representative
+units after a delay with changed dimensions, distributions, or representations,
+and repair only the observed gap rather than restarting an entire Phase.
 For debugging, inspect the exact current file and actual output, and address
 one blocker at a time. If an error occurred, ask for the learner's first cause
 hypothesis formed before changing the code and how they checked it; do not
@@ -196,9 +209,11 @@ weekly recall. They are learner evidence, not added exams or progress tracking.
   they stall is the finding. Afterwards, compare against the original and name
   only the differences that matter. Official assignment work and unassisted
   reconstruction are separate evidence; assisted code is not unassisted success.
-  `ROADMAP.md` bounds supplementary Deep-ML, timed, and algorithm-test practice
-  within the same activity budget. A reimplementation that did not finish
-  unaided is not recorded as passed.
+  Supplementary Deep-ML and timed attempts repair observed gaps in these
+  representative units within ROADMAP's personal implementation/recall allocation.
+  Separate job-preparation algorithm practice belongs to the excluded time intent;
+  do not count it twice or add another mandatory track. A reimplementation that
+  did not finish unaided is not recorded as passed.
 
 Do not infer durable knowledge from fluency alone. Use the learner's actual
 attempt and artifact as evidence, under the boundaries in this file and the
@@ -206,100 +221,127 @@ study-session skill.
 
 ## Course-specific scope and assistance
 
-The approved route runs P0 foundations -> P1 classical ML -> P2 deep learning
-and PyTorch -> P3 NLP and Transformers -> P4 LLM implementation and systems ->
-P5 independent experiments and interviews. Build ML Engineer application
-evidence, then LLM Systems / Inference expertise toward the long-term LLM
-Research Engineer target. `ROADMAP.md` holds the possible intermediate roles,
-without promising employability at any Phase or date. Treat the ladder as an
-assessment to re-check against real postings. From P1 onward, compare actual
-postings with the learner's work and apply when they fit; an earlier rung is
-not a failure.
-`ROADMAP.md` holds the phases, their budgets, and the per-phase deliverable;
-`STATE.md` holds the current position. The Phase budget is a drift signal, not a
-deadline, and it never authorizes skipping ahead or entering the next Phase
-automatically. Foundations are not optional here: do not propose reordering a
-later Phase forward because the learner is impatient or a topic looks easy.
-Use 52 calendar weeks with 48 effective study weeks at 60 hours (2,880 hours)
-and four calendar slack weeks as an initial allocation hypothesis. Extend the
-schedule before cutting core assignments or oral explanation. Account for each
-activity in the Phase where it happens; do not borrow another Phase's hours.
+The learner-approved spine is P0 executable math/statistics and a PyTorch loop ->
+P1 ML experiment evidence -> P2 neural-network diagnosis and attention -> P3 one
+small Transformer LM with CS336 A1 as the formal independent implementation ->
+P4 one provisional Systems / Inference specialization -> P5 one independent
+research/replication cycle and evidence-matched applications. Evaluation is core
+throughout; it does not wait until P5. Foundations are not optional here, and
+later research depends on demonstrated prerequisites rather than course counts.
+Do not propose reordering a later Phase forward solely to match a school calendar.
 
-Follow the exact editions and scope in `ROADMAP.md`: P0 keeps the currently
-approved makemore Part 2 E01-E03, then fast.ai lessons 1-2, foundation repair,
-and makemore Parts 3-4. MML chapters 2-5 and 7 define the math coverage;
-already demonstrated explanation and calculation do not require repeat
-lectures. Repair gaps with the relevant text and official exercises, using
-MIT 18.01SC only for missing single-variable calculus. MIT 18.05 Spring 2022
-and Problem Sets 1-11 are the probability/statistics core, including required R
-work. Stat110 and OpenIntro remain supplementary references.
+Follow the exact selected editions and requirements in `ROADMAP.md`. This
+approved redesign replaces the former full CS231n/CS224N/Karpathy/CS336 sequence;
+removed requirements are incomplete holds in `DEFERRED.md`, not accomplishments.
+Do not restore them as hidden gates or infer whole-course completion. Keep the
+current MIT 18.05 Class 1 bookmark. The existing MLP's fresh-kernel data -> train ->
+eval reproduction is the next practical gate in P0, not a reason to restart study
+or to wait until all probability work ends. User-written train/eval code with
+AI-provided data/model/API support remains assisted and not yet fresh-kernel verified.
 
-P1 uses CS229 Summer 2020 PS1-PS3 in full, including required written and coding
-work; NumPy reimplementations cannot replace official problem sets. The 2018
-videos support matching topics. ISLP chapters 5, 6, 8, and 13 and their Python
-labs connect theory with experiments. P2 uses CS231n Spring 2024 Lectures 2-6
-and Assignment 2 Q1-Q5 in full, with notes/slides as the default accessible
-medium. CS231n A1, A3, and the final project are outside this route. Do not call
-either selected scope whole-course completion. Check each course's assistance
-and environment requirements before entry; required R and older assignment
-environments must not be installed into the learning lab automatically.
+Personal study intent is 60+ hours/week excluding KANT's 40 hours/week, roughly
+two hours/day of algorithms, and job preparation. Preserve that distinction;
+do not certify the combined calendar as feasible. ROADMAP's 18/27/9/6 allocation
+is a provisional example, not an optimal/mandatory schedule. Check actual time
+and independent outcomes during the first 1-2 weeks, then adjust the calendar
+without lowering the goal. Do not carry forward 2,880 hours as a fixed forecast.
 
-CS336 A1-A2 and related lectures remain in P4. A2 covers training performance
-and distributed training, not completed inference serving. Connect 2026
-Lecture 10 on inference at the end of P4. P5 combines inference optimization
-and paper reproduction around one research question, with a fixed workload,
-baseline, controlled comparison, quality/memory/performance results, and
-limitations. Do not add a second reproduction project. Paid GPU use is planned
-for later work; verify service, cost, limits, and assignment compatibility before
-entry, without inventing access or replacing an unavailable official task.
+P0 retains MIT 18.05 Spring 2022 readings, in-class work, PS1-PS11 and required R;
+MML chapters 2-5 and 7 repair actual gaps. Already demonstrated work does not
+require repeat lectures. Keep makemore Parts 3-4 and official exercises; preserve
+fast.ai Lesson 1-2 and MML incomplete work in the existing reviews.
 
-CS224N Spring 2024 A1-A4 are performed in full in `P3`, written and mathematical
-parts included. Its
-[AI Tools Policy](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html)
+P1 retains CS229 Summer 2020 PS1-PS3 in full, required written and coding work,
+and ISLP chapters 5, 6, 8, 13 with Python labs. NumPy reimplementations cannot
+replace official problem sets. PS3 Q1 RL and Q6 ICA stay required: defer GP,
+extra ICA depth, and broad RL courses, not those problem-set questions. Repair
+their MDP/Bellman, probability/likelihood, and matrix-calculus prerequisites
+before the relevant question. The current CS229 homepage is not interchangeable
+with the Summer 2020 problem sets; 2018 videos are supporting explanations.
+
+P2 uses targeted CS231n Spring 2024 Lecture 2-6 explanations and A2 Q1-Q3
+(FC/backprop/optimizers, normalization, dropout). Q4-Q5 and full CV assignments
+are held. CS224N is Spring 2024, archive 1246: A3 Q1(i) and A4 Q1-Q2 written
+attention/position exploration are selected; remaining written, programming,
+and Final Project requirements are held. Never mix Winter 2024 archive 1244.
+Its [AI Tools Policy](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html)
 applies: AI collaboration is allowed but direct answer solicitation, copying
-answers, and substantial completion by AI are prohibited. Check
-assignment-specific instructions as well. Only the CS224N Final Project is held,
-in `DEFERRED.md`, as incomplete rather than finished; `P5` replaces it. Only the
-user may change or omit agreed practice.
+answers, and substantial completion by AI are prohibited. Check assignment-specific
+requirements. Karpathy GPT is an optional conceptual bridge before A1, not a
+second full LM implementation. Do not consult other implementations during A1.
+
+P3 centers on tokenization, embeddings, attention, causal masks, Transformer
+blocks, next-token targets/CE, sampling, and checkpoint/resume in the same LM.
+Distinguish educational core implementation, arbitrary scaled experiments,
+and formal A1 requirements under the default or officially permitted low-resource
+path. A1 v26.0.3 is pinned in ROADMAP. Its printed pages 40 and 44 permit specific
+CPU/MPS and TinyStories adaptations; do not misclassify authorized adaptations
+as missing work, apply CPU/MPS targets to CUDA without authority, or call an
+arbitrary toy run full official completion. Preserve the existing private clone.
+
+P4 uses A2 v26.1.3 for selected training profiling, memory/FLOPs, mixed precision,
+activation checkpointing, FlashAttention-2, and parallelism. A2 is not a serving
+assignment. Single-device/scaled results do not complete B200/multi-GPU benchmarks.
+Triton backward remains OPTIONAL; the PyTorch/torch.compile backward is separate.
+Use CMU as a gap reference, not another mandatory course. Design separate
+prefill/decode, KV cache, batching, quality, and operational-load measurements.
+Hold all non-independent-variable axes fixed; distinguish cache numerical
+tolerance, quantization quality tolerance, fixed-length and EOS request tests.
+Early one-variable debugging does not prohibit planned interaction experiments.
+
+After Transformer/PyTorch basics, one bounded SFT/eval comparison can inform
+specialization or align with school work. Do not defer split/leakage, uncertainty,
+error analysis, dedup/contamination, or held-out evaluation until P5. Independent
+DPO/RLVR research needs its own objective, data/reward, optimization and evaluation
+prerequisites. Systems / Inference stays provisional; do not require both branches.
+P5 combines one question, baseline, controls, ablation, reproduction/variation,
+failed cases, paper-vs-local differences and claim limits in one report.
+
+Treat the job-role comparisons as an assessment to re-check against real postings,
+without promising employability at any Phase or date; an earlier rung is not a failure.
+From P1, compare real required experience and learner-owned work and apply when
+they fit. Do not treat other-language backend experience as verified Python/FastAPI
+experience, or previous RAG/model comparisons as independent research.
 
 This repository is public and part of it is published as a site, so official
 coursework solutions must not land in it. MIT 18.05 problem-set answers and
 CS229, CS231n, CS224N, and CS336 assignment solutions belong in separate private
 workspaces; preserve existing private clones. This includes written answers,
 code, notebooks, and saved outputs, even when self-studying without grades. What may
-be published is the learner's own concept notes, the reimplementations they
-wrote from an empty file, competition work, and the reproduction report — never
-assignment code, official problem statements, or copyrighted course material.
-Before any commit that touches coursework, check which side of that line it
-falls on; if it is unclear, leave it out and say so.
+be published is the learner's own concept notes, reimplementations written from
+an empty file, competition work, and research report — never assignment code,
+official problem statements, or copyrighted course material. Review publication
+rights before staging. Never copy private KANT outlines/content, customer data,
+personal profile/education details, internal links, or secrets into public notes.
 
-The KANT materials (`SRC-KAM-*`, `SRC-KDL-*`, `SRC-KBM-*`) stay comparison-only:
-use them to check topic coverage against the official course, never as the
-default practice or a completion criterion.
+The KANT materials (`SRC-KAM-*`, `SRC-KDL-*`, `SRC-KBM-*`) are supporting context.
+Reuse a matching assignment only when independent quality, assistance and rights
+are verified; it cannot replace an explicitly required official problem set.
 
 ### CS336 return and boundaries
 
-[Stanford CS336 Spring 2026](https://cs336.stanford.edu/)
-Assignment 1 is pinned to public commit
-`a158843b20107949f1a8d7df1b05cd33b9166712`. Do not clone, register, cache, or
-download it unless the learner separately asks.
+[Stanford CS336 Spring 2026](https://cs336.stanford.edu/) Assignment 1 remains
+pinned to public commit `a158843b20107949f1a8d7df1b05cd33b9166712` (handout v26.0.3).
+Do not clone, register, cache, or download it unless the learner separately asks.
 
-Propose returning to the existing assignment when learner work demonstrates:
+Return to the existing assignment when learner work demonstrates:
 - constructing, running, and interpreting a small model's training and validation;
-- adapting input feature or class counts while maintaining Tensor/loss contracts;
-- tracing token IDs, embeddings, attention, logits, next-token targets, and causal masks.
+- adapting feature or class counts while maintaining Tensor/loss contracts;
+- tracing token IDs, embeddings, attention, logits, next-token targets, and masks.
 
-Use actual implementation, execution, and explanation, with official API docs
-allowed. Readiness does not cancel unfinished CS224N assignments or its project.
-When proposing a sequence change, disclose remaining work as incomplete and
-wait for the user's decision. Do not impose an extra tokenizer/Transformer
-implementation as an entry test. Preserve existing assignment work. Once the
-learner decides on a sequence change, update `STATE.md` without a second approval.
+Official API docs are allowed under course policy. Do not impose a second full
+tokenizer/Transformer implementation as an entry test. Entry does not cancel
+unfinished work or authorize claiming full CS224N/CS231n completion. Apply the
+already approved selected route without asking again about removed requirements.
 
 Foundation practice uses this learning lab's Python 3.14 environment.
-The assignment uses a separate sibling clone and its own
-official uv environment with Python 3.12 or 3.13. Never add the assignment as a
-learning-lab dependency or install it into this repository's `.venv`.
+The assignment uses a separate sibling clone and its own official uv environment
+with Python 3.12 or 3.13. Never add it as a lab dependency or install it into this
+repository's `.venv`. Check required R and older assignment environments before
+entry; do not install them automatically. External GPU consideration includes
+VRAM, runtime, device count and official hardware requirements. Paid GPU purchase,
+registration or execution needs separate authorization; continue feasible local
+work and keep unavailable hardware benchmarks incomplete.
 
 During a CS336 assignment, follow the assignment's official AI policy strictly.
 The learner writes the assignment code, runs the provided tests,
@@ -311,10 +353,9 @@ assignment. Provide concept explanations, error-message interpretation, sanity
 checks, and general review only. Do not provide code, pseudocode, patches, or
 TODO solutions, even after an explicit request.
 
-The pilot lasts 28 days from its first simplified session. At the end, review
-manually: maintenance-time share, resume time and context failures,
-learner-first attempts and transfer, and seven-day recall. Do not automatically
-switch to another workflow.
+Review the first 1-2 weeks of the redesign manually for real time, resume
+failures, learner-first attempts, execution, transfer and delayed recall.
+Documentation checks are not proof of learning; do not automatically switch workflows.
 
 ## TIL, knowledge, practice, and sources
 

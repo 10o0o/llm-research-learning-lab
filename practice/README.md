@@ -76,7 +76,8 @@ Notebook, Python script, benchmark, 작은 dataset experiment 중 목적에 가�
 
 - 일반 학습 요청만으로 새 practice 파일을 자동 생성하지 않습니다.
 - 공식 구현·exercises·assignments가 기본 실습입니다.
-- KANT는 진도·주제 대조용이며 기본 실습이나 완료 기준으로 사용하지 않습니다.
+- KANT는 진도·주제 대조용 보조이며 기본 실습이나 완료 기준으로 사용하지 않습니다.
+  같은 주제의 독립 품질·도움·공개 권한이 확인되면 재사용하되 공식 필수 과제 완료를 대신하지 않습니다.
 - 정확한 파일 생성·수정 요청이나 확인된 챕터 전환의 보관·회고 범위에서 작업합니다.
 - 핵심 구현, 실행, 첫 debugging 가설, 결과 해석은 학습자가 담당합니다.
 - 함수나 Tensor를 수정한 뒤에는 영향을 받는 셀 또는 script를 다시
@@ -136,26 +137,30 @@ Notebook을 확인할 때는 파일을 통째로 읽지 않고 `scripts/nbpeek.p
 
 ## 과목별 도움 범위
 
-[CS224N Spring 2024](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html)
-A1~A4는 `P3`에서 전부 수행합니다. 공식 AI 정책은 AI 협업을 허용하지만 직접 답
-요구·복사와 AI의 실질적 과제 대행을 금지합니다. 파이널 프로젝트만 보류이며
-복귀 조건은 [`DEFERRED.md`](../DEFERRED.md)에 있습니다.
+선택 범위는 [`ROADMAP.md`](../ROADMAP.md), 미완료 보류와 복귀 조건은
+[`DEFERRED.md`](../DEFERRED.md)를 따릅니다. MIT 18.05 Spring 2022 PS1~PS11·R과
+CS229 Summer 2020 PS1~PS3 필수 written·coding을 유지합니다. PS3의 RL·ICA도
+필수이며 그 밖의 추가 심화 보류와 구분합니다. 보조 재구현은 공식 PS를 대신하지 않습니다.
 
-Phase별 주자료와 산출물은 [`ROADMAP.md`](../ROADMAP.md)의 Phase 표를 따릅니다.
-`P1`·`P2`의 주자료는 CS229와 CS231n이며, KANT는 주제 대조에만 씁니다.
-MIT 18.05 Spring 2022 PS1~PS11은 R 요구사항을 포함해 수행합니다.
-CS229 Summer 2020 PS1~PS3의 필수 written·coding 전체와 CS231n Spring 2024
-Lecture 2~6·A2 Q1~Q5를 수행하며 보조 NumPy 재구현으로 공식 문제 세트를
-대체하지 않습니다. CS231n A1·A3·final project는 이번 경로에 포함하지 않습니다.
+CS231n Spring 2024 A2 Q1~Q3만 선택합니다. Q4·Q5·전체 CV 과정은 미완료 보류입니다.
+[CS224N Spring 2024, 1246](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html)은
+A3 Q1(i)와 A4 Q1~Q2 written을 사용하며 나머지 written·programming·Final Project는
+보류입니다. 공식 정책은 직접 답 요구·복사와 AI의 실질적 과제 대행을 금지합니다.
+선택 범위를 A1~A4 전체 완료라고 하지 않으며 Winter 2024, 1244와 혼용하지 않습니다.
 
-빈 파일 재구현은 로드맵의 대표 구현 단위에 집중합니다. 공식 과제 전체를
-다시 작성하는 의무는 없으며, 공식 수행과 무보조 재구현을 구분합니다.
-도움받은 코드를 무보조 성공으로 기록하지 않습니다.
+CS336 A1은 P3의 공식 독립 구현 기준입니다. 교육용 핵심, 임의 축소 실험,
+공식 허용 저자원 경로 수행을 구분합니다. A2는 P4 학습 profiling·memory·kernel·
+parallelism의 선택 자료이며 별도 inference/운영 workload를 설계합니다. B200·
+다중 GPU 미검증을 로컬 실행으로 채우지 않고 Triton backward는 OPTIONAL입니다.
 
-CS336 assignment에서는 공식 AI 지침이 우선합니다. 학습자가 과제 코드를
-작성하고 제공된 테스트와 모든 명령을 실행해야 하므로 Agent는 코드, pseudocode, patch, TODO
-해답, 실행 명령을 제공하지 않습니다. 개념 설명, 오류 메시지 해석, sanity
-check, 일반적인 리뷰만 제공합니다.
+빈 파일 재구현은 대표 단위만 확인합니다. 공식 수행, API-doc-assisted 실무 구현,
+자료를 닫은 회상과 며칠 뒤 전이는 별도 근거이며 도움받은 코드는 무보조 성공이 아닙니다.
+기존 회고에는 첫 시도, 도움 종류·시점, 실제 실행·해석과 재현 한계만 짧게 남깁니다.
+seed 고정, 환경 재구성, 수치 허용 오차, 여러 seed/표본의 통계적 재현을 구분합니다.
+
+CS336 assignment에서는 학습자가 과제 코드·제공 테스트·모든 명령을 실행합니다.
+Agent는 코드·pseudocode·patch·TODO 해답·새 명령 시퀀스를 제공하거나 과제 저장소에서
+실행하지 않습니다. 공식 handout의 기존 명령 해석, 개념·오류·sanity check·일반 리뷰만 합니다.
 
 ## 강의 제공 실습과 외부 제출
 
