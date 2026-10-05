@@ -8,11 +8,11 @@
 - 현재 주강의: MIT 18.05 Introduction to Probability and Statistics
 - 사용 판본: MIT OpenCourseWare, Spring 2022
 - 현재 범위: MIT 18.05 본문과 PS1~PS11, R 요구 포함; MML의 남은 공백과 보류는 회고·DEFERRED에 보존
-- 현재 강의: MIT Class 1 온라인 문제의 정답 판정 보고 후, 승인된 P0 연결 실습인 기존 MLP 새 커널 재현의 데이터 준비 단계
+- 현재 강의: MIT Class 1 온라인 문제의 정답 판정 보고 후, 승인된 P0 연결 실습인 기존 MLP의 CPU 장치 수정 확인과 CUDA 노트북 새 커널 재현 대기
 - 공식 자료: [MIT 18.05 Spring 2022](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/) · [Class 자료](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)
 - 연결 실습: 기존 MLP의 데이터 → 모델 → 학습 → 평가를 새 커널에서 재현; 튜터가 기존 시작 자료를 복구하고 학습자가 실행·해석하며 전체 재현은 아직 미검증
 - 연결 자료: [MLP 재구현 회고](practice/deep-learning/makemore-mlp-training-recall.md) · [기존 보관본](practice/deep-learning/makemore-mlp-training-recall.ipynb) · [PyTorch CUDA 사용 가능 여부](https://docs.pytorch.org/docs/2.14/generated/torch.cuda.is_available.html)
-- 학습 공간: main.ipynb에 기존 MLP 코드 셀을 수정 없이 복구하고 과거 출력·실행 번호를 제거했다. 보관본과 빈 recall.ipynb는 보존했다. 프로젝트 Python 3.14 환경의 전용 커널을 등록하고 커널 시작·PyTorch 기본 연산을 확인했다. 이 환경에서는 CUDA를 사용할 수 없으며 MLP 노트북은 아직 실행하지 않았다. MIT 공식 답안의 비공개 저장 원칙을 유지한다
+- 학습 공간: main.ipynb에 복구한 기존 MLP 코드와 학습자의 장치 수정·저장 출력을 보존했다. 보관본과 빈 recall.ipynb는 보존했다. 현재 프로젝트 Python 3.14 환경에서는 CUDA를 사용할 수 없다. CPU 데이터·모델 준비와 초기 평가의 저장 출력을 확인했으며, 수정 후 학습 호출은 KeyboardInterrupt로 중단됐다. CUDA 노트북의 실행 환경·커널과 전체 재현은 아직 미확인이다. MIT 공식 답안의 비공개 저장 원칙을 유지한다
 - 학습 방식: 짧은 공식 읽기 → 개념 대화 → 학습자 첫 시도·실행 → 실제 답·코드·출력 피드백 → 가설 검증 → 대표 지연 회상·전이. 공식 API를 본 실무 구현과 무보조 회상을 구분한다. MIT 본문의 직접 읽기는 미확인이다. 개념 대화와 학습자가 보고한 온라인 문제 정답 판정을 직접 읽기·독립 설명·전이 증거로 바꾸지 않는다.
 
 ## 관찰된 근거와 남은 범위
@@ -35,8 +35,8 @@ MML [7장 회고](practice/math/mml-ch07-continuous-optimization.md)에 경사�
 
 기존 [MLP 학습·평가 재구현 회고](practice/deep-learning/makemore-mlp-training-recall.md)는 학습자가 train/eval 함수를 작성했고 AI가 데이터·모델을 준비하고 API를 도운 범위다. [E01·E03 회고](practice/deep-learning/makemore-mlp-e01-e03.md)의 초기화·배치 통제 설명과 저장 셀 이력은 새 커널의 재현을 입증하지 않는다. 모델·데이터 전체의 독립 구현 또는 fresh-kernel 성공으로 승격하지 않는다.
 
-승인된 P0 연결 실습으로 기존 MLP data→train→eval을 새 환경에서 재현한다. 학습 환경과 시작 자료는 튜터가 준비하고 학습 대상의 구현·실행·해석은 학습자가 맡는다. 이번에는 기존 구현의 재현이므로 새 백지 구현을 요구하지 않는다. 노트북을 읽어 원격 이름 데이터, 이름 단위 분할, 준비 코드의 장치 선택과 학습 함수의 CUDA 고정을 확인했다. 노트북의 실제 새 커널 실행과 전체 재현은 아직 미검증이다. MIT 전체 종료까지 이 실습을 미루지 않는다. MIT 이후 makemore Parts 3~4와 공식 exercises를 유지하며 CS336 A1은 P2의 학습/평가·tensor/loss·attention 선수가 확인된 뒤 P3에서 기존 작업으로 돌아간다. 이 설계는 P0 종료나 다른 미완료 범위의 생략이 아니다.
+승인된 P0 연결 실습으로 기존 MLP data→train→eval을 새 환경에서 재현한다. 학습 환경과 시작 자료는 튜터가 준비하고 학습 대상의 구현·실행·해석은 학습자가 맡는다. 이번에는 기존 구현의 재현이므로 새 백지 구현을 요구하지 않는다. 원격 이름 데이터와 이름 단위 분할, CPU 데이터·모델 준비·초기 평가의 저장 출력을 확인했다. 학습자는 CPU 환경과 학습 함수의 CUDA 고정이 맞지 않는다고 설명했고, 학습자가 고정 인자를 제거한 것을 현재 코드에서 확인했다. 수정 후 CPU 학습 호출은 KeyboardInterrupt로 중단됐다. 저장된 사후 평가 셀은 해당 학습 호출보다 앞선 실행이므로 수정 후 학습 결과로 해석하지 않는다. 입력 문맥 길이와 어휘 크기, 정답 텐서 차원의 구분은 튜터가 설명했으며 학습자의 독립 해석은 추가 확인이 필요하다. 현재 배치 인덱스 생성 호출은 device 인자가 생략되어 있으므로 CUDA 재개 시 난수 생성기·생성 텐서·데이터·모델의 장치 일치를 학습자가 확인할 대상이다. CUDA 노트북에서의 실행과 전체 재현은 아직 미확인이다. 기존 코드 복구와 학습자 장치 수정 후 실행을 구분하며 전체 시도를 무보조 재구현으로 보지 않는다. MIT 전체 종료까지 이 실습을 미루지 않는다. MIT 이후 makemore Parts 3~4와 공식 exercises를 유지하며 CS336 A1은 P2의 학습/평가·tensor/loss·attention 선수가 확인된 뒤 P3에서 기존 작업으로 돌아간다. 이 설계는 P0 종료나 다른 미완료 범위의 생략이 아니다.
 
 ## 다음 독립 행동
 
-준비된 main.ipynb에서 Python 3.14 (llm-learning-lab) 커널을 선택하고 데이터 준비 셀부터 직접 실행·저장한다. 입력·정답 shape의 예상과 실제 결과, 선택된 device를 설명한다. 이후 기존 모델·학습·평가를 단계별로 재현하며 학습 호출 전에 현재 장치와 학습 함수의 CUDA 고정이 일치하는지 확인한다. 기존 준비 코드의 AI 도움 범위를 유지하며 이 작업을 무보조 재구현으로 기록하지 않는다. Think의 직접 그림 작성·집합 이름 표기는 환경 제약으로 미수행 보류하고 MIT 본문 직접 읽기는 미확인으로 유지한다. 온라인 문제는 학습자가 보고한 제출·정답 판정과 튜터가 확인하지 못한 풀이 과정을 구분한다.
+CUDA 노트북에서 `계속`으로 재개한다. 튜터가 프로젝트 실행 환경·커널과 CUDA 사용 가능 여부를 확인하고 허용된 준비를 마친 뒤, 학습자가 main.ipynb를 새 커널에서 데이터·모델 준비부터 직접 실행한다. 입력·정답 shape와 선택된 device를 설명하고, 학습 호출 전 난수 생성기·배치 인덱스·데이터·모델의 장치 일치를 확인해 필요한 학습 코드 수정은 직접 수행한다. 이어 학습을 완료하고 학습 전후 train/dev 평가를 실행·저장·해석한다. 기존 준비 코드의 AI 도움 범위를 유지하며 이 작업을 무보조 재구현으로 기록하지 않는다. Think의 직접 그림 작성·집합 이름 표기는 환경 제약으로 미수행 보류하고 MIT 본문 직접 읽기는 미확인으로 유지한다. 온라인 문제는 학습자가 보고한 제출·정답 판정과 튜터가 확인하지 못한 풀이 과정을 구분한다.
