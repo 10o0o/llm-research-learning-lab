@@ -11,5 +11,11 @@
     "*.ipynb": "jupyter-notebook"
   },
   "deepml.solutionsDir": "challenges/deep-ml/solutions",
-  "deepml.pythonPath": "${workspaceFolder}/.venv/bin/python"
+  "deepml.pythonPath": "${workspaceFolder}/.venv/bin/python",
+  "r.executablePath": "${userHome}/.local/opt/mit1805/r/bin/R",
+  "r.consolePath": "${userHome}/.local/opt/mit1805/r/bin/R",
+  "r.consoleArgs": ["--no-save", "--no-restore"],
+  "r.lsp.enabled": true,
+  "r.sessionWatcher": true,
+  "r.plot.backend": "standard"
 }

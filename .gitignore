@@ -1,6 +1,12 @@
 # Local course material in this public repository
 materials/private/
 
+# Generated R session files
+**/.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
 # Local scratchpads
 /today.md
 /til/today.md
