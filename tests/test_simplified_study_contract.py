@@ -55,7 +55,8 @@ def test_plain_study_phrases_use_state() -> None:
     agents = _normalized("AGENTS.md")
     for phrase in (
         "`오늘 학습 시작`",
-        "`오늘 전체 학습 흐름 시작` or `전체 학습 흐름 시작`",
+        "`오늘 전체 학습 흐름 시작`",
+        "`전체 학습 흐름 시작`",
         "`계속`",
         "`오늘 학습 종료`",
         "`이번 주 회상`",
@@ -63,7 +64,7 @@ def test_plain_study_phrases_use_state() -> None:
     ):
         assert phrase in agents
     assert "resume the next independent action in `STATE.md`" in agents
-    assert "never enter another course automatically" in agents
+    assert "never choose another course or skip a formal requirement" in agents
     assert "Do not begin with a new readiness diagnostic or roadmap review" in agents
     assert "Never invent source content, timestamps, or learner viewing progress" in agents
 
@@ -78,6 +79,51 @@ def test_study_route_does_not_restore_fixed_entry_gates() -> None:
     agents = _normalized("AGENTS.md")
     assert "Do not impose a second full tokenizer/Transformer implementation as an entry test" in agents
     assert "Entry does not cancel unfinished work" in agents
+
+
+def test_study_entrypoints_do_not_end_at_one_module() -> None:
+    """Guard obsolete routing text; actual continuation needs response evaluation."""
+    for path in ("AGENTS.md", ".agents/skills/study-session/SKILL.md",
+                 "README.md", "USAGE.md"):
+        content = _normalized(path)
+        for request in ("오늘 학습 시작", "오늘 전체 학습 흐름 시작", "전체 학습 흐름 시작"):
+            assert request in content, (path, request)
+        for obsolete in ("one connected module in the current approved course",
+                         "연결된 모듈 하나", "한 모듈에서 멈춥니다"):
+            assert obsolete not in content, (path, obsolete)
+
+
+def test_tutoring_contract_teaches_before_requesting_an_attempt() -> None:
+    agents = _normalized("AGENTS.md")
+    skill = _normalized(".agents/skills/study-session/SKILL.md")
+    assert "Do not require direct textbook reading before starting or resuming" in agents
+    assert "givens, conditions, and required output in the conversation" in agents
+    assert "not learner-visible givens: include the actual values and shapes" in agents
+    assert "withholding formulas and derived shapes whose reconstruction is the learning target" in agents
+    assert "reuse verified source details and instructions" in agents
+    assert "when uncertainty arises" in agents
+    assert "not just a source link or section number" in skill
+    assert "never claim the learner read a source unless they confirm it" in skill
+    assert "During cold recall, do not prefill answer cues" in skill
+    assert "Do not replace the missing segment with a lesson inferred from its title or general recollection" in agents
+
+
+def test_tutoring_contract_distinguishes_support_progress_and_mastery() -> None:
+    agents = _normalized("AGENTS.md")
+    skill = _normalized(".agents/skills/study-session/SKILL.md")
+    assert "unrelated inputs and a separate toy task" in agents
+    assert "Explain the relevant parameters and their values; generic API signatures and calls are allowed" in agents
+    assert "Never adapt that example into the target exercise's code, answer, or scaffold" in agents
+    assert "including spelling out the target's exact API call, inputs, and chosen arguments in prose" in agents
+    assert "the same solution under renamed variables is still a target answer" in agents
+    assert "Ask at most one clarifying follow-up seeking the same answer" in skill
+    assert "change the explanation or representation instead of repeating the question" in skill
+    assert "Briefly correct nonblocking gaps in wording or reasoning and continue" in skill
+    assert "Incomplete independent evidence alone does not stop ordinary progress" in skill
+    assert "Finishing an ordinary explanation or feedback response does not trigger a checkpoint" in skill
+    assert "Keep components already accepted in the current activity out of the next quiz" in skill
+    assert "preserve unanswered formal requirements" in skill
+    assert "teach any genuine prerequisite before its dependent activity" in skill
 
 
 def test_official_practice_is_preserved_across_teaching_media() -> None:
@@ -471,6 +517,29 @@ def test_behavior_cases_separate_response_judgments_from_artifact_checks() -> No
         assert boundary in cases
 
 
+def test_tutoring_flow_cases_cover_the_approved_behavior_comparison() -> None:
+    """Check evaluation coverage, not whether a tutor followed the contract."""
+    cases = _normalized(".agents/skills/study-session/references/tutor-cases.md")
+    for family in ("Normal resume and continuous study",
+                   "Missing prerequisite and repeated uncertainty",
+                   "Partial answer, misconception, and grounding",
+                   "Assisted exercise and missing transfer",
+                   "API-assisted implementation versus delayed recall",
+                   "Teaching without direct textbook reading",
+                   "Quiet bookmarks and verified-context reuse",
+                   "Unavailable source, course boundary, and unknown chronology",
+                   "Manual weekly follow-up, pause, and explicit end"):
+        assert family in cases, family
+    for method in ("baseline and candidate in fresh, empty contexts",
+                   "same Luna model at max reasoning",
+                   "Change only the instruction bundle",
+                   "Prohibit tool use and exclude any run that used tools",
+                   "without injecting a replacement assistant response",
+                   "new directory for each revision rather than overwriting failures",
+                   "none establishes delayed learner memory"):
+        assert method in cases, method
+
+
 def test_deferred_material_keeps_a_return_condition() -> None:
     """A hold without a return condition is a deletion, so every entry needs one."""
     deferred = _normalized("DEFERRED.md")
@@ -612,6 +681,21 @@ def test_state_update_is_edit_only_except_explicit_study_stop() -> None:
     assert "Updating `STATE.md`, automatically or on request, authorizes only the file edit" in agents
     assert "An explicit study-stop request is the standing exception" in agents
     assert "authorized a scoped commit and push without another confirmation" in agents
+
+
+def test_routine_bookmarks_are_quiet_and_pause_is_not_session_end() -> None:
+    agents = _normalized("AGENTS.md")
+    assert "Do not edit it for each corrected answer when the resume action stays the same" in agents
+    assert "Keep routine edits quiet" in agents
+    assert "user asks for status, at an explicit study stop" in agents
+    for path in ("AGENTS.md", ".agents/skills/study-session/SKILL.md"):
+        content = _normalized(path)
+        assert "does not trigger the closing commit or push procedure" in content, path
+    for path in ("USAGE.md", "ROADMAP.md"):
+        content = _normalized(path)
+        for obsolete in ("수정하고 알린다", "수정하고 변경을 알립니다",
+                         "의미 있는 재개 지점 변경만 알"):
+            assert obsolete not in content, (path, obsolete)
 
 
 def test_cs336_uses_a_separate_python_environment() -> None:

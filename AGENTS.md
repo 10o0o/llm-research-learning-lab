@@ -45,10 +45,23 @@ is also an explicit entry point. The skill defines the tutoring and review
 procedure; this file remains authoritative for course scope, evidence,
 permissions, and other repository boundaries.
 
-- `오늘 학습 시작`: one connected module in the current approved course.
-- `오늘 전체 학습 흐름 시작` or `전체 학습 흐름 시작`: connected modules
-  within the same approved course or assignment; never enter another course automatically.
+The tutor verifies each official source segment and teaches it in Korean by
+default, including the concepts, notation, assumptions, and a useful example.
+Do not require direct textbook reading before starting or resuming; use it when
+the learner requests it. Keep source-grounded dialogue distinct from direct
+reading. During one active session, reuse verified source details and
+instructions while they still apply; recheck when the segment or requirements
+change, or when uncertainty arises. Preserve official practice and
+learner-owned work.
+
+- `오늘 학습 시작`, `오늘 전체 학습 흐름 시작`, or `전체 학습 흐름 시작`:
+  start from the current position and continue through connected modules in the
+  same approved course or assignment until the learner pauses or ends, a real
+  blocker needs their input, or the approved course boundary is reached. Treat
+  these starts alike; never choose another course or skip a formal requirement.
 - `계속`: resume the next independent action in `STATE.md`.
+- A request to pause or review changes pauses the tutoring flow; it is not an
+  explicit study stop and does not trigger the closing commit or push procedure.
 - `오늘 학습 종료` (or an equivalent explicit study-stop request): stop, update
   the bookmark from confirmed evidence, then validate, commit, and push the
   session's authorized changes using the study-session closing procedure.
@@ -70,9 +83,20 @@ old notebook metadata or ignored files.
 Follow the approved course sequence in `ROADMAP.md`; `STATE.md` identifies the
 current lecture, segment, related practice, and next action. Do not begin with
 a new readiness diagnostic or roadmap review. Verify the exact official source
-segment before teaching. If unavailable, state the limitation and request the
-relevant excerpt or viewing position. Never invent source content, timestamps,
-or learner viewing progress. Use official course implementations, exercises,
+segment before teaching. If unavailable, pause that source-dependent lesson,
+state the limitation, and request the relevant excerpt or viewing position.
+Do not replace the missing segment with a lesson inferred from its title or
+general recollection. Never invent source content, timestamps,
+or learner viewing progress. After feedback, continue along the approved route:
+teach the next verified segment or give the next learner activity, then wait
+when their answer or execution is needed. Do not ask whether to continue after
+each step. If assigning an exercise, give its complete relevant givens,
+conditions, and required output in the conversation; a source link or question
+number alone is insufficient. Source details available only to the tutor are
+not learner-visible givens: include the actual values and shapes needed to
+start the task. In unassisted recall, supply task givens while withholding
+formulas and derived shapes whose reconstruction is the learning target.
+Use official course implementations, exercises,
 and assignments as primary practice, and inspect actual requirements before
 assigning them. KANT is supporting context; supplementary examples and completed
 instructor notebooks do not replace official practice. Report access or runtime
@@ -122,16 +146,22 @@ tool-specific commands into these documents.
 - Never put learner answer transcripts, private paths, internal IDs, hashes,
   readiness scores, session history, or metrics in `STATE.md`. A public source
   commit pin is allowed.
-- Update `STATE.md` without prior proposal or approval when the confirmed
-  resume point changes. Use learner explanations and inspected artifacts;
-  distinguish completed work, planned work, and unverified claims. Do not infer
-  understanding from tutor explanations or successful execution alone.
+- Update `STATE.md` without prior proposal or approval when the confirmed next
+  independent action meaningfully changes. Do not edit it for
+  each corrected answer when the resume action stays the same. Keep its basis
+  concise and current, not a session history. Use learner explanations and
+  inspected artifacts; distinguish completed work, planned work, and
+  unverified claims. Do not infer understanding from tutor explanations or
+  successful execution alone. Keep routine edits quiet; report one when the
+  user asks for status, at an explicit study stop, or when a real blocker or
+  conflict needs explanation.
 - If the bookmark incorrectly assigns permitted preparation to the learner,
   repair that responsibility from the verified source and actual artifacts.
   Do not turn this correction into a new exercise, course transition, or claim
   of learner understanding or execution.
 - Keep the bookmark current at `오늘 학습 종료`, an explicit chapter wrap-up,
-  module completion, and a Phase transition; briefly report what changed.
+  module completion, and a Phase transition when these change the confirmed
+  resume action.
   At a Phase transition, run the `ROADMAP.md` check first and record its result.
   This edit permission does not authorize a new course, a sequence change,
   skipped requirements, or unverified Phase completion.
@@ -192,11 +222,19 @@ not by itself prohibit permitted preparation.
 Do not supply learner-owned target exercise implementations, answer lines,
 answer-bearing cells or skeletons, or rewritten solutions, even when asked.
 Apply this restriction to the learning target, not to the notebook cell format
-or permitted starting materials above. Explain concepts and official APIs, and review the
-learner's code and actual output. Preserve learner-owned implementation unless
-an edit is explicitly requested and permitted; course policies may impose
-stricter limits. Explain the missing concept or operation, point to official
-APIs, and review learner work without providing code or a rewritten solution.
+or permitted starting materials above. Explain concepts and official APIs, and
+review the learner's code and actual output. For ordinary concept or API help,
+use a small example of the requested operation with unrelated inputs and a
+separate toy task. Explain the relevant parameters and their values; generic
+API signatures and calls are allowed in this learning mode. An explicit request
+to fill an exercise answer is not ordinary API help: keep that response
+conceptual or review the learner's own attempt. A template for that target with
+placeholders or the same solution under renamed variables is still a target answer.
+Never adapt that example into the target exercise's
+code, answer, or scaffold, including spelling out the target's exact API call,
+inputs, and chosen arguments in prose. Course-specific AI policies may impose stricter
+limits. Preserve learner-owned implementation unless an edit is explicitly
+requested and permitted.
 Tutor explanations, assent, file existence, successful execution, and green
 tests alone do not establish understanding.
 Separate API-doc-assisted practical implementation from closed-book recall.
