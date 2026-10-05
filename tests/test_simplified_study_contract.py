@@ -385,6 +385,92 @@ def test_understanding_is_verified_by_unassisted_recall() -> None:
         assert "지난주 개념 3개" not in text, path
 
 
+def test_setup_responsibility_defines_distinct_starting_states() -> None:
+    """This checks the documented contract, not actual tutor compliance."""
+    agents = _raw("AGENTS.md")
+    setup = agents.split("## Learning setup and starting materials", 1)[1].split(
+        "## Learner ownership and evidence", 1
+    )[0]
+    rows = [_markdown_cells(line) for line in setup.splitlines()
+            if line.startswith("|") and not line.startswith("|---")]
+    assert len(rows) == 4
+    states = {row[0]: row[1] for row in rows[1:]}
+    assert "unfinished" in states["Work using a supplied starter"]
+    reproduction = states["Fresh-kernel reproduction of existing code"]
+    for requirement in ("unchanged", "working copy", "outputs", "execution counts"):
+        assert requirement in reproduction
+    recall = states["Representative unassisted reconstruction or cold recall"]
+    for requirement in ("blank", "no code", "imports", "signatures", "skeletons"):
+        assert requirement in recall
+
+
+def test_setup_authorization_preserves_targets_and_restricted_actions() -> None:
+    agents = _normalized("AGENTS.md")
+    setup = agents.split("## Learning setup and starting materials", 1)[1].split(
+        "## Learner ownership and evidence", 1
+    )[0]
+    assert "A study-start or resume request includes this routine preparation" in setup
+    assert "do not ask the learner to choose its scope or manually copy preparation cells" in setup
+    assert "do not overwrite a nonempty working space without authorization" in setup
+    assert "Preserve original starters, archives, and existing learner-owned cells" in setup
+    for restriction in ("Course-specific AI", "command-execution", "acquisition",
+                        "separate-environment", "paid-resource", "publication"):
+        assert restriction in setup
+    assert "unfinished learner-target portions" in setup
+    assert "silently repair existing learner code" in setup
+    assert "changing learner-owned implementation or executing a learner's notebook needs explicit authorization" in agents
+    assert "not by running learner cells" in agents
+    assert "not by itself prohibit permitted preparation" in setup
+    assert "ask only for those missing facts" in setup
+    assert "Do not assign package installation, configuration creation, or kernel repair to the learner as their next action" in setup
+    assert "do not make learner-owned diagnosis or adaptation a new approval gate" in setup
+    assert "distinguish any learner-adapted run from unchanged-code reproduction" in setup
+    skill = _normalized(".agents/skills/study-session/SKILL.md")
+    assert "without handing installation, configuration, or kernel repair to the learner" in skill
+    assert "do not add a setup-scope approval gate or write the fix" in skill
+    assert "repair that responsibility from the verified source and actual artifacts" in agents
+
+
+def test_setup_policy_is_shared_without_blanket_cell_or_notebook_bans() -> None:
+    obsolete = (
+        "Do not write exercise code, answer lines, cells, skeletons",
+        "Never supply exercise code, answer lines, cells, skeletons",
+        "Do not provide target exercise code or setup skeletons to either mode",
+        "Ordinary study does not create a Notebook",
+        "Never silently fill a learner gap in setup",
+    )
+    for path in ("AGENTS.md", ".agents/skills/study-session/SKILL.md"):
+        content = _normalized(path)
+        for blanket in obsolete:
+            assert blanket not in content, (path, blanket)
+    for path in ("README.md", "USAGE.md", "practice/README.md"):
+        assert "AGENTS.md#learning-setup-and-starting-materials" in _raw(path)
+    practice = _normalized("practice/README.md")
+    assert "위 준비 범위 외의 파일 생성·수정" in practice
+    assert "정확한 파일 생성·수정 요청이나 확인된 챕터 전환" not in practice
+    claude = REPO / "CLAUDE.md"
+    assert claude.is_symlink()
+    assert claude.resolve() == (REPO / "AGENTS.md").resolve()
+
+
+def test_behavior_cases_separate_response_judgments_from_artifact_checks() -> None:
+    cases = _normalized(".agents/skills/study-session/references/tutor-cases.md")
+    for family in ("Supplied incomplete starter", "Existing-code fresh-kernel reproduction",
+                   "Unassisted reconstruction starting state",
+                   "Learner responsibility correction across turns",
+                   "Incorrect preparation action in STATE",
+                   "Preparation support and evidence classification",
+                   "Missing source or real overwrite conflict",
+                   "Preparation does not expand restricted authorization"):
+        assert family in cases
+    for boundary in ("actual resumed conversations", "actor's own response",
+                     "Tool-enabled preparation checks", "synthetic inputs",
+                     "rubric", "outside the actor's workspace and prompt",
+                     "byte-identical", "do not execute notebook cells",
+                     "failed or unsupported runs remain incomplete evidence"):
+        assert boundary in cases
+
+
 def test_deferred_material_keeps_a_return_condition() -> None:
     """A hold without a return condition is a deletion, so every entry needs one."""
     deferred = _normalized("DEFERRED.md")

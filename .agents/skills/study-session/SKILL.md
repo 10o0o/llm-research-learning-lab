@@ -41,6 +41,21 @@ report the commit, destination, and next resume action briefly.
 
 ## Teach and review
 
+Before an implementation attempt, identify the current activity from STATE,
+the verified source, and actual artifacts: supplied-starter work, existing-code
+reproduction, or representative unassisted reconstruction/recall. Apply AGENTS.md's
+setup responsibility and prepare the permitted starting state. Do not turn
+reproduction into another blank-page exercise or hand routine preparation back
+to the learner. Inspect facts before asking; request only missing source/goal
+facts, actual overwrite decisions, or explicitly restricted authorization.
+After a failed environment check, request missing existing environment facts
+without handing installation, configuration, or kernel repair to the learner.
+For runtime or device mismatches, preserve the restored original and leave
+diagnosis and target-code adaptation to the learner under the approved activity
+and course policy; do not add a setup-scope approval gate or write the fix.
+Apply a learner correction to the next action without another setup-scope
+question, and repair a bookmark that assigns permitted preparation incorrectly.
+
 For new material, assign a short exact primary-source reading (not a whole-course detour), then explain one connected idea through its purpose, mechanism, and defined prerequisites before asking for an attempt. Never claim the reading was done until the learner confirms it. When reviewing an existing attempt, start from the learner's actual answer or code/output. Adapt to the evidence:
 
 - Missing prerequisite: define it with a concrete example, then connect it to the current source explanation in the same response. Do not make a prerequisite quiz a gate to returning to the lesson.
@@ -50,7 +65,7 @@ For new material, assign a short exact primary-source reading (not a whole-cours
 
 Avoid chains of tiny questions; use the module's single integrated checkpoint.
 
-After the connected explanation, wait for the learner's first implementation/answer and their execution before code/output feedback; separate official exercises are attempted independently under their assistance policy. Never supply exercise code, answer lines, cells, skeletons, or a rewritten solution. For tensors, gradients, loss, or model flow, show relevant shapes and a small concrete trace while teaching; state all necessary exercise conditions in the exercise prompt. Inspect only exact learner code and actual output. For notebooks, use the repository's `scripts/nbpeek.py` rules in AGENTS; do not read a notebook as a whole or execute/edit it without authorization. If an error occurred, ask what cause the learner suspected before changing code and how they checked it.
+After the connected explanation, wait for the learner's first implementation/answer and their execution before code/output feedback; separate official exercises are attempted independently under their assistance policy. Never author learner-target exercise implementations, answer lines, answer-bearing cells or skeletons, or rewritten solutions. Prepare verified starting materials under AGENTS.md without filling unfinished target portions. For tensors, gradients, loss, or model flow, show relevant shapes and a small concrete trace while teaching; state all necessary exercise conditions in the exercise prompt. Inspect only exact learner code and actual output. For notebooks, use the repository's `scripts/nbpeek.py` rules in AGENTS; routine preparation follows its standing authorization, while changing learner-owned implementation or executing their notebook requires explicit authorization and course permission. If an error occurred, ask what cause the learner suspected before changing code and how they checked it.
 
 Give feedback as one complete response: distinguish the parts that are correct, incomplete, incorrect, or not yet assessable; explain why using the actual official source section, page, or equation; then state the learner's clear next action. Never fabricate a source location. Judge what the learner actually claimed: do not call a correct claim wrong because its proof was omitted, or criticize a condition they already stated. Name the actual mistaken generalization precisely. If the source cannot be inspected, explain the limit and ask for the missing excerpt or position instead of guessing. No fixed feedback headings are required.
 
@@ -67,8 +82,10 @@ During cold recall, do not prefill answer cues, derivations, shapes, model flow,
 ## Practical evidence, experiments, and delayed transfer
 
 Official API-doc-assisted practical work is allowed under course policy and is
-not closed-book recall. Do not provide target exercise code or setup skeletons
-to either mode. Record help per attempt only within an authorized existing
+not closed-book recall. Permitted preparation and assistance classification are
+separate decisions: prepare the current starting state, preserve unfinished
+targets, and retain assistance history. Provide no recalled code, imports, or
+skeletons during an unassisted reconstruction. Record help per attempt only within an authorized existing
 review: first attempt, source/API/concept hint or historical code help, timing,
 actual learner execution, and interpretation. Do not generate a new tracker or
 review during ordinary study. Keep only important unresolved gaps in STATE.

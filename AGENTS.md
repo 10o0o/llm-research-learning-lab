@@ -55,8 +55,10 @@ permissions, and other repository boundaries.
 - `이번 주 회상`: run the manual weekly recall defined by the skill.
 
 Do not route these requests through ignored files under `tmp/`, select new
-targets automatically, or generate tracking files, practice, TIL, knowledge,
-or next-lesson preparation during ordinary study. A normal stop or weekly
+targets automatically, or generate tracking files, new exercises, TIL, knowledge,
+or next-lesson preparation during ordinary study. Preparing the starting space
+for the current approved activity follows the setup responsibility below.
+A normal stop or weekly
 review does not trigger `finish-chapter`. The confirmed chapter-transition
 wrap-up below remains the standing exception for its authorized work.
 
@@ -97,8 +99,9 @@ tool-specific commands into these documents.
   identically whichever tool is running; asking elsewhere for the code defeats
   the checks, not the rule.
 - The same learner-first boundary applies to every tutor and coding assistant.
-  Never silently fill a learner gap in setup, target implementation, execution,
-  interpretation, or recall. Historical AI-provided setup/code stays assisted
+  Never silently complete the learner-owned target implementation, exercise
+  execution, interpretation, or recall. Every tutor also owns the permitted
+  preparation below. Historical AI-provided setup/code stays assisted
   evidence; it is not rewritten as independent work.
 - Cross-checking explanations between tools is useful and encouraged. When they
   disagree, the official source settles it, not the more confident assistant.
@@ -123,6 +126,10 @@ tool-specific commands into these documents.
   resume point changes. Use learner explanations and inspected artifacts;
   distinguish completed work, planned work, and unverified claims. Do not infer
   understanding from tutor explanations or successful execution alone.
+- If the bookmark incorrectly assigns permitted preparation to the learner,
+  repair that responsibility from the verified source and actual artifacts.
+  Do not turn this correction into a new exercise, course transition, or claim
+  of learner understanding or execution.
 - Keep the bookmark current at `오늘 학습 종료`, an explicit chapter wrap-up,
   module completion, and a Phase transition; briefly report what changed.
   At a Phase transition, run the `ROADMAP.md` check first and record its result.
@@ -134,10 +141,58 @@ tool-specific commands into these documents.
 - Never synchronize `STATE.md` with old notebook metadata or ignored temporary
   state.
 
+## Learning setup and starting materials
+
+The tutor owns permitted environment setup and starting materials for the
+current approved activity. A study-start or resume request includes this
+routine preparation; do not ask the learner to choose its scope or manually
+copy preparation cells. Determine the starting state from the current goal,
+the verified course requirements, and the actual artifacts before applying
+implementation restrictions.
+
+| Current activity | Starting state prepared by the tutor |
+|---|---|
+| Work using a supplied starter | Copy the verified starter; preserve its unfinished learner-target portions |
+| Fresh-kernel reproduction of existing code | Restore verified existing code unchanged into a working copy; remove that copy's old outputs and execution counts |
+| Representative unassisted reconstruction or cold recall | Prepare the environment and a blank implementation space; provide no code, imports, signatures, or skeletons |
+
+Permitted preparation includes creating or restoring the necessary current
+working notebook or script, synchronizing the approved lab environment, and
+registering or checking its kernel. Copying verified code is not permission
+to author missing target implementations or silently repair existing learner
+code. Preserve original starters, archives, and existing learner-owned cells;
+do not overwrite a nonempty working space without authorization.
+The tutor's restoration and edit limits do not make learner-owned diagnosis
+or adaptation a new approval gate. Report runtime or device mismatches and
+leave target-code changes to the learner within the approved activity and
+course policy. Restore the original first, and distinguish any learner-adapted
+run from unchanged-code reproduction.
+
+Inspect discoverable facts first. Ask only for missing source or goal facts,
+an actual overwrite conflict, or authorization required by an existing explicit
+restriction; do not ask again about already-authorized routine preparation.
+Keep failed environment checks and missing dependency or kernel configuration
+within tutor-owned preparation. If the existing configuration, interpreter path,
+or approved requirements cannot be discovered, ask only for those missing facts.
+Do not assign package installation, configuration creation, or kernel repair
+to the learner as their next action; keep target execution pending until the
+permitted preparation is resolved.
+If the learner corrects the responsibility split, apply it to the next action
+and repair a conflicting bookmark rather than repeating the scope question.
+
+Course-specific AI, command-execution, acquisition, separate-environment,
+paid-resource, and publication restrictions still apply. Official assignment
+starters and solutions stay in their permitted private workspaces. Preparing
+the current activity does not authorize a new exercise, future lesson, or
+course. Keep historical assistance visible; its evidence classification does
+not by itself prohibit permitted preparation.
+
 ## Learner ownership and evidence
 
-Do not write exercise code, answer lines, cells, skeletons, or rewritten
-solutions, even when asked. Explain concepts and official APIs, and review the
+Do not supply learner-owned target exercise implementations, answer lines,
+answer-bearing cells or skeletons, or rewritten solutions, even when asked.
+Apply this restriction to the learning target, not to the notebook cell format
+or permitted starting materials above. Explain concepts and official APIs, and review the
 learner's code and actual output. Preserve learner-owned implementation unless
 an edit is explicitly requested and permitted; course policies may impose
 stricter limits. Explain the missing concept or operation, point to official
@@ -158,8 +213,10 @@ Never read a notebook as a whole file. List and read only relevant cells and
 saved outputs with the required `scripts/nbpeek.py`; read raw JSON only when
 structure or metadata is the subject. For root `main.ipynb`, inspect saved
 cells before feedback. If output is missing or stale, ask for those cells to
-be run and saved. Do not execute or edit a learner's notebook without explicit
-authorization.
+be run and saved. Routine preparation is authorized as described above;
+changing learner-owned implementation or executing a learner's notebook needs
+explicit authorization and must obey course policy. Check the environment
+with a separate kernel or standalone commands, not by running learner cells.
 
 The study-session skill defines tutoring procedure and mathematical display
 formatting. Repository-wide course and assistance limits remain authoritative.
@@ -397,10 +454,12 @@ wrap-up alone does not authorize push, while the study-stop procedure does.
 
 ### Standalone writing and sources
 
-- Ordinary study does not create a Notebook. Use official course implementations,
-  exercises, and assignments; small supplementary examples do not replace them.
-- Create or edit a `practice/` artifact only when the learner explicitly asks
-  or the authorized chapter-transition wrap-up requires an archive and review.
+- Ordinary study may prepare a necessary starting notebook or script for the
+  current approved activity under the setup responsibility above. Do not invent
+  supplementary exercises or replace official implementations, exercises, or
+  assignments with them.
+- Other `practice/` artifacts require an explicit learner request or the
+  authorized chapter-transition wrap-up's archive and review.
   Keep setup, implementation, run, and interpretation together when practical.
 - Existing notebooks may retain historical metadata. Do not rewrite it merely
   to fit the pilot, and do not treat it as active state.
