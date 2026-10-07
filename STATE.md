@@ -5,15 +5,15 @@
 
 - Pilot 시작일: 2026-09-02
 - 현재 ROADMAP Phase: P0
-- 현재 주강의: Karpathy makemore — 기존 MLP 새 커널 재현
-- 사용 판본: makemore Part 2의 기존 코드·보관본; MIT 18.05 Spring 2022는 필요한 확률·통계 구간의 설명 참고
-- 현재 범위: P0 기존 MLP 재현과 손실·샘플링·평가에 연결하는 확률 핵심; P0~P1의 likelihood·MLE·평가 통계는 승인된 CS229·ISLP에 연결한다. MIT 전체 reading·in-class·온라인 문제·PS1~PS11·R 튜토리얼의 일괄 의무는 해제했으며 미선택 활동과 MML의 남은 공백은 DEFERRED·기존 회고에 보존한다
-- 현재 강의: 기존 MLP CUDA 사본의 학습 전후 결과 확인과 장치 수정의 디버깅 근거 확인. 데이터 준비 → 초기화 → 학습 전 평가 → 학습 호출 → 학습 후 평가의 저장 실행 순서와 train/dev 손실 감소를 확인했다. 튜터의 장치 불일치 안내 뒤 학습자가 인덱스 생성에 CUDA를 지정했고 현재 CUDA 실행은 확인됐다. 오류 원문·변경 전 원인 가설·확인 방법은 미확인이다. 새 커널 시작은 학습자 완료 보고이며 무보조 구현·독립 디버깅 성공으로 확대하지 않는다
-- 공식 자료: [Karpathy Zero to Hero](https://karpathy.ai/zero-to-hero.html) · [makemore Part 2: MLP](https://www.youtube.com/watch?v=TCH_1BHY58I) · [MIT 18.05 Spring 2022 Class 자료](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)
-- 다음 공식 구간: makemore Part 3: Activations & Gradients, BatchNorm의 저자 노트북 [makemore_part3_bn.ipynb](https://github.com/karpathy/nn-zero-to-hero/blob/master/lectures/makemore/makemore_part3_bn.ipynb)에서 MLP 초기화·학습과 loss log 구간을 확인했다. 새 커널 실행 확인 뒤 초기화·활성값 크기 설명으로 이어간다. 영상 시청·공식 exercises 수행으로 기록하지 않으며 해당 연습 요구는 배정 전에 확인한다
+- 현재 주강의: Karpathy makemore Part 3 — 공식 E02의 평가용 BatchNorm 합치기
+- 사용 판본: Part 3 공식 영상·설명란과 저자 노트북; 시작 자료는 Part 2 기본 MLP의 기존 보관본; MIT 18.05 Spring 2022는 필요한 확률·통계 구간의 설명 참고
+- 현재 범위: P0 기존 MLP 재현과 공식 E01의 확인 근거를 보존하고 makemore Part 3의 초기화·활성값·BatchNorm과 공식 E02를 진행한다. 손실·샘플링·평가에 연결하는 확률 핵심을 유지하며 P0~P1의 likelihood·MLE·평가 통계는 승인된 CS229·ISLP에 연결한다. 미선택 MIT 활동과 MML의 남은 공백은 DEFERRED·기존 회고에 보존한다
+- 현재 강의: E01의 학습·평가와 첫 backward 출력 읽기, 저자 진단 코드 사본의 활성값·gradient·갱신량 그래프와 학습·검증 손실 출력을 확인했다. 부분 학습의 원인과 진단 지표의 작동 원리·해석은 튜터 설명 도움 범위이며 독립 해석은 미확인이다. 공식 설명란에서 E02의 작은 MLP 학습·BatchNorm 합치기·평가 forward 일치 검증 요구를 확인했다. E02 저장 사본에 학습자 구현과 실행 출력은 아직 없다. 저자 코드의 실행을 독립 구현이나 영상 시청·Part 3 전체 완료로 확대하지 않는다
+- 공식 자료: [Karpathy Zero to Hero](https://karpathy.ai/zero-to-hero.html) · [makemore Part 3: Activations & Gradients, BatchNorm](https://www.youtube.com/watch?v=P6sfmUTpUmc) · [저자 노트북](https://github.com/karpathy/nn-zero-to-hero/blob/master/lectures/makemore/makemore_part3_bn.ipynb) · [MIT 18.05 Spring 2022 Class 자료](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)
+- 다음 공식 구간: 공식 E02에서 BatchNorm을 포함한 3층 MLP를 학습하고 평가 통계를 고정한 뒤, 바로 앞 Linear의 새 가중치·bias로 BatchNorm을 합쳐 제거한다. 동일 입력에 대한 원본·변환 후 logits를 비교해 평가 forward 일치를 검증한다. 실제 학습 조건과 수치 허용오차를 원문의 미지정 사항 및 로컬 점검 기준과 구분한다
 - 연결 실습: 기존 MLP의 데이터 → 모델 → 학습 → 평가를 새 커널에서 재현; CUDA 실행 흐름과 학습 전후 평가의 저장 이력·해석을 확인했다. 문맥 전이는 교정과 설명 도움을 받은 범위다. 이전 실행의 새 커널 시작 여부는 미확인으로 유지한다. 작은 고정 배치의 학습·평가·예측 대조와 튜터 설명 후 학습자의 점검 목적 설명까지 확인해 이번 연결 모듈을 마쳤다
 - 연결 자료: [MLP 재구현 회고](practice/deep-learning/makemore-mlp-training-recall.md) · [기존 보관본](practice/deep-learning/makemore-mlp-training-recall.ipynb) · [PyTorch CUDA 사용 가능 여부](https://docs.pytorch.org/docs/2.14/generated/torch.cuda.is_available.html)
-- 학습 공간: MLP 연결 실습의 코드·출력은 [작은 고정 배치 사본](practice/deep-learning/makemore-mlp-small-batch.ipynb)에 보존한다. 현재 새 커널 재현은 준비된 기존 CUDA 사본에서 학습자가 실행하며, MIT Class 2·R의 기존 확인 근거와 예시 파일은 보존한다. 공식 답안은 공개 저장소에 저장하지 않는다. 튜터가 기존 데이터·모델·학습/평가 함수 코드를 변경 없이 옮긴 시작 자료를 준비했다. 학습자가 공식 API 안내 후 전체 train에서 서로 다른 행 인덱스를 선택하고 같은 배치를 반복 학습하는 함수를 조정했다. 초기화 → 배치 선택 → 학습 전 평가 → 학습 → 학습 후 평가의 저장 실행 흐름과 동일 배치의 큰 손실 감소를 확인했다. 선택한 입력·정답·문자 점수의 저장 출력을 확인했고 문맥에 중복이 없음을 확인했다. 학습 후 예측 ID를 직접 계산해 모든 정답과 일치한 저장 출력을 확인했다. 학습자의 막힘은 PyTorch/Python 호출 문법이라고 확인했고 튜터가 별도 작은 텐서의 API 문법 예시를 제공한 뒤 적용했다. 학습자가 확대 순서를 점검 이유로 설명했으며, 학습 흐름을 점검하는 구체적 목적은 튜터가 보충한 도움 범위다. 이후 학습자는 소수의 동일 예제를 학습할 수 있는지 확인하여 정답 연결과 가중치 등 학습 과정을 점검한다는 목적을 설명했다. 튜터의 목적 설명 뒤 나온 응답으로 구분한다. 기존 AI의 데이터·모델 준비와 API 도움 범위를 유지하며 무보조 재구현으로 보지 않는다. main.ipynb의 CUDA 실행·학습 전후 train/dev 평가·해석을 보존한다. 문맥 축·임베딩 조회·정답 shape에는 튜터 교정과 설명 도움이 있었고, 이전 main.ipynb 실행의 새 커널 시작 여부는 미확인이다. main.ipynb의 코드·출력, 보관본과 빈 recall.ipynb, 앞서 준비한 [CUDA 작업 사본](practice/deep-learning/makemore-mlp-fresh-kernel.ipynb)을 보존한다. 프로젝트 Python 3.14 환경과 전용 커널 `Python 3.14 (llm-learning-lab)`의 별도 CUDA 연산 점검은 확인했다. MIT 공식 답안의 비공개 저장 원칙을 유지한다
+- 학습 공간: E01과 저자 진단 사본의 저장 결과를 보존한다. E02 시작 사본에는 기존 데이터·제공 층·원래 모델과 학습·평가 코드를 변경 없이 복사하고 출력·실행 횟수를 비웠다. 시작 모델은 원문의 6개 Linear 구성이며 학습자가 3개로 변경한다. 합치기·검증 구현 공간은 비워 두었다. 커널·노트북 형식·셀 문법만 확인했으며 E02 실행은 학습자 대기 상태다. 시작 자료와 관찰 도구의 튜터 도움을 독립 구현으로 보지 않는다. 공식 원본과 main.ipynb·CUDA 사본·작은 고정 배치 사본·보관본·recall.ipynb·MIT Class 2·R 자료를 보존한다
 - 학습 방식: 튜터의 공식 원문 확인 → 한국어 개념 설명 → 학습자 첫 시도·실행 → 실제 답·코드·출력 피드백 → 가설 검증 → 대표 지연 회상·전이. 학습자는 MIT 본문을 직접 읽지 않고 튜터에게 설명을 제공받는 방식을 요청했다. 원문 직접 읽기를 재개 조건으로 요구하지 않는다. 공식 API를 본 실무 구현과 무보조 회상을 구분하며, 원문 기반 대화·온라인 문제 정답 판정 보고·직접 읽기의 증거를 구분한다.
 
 ## 관찰된 근거와 남은 범위
@@ -42,4 +42,4 @@ MIT Class 2·R의 확인 근거와 미완료 보류를 유지한다. [R Tutorial
 
 ## 다음 독립 행동
 
-학습자는 이번 장치 수정에서 오류가 실제로 발생했는지, 발생했다면 수정 전에 의심한 원인과 확인 방법을 짧게 설명한다. 튜터가 먼저 장치 불일치를 안내한 도움 범위와 저장된 수정·실행을 구분하며 오류를 일부러 재현시키거나 같은 손실 해석을 반복 퀴즈로 요구하지 않는다. 이 설명의 미확인은 다음 공식 설명의 진입 조건이 아니다. 승인된 makemore Part 3의 확인된 초기화·활성값 구간으로 이어가며 기존 CUDA 사본의 코드·출력은 보존한다. 현재 인덱스 생성은 CUDA로 고정되어 있고 CPU 재현은 미검증으로 유지한다.
+학습자는 준비된 E02 시작 사본에서 3층 MLP 구성·학습, 평가용 BatchNorm 합치기, 동일 입력의 logits 비교를 직접 구현하고 실행·저장한다. 튜터는 실제 코드와 출력 및 첫 해석을 확인해 피드백한다. 이미 확인한 진단 실행이나 설명받은 관찰의 즉시 재진술을 요구하지 않으며 독립 진단 해석의 미확인 상태를 유지한다.
