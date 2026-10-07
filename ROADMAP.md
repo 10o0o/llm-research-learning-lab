@@ -49,8 +49,8 @@ P0 실행 가능한 수학·확률·통계 + PyTorch 학습 루프
 
 | 기존 규칙 | 이번 승인 범위 | 이유·남은 범위 |
 |---|---|---|
-| 현재 위치를 makemore Part 2로 적은 로드맵 | 현재 MIT Class 1 북마크 유지; 기존 MLP 새 커널 재현을 다음 실무 관문으로 연결 | fast.ai Lesson 1~2와 MML의 미검증 항목은 회고에 남기고 필요한 공백만 보강 |
-| MIT 18.05 PS1~PS11·R | 유지 | 공식 읽기·in-class·PS·R을 대화나 Python 실행으로 대체하지 않음 |
+| MIT Class별 남은 요구를 순서대로 수행 | 기존 MLP 새 커널 재현을 현재 실무 관문으로 연결; 확률·통계는 모델 학습·평가에서 보강 | 현재 위치는 STATE만 정함; fast.ai Lesson 1~2와 MML의 미검증 항목은 회고에 보존 |
+| MIT 18.05 전체 reading·in-class·온라인 문제·PS1~PS11·R | 전체 이수 의무 해제; 필요한 확률·통계 역량은 유지 | 미선택 활동은 미완료 보류; 선택한 공식 활동의 요구는 지키며 Python 모델 실습을 MIT 과제 완료로 세지 않음 |
 | CS229 Summer 2020 PS1~PS3 written·coding | 유지 | PS3의 RL·ICA까지 보존; GP·ICA 추가 심화·넓은 RL 과정은 보류 |
 | CS231n 2024 L2~6·A2 Q1~Q5 전체 | 필요한 설명 + A2 Q1~Q3의 FC/backprop·optimizer·normalization·dropout | Q4 CNN·Q5 CIFAR-10, A1·A3·Final Project는 미완료 보류 |
 | Karpathy GPT·Tokenizer 전체 후 CS224N 전체 | 흐름이 막힐 때 GPT 설명만 선택 | A1 이전 보조; A1 중에는 공식 정책에 따라 다른 구현을 참고하지 않음 |
@@ -70,7 +70,7 @@ P0 실행 가능한 수학·확률·통계 + PyTorch 학습 루프
 
 | 자료 | 고정 범위와 역할 |
 |---|---|
-| [MIT 18.05 Spring 2022 syllabus](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/syllabus/) | P0 공식 읽기·in-class·PS1~PS11·R |
+| [MIT 18.05 Spring 2022 syllabus](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/syllabus/) | P0~P1 핵심 확률·통계의 필요한 구간 설명·공식 연습 참고; 전체 이수는 필수 조건이 아님 |
 | [MML](https://mml-book.github.io/) | Chapter 2~5, 7의 확인된 공백만 보강 |
 | [Karpathy Zero to Hero](https://karpathy.ai/zero-to-hero.html) | P0 makemore 3·4와 공식 exercises; 기존 micrograd·bigram·MLP 보존; GPT는 필요할 때만 |
 | [CS229 Summer 2020 syllabus](https://cs229.stanford.edu/summer2020/syllabus-summer2020.html) | P1 notes·PS1~PS3; 현재 홈페이지의 다른 연도로 교체하지 않음 |
@@ -101,10 +101,10 @@ KANT는 진도·주제 대조용 보조다. 기본 실습이나 완료 기준으
 
 ## P0 — 현재 기초를 실행 가능한 근거로 연결
 
-현재 MIT 18.05 Unit 1, Class 1 미응답 질문부터 이어 간다. 새로운 입문 과정이나
-전체 재진단으로 시작하지 않는다. Class 1의 남은 공식 요구 확인 뒤 기존 MLP의
-data → train → eval 새 환경 재현을 **다음 실무 관문**으로 연결한다. MIT 전체가
-끝날 때까지 미루지 않으며 같은 STATE로 인계한다. Agent가 노트북을 수정하거나 실행해 통과시키지 않는다.
+기존 MLP의 data → train → eval 새 환경 재현을 **현재 실무 관문**으로 연결하고
+필요한 확률·통계를 손실·샘플링·평가에서 보강한다. 현재 작업 구간과 다음 행동은
+STATE만 정한다. 새로운 입문 과정이나 전체 재진단으로 시작하지 않는다.
+MIT 전체 이수는 필수 조건이 아니다. Agent가 노트북을 수정하거나 실행해 통과시키지 않는다.
 
 기존 [MLP 학습·평가 회고](practice/deep-learning/makemore-mlp-training-recall.md)는
 학습자 train/eval 함수와 AI의 데이터·모델·API 도움을 구분했다.
@@ -112,10 +112,21 @@ data → train → eval 새 환경 재현을 **다음 실무 관문**으로 연�
 설명은 당시 해석이며 셀 이력은 새 커널 재현을 입증하지 않는다. 기존 결과를
 독립 모델·데이터 구현 또는 새 커널 성공으로 승격하지 않는다.
 
-- [MIT class reading·in-class](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)와
-  [PS1~PS11](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/problem-sets/)을
-  R 요구까지 모두 수행한다. 조건부확률·독립·분포·기댓값·분산·LLN·CLT·likelihood·
-  Bayes·검정·신뢰구간·bootstrap을 연결한다. R이 필요한 과제는 R로 수행하며 Python 대체로 완료 처리하지 않습니다.
+- 조건부확률·독립성, 확률변수·분포, 기댓값·분산, LLN·CLT의 의미와 성립 조건을
+  유지한다. 기존 MLP의 손실·샘플링·평가에서 연결하고
+  [MIT class 자료](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)의
+  필요한 정확한 구간으로 실제 공백을 보강한다. 전체 reading·in-class·온라인
+  문제·PS1~PS11·R 튜토리얼은 일괄 의무에서 제외하고 미선택 범위를 DEFERRED에 둔다.
+- P0~P1에서 likelihood·MLE와 손실함수의 관계를 모델 학습에 연결한다.
+  [CS229 Summer 2020](https://cs229.stanford.edu/summer2020/syllabus-summer2020.html)의
+  확률 복습·MLE notes를 사용하고 likelihood·prior·posterior·MAP의 기본 구분은
+  해당 공식 작업에 필요한 범위로 보강한다. 표본 단위·누수·신뢰구간·검정·검정력·
+  bootstrap·다중비교는 실제 평가에 연결해 배우며 P1의 ISLP 5·13장 본문·lab을 활용한다.
+  연속 사전분포·켤레 사전분포의 상세 계산은 과제나 논문에서 필요해질 때 복귀한다.
+- 선택한 공식 활동이 R을 요구할 때만 R로 수행하며 Python 대체로 완료 처리하지 않습니다.
+  모델 연결 실습은 Python/PyTorch로 진행하고 MIT 공식 과제 완료와 구분한다.
+  핵심 선수 공백은 의존하는 활동 전에 맥락 안에서 보강하며 별도 전체 확률 과정이나
+  명령마다의 문법 회상 관문을 추가하지 않는다.
 - MML Chapter 2~5, 7의 행렬·투영·분해·chain rule·gradient·Jacobian·최적화 공백을
   본문·공식 연습문제의 무보조 설명·계산으로 보강한다. 이미 설명·계산한 내용을 반복 수강하지 않습니다.
   미분·정적분이 막히면 [MIT 18.01SC Fall 2010](https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/)의
@@ -123,7 +134,7 @@ data → train → eval 새 환경 재현을 **다음 실무 관문**으로 연�
 - 학습자가 MLP의 데이터 출처·split·seed·초기화·배치 순서·dtype·device·의존성을
   설명하고 새 커널에서 실행한다. 작은 배치 과적합, train/eval 모드, label/loss
   계약, zero_grad·backward·갱신을 확인한다. 저장 출력만으로 독립 수행을 판단하지 않는다.
-- MIT 이후 makemore Parts 3~4와 공식 exercises를 유지한다. Python 함수·객체·
+- 기존 MLP 재현 이후 makemore Parts 3~4와 공식 exercises를 유지한다. Python 함수·객체·
   indexing·환경 사용은 실제 막힌 동작만 보강한다.
 
 fast.ai Lesson 1~2 미완료와 MML 미확인 연습은 기존 회고·DEFERRED에 남는다.
@@ -145,7 +156,8 @@ MDP·Bellman, likelihood·분포·행렬 미분에 필요한 notes를 읽는다.
 ISLP Chapter 5·6·8·13 본문·Python lab을 유지한다. 전처리 fit은 train 안에서 하고
 독립 표본·시간·그룹 단위로 split한다. CV로 모델 선택을 하고 test를 반복 보며
 튜닝하지 않는다. baseline·규제·트리/앙상블 비교에서 error slice와 bootstrap의
-재표집 단위·가정·불확실성을 해석한다.
+재표집 단위·가정·불확실성을 해석한다. 신뢰구간·검정·검정력·다중비교의 의미와
+가정도 같은 평가에 연결하고 필요한 MIT 설명으로 보강한다.
 
 Kaggle은 P1만 필수입니다. 실제 열린 tabular 대회 하나의 데이터·지표·기한·라이선스·
 연산량을 읽고 선택한다. 같은 실험에 입력 계약·작은 배포·CI·모니터링을 연결하며
@@ -226,7 +238,7 @@ mixed precision·activation checkpointing·attention kernel·parallelism을 필�
 
 | 작업 | 로컬 필수 검증 | 축소·추가 자원 검증의 경계 |
 |---|---|---|
-| P0 MLP·MIT·P1 CS229/ISLP | 학습자가 CPU/단일 GPU에서 재현·해석; R은 공식 요구대로 | 작은 data 실험으로 PS 요구를 삭제하지 않음; 과제 환경 호환성 확인 후 실행 |
+| P0 MLP·확률 핵심·P1 CS229/ISLP | 학습자가 CPU/단일 GPU에서 재현·해석; 선택한 공식 활동이 요구할 때만 R 사용 | 미선택 MIT 활동은 보류; 작은 data 실험으로 선택된 공식 PS 요구를 삭제하지 않음; 과제 환경 호환성 확인 후 실행 |
 | P2 CS231n Q1~Q3·attention written | gradient·optimizer·norm/dropout 요구와 작은 구성요소 | Q4·Q5·미선택 programming은 미완료 보류 |
 | P3 LM/A1 | 구성요소 correctness·fresh kernel·sampling/resume; 선택한 공식 경로 요구 | 공식 저자원 조정과 임의 축소 구분; 큰 실행은 자원 확인 후 학습자가 수행 |
 | P4 profiling·mixed precision | 들어갈 크기의 forward/backward/step·메모리/FLOPs·수치 오차 비교 | A2 큰 model/context sweep은 미검증; 로컬 성능을 다른 장치로 일반화하지 않음 |
@@ -296,7 +308,7 @@ P2/P3 LM dev/test·target shift·dedup·contamination·metric variance → P4/P5
 
 | Phase | 대표 확인 행동 |
 |---|---|
-| `P0` | 새 표본공간의 개수·확률과 조건부확률 분모 설명; 차원이 바뀐 작은 계산에서 scalar loss까지 shape·VJP와 SGD 한 step 부호 예상; MLP fresh kernel·작은 배치 과적합·label/zero_grad 대표 오류 진단 |
+| `P0` | 모델의 조건부확률·분포와 기댓값·분산, LLN·CLT의 의미·조건 설명; 차원이 바뀐 작은 계산에서 scalar loss까지 shape·VJP와 SGD 한 step 부호 예상; MLP fresh kernel·작은 배치 과적합·label/zero_grad 대표 오류 진단 |
 | `P1` | 회귀/분류·규제 유도/실행; 누수 없는 CV·baseline·error slice·bootstrap 단위 설명; PS1~PS3·지정 lab 증거 |
 | `P2` | feature/class/batch 변경의 train/eval 계약·gradient·norm/dropout 진단; scaled dot-product attention shape·mask 설명/구현 |
 | `P3` | token→target→logits→CE→sampling/resume 설명/실행; target shift·미래 정보 누수 진단; 핵심·축소·공식 A1 경로별 결과 표기 |

@@ -326,10 +326,11 @@ later research depends on demonstrated prerequisites rather than course counts.
 Do not propose reordering a later Phase forward solely to match a school calendar.
 
 Follow the exact selected editions and requirements in `ROADMAP.md`. This
-approved redesign replaces the former full CS231n/CS224N/Karpathy/CS336 sequence;
+approved redesign replaces the former full MIT/CS231n/CS224N/Karpathy/CS336 sequence;
 removed requirements are incomplete holds in `DEFERRED.md`, not accomplishments.
-Do not restore them as hidden gates or infer whole-course completion. Keep the
-current MIT 18.05 Class 1 bookmark. The existing MLP's fresh-kernel data -> train ->
+Do not restore them as hidden gates or infer whole-course completion. Use
+`STATE.md` for the current activity and preserve the observed MIT evidence.
+The existing MLP's fresh-kernel data -> train ->
 eval reproduction is the next practical gate in P0, not a reason to restart study
 or to wait until all probability work ends. User-written train/eval code with
 AI-provided data/model/API support remains assisted and not yet fresh-kernel verified.
@@ -341,10 +342,29 @@ is a provisional example, not an optimal/mandatory schedule. Check actual time
 and independent outcomes during the first 1-2 weeks, then adjust the calendar
 without lowering the goal. Do not carry forward 2,880 hours as a fixed forecast.
 
-P0 retains MIT 18.05 Spring 2022 readings, in-class work, PS1-PS11 and required R;
-MML chapters 2-5 and 7 repair actual gaps. Already demonstrated work does not
-require repeat lectures. Keep makemore Parts 3-4 and official exercises; preserve
-fast.ai Lesson 1-2 and MML incomplete work in the existing reviews.
+P0 retains conditional probability, independence, random variables and distributions,
+expectation and variance, and the meaning and assumptions of LLN/CLT. Connect
+these to the existing MLP's loss, sampling, and evaluation. MIT 18.05 Spring 2022
+is a source for the relevant verified segments. Full MIT course completion is
+not required: all readings, in-class work, online questions, PS1-PS11, and R
+tutorials are no longer blanket requirements. Unselected work remains incomplete
+and deferred; it must not return as a hidden prerequisite.
+
+Across P0-P1, connect likelihood/MLE to model losses using CS229 Summer 2020
+notes, and sampling units, leakage, confidence intervals, testing/power,
+bootstrap, and multiple comparisons to actual evaluation using the selected
+ISLP chapters/labs and relevant MIT explanations. Keep basic likelihood, prior,
+posterior, and MAP distinctions where the selected CS229 work needs them;
+detailed continuous-prior and conjugate-prior calculations are deferred until
+an approved assignment or paper requires them. Repair core prerequisites in
+context before their dependent activity, rather than adding a full probability course.
+
+R is required only when a selected official activity requires it. Python/PyTorch
+model work does not establish official MIT activity completion. MML chapters
+2-5 and 7 repair actual gaps. Already demonstrated work does not require repeat
+lectures. After the existing MLP reproduction, continue makemore Parts 3-4 and
+official exercises without waiting for MIT completion; preserve fast.ai Lesson
+1-2 and MML incomplete work in the existing reviews.
 
 P1 retains CS229 Summer 2020 PS1-PS3 in full, required written and coding work,
 and ISLP chapters 5, 6, 8, 13 with Python labs. NumPy reimplementations cannot

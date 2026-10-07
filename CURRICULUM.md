@@ -71,12 +71,12 @@ registry의 일부인 것처럼 기록하지 않는다.
 | 미분 | gradient, Jacobian, chain rule | scalar loss와 vector 출력의 미분 shape를 구분하고 합성 함수·분기·공유 파라미터의 기울기를 작은 계산 그래프로 계산한다 | [MML][mml] 5장; [Karpathy][karpathy] |
 | 최적화 | convexity, gradient 기반 최적화 | 목적함수와 업데이트를 연결하고 convexity의 의미, 최솟값·유일성·수렴을 보장하는 조건을 구분한다 | [MML][mml] 7장; [CS229][cs229] |
 | 미적분 선수 | 단변수 미분, 정적분 | 변화율과 누적량을 계산하고 확률밀도의 적분이나 다변수 chain rule에서 필요한 연결을 설명한다 | 막힐 때만 [MIT 18.01SC][mit1801] 해당 기초 단원 |
-| 확률 | 조건부확률·독립성, 확률변수·분포 | 사건·확률변수·관측값을 구분하고 조건이 바뀐 확률을 계산한다. 독립성과 배반, 이산 확률과 연속 밀도를 혼동하지 않는다 | [MIT 18.05][mit1805] class materials·PS1~11 |
-| 확률 | 기댓값·분산, LLN·CLT | 기댓값·분산을 계산하고 표본 수가 바뀔 때 평균의 안정화와 분포 근사의 차이·성립 조건을 설명한다 | [MIT 18.05][mit1805] |
-| 통계 | likelihood, MLE·MAP | 데이터와 파라미터 중 무엇을 고정하는지 밝히고 likelihood·prior·posterior를 구분한다. 작은 모델에서 추정 목적을 유도한다 | [MIT 18.05][mit1805]; [CS229][cs229] |
-| 통계 | 신뢰구간, Bayesian inference | 추정값과 불확실성을 구분하고 신뢰수준의 반복 표집 해석과 사후확률 해석의 차이를 설명한다 | [MIT 18.05][mit1805] |
-| 통계 | 가설검정·검정력 | 귀무·대립가설, p-value, 유의수준, 오류와 검정력을 구분하고 표본 수·효과 크기가 결론에 주는 영향을 설명한다 | [MIT 18.05][mit1805] |
-| 통계 | bootstrap·다중비교 | 재표집 단위와 성립 가정을 설명하고 반복 검정의 오류 증가, 보정·검정력의 관계를 해석한다 | [MIT 18.05][mit1805]; [ISLP][islp] 5·13장 본문·lab |
+| 확률 | 조건부확률·독립성, 확률변수·분포 | 사건·확률변수·관측값을 구분하고 조건이 바뀐 확률을 계산한다. 독립성과 배반, 이산 확률과 연속 밀도를 혼동하지 않는다 | P0 기존 MLP의 손실·샘플링·평가; [MIT 18.05][mit1805] 필요한 구간; [CS229][cs229] 확률 복습 |
+| 확률 | 기댓값·분산, LLN·CLT | 기댓값·분산을 계산하고 표본 수가 바뀔 때 평균의 안정화와 분포 근사의 차이·성립 조건을 설명한다 | P0 핵심; 기존 모델의 배치·평가; [MIT 18.05][mit1805] 필요한 구간 |
+| 통계 | likelihood, MLE·MAP | 데이터와 파라미터 중 무엇을 고정하는지 밝히고 likelihood·prior·posterior를 구분한다. 작은 모델에서 MLE와 손실함수의 관계를 유도하고 MAP은 선택한 작업에 필요한 범위로 다룬다 | P0~P1 모델 학습; [CS229][cs229] notes·PS1~PS3; [MIT 18.05][mit1805] 필요한 설명 |
+| 통계 | 신뢰구간, Bayesian inference | 추정값과 불확실성을 구분하고 신뢰수준의 반복 표집 해석과 사후확률 해석의 차이를 설명한다. 연속 사전분포·켤레 사전분포의 상세 계산은 필요할 때 보강한다 | P0~P1 실제 평가; [ISLP][islp] 5장; [MIT 18.05][mit1805] 필요한 설명; 상세 Bayes 계산은 미완료 보류 |
+| 통계 | 가설검정·검정력 | 귀무·대립가설, p-value, 유의수준, 오류와 검정력을 구분하고 표본 수·효과 크기가 결론에 주는 영향을 설명한다 | P0~P1 실제 평가; [ISLP][islp] 13장; [MIT 18.05][mit1805] 필요한 설명 |
+| 통계 | bootstrap·다중비교 | 재표집 단위와 성립 가정을 설명하고 반복 검정의 오류 증가, 보정·검정력의 관계를 해석한다 | P0~P1 실제 평가; [ISLP][islp] 5·13장 본문·lab; [MIT 18.05][mit1805] 필요한 설명 |
 | ML | 모델의 가정·목적함수 | 선형·로지스틱 회귀를 포함한 지정 모델의 입력·출력·가정과 손실을 연결하고 목적함수·기울기를 유도한다 | [CS229 Summer 2020][cs229] notes·PS1~PS3 |
 | ML | 일반화·규제 | train·validation 차이와 bias·variance를 연결하고 표본 수·모델 복잡도·규제 강도를 바꿀 때의 가설을 세운다 | [CS229][cs229]; [ISLP][islp] 6장 |
 | 실험 | 데이터 분할·누수, 교차검증 | 독립 표본 단위를 정하고 시간·그룹 의존성, 전처리 fit, 모델 선택과 test 사용의 경계를 설명한다 | [ISLP][islp] 5장; [Made With ML][mwml]; P1 프로젝트에 적용 |
@@ -93,9 +93,14 @@ registry의 일부인 것처럼 기록하지 않는다.
 | 시스템 | 분산 통신 | 데이터 분할·gradient 동기화·collective 흐름을 설명하고 연산/통신량·동기화가 scaling에 주는 영향을 측정한다 | [CS336][cs336] A2 개념·로컬 기능 연습; GPU scaling은 실제 다중 장치 실행 전까지 미검증 |
 | 추론 | prefill/decode·KV cache·batching | 두 단계의 작업량을 구분하고 cache shape·증가량·정확성 조건, 배칭의 메모리·대기시간 영향을 설명한다 | [CS336][cs336] 2026 Lecture 10; P4 별도 inference·운영 workload, P5 한 연구 질문 |
 | 추론 실험 | latency·throughput·품질 trade-off | 독립변수 외 조건을 고정하고 cache logits 허용 오차·quantization 품질 범위를 확인한다. 요청 도착·concurrency·queueing·TTFT·ITL·tail·오류/OOM·관측성을 해석한다 | [CS336][cs336] A2 측정 기초·Lecture 10; 별도 P4 harness·P5 통제 연구 |
-| 평가 | 표본 단위·누수·불확실성·오류 분석 | 반복 시도와 독립 질문 수를 구분하고 bootstrap 단위·held-out 평가·dedup/contamination·metric variance·실패 사례를 설명한다 | P0~P5 공통 핵심; [MIT 18.05][mit1805]·[ISLP][islp]·선택 LM 실험 |
+| 평가 | 표본 단위·누수·불확실성·오류 분석 | 반복 시도와 독립 질문 수를 구분하고 bootstrap 단위·held-out 평가·dedup/contamination·metric variance·실패 사례를 설명한다 | P0~P5 공통 핵심; [ISLP][islp]·선택 LM 실험·[MIT 18.05][mit1805] 필요한 설명 |
 | Post-training | base/instruct·chat template·label masking·SFT/LoRA | Transformer 이후 작은 비교에서 loss와 held-out 품질·다른 능력 퇴행을 구분한다. DPO/RLVR는 별도 선수 후 연구 질문 하나로 제한한다 | P3 제한 노출; 선택한 P4 Eval / Post-training; [smol-course](https://huggingface.co/learn/smol-course/en/unit0/1) |
 | 재현 | 환경·수치·통계적 재현 | seed만으로 완전 재현을 주장하지 않고 새 환경 실행, 사전 수치 허용 오차, 여러 seed/표본의 결과 변동을 구분한다 | [PyTorch reproducibility](https://docs.pytorch.org/docs/2.14/notes/randomness.html); 기존 MLP·P3~P5 |
+
+확률·통계 행은 모델 학습·평가에 필요한 역량이다. MIT 18.05 전체 reading·in-class·
+온라인 문제·PS1~PS11·R 튜토리얼은 필수 조건이 아니며, 미선택 활동은 DEFERRED에
+미완료 보류한다. 선택한 공식 활동이 요구할 때만 R을 사용한다. Python/PyTorch
+모델 실습을 MIT 공식 과제 완료로 기록하지 않는다.
 
 [mml]: https://mml-book.github.io/
 [mit1801]: https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/

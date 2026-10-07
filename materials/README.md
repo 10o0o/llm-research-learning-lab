@@ -12,6 +12,22 @@ materials/private/kant-advanced-machine-learning/  # Notion 머신러닝 심화 
 materials/private/kant-deep-learning-basics/  # 등록된 딥러닝 기초 자료; 정확한 목록은 로컬 INDEX.md 기준
 ```
 
+KANT live labs 자료는 날짜별로 `materials/private/kant-live-labs/`에 보관합니다.
+폴더의 로컬 `INDEX.md`에서 원본 슬라이드와 읽기용 변환본을 연결합니다.
+강의에서 프로젝트를 실제 제공한 뒤에는 원본을 `course-provided-practice/`에
+보관합니다.
+
+```text
+materials/private/kant-live-labs/
+├── INDEX.md
+├── YYYY-MM-DD/  # 원본 슬라이드와 읽기용 변환본
+│   └── assets/  # 변환본에서 참조하는 삽입 이미지
+└── course-provided-practice/  # 강의에서 제공한 프로젝트 원본
+```
+
+개인 작업 사본과 실행 결과는 `practice/private/kant-live-labs/`에 두어 제공 원본과
+구분합니다. 이 경로들은 비공개 자료 보관용입니다.
+
 각 과정 폴더의 장기 보관 형식은 읽기 쉬운 Markdown입니다. Notion의 접힌 내용은 모두 펼쳐 본문에 포함하고, 필요한 그림은 가까운 `assets/` 아래에 둡니다. PDF에서 변환한 자료는 검색 가능한 텍스트와 페이지별 무손실 렌더링을 함께 보존해 수식·도표·코드 배치를 다시 확인할 수 있게 합니다. 파일 목록과 원본 링크는 같은 폴더의 로컬 `INDEX.md`에 있습니다.
 
 강의에서 제공한 실습은 다음처럼 강의 본문과 분리합니다.

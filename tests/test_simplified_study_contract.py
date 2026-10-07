@@ -191,7 +191,7 @@ def test_budget_is_an_excluded_activity_intent_not_a_fixed_calendar() -> None:
 
 def test_approved_course_scope_and_phase_boundary_are_explicit() -> None:
     roadmap = _normalized("ROADMAP.md")
-    for scope in ("MIT 18.05 Spring 2022", "PS1~PS11", "R 요구까지 모두 수행",
+    for scope in ("MIT 18.05 Spring 2022", "MIT 전체 이수는 필수 조건이 아니다",
                   "CS229 Summer 2020", "PS1, PS2, PS3의 필수 written과 coding을 모두 수행",
                   "PS3 Q1 RL와 Q6 ICA는 기존 필수 범위로 유지",
                   "공식 문제를 임의 NumPy 연습으로 대체하지 않습니다",
@@ -202,6 +202,15 @@ def test_approved_course_scope_and_phase_boundary_are_explicit() -> None:
     agents = _normalized("AGENTS.md")
     assert "NumPy reimplementations cannot replace official problem sets" in agents
     assert "PS3 Q1 RL and Q6 ICA stay required" in agents
+    assert "Full MIT course completion is not required" in agents
+    for path in ("AGENTS.md", "ROADMAP.md", "CURRICULUM.md", "DEFERRED.md",
+                 "practice/README.md", "STATE.md"):
+        document = _normalized(path)
+        for stale_requirement in (
+            "P0 retains MIT 18.05 Spring 2022 readings, in-class work, PS1-PS11 and required R",
+            "R 요구까지 모두 수행", "MIT 이후 makemore", "현재 MIT Class 1 북마크 유지",
+        ):
+            assert stale_requirement not in document, path
 
 
 def test_blank_page_implementation_is_a_standing_track() -> None:
@@ -222,13 +231,21 @@ def test_blank_page_implementation_is_a_standing_track() -> None:
     assert "is not recorded as passed" in agents
 
 
-def test_foundation_repair_preserves_math_scope_and_r_requirements() -> None:
+def test_foundation_repair_preserves_math_and_selected_r_requirements() -> None:
     p0 = _normalized("ROADMAP.md").split("## P0 —", 1)[1].split("## P1 —", 1)[0]
     for scope in ("Chapter 2~5, 7", "공식 연습문제", "무보조 설명·계산",
-                  "MIT 18.01SC Fall 2010", "PS1~PS11", "Lesson 1~2"):
+                  "MIT 18.01SC Fall 2010", "조건부확률·독립성", "확률변수·분포",
+                  "기댓값·분산", "LLN·CLT", "likelihood·MLE", "신뢰구간", "검정력",
+                  "bootstrap·다중비교", "Lesson 1~2"):
         assert scope in p0
     assert "이미 설명·계산한 내용을 반복 수강하지 않습니다" in p0
-    assert "R이 필요한 과제는 R로 수행하며 Python 대체로 완료 처리하지 않습니다" in p0
+    assert "선택한 공식 활동이 R을 요구할 때만 R로 수행하며 Python 대체로 완료 처리하지 않습니다" in p0
+    assert "모델 연결 실습은 Python/PyTorch로 진행하고 MIT 공식 과제 완료와 구분한다" in p0
+    assert "기존 MLP 재현 이후 makemore Parts 3~4와 공식 exercises를 유지한다" in p0
+    deferred = _normalized("DEFERRED.md")
+    mit_hold = deferred.split("### MIT 18.05", 1)[1].split("### CS224N", 1)[0]
+    for boundary in ("미완료 보류", "복귀 조건", "별도 승인", "연속 사전분포·켤레 사전분포"):
+        assert boundary in mit_hold
     assert "별도 수학 과정 전체를 추가하지 않습니다" in p0
     assert "Stat110과 OpenIntro는 다른 설명이 필요할 때만" in p0
 

@@ -1,5 +1,7 @@
 # Local course material in this public repository
 materials/private/
+# Personal copies and results for private live-lab work
+/practice/private/
 
 # Generated R session files
 **/.Rproj.user/

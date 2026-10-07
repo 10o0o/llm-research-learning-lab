@@ -72,6 +72,12 @@ Notebook, Python script, benchmark, 작은 dataset experiment 중 목적에 가�
 단순한 형태를 선택합니다. 재사용 가능한 여러 모듈과 테스트 구조 자체가
 학습 목표일 때만 다중 파일 프로젝트를 만듭니다.
 
+KANT live labs에서 제공된 프로젝트의 개인 작업 사본과 결과는
+`practice/private/kant-live-labs/<프로젝트>/`에 보관해 제공 원본인
+`materials/private/kant-live-labs/course-provided-practice/`와 구분합니다.
+이 사본과 결과는 공개 Git에서 제외되며, 필요한 파일은 별도로 백업합니다.
+제공 프로젝트의 환경 설정과 요구사항을 확인한 뒤 별도 `uv` 환경을 준비합니다.
+
 ## 기본 원칙
 
 - 일반 학습에서는 새 연습을 임의로 만들지 않습니다. 현재 승인된 실습에
@@ -144,7 +150,12 @@ Notebook을 확인할 때는 파일을 통째로 읽지 않고 `scripts/nbpeek.p
 ## 과목별 도움 범위
 
 선택 범위는 [`ROADMAP.md`](../ROADMAP.md), 미완료 보류와 복귀 조건은
-[`DEFERRED.md`](../DEFERRED.md)를 따릅니다. MIT 18.05 Spring 2022 PS1~PS11·R과
+[`DEFERRED.md`](../DEFERRED.md)를 따릅니다. MIT 18.05 Spring 2022 전체
+reading·in-class·온라인 문제·PS1~PS11·R 튜토리얼은 필수 조건에서 제외하며
+미선택 활동은 미완료 보류합니다. 확률·통계 핵심은 기존 MLP와 CS229·ISLP의
+모델 학습·평가에 연결합니다. 선택한 공식 활동이 요구할 때만 R을 사용하고
+Python/PyTorch 모델 실습을 MIT 공식 과제 완료로 기록하지 않습니다.
+
 CS229 Summer 2020 PS1~PS3 필수 written·coding을 유지합니다. PS3의 RL·ICA도
 필수이며 그 밖의 추가 심화 보류와 구분합니다. 보조 재구현은 공식 PS를 대신하지 않습니다.
 
