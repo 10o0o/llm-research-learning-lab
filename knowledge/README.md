@@ -103,6 +103,19 @@ MLP에서 다시 연결한 초기화·수동 SGD는
 | [학습 반복과 autograd](./deep-learning/multiclass-training-loop.md) | 같은 행 번호로 배치 추출, gradient 초기화, 학습 후 평가 |
 | [모델 비교 실험](./ml/controlled-model-comparison.md) | 조건 통제, 추가 학습의 혼동, 작은 개선의 해석 |
 
+## Makemore Part 3에서 연결한 개념
+
+[챕터 회고](../practice/deep-learning/makemore-part3.md)에 제공 코드·학습자 구현,
+실제 저장 출력·대화 해석과 튜터 도움을 구분했다. 공식 연습 구현과 저장 출력은
+비공개 영역에 보존했다.
+
+- [초기화 크기와 tanh 포화](./deep-learning/initialization-and-tanh-saturation.md):
+  학습자의 기억 기반 초안을 교정한 범위다. 작은 값과 포화의 원인 구분 및
+  출력층 초기화의 목적은 보충했으며, 여러 환경의 재현이나 지연 회상 통과를 뜻하지 않는다.
+- [계산 그래프와 역전파](./deep-learning/computational-graph-autograd.md)와
+  [MLP와 경사하강](./deep-learning/mlp-and-gradient-descent.md)은 기존 참고 노트다.
+  파일 존재를 이번 챕터의 독립 설명 증거로 바꾸지 않는다.
+
 ## fast.ai Lesson 1에서 연결한 개념
 
 [이미지 실습 회고](../practice/deep-learning/fastai-lesson1-images.md)와

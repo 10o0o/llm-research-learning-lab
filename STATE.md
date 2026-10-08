@@ -5,15 +5,15 @@
 
 - Pilot 시작일: 2026-09-02
 - 현재 ROADMAP Phase: P0
-- 현재 주강의: Karpathy makemore Part 3 — 공식 E02의 평가용 BatchNorm 합치기
-- 사용 판본: Part 3 공식 영상·설명란과 저자 노트북; 시작 자료는 Part 2 기본 MLP의 기존 보관본; MIT 18.05 Spring 2022는 필요한 확률·통계 구간의 설명 참고
-- 현재 범위: P0 기존 MLP 재현과 공식 E01의 확인 근거를 보존하고 makemore Part 3의 초기화·활성값·BatchNorm과 공식 E02를 진행한다. 손실·샘플링·평가에 연결하는 확률 핵심을 유지하며 P0~P1의 likelihood·MLE·평가 통계는 승인된 CS229·ISLP에 연결한다. 미선택 MIT 활동과 MML의 남은 공백은 DEFERRED·기존 회고에 보존한다
-- 현재 강의: E01의 학습·평가와 첫 backward 출력 읽기, 저자 진단 코드 사본의 활성값·gradient·갱신량 그래프와 학습·검증 손실 출력을 확인했다. 부분 학습의 원인과 진단 지표의 작동 원리·해석은 튜터 설명 도움 범위이며 독립 해석은 미확인이다. 공식 설명란에서 E02의 작은 MLP 학습·BatchNorm 합치기·평가 forward 일치 검증 요구를 확인했다. E02 저장 사본에 학습자 구현과 실행 출력은 아직 없다. 저자 코드의 실행을 독립 구현이나 영상 시청·Part 3 전체 완료로 확대하지 않는다
-- 공식 자료: [Karpathy Zero to Hero](https://karpathy.ai/zero-to-hero.html) · [makemore Part 3: Activations & Gradients, BatchNorm](https://www.youtube.com/watch?v=P6sfmUTpUmc) · [저자 노트북](https://github.com/karpathy/nn-zero-to-hero/blob/master/lectures/makemore/makemore_part3_bn.ipynb) · [MIT 18.05 Spring 2022 Class 자료](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)
-- 다음 공식 구간: 공식 E02에서 BatchNorm을 포함한 3층 MLP를 학습하고 평가 통계를 고정한 뒤, 바로 앞 Linear의 새 가중치·bias로 BatchNorm을 합쳐 제거한다. 동일 입력에 대한 원본·변환 후 logits를 비교해 평가 forward 일치를 검증한다. 실제 학습 조건과 수치 허용오차를 원문의 미지정 사항 및 로컬 점검 기준과 구분한다
+- 현재 주강의: Karpathy makemore Part 4 — 공식 스타터와 Exercise 1 준비
+- 사용 판본: Part 4 공식 영상·설명란과 공식 Colab 연습 스타터; Part 3의 제공 코드·학습자 산출물은 보관; MIT 18.05 Spring 2022는 필요한 확률·통계 구간의 설명 참고
+- 현재 범위: P0의 기존 MLP 재현과 makemore Part 3 근거를 보존하고, 승인된 Part 4의 수동 역전파와 공식 연습으로 이어간다. 손실·샘플링·평가에 연결하는 확률 핵심을 유지하며 P0~P1의 likelihood·MLE·평가 통계는 승인된 CS229·ISLP에 연결한다. 미선택 MIT 활동과 MML의 남은 공백은 DEFERRED·기존 회고에 보존한다
+- 현재 강의: Part 3 공식 E01·E02의 실행·해석과 제공 코드·수식·호출 흐름·API 도움을 회고에 구분해 보존했다. E01의 갱신 범위와 문맥 학습 제한을 학습자가 답했으며 구체적 기울기 경로는 튜터가 보충했다. 초기화 크기·tanh 포화·신호 전달의 기억 기반 초안을 확인하고 조건과 예시를 보충했다. BatchNorm 통계와 전체 진단 흐름의 독립 설명, 새 커널 전체 재현과 지연 전이는 미확인으로 유지한다. Part 4는 공식 미완성 스타터를 준비했으며 제공 forward와 자동미분 비교 기준의 학습자 실행은 대기 중이다. 챕터 전환을 영상 시청·무보조 숙달·P0 종료로 판정하지 않는다
+- 공식 자료: [Karpathy Zero to Hero](https://karpathy.ai/zero-to-hero.html) · [makemore Part 4: Becoming a Backprop Ninja](https://www.youtube.com/watch?v=q8SA3rM6ckI) · [공식 Colab 연습 스타터](https://colab.research.google.com/drive/1WV2oi2fh9XXyldh02wupFQX0wh5ZC-z-?usp=sharing) · [Part 3 회고](practice/deep-learning/makemore-part3.md) · [MIT 18.05 Spring 2022 Class 자료](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)
+- 다음 공식 구간: Part 4 공식 스타터의 데이터·모델·분해된 forward와 자동미분 비교 기준을 먼저 실행한다. 이어 Exercise 1에서 제공 계산 그래프의 기울기를 역순으로 직접 구현하고 공식 비교 함수로 대조한다. 이후 공식 Exercises 2~4의 손실·BatchNorm 단순화와 수동 backward 학습으로 이어간다. 튜터는 학습자 답안을 대신 작성하지 않는다
 - 연결 실습: 기존 MLP의 데이터 → 모델 → 학습 → 평가를 새 커널에서 재현; CUDA 실행 흐름과 학습 전후 평가의 저장 이력·해석을 확인했다. 문맥 전이는 교정과 설명 도움을 받은 범위다. 이전 실행의 새 커널 시작 여부는 미확인으로 유지한다. 작은 고정 배치의 학습·평가·예측 대조와 튜터 설명 후 학습자의 점검 목적 설명까지 확인해 이번 연결 모듈을 마쳤다
 - 연결 자료: [MLP 재구현 회고](practice/deep-learning/makemore-mlp-training-recall.md) · [기존 보관본](practice/deep-learning/makemore-mlp-training-recall.ipynb) · [PyTorch CUDA 사용 가능 여부](https://docs.pytorch.org/docs/2.14/generated/torch.cuda.is_available.html)
-- 학습 공간: E01과 저자 진단 사본의 저장 결과를 보존한다. E02 시작 사본에는 기존 데이터·제공 층·원래 모델과 학습·평가 코드를 변경 없이 복사하고 출력·실행 횟수를 비웠다. 시작 모델은 원문의 6개 Linear 구성이며 학습자가 3개로 변경한다. 합치기·검증 구현 공간은 비워 두었다. 커널·노트북 형식·셀 문법만 확인했으며 E02 실행은 학습자 대기 상태다. 시작 자료와 관찰 도구의 튜터 도움을 독립 구현으로 보지 않는다. 공식 원본과 main.ipynb·CUDA 사본·작은 고정 배치 사본·보관본·recall.ipynb·MIT Class 2·R 자료를 보존한다
+- 학습 공간: Part 3 노트북과 저장 출력을 바이트 그대로 비공개 보관하고, 개념 초안·문서 검증 후 해당 작업 사본을 빈 코드 셀로 초기화했다. Part 4 작업 사본은 공식 스타터의 모든 셀과 미완성 구현 영역을 유지하고 출력·실행 횟수를 비웠다. 작업 폴더 설정과 기존 학습 커널을 연결하고 데이터·노트북 형식·셀 문법을 확인했다. 시작 자료는 튜터 준비이며 학습자 실행·독립 구현 근거로 보지 않는다. 공식 원본과 앞선 main.ipynb·CUDA 사본·작은 고정 배치 사본·보관본·recall.ipynb·MIT Class 2·R 자료를 보존한다
 - 학습 방식: 튜터의 공식 원문 확인 → 한국어 개념 설명 → 학습자 첫 시도·실행 → 실제 답·코드·출력 피드백 → 가설 검증 → 대표 지연 회상·전이. 학습자는 MIT 본문을 직접 읽지 않고 튜터에게 설명을 제공받는 방식을 요청했다. 원문 직접 읽기를 재개 조건으로 요구하지 않는다. 공식 API를 본 실무 구현과 무보조 회상을 구분하며, 원문 기반 대화·온라인 문제 정답 판정 보고·직접 읽기의 증거를 구분한다.
 
 ## 관찰된 근거와 남은 범위
@@ -42,4 +42,4 @@ MIT Class 2·R의 확인 근거와 미완료 보류를 유지한다. [R Tutorial
 
 ## 다음 독립 행동
 
-학습자는 준비된 E02 시작 사본에서 3층 MLP 구성·학습, 평가용 BatchNorm 합치기, 동일 입력의 logits 비교를 직접 구현하고 실행·저장한다. 튜터는 실제 코드와 출력 및 첫 해석을 확인해 피드백한다. 이미 확인한 진단 실행이나 설명받은 관찰의 즉시 재진술을 요구하지 않으며 독립 진단 해석의 미확인 상태를 유지한다.
+학습자는 준비된 Part 4 공식 스타터 작업 사본을 학습용 새 커널에서 열고, 처음부터 분해된 forward와 자동미분 비교 기준 셀까지 순서대로 실행·저장한다. 아직 Exercise 1의 빈 구현 영역은 채우지 않는다. 튜터는 저장된 출력과 실행 오류를 확인한 뒤 공식 Exercise 1의 첫 역전파 연산으로 안내한다.

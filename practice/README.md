@@ -4,6 +4,10 @@
 
 ## 보관한 실습
 
+- [makemore Part 3 회고](./deep-learning/makemore-part3.md): 초기화 비교·첫 backward
+  관찰·저자 진단 사본·평가용 변환의 실행과 도움을 구분했다. 공식 구현과 출력이
+  포함된 노트북 네 개는 비공개 영역에 바이트 그대로 보관했다.
+
 - [MML 7장 회고](./math/mml-ch07-continuous-optimization.md): 최적화의 직접 설명과 튜터 유도, 공식 연습의 수행·보류를 구분했다. 빈 노트북은 그대로 유지했다.
 
 - [MML 5장 회고](./math/mml-ch05-vector-calculus.md): 편미분·야코비안·자동미분·Hessian·Taylor 설명과 선택 공식 연습의 도움·미수행을 구분했다. 빈 작업 노트북은 새 보관본을 만들지 않았다.
