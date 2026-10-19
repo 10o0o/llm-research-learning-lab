@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import re
 import tomllib
 from pathlib import Path
@@ -22,51 +23,21 @@ def _markdown_cells(line: str) -> list[str]:
     return [cell.strip() for cell in stripped[1:-1].split("|")]
 
 
-def _hours(cell: str) -> int:
-    match = re.fullmatch(r"\*{0,2}(\d[\d,]*)h\*{0,2}", cell.strip())
-    assert match is not None, f"Expected an hour cell, got {cell!r}"
-    return int(match.group(1).replace(",", ""))
+def _contract() -> str:
+    # Inspect both explicitly required resources; root safety/loading has its own test.
+    return _normalized("AGENTS.md") + " " + _normalized(".agents/references/learning-policies.md")
 
 
-def _budget_table() -> tuple[list[str], dict[str, int], int]:
-    lines = _raw("ROADMAP.md").splitlines()
-    header_index = next(index for index, line in enumerate(lines)
-                        if line.startswith("| 개인 학습 활동 |"))
-    headers = _markdown_cells(lines[header_index])
-    activities: dict[str, int] = {}
-    total: int | None = None
-    for line in lines[header_index + 2:]:
-        if not line.startswith("|"):
-            break
-        cells = _markdown_cells(line)
-        assert len(cells) == len(headers), f"Malformed budget row: {line}"
-        hours = _hours(cells[1])
-        if cells[0] == "합계":
-            assert total is None
-            total = hours
-        else:
-            assert cells[0] not in activities
-            activities[cells[0]] = hours
-    assert total is not None
-    return headers, activities, total
+def _unit(unit: str) -> str:
+    return re.split(r"^## ", _raw("ROADMAP.md").split(f"## {unit} —", 1)[1], maxsplit=1, flags=re.M)[0]
 
 
 def test_plain_study_phrases_use_state() -> None:
-    agents = _normalized("AGENTS.md")
-    for phrase in (
-        "`오늘 학습 시작`",
-        "`오늘 전체 학습 흐름 시작`",
-        "`전체 학습 흐름 시작`",
-        "`계속`",
-        "`오늘 학습 종료`",
-        "`이번 주 회상`",
-        "$study-session",
-    ):
+    agents = _contract()
+    for phrase in ("오늘 학습 시작", "오늘 전체 학습 흐름 시작", "전체 학습 흐름 시작", "계속", "오늘 학습 종료", "이번 주 회상", "$study-session"):
         assert phrase in agents
-    assert "resume the next independent action in `STATE.md`" in agents
-    assert "never choose another course or skip a formal requirement" in agents
-    assert "Do not begin with a new readiness diagnostic or roadmap review" in agents
-    assert "Never invent source content, timestamps, or learner viewing progress" in agents
+    for rule in ("resume the next independent action in `STATE.md`", "Do not begin with a new readiness diagnostic or roadmap review", "Never invent source content, timestamps, or learner viewing progress"):
+        assert rule in agents
 
 
 def test_study_route_does_not_restore_fixed_entry_gates() -> None:
@@ -76,7 +47,7 @@ def test_study_route_does_not_restore_fixed_entry_gates() -> None:
                          "Before proposing Assignment 1 entry, run", "최대 두 번",
                          "현재 첫 행동은", "Pilot의 주축은"):
             assert obsolete not in content
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     assert "Do not impose a second full tokenizer/Transformer implementation as an entry test" in agents
     assert "Entry does not cancel unfinished work" in agents
 
@@ -94,7 +65,7 @@ def test_study_entrypoints_do_not_end_at_one_module() -> None:
 
 
 def test_tutoring_contract_teaches_before_requesting_an_attempt() -> None:
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     skill = _normalized(".agents/skills/study-session/SKILL.md")
     assert "Do not require direct textbook reading before starting or resuming" in agents
     assert "givens, conditions, and required output in the conversation" in agents
@@ -109,7 +80,7 @@ def test_tutoring_contract_teaches_before_requesting_an_attempt() -> None:
 
 
 def test_tutoring_contract_distinguishes_support_progress_and_mastery() -> None:
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     skill = _normalized(".agents/skills/study-session/SKILL.md")
     assert "unrelated inputs and a separate toy task" in agents
     assert "Explain the relevant parameters and their values; generic API signatures and calls are allowed" in agents
@@ -126,231 +97,149 @@ def test_tutoring_contract_distinguishes_support_progress_and_mastery() -> None:
     assert "teach any genuine prerequisite before its dependent activity" in skill
 
 
-def test_official_practice_is_preserved_across_teaching_media() -> None:
-    agents = _normalized("AGENTS.md")
-    for rule in ("Use official course implementations, exercises, and assignments as primary practice",
-                 "inspect actual requirements before assigning them", "KANT is supporting context",
-                 "supplementary examples and completed instructor notebooks do not replace official practice",
-                 "limits as incomplete", "Preserve Optional/Bonus labels",
-                 "do not describe dialogue as video viewing or local checks as official university grading"):
-        assert rule in agents
+def test_selected_official_practice_keeps_requirements_without_becoming_an_ax_gate() -> None:
+    contract = _contract()
+    for rule in ("inspect actual requirements before assigning them", "KANT is supporting context", "limits as incomplete", "Preserve Optional/Bonus labels", "do not describe dialogue as video viewing or local checks as official university grading"):
+        assert rule in contract
     for path in ("practice/README.md", "ROADMAP.md"):
-        content = _normalized(path)
-        for rule in ("KANT는 진도·주제 대조용", "기본 실습이나 완료 기준으로 사용하지 않습니다",
-                     "영상·문서·공식 자료 기반 대화", "Optional·Bonus", "미완료"):
-            assert rule in content, (path, rule)
-    assert "독립 품질" in _normalized("ROADMAP.md")
-    assert "공식 필수 과제 완료를 대신하지 않는다" in _normalized("ROADMAP.md")
+        text = _normalized(path)
+        for boundary in ("Optional·Bonus", "미완료", "공식", "KANT"):
+            assert boundary in text, (path, boundary)
+    assert "공식 과제를 선택하면" in _raw("ROADMAP.md")
 
 
-def test_selected_cs224n_scope_keeps_edition_and_ai_policy() -> None:
-    agents = _normalized("AGENTS.md")
-    for rule in ("CS224N is Spring 2024, archive 1246", "A3 Q1(i) and A4 Q1-Q2 written",
-                 "Never mix Winter 2024 archive 1244",
-                 "AI collaboration is allowed but direct answer solicitation, copying answers, and substantial completion by AI are prohibited"):
+def test_reselected_cs224n_keeps_edition_and_ai_policy() -> None:
+    agents = _contract()
+    for rule in ("CS224N is Spring 2024, archive 1246", "A3 Q1(i) and A4 Q1-Q2 written", "Never mix Winter 2024 archive 1244", "AI collaboration is allowed but direct answer solicitation, copying answers, and substantial completion by AI are prohibited"):
         assert rule in agents
-    for path in ("practice/README.md", "ROADMAP.md", "DEFERRED.md"):
-        content = _normalized(path)
-        assert "1246" in content and "Q1(i)" in content
-        assert "written" in content and "programming" in content
-        assert "보류" in content and "Final Project" in content
+    deferred = _raw("DEFERRED.md")
+    assert all(term in deferred for term in ("1246", "Q1(i)", "written", "programming", "Final Project", "보류"))
 
 
-def test_foundations_first_route_is_pinned() -> None:
-    roadmap = _normalized("ROADMAP.md")
-    headings = [roadmap.index(f"## P{index} ") for index in range(6)]
-    assert headings == sorted(headings)
-    for phase in ("`P0`", "`P1`", "`P2`", "`P3`", "`P4`", "`P5`"):
-        assert phase in roadmap
-    assert "개인 LLM Research Engineer" in roadmap
-    assert "잠정 **Systems / Inference**" in roadmap
-    assert "평가를 P5까지 미루지 않는다" in roadmap
-    assert "강의 수강 자체는" in roadmap
-    agents = _normalized("AGENTS.md")
-    assert "Foundations are not optional here" in agents
-    assert "Do not propose reordering a later Phase forward" in agents
-
-
-def test_personal_budget_example_has_no_hidden_activity_hours() -> None:
-    headers, activities, total = _budget_table()
-    assert headers == ["개인 학습 활동", "예시"]
-    assert activities == {"공식 읽기·수학·통계": 18, "학습자 구현·디버깅": 27,
-                          "실험·평가·해석": 9, "지연 회상·전이·정리": 6}
-    assert sum(activities.values()) == total == 60
-
-
-def test_budget_is_an_excluded_activity_intent_not_a_fixed_calendar() -> None:
-    roadmap = _normalized("ROADMAP.md")
-    for rule in ("개인 학습 주 60시간 이상", "KANT 수업 주 40시간",
-                 "알고리즘 약 2시간/일, 취업 준비는 제외", "초기 배분 가설",
-                 "첫 1~2주", "확정 기본값으로 계승하지 않는다"):
-        assert rule in roadmap
-    assert not re.search(r"^\| `P[0-5]` \| \d+~\d+ \|", _raw("ROADMAP.md"), re.MULTILINE)
-    assert "Use 52 calendar weeks with 48 effective study weeks" not in _normalized("AGENTS.md")
-
-
-def test_approved_course_scope_and_phase_boundary_are_explicit() -> None:
-    roadmap = _normalized("ROADMAP.md")
-    for scope in ("MIT 18.05 Spring 2022", "MIT 전체 이수는 필수 조건이 아니다",
-                  "CS229 Summer 2020", "PS1, PS2, PS3의 필수 written과 coding을 모두 수행",
-                  "PS3 Q1 RL와 Q6 ICA는 기존 필수 범위로 유지",
-                  "공식 문제를 임의 NumPy 연습으로 대체하지 않습니다",
-                  "CS231n Spring 2024 Lecture 2~6", "A2 Q1~Q3",
-                  "CS224N Spring 2024", "Q1(i)", "Q1 Attention Exploration",
-                  "Q2 Position Embeddings Exploration", "GPT bridge"):
-        assert scope in roadmap
-    agents = _normalized("AGENTS.md")
-    assert "NumPy reimplementations cannot replace official problem sets" in agents
-    assert "PS3 Q1 RL and Q6 ICA stay required" in agents
-    assert "Full MIT course completion is not required" in agents
-    for path in ("AGENTS.md", "ROADMAP.md", "CURRICULUM.md", "DEFERRED.md",
-                 "practice/README.md", "STATE.md"):
-        document = _normalized(path)
-        for stale_requirement in (
-            "P0 retains MIT 18.05 Spring 2022 readings, in-class work, PS1-PS11 and required R",
-            "R 요구까지 모두 수행", "MIT 이후 makemore", "현재 MIT Class 1 북마크 유지",
-        ):
-            assert stale_requirement not in document, path
-
-
-def test_blank_page_implementation_is_a_standing_track() -> None:
-    """Official exercises follow a lecture; writing from nothing is a separate skill."""
-    roadmap = _normalized("ROADMAP.md")
-    assert "대표 무보조 재구현" in roadmap
-    assert "공식 과제 수행과 무보조 재구현은 서로 다른 근거" in roadmap
-    assert "전체 과제를 다시 쓰는 의무를 추가하지 않고" in roadmap
-    assert "도움받은 구현을 무보조 성공으로 기록하지 않습니다" in roadmap
-    assert "PCA, k-means" in roadmap
-    assert "PCA 또는 k-means" not in roadmap
-    assert _normalized("challenges/deep-ml/README.md").count("빈 파일 구현 트랙") == 1
-    agents = _normalized("AGENTS.md")
-    assert "Code is rebuilt from an empty file" in agents
-    assert "at representative implementation units" in agents
-    assert "Do not require rewriting every module's full implementation or entire assignments" in agents
-    assert "not even an import list or a function signature" in agents
-    assert "is not recorded as passed" in agents
-
-
-def test_foundation_repair_preserves_math_and_selected_r_requirements() -> None:
-    p0 = _normalized("ROADMAP.md").split("## P0 —", 1)[1].split("## P1 —", 1)[0]
-    for scope in ("Chapter 2~5, 7", "공식 연습문제", "무보조 설명·계산",
-                  "MIT 18.01SC Fall 2010", "조건부확률·독립성", "확률변수·분포",
-                  "기댓값·분산", "LLN·CLT", "likelihood·MLE", "신뢰구간", "검정력",
-                  "bootstrap·다중비교", "Lesson 1~2"):
-        assert scope in p0
-    assert "이미 설명·계산한 내용을 반복 수강하지 않습니다" in p0
-    assert "선택한 공식 활동이 R을 요구할 때만 R로 수행하며 Python 대체로 완료 처리하지 않습니다" in p0
-    assert "모델 연결 실습은 Python/PyTorch로 진행하고 MIT 공식 과제 완료와 구분한다" in p0
-    assert "기존 MLP 재현 이후 makemore Parts 3~4와 공식 exercises를 유지한다" in p0
-    deferred = _normalized("DEFERRED.md")
-    mit_hold = deferred.split("### MIT 18.05", 1)[1].split("### CS224N", 1)[0]
-    for boundary in ("미완료 보류", "복귀 조건", "별도 승인", "연속 사전분포·켤레 사전분포"):
-        assert boundary in mit_hold
-    assert "별도 수학 과정 전체를 추가하지 않습니다" in p0
-    assert "Stat110과 OpenIntro는 다른 설명이 필요할 때만" in p0
-
-
-def test_lm_training_systems_and_inference_have_distinct_scope() -> None:
-    roadmap = _normalized("ROADMAP.md")
-    p3 = roadmap.split("## P3 —", 1)[1].split("## P4 —", 1)[0]
-    for scope in ("Assignment 1 Basics", "v26.0.3",
-                  "a158843b20107949f1a8d7df1b05cd33b9166712", "교육용 핵심 구현",
-                  "임의 축소 실험", "공식 A1 수행", "CPU/MPS", "TinyStories"):
-        assert scope in p3
-    p4 = roadmap.split("## P4 —", 1)[1].split("## P5 —", 1)[0]
-    for scope in ("v26.1.3", "ca8bc81a59b70516f7ebb2da4808daade877c736",
-                  "학습 성능·분산 학습 과제", "B200", "2/4/6 GPU", "OPTIONAL",
-                  "prefill", "decode", "TTFT", "ITL", "queueing", "EOS"):
-        assert scope in p4
-    assert "공식 전체 A2는 현재 필수 관문이 아니다" in p4
-    p5 = roadmap.split("## P5 —", 1)[1].split("## 평가와 대표 관문", 1)[0]
-    assert "프로젝트와 논문 재현을 따로 만들지 않습니다" in p5
-    for item in ("baseline", "통제 조건", "ablation", "실패 사례", "claim limits", "최대 세 산출물"):
-        assert item in p5
-
-
-def test_current_explanation_criteria_do_not_relabel_historical_source_audits() -> None:
-    curriculum = _normalized("CURRICULUM.md")
-    criteria = curriculum.split("## 3. 핵심 개념과 설명 기준", 1)[1].split(
-        "## 4. 공통 핵심 역량", 1
-    )[0]
-    for concept in ("선형변환", "SVD", "Jacobian", "convexity", "LLN·CLT",
-                    "MLE·MAP", "검정력", "bootstrap·다중비교", "calibration",
-                    "RNN·LSTM", "KV cache", "분산 통신"):
-        assert concept in criteria
-    assert "완료 체크·점수·답변집이 아니며" in criteria
-    assert "새 자료를 다운로드하거나 전체 감사한 것으로 기록하지 않는다" in criteria
-    assert "현재 경로에 강의가 없다는 뜻이 아니다" in curriculum
-    assert "현재 P0~P5의 추가 졸업 조건이나 진입 시험으로 사용하지 않는다" in curriculum
-
-
-def test_public_curricula_are_credited_with_what_they_changed() -> None:
-    roadmap = _normalized("ROADMAP.md")
-    for source in ("fast.ai", "Made With ML", "Full Stack Deep Learning", "roadmap.sh",
-                   "CMU", "smol-course", "Raschka"):
-        assert source in roadmap
-    for rule in ("top-down", "판본 주의", "ML 시스템 설계",
-                 "전체 과정을 별도 졸업 조건으로 추가하지 않습니다"):
-        assert rule in roadmap
-
-
-def test_job_ladder_is_marked_as_assessment_not_fact() -> None:
-    roadmap = _normalized("ROADMAP.md")
+def test_ax_then_re_units_have_complete_context_and_source_mapping() -> None:
+    roadmap = _raw("ROADMAP.md")
+    expected = [f"{track}-{i:02}" for track in ("AX", "RE") for i in range(1, 5)]
+    units = re.findall(r"^## ((?:AX|RE)-\d{2}) —", roadmap, re.M)
+    assert units == expected
+    fields = ("사용자 문제", "구현 목적", "이전·다음 연결", "입력·출력", "전체 데이터 흐름", "학습자 직접 작업", "관찰 결과", "완료 기준", "최소 선수", "작업 중 보강 개념")
+    for unit in expected:
+        section = _unit(unit)
+        rows = [_markdown_cells(line) for line in section.splitlines() if line.startswith("|")]
+        labels = [row[0] for row in rows]
+        assert all(labels.count(field) == 1 for field in fields), unit
+        assert "자료·근거" in section, unit
+    assert "한 서비스" in roadmap
     assert "LLM Research Engineer" in roadmap
-    assert "특정 Phase가 취업이나 지원 자격을 보장하지 않습니다" in roadmap
-    assert "실제 공고 3~5건" in roadmap
-    assert "공고가 경로와 다르면 공고를 기준으로 경로를 재검토합니다" in roadmap
-    agents = _normalized("AGENTS.md")
-    assert "Treat the job-role comparisons as an assessment to re-check against real postings" in agents
-    assert "without promising employability at any Phase or date" in agents
-    assert "an earlier rung is not a failure" in agents
+    assert "사용자 지정 필수 순서가 아니다" in roadmap
 
 
-def test_competitions_and_papers_are_tracks_that_cannot_be_fabricated() -> None:
-    roadmap = _normalized("ROADMAP.md")
-    assert "Kaggle은 P1만 필수입니다" in roadmap
-    assert "P0·P2·P3은 선택" in roadmap
-    assert "실제 목록" in roadmap
-    assert "한 연구 질문" in roadmap and "논문 주장 하나" in roadmap
-    agents = _normalized("AGENTS.md")
-    assert "Competitions and papers are proposed, never invented" in agents
-    assert "do not name a specific kaggle competition without checking" in agents.lower()
-    assert "never cite a title, venue, year, or result you have not verified" in agents
-    assert "never fill a gap in a reproduction with a plausible number" in agents
-    assert "The learner writes the paper summary" in agents
+def test_old_hours_and_phase_quotas_are_not_active_gates() -> None:
+    roadmap = _raw("ROADMAP.md")
+    assert not re.search(r"^## P[0-5] |^\| 개인 학습 활동 \|", roadmap, re.M)
+    assert "의무 시간표" in roadmap
+    assert "18/27/9/6" in _raw("DEFERRED.md")
+    assert not re.search(r"^\| `P[0-5]` \|", roadmap, re.M)
 
 
-def test_kaggle_recommendation_trigger_does_not_require_a_p0_submission() -> None:
-    roadmap = _normalized("ROADMAP.md")
-    agents = _normalized("AGENTS.md")
-    deferred = _normalized("DEFERRED.md")
-    assert "Kaggle은 P1만 필수입니다" in roadmap
-    assert "Kaggle is required only in P1" in agents
-    assert "P0는 예측을 만들 수 있으면 첫 제출 경험을 제안합니다" in roadmap
-    assert "이전 제출 경험을 요구하지 않습니다" in roadmap
-    assert "제출 결과가 다음 Phase의 선수조건은 아닙니다" in roadmap
-    assert "P0 needs the ability to produce predictions, not a previous submission" in agents
-    assert "the first submission is the proposed experience" in agents
-    assert "P0·P2·P3 Kaggle competition" in deferred
-    assert "다른 Phase의 competition은 선택입니다" in deferred
-    assert "P0는 예측을 만들 수 있으면 첫 제출 경험을 제안하며 이전 제출 경험을 요구하지 않습니다" in deferred
-    assert "P2·P3는 핵심 학습 이후" in deferred
+def test_no_fixed_calendar_or_automatic_curriculum_engine() -> None:
+    for path in ("ROADMAP.md", "AGENTS.md", "STATE.md"):
+        text = _raw(path)
+        assert "2880" not in text
+    assert "자동 커리큘럼 선택기" in _raw("AGENTS.md")
+    assert "고정" in _raw("ROADMAP.md") and "보장" in _raw("ROADMAP.md")
 
 
-def test_phase_check_does_not_require_paid_gpu_for_available_local_work() -> None:
-    roadmap = _normalized("ROADMAP.md")
-    for scope in ("로컬 필수 검증", "축소·추가 자원 검증의 경계", "공식 저자원 경로",
-                  "VRAM뿐 아니라 연산시간·장치 수·공식 지정 hardware", "가능한 로컬 학습을 계속",
-                  "필수 항목이 비면 Phase를 닫지 않는다", "교육적 타당성 검토와 다르며"):
-        assert scope in roadmap
-    agents = _normalized("AGENTS.md")
-    assert "Run the phase-transition check before closing a Phase" in agents
-    assert "Never state that a company is hiring" in agents
-    assert "the posting is right and the ladder needs fixing" in agents
+def test_first_baseline_has_its_own_completion_boundary() -> None:
+    first = _unit("AX-01")
+    for term in ("정상", "누락", "범위 밖", "baseline", "실제", "미실행", "Python", "JSON/HTTP"):
+        assert term in first
+    assert "긴 선행 수강 없이 시작" in first
+    assert "식별자·본문" in first
+    assert "모델 접근 미해결은 미실행" in first
+
+
+def test_representative_recall_is_distinct_from_api_practical_work() -> None:
+    text = _contract()
+    for rule in ("Separate API-doc-assisted practical implementation from closed-book recall", "not even an import list or a function signature", "Do not require rewriting every module's full implementation or entire assignments", "is not recorded as passed"):
+        assert rule in text
+    deepml = _raw("challenges/deep-ml/README.md")
+    assert "별도 필수 트랙" in deepml
+    assert "공백" in deepml
+    assert "현재 Phase의" not in deepml
+
+
+def test_prerequisites_have_use_sites_and_observed_repair_conditions() -> None:
+    text = _raw("CURRICULUM.md").split("## 4. 공통 핵심 역량", 1)[0]
+    for term in ("조건부확률", "LLN·CLT", "likelihood", "gradient", "Jacobian", "bootstrap", "검정력", "사용처", "공백", "AX-01", "RE-01"):
+        assert term in text
+    for line in text.splitlines():
+        if re.match(r"^\| (?:AX|RE)-\d", line):
+            cells = _markdown_cells(line)
+            assert len(cells) >= 5 and all(cell.strip() for cell in cells)
+    assert "R을 요구" in _contract()
+
+
+def test_lm_and_specialization_are_alternatives_with_resource_limits() -> None:
+    lm, specialization = _unit("RE-02"), _unit("RE-03")
+    assert "대체" in lm and "A1" in lm and "자체" in lm
+    assert "post-training/evaluation" in specialization and "inference/systems" in specialization
+    assert "둘 다" in specialization and "의무" in specialization
+    contract = _contract()
+    for term in ("v26.0.3", "a158843b20107949f1a8d7df1b05cd33b9166712", "v26.1.3", "ca8bc81a59b70516f7ebb2da4808daade877c736", "CPU/MPS", "TinyStories", "B200", "OPTIONAL", "TTFT", "ITL", "queueing", "EOS"):
+        assert term in contract
+    assert "ablation" in _unit("RE-04")
+
+
+def test_historical_catalog_registry_and_audit_body_are_byte_preserved() -> None:
+    raw = _raw("CURRICULUM.md")
+    historical = raw.split("## 4. 공통 핵심 역량", 1)[1].split("## 9. 갱신 규칙", 1)[0]
+    assert hashlib.sha256(historical.encode()).hexdigest() == "26b9580670fae3017abecde4b873034b274db6941ff7e295d0614af1d7efc2e9"
+    active = raw.split("## 4. 공통 핵심 역량", 1)[0]
+    assert "역사적 참고" in active and "현재 지시가 아니다" in active
+    assert "새 자료를 다운로드하거나 전체 감사한 것으로 기록하지 않는다" in active
+
+
+def test_source_observation_is_distinct_from_design_and_current_access() -> None:
+    active = _raw("CURRICULUM.md").split("## 4. 공통 핵심 역량", 1)[0]
+    for ref in ("MIT 6.S191", "2026", "CS336", "Hugging Face", "Full Stack Deep Learning", "2023", "판본", "접근", "설계 판단"):
+        assert ref in active
+    for target in ("research/jd-evidence.md", "research/reference-curricula.md", "research/trend-evidence.md", "research/decision-matrix.md"):
+        assert target in active
+
+
+def test_minimum_portfolio_has_six_fields_and_does_not_certify_eligibility() -> None:
+    text = _raw("ROADMAP.md")
+    for item in ("사용자 문제", "직접 작동 기능", "평가·실패 사례", "재현 조건", "자기 기여·도움", "주장 한계"):
+        assert f"| {item} |" in text
+    assert "조기" in text and "주 포트폴리오" in text
+    for term in ("필수·우대", "연차·학위", "보장하지", "다른 언어"):
+        assert term in text
+
+
+def test_competitions_and_papers_cannot_be_fabricated_or_become_quotas() -> None:
+    agents = _contract()
+    for rule in ("Competitions and papers are proposed, never invented", "do not name a specific kaggle competition without checking", "never cite a title, venue, year, or result you have not verified", "never fill a gap in a reproduction with a plausible number", "The learner writes the paper summary"):
+        assert rule.lower() in agents.lower()
+    assert "월별" in _raw("DEFERRED.md")
+
+
+def test_all_competitions_are_optional() -> None:
+    deferred = _raw("DEFERRED.md")
+    assert "P1 Kaggle" in deferred and "모든 대회" in deferred
+    assert "의무 해제" in deferred
+    assert "Kaggle은 P1만 필수" not in _raw("ROADMAP.md")
+
+
+def test_comparison_failure_and_unavailable_resources_remain_distinct() -> None:
+    roadmap = _raw("ROADMAP.md")
+    assert "미개선" in roadmap and "미실행" in roadmap
+    assert "가능한 로컬" in _contract()
+    assert "유료" in _contract() and "별도" in _contract()
+    assert "실제 배포" in roadmap and "로컬" in roadmap
 
 
 def test_graded_coursework_stays_out_of_the_public_repository() -> None:
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     assert "This repository is public and part of it is published as a site" in agents
     boundary = agents.split("This repository is public", 1)[1].split(
         "The KANT materials", 1
@@ -379,7 +268,7 @@ def test_operating_documents_stay_tool_neutral() -> None:
         text = _normalized(path)
         assert "apply_patch" not in text
         assert "Codex" not in text
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     assert "More than one assistant" in agents
     assert "`STATE.md` is the only handoff" in agents
     assert "One session at a time" in agents
@@ -398,27 +287,19 @@ def test_usage_documents_the_session_loop() -> None:
             assert re.search(r"\]\(\.?/?" + re.escape(target) + r"(?:#[^)]*)?\)", text), (path, target)
 
 
-def test_state_updates_without_prior_approval_from_confirmed_evidence() -> None:
-    agents = _normalized("AGENTS.md")
+def test_state_updates_without_reapproval_within_authorized_scope() -> None:
+    agents = _contract()
     assert "Update `STATE.md` without prior proposal or approval" in agents
     assert "distinguish completed work, planned work, and unverified claims" in agents
     assert "does not authorize a new course, a sequence change" in agents
-    assert "At a Phase transition, run the `ROADMAP.md` check first" in agents
-    for path, obsolete in (
-        ("AGENTS.md", "write it only after explicit approval"),
-        ("README.md", "STATE 승인 후"),
-        ("USAGE.md", "STATE 전체 교체안을 보여 주며, 승인 후"),
-        (".agents/skills/finish-chapter/SKILL.md", "After approval, apply the exact replacement"),
-        (".agents/skills/finish-chapter/agents/openai.yaml", "STATE 전체 교체안 승인 후"),
-    ):
-        assert obsolete not in _normalized(path)
+    for path in ("README.md", "USAGE.md"):
+        assert "STATE 승인 후" not in _raw(path)
 
 
-def test_phase_id_in_state_does_not_reopen_progress_tracking() -> None:
-    agents = _normalized("AGENTS.md")
-    assert "The Phase ID is a static pointer into `ROADMAP.md`" in agents
+def test_unit_reference_does_not_reopen_progress_tracking() -> None:
+    agents = _contract()
+    assert "static reference" in agents
     assert "Never add a percentage, a score, a readiness judgement, an hour tally" in agents
-    assert "a Phase ID is not an opening to bring them back" in agents
     assert "hashes, readiness scores, session history, or metrics" in agents
 
 
@@ -428,13 +309,12 @@ def test_understanding_is_verified_by_unassisted_recall() -> None:
     Tutoring behavior is exercised separately with isolated response cases;
     matching prose in several guides cannot establish tutor compliance.
     """
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     assert "Tutor explanations, assent, file existence, successful execution, and green tests alone do not establish understanding" in agents
     assert "Confirm the learner's unassisted concept drafts before knowledge edits or workspace reset" in agents
     assert "Separate API-doc-assisted practical implementation from closed-book recall" in agents
     assert "Same-day success does not establish delayed recall or transfer" in agents
-    assert "explains the whole Phase without notes" in agents
-    assert "representative implementation units" in agents
+    assert "representative implementation units" in agents.lower()
     assert "Do not require rewriting every module's full implementation or entire assignments" in agents
 
     knowledge = _normalized("knowledge/README.md")
@@ -450,7 +330,7 @@ def test_understanding_is_verified_by_unassisted_recall() -> None:
 
 def test_setup_responsibility_defines_distinct_starting_states() -> None:
     """This checks the documented contract, not actual tutor compliance."""
-    agents = _raw("AGENTS.md")
+    agents = _raw(".agents/references/learning-policies.md")
     setup = agents.split("## Learning setup and starting materials", 1)[1].split(
         "## Learner ownership and evidence", 1
     )[0]
@@ -468,7 +348,7 @@ def test_setup_responsibility_defines_distinct_starting_states() -> None:
 
 
 def test_setup_authorization_preserves_targets_and_restricted_actions() -> None:
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     setup = agents.split("## Learning setup and starting materials", 1)[1].split(
         "## Learner ownership and evidence", 1
     )[0]
@@ -507,7 +387,7 @@ def test_setup_policy_is_shared_without_blanket_cell_or_notebook_bans() -> None:
         for blanket in obsolete:
             assert blanket not in content, (path, blanket)
     for path in ("README.md", "USAGE.md", "practice/README.md"):
-        assert "AGENTS.md#learning-setup-and-starting-materials" in _raw(path)
+        assert "learning-policies.md#learning-setup-and-starting-materials" in _raw(path)
     practice = _normalized("practice/README.md")
     assert "위 준비 범위 외의 파일 생성·수정" in practice
     assert "정확한 파일 생성·수정 요청이나 확인된 챕터 전환" not in practice
@@ -557,16 +437,16 @@ def test_tutoring_flow_cases_cover_the_approved_behavior_comparison() -> None:
         assert method in cases, method
 
 
-def test_deferred_material_keeps_a_return_condition() -> None:
-    """A hold without a return condition is a deletion, so every entry needs one."""
-    deferred = _normalized("DEFERRED.md")
-    assert "미완료 보류" in deferred
-    assert "복귀 조건" in deferred
-    assert "조건이 생겨도 자동으로 시작하지 않고" in deferred
-    for item in ("Final Project", "WaveNet", "Assignment 3", "Hugging Face"):
-        assert item in deferred
-    assert "기존 A1~A4 전체 의무를 이번 승인 재설계로 줄였으며" in deferred
-    assert "나머지 written·programming·Final Project" in deferred
+def test_deferred_entries_cover_old_and_new_holds_with_reasons() -> None:
+    text = _raw("DEFERRED.md")
+    rows = [_markdown_cells(line) for line in text.splitlines() if line.startswith("| ")][2:]
+    assert len(rows) >= 20
+    for row in rows:
+        assert len(row) == 4 and all(cell and cell != "—" for cell in row)
+    for term in ("MML", "MIT 18.05", "makemore", "fast.ai", "CS229", "ISLP", "CS231n", "CS224N", "CS336", "Kaggle", "18/27/9/6", "multi-agent", "TF-IDF", "MCP", "WaveNet", "Final Project", "Assignment 3", "Hugging Face"):
+        assert term in text
+    assert "조건이 생겨도 자동으로 시작하지 않고" in text
+    assert "미완료 보류" in text
 
 
 def test_removed_learning_management_skills_do_not_return() -> None:
@@ -593,14 +473,11 @@ def test_removed_learning_management_skills_do_not_return() -> None:
 
 
 def test_roadmap_and_curriculum_cannot_select_the_current_target() -> None:
-    roadmap = _normalized("ROADMAP.md")
-    curriculum = _normalized("CURRICULUM.md")
+    roadmap, curriculum = _raw("ROADMAP.md"), _raw("CURRICULUM.md")
     assert "현재 학습 범위와 다음 행동은 [`STATE.md`](./STATE.md)만 정합니다" in roadmap
-    assert "새 자료를 여기 연결하는 것은 다운로드·전체 감사·환경 설치 완료를 뜻하지 않습니다" in roadmap
     assert "현재 학습 범위와 다음 행동은 `STATE.md`만 정하며" in curriculum
     assert "실제 파일과 `INDEX.md`를 수동으로 교차 확인한다" in curriculum
-    assert "승인된 주강의 순서를 강제 변경하거나" in curriculum
-    assert "`CC-SEQ-01`을 필수 연결 역량으로 먼저 완료" not in roadmap
+    assert "자동" in _raw("AGENTS.md")
 
 
 def test_standalone_utilities_keep_their_explicit_no_commit_contract() -> None:
@@ -653,7 +530,7 @@ def test_chapter_wrap_up_defaults_to_confirmed_transitions_only() -> None:
     assert "allow_implicit_invocation: true" in manifest
     assert "confirmed chapter transition" in entrypoint
     assert "standing chapter-transition authorization" in entrypoint
-    assert "Default chapter-transition wrap-up" in _normalized("AGENTS.md")
+    assert "Default chapter-transition wrap-up" in _contract()
     assert "Do not activate for 완료, 이해했어, or 오늘 학습 종료 alone" in entrypoint
     assert "Do not execute the learner's notebooks during wrap-up" in entrypoint
     assert "Update STATE from confirmed evidence without prior proposal or approval" in entrypoint
@@ -670,38 +547,35 @@ def test_chapter_wrap_up_defaults_to_confirmed_transitions_only() -> None:
         assert "$finish-chapter" in _normalized(path)
 
 
-def test_state_is_a_public_bookmark_with_one_next_action() -> None:
-    state = (REPO / "STATE.md").read_text(encoding="utf-8")
-    assert "재개 북마크" in state
-    for label in ("현재 주강의", "현재 강의", "현재 범위"):
-        values = re.findall(rf"^- {label}:[ \t]*(\S[^\n]*)$", state, re.MULTILINE)
-        assert len(values) == 1, f"Expected one nonempty {label}"
-    assert len(re.findall(r"^## 다음 독립 행동$", state, re.MULTILINE)) == 1
-    next_action = re.search(
-        r"^## 다음 독립 행동\n(.*?)(?=^## |\Z)", state, re.MULTILINE | re.DOTALL
-    )
-    assert next_action is not None and next_action.group(1).strip()
-    for forbidden in (
-        "schema_version",
-        "evidence_id",
-        "sha256",
-        "active-learning-flow",
-        "active-lesson-handoff",
-        "materials/private",
-        "tmp/",
-    ):
+def test_state_is_a_public_bookmark_with_one_next_action_and_preserved_original() -> None:
+    state = _raw("STATE.md")
+    for label in ("현재 경로", "현재 단위", "현재 범위"):
+        assert len(re.findall(rf"^- {label}: \S[^\n]*$", state, re.M)) == 1
+    assert "AX-01" in state and "재개 북마크" in state
+    assert len(re.findall(r"^## 다음 독립 행동$", state, re.M)) == 1
+    action = state.split("## 다음 독립 행동\n", 1)[1].strip()
+    assert "식별자·본문" in action and "직접 작성·실행" in action
+    assert "준비" in state and "미실행" in state
+    for forbidden in ("schema_version", "evidence_id", "sha256", "materials/private", "tmp/", "/home/", "- [ ]", "dprobs"):
         assert forbidden not in state
+    archive = _raw("practice/reviews/curriculum-transition.md")
+    original = archive.split("````text\n", 1)[1].rsplit("````\n", 1)[0]
+    assert hashlib.sha256(original.encode()).hexdigest() == "bab21404447e173855853a825bbb4e987622036c496563b3f585b782711ba127"
+    assert "당시 북마크 인용·현재 재개 사용 금지" in archive
+    assert "curriculum-transition.md" in state
+    for word in ("dprobs", "도움", "미확인", "미완료"):
+        assert word in original
 
 
 def test_state_update_is_edit_only_except_explicit_study_stop() -> None:
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     assert "Updating `STATE.md`, automatically or on request, authorizes only the file edit" in agents
     assert "An explicit study-stop request is the standing exception" in agents
     assert "authorized a scoped commit and push without another confirmation" in agents
 
 
 def test_routine_bookmarks_are_quiet_and_pause_is_not_session_end() -> None:
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     assert "Do not edit it for each corrected answer when the resume action stays the same" in agents
     assert "Keep routine edits quiet" in agents
     assert "user asks for status, at an explicit study stop" in agents
@@ -719,7 +593,7 @@ def test_cs336_uses_a_separate_python_environment() -> None:
     pyproject = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
     assert pyproject["project"]["requires-python"] == ">=3.14,<3.15"
 
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     assert "learning lab's Python 3.14 environment" in agents
     assert "separate sibling clone" in agents
     assert "Python 3.12 or 3.13" in agents
@@ -736,7 +610,7 @@ def test_private_material_count_and_registry_snapshot_do_not_claim_live_validati
 
 
 def test_cs336_command_policy_is_consistent() -> None:
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     assert "The learner writes the assignment code, runs the provided tests, and runs every bash command" in agents
     assert "must not execute bash commands in the assignment repository" in agents
     assert "already shown in the official handout" in agents
@@ -745,7 +619,48 @@ def test_cs336_command_policy_is_consistent() -> None:
     assert "a158843b20107949f1a8d7df1b05cd33b9166712" in agents
 
 def test_error_hypothesis_is_required_only_after_an_error() -> None:
-    agents = _normalized("AGENTS.md")
+    agents = _contract()
     assert "If an error occurred" in agents
     assert "first cause hypothesis formed before changing the code and how they checked it" in agents
     assert "do not require an error when none occurred" in agents
+
+
+def test_root_size_mandatory_reads_and_core_safety_are_reachable() -> None:
+    root = _raw("AGENTS.md")
+    assert len(root.encode()) <= 12 * 1024
+    for path in (".agents/skills/study-session/SKILL.md", ".agents/references/learning-policies.md", "STATE.md"):
+        assert path in root[:5000]
+        assert (REPO / path).is_file()
+    for core in ("CS336", "pseudocode", "private", "nbpeek.py", "커밋", "푸시", "web/", "학습자"):
+        assert core in root
+    skill = _raw(".agents/skills/study-session/SKILL.md")
+    assert "learning-policies.md" in skill and "read" in skill.lower()
+    assert "@import" not in root
+
+
+def test_research_and_learning_ids_are_static_references_with_full_mapping() -> None:
+    mapping = _raw("specs/001-employment-project-curriculum/research/decision-matrix.md")
+    sources = {name: _raw(f"specs/001-employment-project-curriculum/research/{name}.md") for name in ("jd-evidence", "reference-curricula", "trend-evidence")}
+    assert len(re.findall(r"^\| JD-KR-0\d", sources["jd-evidence"], re.M)) >= 4
+    assert len(re.findall(r"^\| JD-US-0\d", sources["jd-evidence"], re.M)) >= 4
+    assert len(re.findall(r"^\| REF-\d", sources["reference-curricula"], re.M)) >= 6
+    assert len(re.findall(r"^\| TREND-.*?2026-", sources["trend-evidence"], re.M)) >= 2
+    for unit in [f"{track}-{i:02}" for track in ("AX", "RE") for i in range(1, 5)]:
+        row = next(line for line in mapping.splitlines() if line.startswith(f"| **{unit} "))
+        cells = _markdown_cells(row)
+        assert len(cells) == 5 and all(cells)
+        assert "JD-" in cells[1] and "REF-" in cells[3]
+
+
+def test_unit_completion_does_not_trigger_wrap_up_or_new_learning_files() -> None:
+    for path in ("AGENTS.md", ".agents/skills/study-session/SKILL.md", ".agents/skills/finish-chapter/SKILL.md"):
+        text = _raw(path)
+        assert "AX/RE" in text and "finish-chapter" in text
+    assert "단위 완료" in _raw("AGENTS.md")
+    assert "학습자 초안" in _raw("AGENTS.md")
+
+
+def test_evaluation_separates_corpus_final_test_and_actual_outcome() -> None:
+    text = _raw("ROADMAP.md")
+    for term in ("독립 표본", "qrels", "train/dev", "최종 평가", "중복", "실제 상태", "판정기", "미사용 test", "반복 시도"):
+        assert term in text

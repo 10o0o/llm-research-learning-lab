@@ -1,30 +1,33 @@
-# LLM Research Engineer 세부 커리큘럼
+# 프로젝트 역량·선수·자료 참고
 
 <!-- curriculum-schema: 2 -->
 
 ## 1. 목적과 비목적
 
-이 문서는 장기 참고 catalog이며 현재 학습 범위를 정하지 않는다. 중심은 개인
-LLM Research Engineer 성장과 취업이며 KANT는 보조다. 평가 공통 핵심은 P0부터,
-독립 연구는 선수와 learner-owned 실험 근거 뒤에 연결한다. 이번 경로에서
-뺀 자료와 복귀 조건은 `DEFERRED.md`, 실제 수행 순서와 시간 예산은
-`ROADMAP.md`에 있다. `SRC-KAM-*`, `SRC-KDL-*`, `SRC-KBM-*`와 아래 registry는
-과거에 실제 감사한 자료의 snapshot으로 보존한다. 새 주과정은 `ROADMAP.md`에서
-역할과 공식 과제를 지정하며, 원본 전체 감사를 마치기 전에는 기존 `SRC-*`
-registry의 일부인 것처럼 기록하지 않는다.
+단기 AX/AI 애플리케이션 취업 준비와 장기 LLM Research Engineer를 위한 정적 역량/자료 참고다. 승인 범위와 단위별 열 개 안내 요소는 [ROADMAP](./ROADMAP.md), 제외 이유/복귀 조건은 [DEFERRED](./DEFERRED.md)에 둔다. 현재 학습 범위와 다음 행동은 `STATE.md`만 정하며 이 문서의 ID·선수관계·catalog가 자동으로 수업을 선택하지 않는다. 점수·진도율·완료표·학습자 transcript·새 평가 DB는 만들지 않는다.
 
-이 문서는 `ROADMAP.md`의 큰 방향을 실행 가능한 학습 성과로 풀고, 현재 강의 자료가 각 성과를 어느 깊이까지 직접 뒷받침하는지 판단하는 정적 참고 자료다. 현재 학습 범위와 다음 행동은 `STATE.md`만 정하며, 이 문서의 ID·선수관계·catalog가 자동으로 수업을 선택하지 않는다. 정적 module·milestone catalog는 역량을 누적 구현 단위에 연결하지만 학습자의 현재 상태를 기록하지 않는다.
+이 문서 1~3절이 현재 역량/자료 기준이다. 기존 4~8절은 **역사적 참고**로 본문을 보존한다. 당시 필수·readiness·RNN/LSTM·P0~P5 표기는 현재 지시가 아니다. `CC/SRC/MOD/MA/PC`의 의미를 재사용하거나 AX/RE 단위를 옛 milestone 완료로 환산하지 않는다. 과거 자료의 충분/부분/없음/감사 판정은 새 공식 자료나 학습자의 이해 평가가 아니다. 새 자료를 다운로드하거나 전체 감사한 것으로 기록하지 않는다.
 
-이 문서는 학습자의 완료 여부, 점수, 진도율, 학습 날짜 또는 mastery를 기록하지 않는다. 별도 LMS, 일일 진도표, 강의 순서 강제 장치도 아니다. 아래 자료 평가는 **자료의 충족도**이며 학습자의 이해도를 뜻하지 않는다.
+## 2. 역량·최소 선수와 보강 사용처
 
-## 2. ID, 깊이, 자료 충족도 범례
+개념은 의존 작업 전에 필요한 만큼 설명하고 실제 코드·오류·평가에서 깊이를 늘린다. 전체 수학/과목·PS·실습 순회를 먼저 끝내는 조건은 없다. 최소 선수와 작업 중 보강을 구별한다. 공식 문서 참고 실무 구현과 무보조/지연 회상은 서로 다른 근거다.
 
-아래 역량·선수관계·필수 module·milestone 표는 장기 목표의 참고 catalog다.
-승인된 주강의 순서를 강제 변경하거나 모든 선행 산출물의 완료를 현재
-강의 진입 조건으로 요구하지 않는다. 실제 학습은 `ROADMAP.md`의 승인된
-주강의 경로와 `STATE.md`의 현재 범위를 따르며, 현재 이해에 직접 필요한
-선수개념을 보강한 뒤 같은 주강의로 돌아간다. 기존 자료 기록과 catalog는
-장기 참고로 보존한다.
+| 단위 | 먼저 설명할 최소 선수 | 실제 사용처·학습자 근거 | 관찰 공백의 보강 | 사용할 자료 구간 |
+| --- | --- | --- | --- | --- |
+| AX-01 | Python 자료/함수·JSON/HTTP·예외, token/context·비결정성, baseline·평가 사례 역할 | 문의 입력 계약→구조화 초안→정상/실패 검증을 직접 코드/실행/첫 해석 | 파싱/형식/API 오류는 해당 동작; 작은 차이 해석은 독립 사례/반복·불확실성 | REF-03 foundations/앱 출시 원리, REF-06 Unit1 메시지/LLM/도구 기초 |
+| AX-02 | 벡터/내적/유사도·embedding·chunk/metadata, corpus와 질의/qrels·중복/그룹 | 검색 recall과 답변 근거/누락·기권을 분리, sparse 하나 대비 dense 또는 hybrid 하나 | 차원·정규화/ranking 실패, 오래된/누락 근거·길이 한계 | REF-03 Augmented Language Models, REF-04 datasets/tokenizers 필요한 설명, Microsoft RAG 설계/평가 |
+| AX-03 | 함수/API/SQL 계약·상태·부작용·멱등성·권한/사람 확인 | 도구 하나·고정 workflow 대 bounded agent, trace와 실제 모의 상태 대조 | 중복/timeout/retry·복구·context 혼선·prompt injection 실제 문제 | REF-06 Unit1 tools/actions/observations·Unit2.3 LangGraph 하나 |
+| AX-04 | HTTP/API·저장/상태·테스트·PII·관측성·latency/cost 측정 단위 | 같은 서비스의 회귀·재현·실패·지원 설명, 로컬/실제 운영 구별 | 요청 간 누수·동시성·비용/지연·권한 오류에서 필요한 범위 | REF-03 UX/LLMOps, REF-08 Production 구성·REF-09 문제/평가/설명 참고 |
+| RE-01 | tensor/shape·행렬·미분/chain rule·gradient/Jacobian, likelihood/loss·분리/누수 | data→train→validation, 작은 배치·train/eval·gradient/update 진단 | 초기화·일반화/규제·최적화·확률/통계 공백 | REF-01 2026 L1/필요 sequence, REF-04 Ch2~3·5; MML/MIT/ISLP 필요한 절 |
+| RE-02 | 조건부확률·softmax/CE·token shift·attention/mask·행렬·학습/검증 | 한 LM의 token→logit/next-token loss→학습/생성/재개 | 토큰화·mask·수치 안정성·compute/memory·오염/일반화 | REF-02 2026 L1~3·12~14, REF-04 Ch1·6 보조; 공식 A1은 자체 LM 대체 |
+| RE-03 | base/instruct·chat template·loss mask·SFT/PEFT·독립 분리/오염·자원 권한 | base 대비 SFT 한 비교 또는 inference 한 축, held-out·고정 조건·실패 | 데이터/최적화·판정기 불일치 또는 수치/성능 병목 | REF-05 chat templates/SFT/PEFT/domain evaluation·REF-04 Ch10~11; 대안 REF-02 L2·5~8·10 |
+| RE-04 | 선택 방법의 모델/최적화 또는 systems 기반, 가설/통제·표본·불확실성 | 자기 질문·실제 논문 한 주장·baseline/ablation·실패·주장 한계 | 논문 수학·실험 설계·통계/재현 공백만 보강 | REF-02 data/eval/선택 전문화, 실제 읽고 검증한 논문 제한 실험 |
+
+조건부확률·독립성·확률변수/분포·기댓값/분산, LLN·CLT의 의미/가정은 sampling·평가·모델 학습에 필요할 때 연결한다. likelihood/MLE·prior/posterior/MAP는 손실·선택 방법의 가정을 설명할 때 다룬다. 신뢰구간·가설검정·검정력·bootstrap·다중비교는 표본 단위·작은 차이·반복 선택을 해석할 때 가정과 함께 보강한다. 행렬/선형변환·rank/SVD·미분/chain rule·Jacobian·convexity는 현재 검색·학습·논문에서 실제 필요한 깊이를 유지한다. 선택한 공식 활동이 R을 요구할 때만 R을 쓰며 Python 실습으로 MIT 공식 완료를 만들지 않는다.
+
+### 역사적 ID·감사 용어의 해석
+
+다음 범례는 보존한 4~8절을 읽기 위한 것이다. 당시 catalog의 깊이/필수 연결은 현재 과제 선택 권한이 아니며 현재 AX/RE에 추가 시험·capstone을 부과하지 않는다.
 
 - 역량 ID: 공통 핵심은 `CC-<AREA>-NN`, 선택 전문 트랙은 `TR-<TRACK>-NN`이다. ID의 의미는 한 번 부여한 뒤 바꾸거나 재사용하지 않는다.
 - 자료 ID: `SRC-<대문자 namespace>-<NN-NN>` 형식이다. namespace는 숫자를 포함한 여러 대문자 토큰을 `-`로 연결할 수 있으며, 과정과 판본을 함께 식별한다. 예: `SRC-KDL-08-01`, `SRC-HARV-STAT110-2E-00-01`.
@@ -52,72 +55,31 @@ registry의 일부인 것처럼 기록하지 않는다.
 
 실습 구현 깊이는 `I1_MECHANISM`, `I2_COMPONENT`, `I3_WORKFLOW`, `I4_EXPERIMENT`, `I5_RESEARCH` 순서다. `MODULE_ASSIGNMENT`는 실제 component와 data→model→loss→train/eval workflow를 포함하고, `PHASE_CAPSTONE`은 baseline·통제 비교 또는 ablation·error analysis·재현 조건·한계 보고를 포함한다. 개념 blocker를 푸는 `PRE_LAB`은 milestone이 아니므로 catalog에 넣지 않는다.
 
-## 3. 핵심 개념과 설명 기준
+## 3. 자료와 판본·접근 경계
 
-이 표는 개념을 자기 말로 설명하고 계산·구현·실험에 연결할 때의 정적 기준이다.
-완료 체크·점수·답변집이 아니며 모든 행을 별도 시험이나 Phase gate로 만들지 않는다.
-대표 연결 단위에서 목적·원리·가정·한계를 1~2분 무보조로 설명하고 조건을 바꾼
-사례에 적용한다. API 문서를 본 실무 구현·당일 성공·지연 회상/전이는 구분하며
-모든 절을 반복 퀴즈로 만들지 않는다. Tensor 문제의 shape와 흐름은 학습자가
-직접 제시한다. AI는 한 번에 피드백하고 knowledge는 무보조 초안 이후에만 교정한다.
+아래 선택은 [JD 원문 관찰](./specs/001-employment-project-curriculum/research/jd-evidence.md)·[공식 기술 동향](./specs/001-employment-project-curriculum/research/trend-evidence.md)·[교육과정 비교](./specs/001-employment-project-curriculum/research/reference-curricula.md)를 연결한 **설계 판단**이다. 조회 기준은 2026-10-19이며 현재 채용/접근·개별 활동/환경/권리의 검증은 별개다. [근거→역량→구간→산출물/평가 매핑](./specs/001-employment-project-curriculum/research/decision-matrix.md)을 기준으로 사용한다. 각 과정 전체 이수/등록·모델 실행·게시를 요구하지 않는다.
 
-출처 열은 설명·연습의 기준을 연결한다. 프로젝트는 적용 장소이며 공식 출처를
-대신하지 않는다. 새 자료를 다운로드하거나 전체 감사한 것으로 기록하지 않는다.
+| 자료 | 사용할 판본·구간 | 접근/선택 한계 |
+| --- | --- | --- |
+| MIT 6.S191, REF-01 | 2026 L1 DL 기초·필요 sequence 설명 → RE-01 | 공식 메인 목차 확인; /2026/ archive 접근 실패. 정확한 강의 구간/개별 lab은 수업 전 확인, CV/RL/music 전부 제외 |
+| Stanford CS336, REF-02 | Spring 2026 L1~3·12~15와 inference 대안 L10 → RE-02~04 | syllabus/정책과 실제 segment 검증 구별. A1 v26.0.3·A2 v26.1.3 pin·별도 환경/AI 정책은 상세 정책; 전체 A1~A5 의무 없음 |
+| Full Stack Deep Learning, REF-03 | April 2023 LLM Bootcamp의 Foundations/앱 출시·Augmented LMs·UX/LLMOps → AX-01/02/04 | 무료 녹화의 원리 참고; 옛 API를 현재 사실로 사용하지 않음. walkthrough는 학습자 직접 구현이 아님 |
+| Hugging Face LLM Course, REF-04 | 상시 개정판 Ch2~3·5 → RE-01, Ch1·6 → RE-02, Ch10~11 → RE-03 | 정확한 절/API·버전은 실제 사용 전 확인. 12장·Hub 게시·인증은 의무 아님 |
+| Hugging Face smol-course, REF-05 | chat templates·SFT/PEFT·domain evaluation → RE-03 기본안 | 목차/sidebar 번호 차이로 주제명 참조. 읽기 공개와 모델/VRAM/계정/플랜·비용은 구별 |
+| Hugging Face Agents Course, REF-06 | Unit1와 Unit2.3 LangGraph 한 framework → AX-01/03 | 예제의 강한 외부 API 모델 접근을 그대로 실행하지 않음. 여러 framework·인증/leaderboard·게시 제외 |
+| Google Agents Intensive, REF-07 | 2025 안내/회고의 tools·memory·eval·production coverage 비교 | 행사 종료·guide 본문 미표시; 코드랩 원문 검토/수료로 세지 않음. ADK 전체 추가 없음 |
+| Boostcamp AI Tech, REF-08 | 8기 2025–26 AI Core→한 도메인→Production 구성 참고 | 종료된 기수의 설계 참고. 선발/전일제 시간표·GPU 지원을 개인 경로에 복제하지 않음 |
+| LG Aimers, REF-09 | 9기 2026 공식 소개의 문제·코드·평가·발표 연결 참고 | 과정 소개/목차와 강의 원문/직접 수행 구별; 전체 과정·대회 의무 없음 |
+| KT AIVLE, REF-10 | 공개 실무/프로젝트형 교육 소개 비교 | 현 기수 모듈·비용 불명; 과거 2024 보고서의 기간/비용을 현행으로 옮기지 않음 |
+| MML·MIT 18.05 Spring 2022·18.01SC Fall 2010 | 행렬/미분/최적화·확률/추론의 현재 공백에 필요한 절 | 기존 원본/회고 보존. 전체 본문/PS/R 의무 없음; 해당 원문·그림/식 확인 후 설명 |
+| CS229 Summer 2020·ISLP | loss/MLE·일반화, ISLP 5/6/8/13의 현재 평가/모델 공백 | notes/선택 절은 참고; PS1~PS3 전체 written/coding·RL/ICA·전체 lab은 보류. 2018 영상/현재 homepage를 동일 판본으로 바꾸지 않음 |
+| CS231n Spring 2024·CS224N Spring 2024 1246·Karpathy | 학습 진단·attention/position·역전파의 관찰 공백 설명 | 공식 과제는 재선택 시에만, 과거 미완료는 원문 인용/회고 보존. 모든 과제/GPT·BPE 재구현 gate 없음 |
 
-| 영역 | 핵심 개념 | 설명·근거 기준 | 공식 출처와 적용 범위 |
-|---|---|---|---|
-| 선형대수 | 선형변환, rank | 기저·좌표·행렬 shape를 연결하고 입력 차원이나 rank가 변할 때 표현과 해의 공간이 어떻게 바뀌는지 작은 계산으로 보인다 | [MML][mml] 2~3장 |
-| 선형대수 | 최소제곱, 고유분해·SVD, 조건수 | 투영과 잔차를 설명하고 해의 존재·유일성, 저랭크 근사, 입력 오차에 대한 민감도를 구분한다. rank가 부족한 경우와 불안정한 해법을 설명한다 | [MML][mml] 2~4장; [CS229][cs229] notes |
-| 미분 | gradient, Jacobian, chain rule | scalar loss와 vector 출력의 미분 shape를 구분하고 합성 함수·분기·공유 파라미터의 기울기를 작은 계산 그래프로 계산한다 | [MML][mml] 5장; [Karpathy][karpathy] |
-| 최적화 | convexity, gradient 기반 최적화 | 목적함수와 업데이트를 연결하고 convexity의 의미, 최솟값·유일성·수렴을 보장하는 조건을 구분한다 | [MML][mml] 7장; [CS229][cs229] |
-| 미적분 선수 | 단변수 미분, 정적분 | 변화율과 누적량을 계산하고 확률밀도의 적분이나 다변수 chain rule에서 필요한 연결을 설명한다 | 막힐 때만 [MIT 18.01SC][mit1801] 해당 기초 단원 |
-| 확률 | 조건부확률·독립성, 확률변수·분포 | 사건·확률변수·관측값을 구분하고 조건이 바뀐 확률을 계산한다. 독립성과 배반, 이산 확률과 연속 밀도를 혼동하지 않는다 | P0 기존 MLP의 손실·샘플링·평가; [MIT 18.05][mit1805] 필요한 구간; [CS229][cs229] 확률 복습 |
-| 확률 | 기댓값·분산, LLN·CLT | 기댓값·분산을 계산하고 표본 수가 바뀔 때 평균의 안정화와 분포 근사의 차이·성립 조건을 설명한다 | P0 핵심; 기존 모델의 배치·평가; [MIT 18.05][mit1805] 필요한 구간 |
-| 통계 | likelihood, MLE·MAP | 데이터와 파라미터 중 무엇을 고정하는지 밝히고 likelihood·prior·posterior를 구분한다. 작은 모델에서 MLE와 손실함수의 관계를 유도하고 MAP은 선택한 작업에 필요한 범위로 다룬다 | P0~P1 모델 학습; [CS229][cs229] notes·PS1~PS3; [MIT 18.05][mit1805] 필요한 설명 |
-| 통계 | 신뢰구간, Bayesian inference | 추정값과 불확실성을 구분하고 신뢰수준의 반복 표집 해석과 사후확률 해석의 차이를 설명한다. 연속 사전분포·켤레 사전분포의 상세 계산은 필요할 때 보강한다 | P0~P1 실제 평가; [ISLP][islp] 5장; [MIT 18.05][mit1805] 필요한 설명; 상세 Bayes 계산은 미완료 보류 |
-| 통계 | 가설검정·검정력 | 귀무·대립가설, p-value, 유의수준, 오류와 검정력을 구분하고 표본 수·효과 크기가 결론에 주는 영향을 설명한다 | P0~P1 실제 평가; [ISLP][islp] 13장; [MIT 18.05][mit1805] 필요한 설명 |
-| 통계 | bootstrap·다중비교 | 재표집 단위와 성립 가정을 설명하고 반복 검정의 오류 증가, 보정·검정력의 관계를 해석한다 | P0~P1 실제 평가; [ISLP][islp] 5·13장 본문·lab; [MIT 18.05][mit1805] 필요한 설명 |
-| ML | 모델의 가정·목적함수 | 선형·로지스틱 회귀를 포함한 지정 모델의 입력·출력·가정과 손실을 연결하고 목적함수·기울기를 유도한다 | [CS229 Summer 2020][cs229] notes·PS1~PS3 |
-| ML | 일반화·규제 | train·validation 차이와 bias·variance를 연결하고 표본 수·모델 복잡도·규제 강도를 바꿀 때의 가설을 세운다 | [CS229][cs229]; [ISLP][islp] 6장 |
-| 실험 | 데이터 분할·누수, 교차검증 | 독립 표본 단위를 정하고 시간·그룹 의존성, 전처리 fit, 모델 선택과 test 사용의 경계를 설명한다 | [ISLP][islp] 5장; [Made With ML][mwml]; P1 프로젝트에 적용 |
-| 평가 | metric·threshold·calibration | 비용·불균형에 따른 지표와 threshold를 고르고 순위 성능과 확률의 신뢰성을 구분한다. 튜닝·보정 데이터와 평가 데이터를 분리한다 | [Made With ML][mwml]; [scikit-learn calibration][calibration] 보강; P1 프로젝트에 적용 |
-| ML | 트리·앙상블 | 분할 기준, bagging·random forest·boosting의 학습 방식과 bias·variance 차이를 설명하고 적절한 통제 비교를 설계한다 | [ISLP][islp] 8장 |
-| ML | 군집·PCA | k-means 목적과 초기화·스케일 민감성, PCA의 분산·투영 목적을 구분하고 계산·차원·정보 손실을 해석한다 | [CS229][cs229] notes·지정 과제 |
-| DL | 역전파·초기화 | scalar loss까지 shape·VJP·기울기 누적·SGD 갱신 부호를 추적하고 초기화·작은 배치 과적합·대표 오류를 해석한다 | P0 기존 MLP·[Karpathy][karpathy] makemore 3~4; [CS231n][cs231n] 필요한 설명·A2 Q1 |
-| DL | optimizer·normalization | SGD·momentum·Adam의 상태와 업데이트, normalization의 축·학습/평가 차이를 설명하고 학습률·배치 변경의 영향을 진단한다 | [CS231n][cs231n] 필요한 L2~6·A2 Q1~Q3; [PyTorch][pytorch] |
-| DL | CNN·과적합 진단 | convolution의 shape·공유 가중치·수용영역을 설명하고 train/eval 곡선·통제 실험으로 구현 오류와 일반화 문제를 구분한다 | CV 공백이 확인될 때만 [CS231n][cs231n] A2 Q4~Q5; 현재 미완료 보류 |
-| NLP | embedding, RNN·LSTM | token ID와 embedding의 계약, 시간에 따른 state·gate·기울기를 추적하고 recurrence의 목적과 한계를 설명한다 | [CS224N Spring 2024, 1246][cs224n] 필요한 비교 설명; 전체 A1~A4는 현재 의무 아님 |
-| NLP | attention·masking·positional information | Q·K·V와 score·softmax·출력 shape를 제시하고 causal/padding mask의 위치·역할, 위치 정보와 recurrence의 차이를 설명한다 | P2/P3 [CS224N 1246][cs224n] A3 Q1(i)·A4 Q1~Q2 written; P3 [CS336][cs336] A1; GPT bridge는 필요할 때만 |
-| LM | autoregressive objective | 토큰화·입력·next-token target·logit·loss·generation 흐름을 연결하고 미래 정보 누수·학습/생성 차이를 설명한다 | [Karpathy][karpathy]; [CS224N][cs224n]; [CS336][cs336] A1 |
-| 시스템 | 메모리 계층·계산량·메모리 사용량, GPU 병목 | 연산량·저장량·메모리 이동을 구분하고 shape·dtype·배치가 비용에 주는 영향을 추산한다. profiler로 계산·대역폭 병목 가설을 검증한다 | [CS336 Spring 2026][cs336] A1·A2 v26.1.3 선택; 자원별 검증은 ROADMAP |
-| 시스템 | 분산 통신 | 데이터 분할·gradient 동기화·collective 흐름을 설명하고 연산/통신량·동기화가 scaling에 주는 영향을 측정한다 | [CS336][cs336] A2 개념·로컬 기능 연습; GPU scaling은 실제 다중 장치 실행 전까지 미검증 |
-| 추론 | prefill/decode·KV cache·batching | 두 단계의 작업량을 구분하고 cache shape·증가량·정확성 조건, 배칭의 메모리·대기시간 영향을 설명한다 | [CS336][cs336] 2026 Lecture 10; P4 별도 inference·운영 workload, P5 한 연구 질문 |
-| 추론 실험 | latency·throughput·품질 trade-off | 독립변수 외 조건을 고정하고 cache logits 허용 오차·quantization 품질 범위를 확인한다. 요청 도착·concurrency·queueing·TTFT·ITL·tail·오류/OOM·관측성을 해석한다 | [CS336][cs336] A2 측정 기초·Lecture 10; 별도 P4 harness·P5 통제 연구 |
-| 평가 | 표본 단위·누수·불확실성·오류 분석 | 반복 시도와 독립 질문 수를 구분하고 bootstrap 단위·held-out 평가·dedup/contamination·metric variance·실패 사례를 설명한다 | P0~P5 공통 핵심; [ISLP][islp]·선택 LM 실험·[MIT 18.05][mit1805] 필요한 설명 |
-| Post-training | base/instruct·chat template·label masking·SFT/LoRA | Transformer 이후 작은 비교에서 loss와 held-out 품질·다른 능력 퇴행을 구분한다. DPO/RLVR는 별도 선수 후 연구 질문 하나로 제한한다 | P3 제한 노출; 선택한 P4 Eval / Post-training; [smol-course](https://huggingface.co/learn/smol-course/en/unit0/1) |
-| 재현 | 환경·수치·통계적 재현 | seed만으로 완전 재현을 주장하지 않고 새 환경 실행, 사전 수치 허용 오차, 여러 seed/표본의 결과 변동을 구분한다 | [PyTorch reproducibility](https://docs.pytorch.org/docs/2.14/notes/randomness.html); 기존 MLP·P3~P5 |
+정확한 공식 자료·API URL/판본/접근 한계는 위 feature의 교육과정·선택 매핑을 따른다. 목록을 읽은 사실로 특정 강의 본문이나 과제 요구를 확인했다고 주장하지 않는다. 접근 실패면 그 자료 의존 수업만 멈추고 필요한 구간을 확인한다. 공식 과제 원문·답안은 공개하지 않는다. [상세 정책](./.agents/references/learning-policies.md#course-specific-scope-and-assistance)을 따른다.
 
-확률·통계 행은 모델 학습·평가에 필요한 역량이다. MIT 18.05 전체 reading·in-class·
-온라인 문제·PS1~PS11·R 튜토리얼은 필수 조건이 아니며, 미선택 활동은 DEFERRED에
-미완료 보류한다. 선택한 공식 활동이 요구할 때만 R을 사용한다. Python/PyTorch
-모델 실습을 MIT 공식 과제 완료로 기록하지 않는다.
+## 역사적 참고 — 기존 4~8절 보존 경계
 
-[mml]: https://mml-book.github.io/
-[mit1801]: https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/
-[mit1805]: https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/
-[cs229]: https://cs229.stanford.edu/summer2020/
-[islp]: https://islp.readthedocs.io/en/latest/labs.html
-[mwml]: https://madewithml.com/
-[calibration]: https://scikit-learn.org/stable/modules/calibration.html
-[karpathy]: https://karpathy.ai/zero-to-hero.html
-[cs231n]: https://cs231n.stanford.edu/2024/schedule.html
-[pytorch]: https://docs.pytorch.org/tutorials/beginner/basics/intro.html
-[cs224n]: https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html
-[cs336]: https://cs336.stanford.edu/
-
-이후 기존 공통 역량과 module·milestone catalog는 더 세밀한 장기 참고다. 그 안의
-`필수`는 catalog 구조상의 연결을 뜻하며 현재 P0~P5에 추가 과제나 별도 capstone을
-자동으로 부과하지 않는다.
+이하 본문·ID/hash·감사 판정·정정·공백은 당시 기록 그대로다. **현재 지시가 아니다.** 당시의 ‘현재’, ‘필수’, readiness·RNN/LSTM·P0~P5 연결은 역사적 문맥으로만 읽는다. 1~3절의 새 범위가 과거 자료의 재감사나 성과 승격을 뜻하지 않는다.
 
 ## 4. 공통 핵심 역량
 
@@ -358,6 +320,8 @@ registry의 일부인 것처럼 기록하지 않는다.
 
 ## 9. 갱신 규칙
 
+활성 경로 변경은 승인 범위에 한정한다. 아래 registry 규칙은 자료 변경이 별도로 요청될 때 적용하며 이번 개편에서 역사적 4~8절을 갱신하지 않는다.
+
 1. ID는 의미를 바꾸거나 재사용하지 않는다. 성과가 새로 필요하면 새 ID를 추가한다.
 2. 자료를 추가·교체하면 정확한 상대 경로와 SHA-256을 registry에 기록하고 해당 과정 `INDEX.md`와 양방향 일치를 확인한다. 각 INDEX는 `source_namespace`를 정확히 한 번 선언하며 모든 source ID가 그 namespace를 사용하고 다른 과정과 공유하지 않게 한다.
 3. 본문 전체, Markdown의 모든 로컬 자산, PDF의 모든 페이지를 확인하기 전에는 감사 상태를 `complete`로 두지 않는다.
@@ -365,5 +329,5 @@ registry의 일부인 것처럼 기록하지 않는다.
 5. 역량 연결은 `primary`, `supporting`, `context` 중 하나로 명시한다. `context`만으로 `충분`을 부여하지 않는다.
 6. 목표 깊이와 실제로 만들 수 있는 요구 근거를 비교해 충족도를 정한다. 자료가 바뀌면 관련 매핑과 오류·공백을 다시 감사한다.
 7. Registry 감사 요약 표의 과정·자료·자산·PDF 페이지·`limited` 개수는 실제 파일과 각 과정 `INDEX.md`를 기준으로 교차 확인한다. 자료를 바꿀 때는 public registry와 private INDEX의 경로·hash·개수·감사 상태를 함께 점검한다.
-8. 모든 target은 정확히 하나의 module에 배정하고 각 module은 정확히 하나의 `MODULE_ASSIGNMENT`를 참조한다. catalog 내부의 주요 묶음은 정해진 `PHASE_CAPSTONE`으로 연결하되, 이를 `ROADMAP.md` P0~P5의 추가 종료 gate로 적용하지 않는다. 선택형 full-stack module도 systems endpoint의 강제 gate가 아니다.
+8. 모든 target은 정확히 하나의 module에 배정하고 각 module은 정확히 하나의 `MODULE_ASSIGNMENT`를 참조한다. catalog 내부의 주요 묶음은 정해진 `PHASE_CAPSTONE`으로 연결하되, 이를 `ROADMAP.md` AX/RE의 추가 종료 gate로 적용하지 않는다. 선택형 full-stack module도 systems endpoint의 강제 gate가 아니다.
 9. module·milestone catalog에는 상태·날짜·점수·mastery를 기록하지 않는다. `PRE_LAB`과 보존된 이전 시도는 milestone credit으로 올리지 않으며, 실제 prerequisite readiness는 학습자가 남긴 target evidence에서 별도로 판단한다.

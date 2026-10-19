@@ -1,50 +1,84 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# LLM Research Learning Lab Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. 취업 우선의 프로젝트 경로
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+당장의 최우선 목표는 AX/AI 애플리케이션 직무 지원에 사용할 수 있는 직접 구현
+경험과 설명 가능한 포트폴리오다. LLM Research Engineer는 장기 목표로 유지한다.
+커리큘럼은 사용자 문제를 해결하는 작은 프로젝트의 작동 가능한 단위부터 연결해야
+한다. 장기 연구 과목의 이수나 광범위한 수학 선행 학습을 첫 프로젝트 또는 지원의
+진입 조건으로 두지 않는다. 특정 기간의 취업이나 채용 적합성을 보장하지 않는다.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. 목적을 이해하는 학습자 직접 구현
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+튜터는 구현 전에 해결할 문제, 이 코드가 필요한 이유, 앞뒤 단계, 입력·출력,
+관찰할 결과를 설명해야 한다. 학습자가 학습 대상 코드를 직접 작성·실행·해석한다.
+튜터는 허용된 환경 준비, 공식 API 설명, 관련 없는 작은 예제, 실제 코드와 출력의
+검토를 맡고 학습 대상의 완성 코드·답안·답을 담은 뼈대를 대신 작성하지 않는다.
+문서를 참고한 구현과 자료 없이 하는 회상은 별개의 근거로 다룬다.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. 최소 선수와 맥락 안의 개념 보강
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+개념은 현재 기능을 올바르게 구현·평가하는 데 필요한 범위로 선택해야 한다.
+필수 선수는 의존하는 작업 전에 설명하고, 다른 공백은 실제 구현·오류·비교에서
+확인한 뒤 해당 작업 안에서 보강한다. 각 개념에는 사용하는 기능 또는 복귀 조건이
+있어야 한다. 교과목 완강·전체 문제 세트·모든 수학 단원을 자동 의무화하지 않는다.
+데이터 분리·누수 방지·평가의 기본 조건은 첫 비교부터 지킨다.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. 실제 근거와 기존 기록 보존
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+기존 knowledge, TIL, 실습, 노트북, 저장 출력, 회고, archive와 비공개 원본은
+보존해야 한다. 커리큘럼 개편을 과거 기록 재작성이나 미완료 항목의 완료 처리로
+바꾸지 않는다. 기존 사내비 결과와 새 학습자의 직접 구현·실행을 구분한다.
+계획·설명·도움받은 실행·독립 구현·지연 회상·실제 운영을 서로 대신하는 증거로
+사용하지 않는다. 문서 검사 통과는 학습 효과나 취업 가능성의 입증이 아니다.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. 단순한 운영과 명확한 경계
+
+승인된 범위는 ROADMAP, 현재 위치와 다음 독립 행동은 STATE, 역량·자료 참고는
+CURRICULUM, 제외 사유와 복귀 조건은 DEFERRED에서 관리한다. 실행 규칙은 AGENTS와
+관련 스킬에 둔다. STATE를 유일한 학습 재개 북마크로 유지하고 LMS·진도 데이터베이스·
+자동 커리큘럼 선택기를 만들지 않는다. 한 단계의 내용은 기준 문서에서 관리하고
+다른 문서에는 필요한 요약과 링크만 둔다.
+
+## Scope and Boundaries
+
+- 이번 개편의 대상은 학습 경로와 그 실행 규칙이다. 실제 포트폴리오 구현과 모델
+  학습을 튜터가 대신 수행하거나 기존 사내비 저장소·배포를 변경하는 작업은 별개다.
+- 사내비는 프로젝트 맥락을 위한 참고다. 기존 코드 복사나 기존 팀 산출물을 새
+  독립 구현으로 세지 않는다. 공개 가능한 데이터와 라이선스를 확인한다.
+- 공식 자료와 API는 실제 확인한 판본·구간을 사용한다. 과거 감사 기록과 새로
+  확인한 자료를 구분하며 제목만으로 내용을 추측하지 않는다.
+- 공식 과제를 선택하면 해당 도움 정책·비공개 공간·별도 환경 규칙을 지킨다.
+  선택 해제는 과제 완료를 뜻하지 않는다. CS336의 명령 실행·AI 도움 제한을 유지한다.
+- 비밀정보·개인정보·비공개 수업 자료·공식 과제 답안은 공개 저장소에 넣지 않는다.
+  유료 자원 사용, 외부 게시·배포, 커밋·푸시는 기존에 허용된 범위를 따른다.
+- `web/`는 이번 개편의 대상이 아니다. 기존 파일과 다른 작성자의 변경을 보존한다.
+
+## Workflow and Validation
+
+공식 Spec Kit 스킬과 이 저장소에 설치된 실행 도우미를 사용한다. 명세를 만든 뒤
+사용자 검토를 받고, 구현 계획을 만든 뒤 다시 사용자 검토를 받는다. 이 검토는
+AGENTS의 명시적인 단계별 승인 규칙을 따른다. 계획 승인 후 작업 목록·정합성
+검토·구현·검증으로 이어간다. 실행 상태와 산출물을 다시 읽어 실제 결과를 확인한다.
+
+개편 검증은 요청과 명세의 대응, 문서 간 역할과 링크, 튜터의 프로젝트 진행 방식,
+보존 경계, 기존 검사 중 의도적으로 바뀐 규칙과 계속 유지할 규칙을 확인해야 한다.
+기존 검사를 일괄 삭제하거나 문구 일치만으로 교육적 타당성을 주장하지 않는다.
+이번 작업의 완료는 검증된 개편 문서와 실행 규칙의 반영이며, 학습자의 프로젝트
+완성·무보조 숙달·채용 결과를 뜻하지 않는다.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+이 헌법은 Spec Kit 명세·계획·작업의 검토 기준이다. 사용자의 명시적인 요청과
+적용되는 상위 지침이 우선한다. 사용자가 요청한 이번 경로 개편은 기존 경로를
+재설계할 권한을 포함하지만, 검토 중인 명세가 곧 운영 중인 커리큘럼은 아니다.
+승인 전에는 기존 운영 문서와 학습 기록을 바꾸지 않는다.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+원칙 변경은 근거·영향받는 문서·이행 방법을 기록한다. 호환되지 않는 원칙 변경은
+MAJOR, 새 원칙이나 실질적인 확장은 MINOR, 의미가 같은 명확화는 PATCH로 올린다.
+각 계획은 이 헌법과 사용자 요청의 일치 여부를 확인하고 예외가 있으면 이유와
+사용자 결정을 명시해야 한다. 아직 채택된 헌법이 없었으므로 이번 버전은 1.0.0이다.
+
+**Version**: 1.0.0 | **Ratified**: 2026-10-19 | **Last Amended**: 2026-10-19

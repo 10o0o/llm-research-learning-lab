@@ -1,22 +1,22 @@
 ---
 name: study-session
-description: Tutor and run manual recall within the learner's currently approved course. Use for resuming a study session, continuing its next action, closing the session, or explicitly requested weekly recall; do not use to choose a new course or create study records.
+description: Tutor and run manual recall within the learner's currently approved project or reselected course. Use for resuming a study session, continuing its next action, closing the session, or explicitly requested weekly recall; do not use to choose a new course or create study records.
 ---
 
 # Study session
 
-Follow the repository's [AGENTS.md](../../../AGENTS.md) for course scope, evidence, and permissions. `STATE.md` is the only handoff: read it at the start of each session and rely on no untracked conversation memory. Verify the exact, current official source segment before teaching it. Within an active session, reuse verified source details while they remain applicable; recheck for a new segment, changed requirements, or uncertainty. If the position is unclear, inspect only the relevant approved scope; do not begin with a readiness diagnostic or roadmap review.
+Follow the repository's [AGENTS.md](../../../AGENTS.md) for scope, evidence, and permissions. Directly read [learning-policies](../../references/learning-policies.md) at session entry; neither link presence nor automatic skill discovery establishes that it was read. Read the current unit in [ROADMAP](../../../ROADMAP.md) and only the relevant [CURRICULUM](../../../CURRICULUM.md) source/prerequisite section. AX/RE are static references, not progress keys; historical catalogs and the transition quotation never select the current action. `STATE.md` is the only handoff: read it at the start of each session and rely on no untracked conversation memory. Verify the exact, current official source segment before teaching it. Within an active session, reuse verified source details while they remain applicable; recheck for a new segment, changed requirements, or uncertainty. If the position is unclear, inspect only the relevant approved scope; do not begin with a readiness diagnostic or roadmap review.
 
 ## Route the request
 
-- `오늘 학습 시작`, `오늘 전체 학습 흐름 시작`, or `전체 학습 흐름 시작`: start at the current bookmark and continue through connected modules in the same approved course or assignment until the learner pauses or ends, a real blocker needs their input, or the approved course boundary is reached. Treat all three starts alike; never choose another course or skip a formal requirement.
+- `오늘 학습 시작`, `오늘 전체 학습 흐름 시작`, or `전체 학습 흐름 시작`: start at the current bookmark and continue through connected modules in the same approved project or reselected course/assignment until the learner pauses or ends, a real blocker needs their input, or the approved scope boundary is reached. Treat all three starts alike; never choose another course or skip a formal requirement.
 - `계속`: resume the next independent action in `STATE.md`.
 - A request to pause or review changes pauses tutoring; it is not an explicit study stop and does not trigger the closing commit or push procedure.
 - `오늘 학습 종료` or an equivalent explicit study-stop request: stop and follow the closing procedure below, including the authorized commit and push.
 - `이번 주 회상`: run the manual weekly recall below.
 - `$study-session`: follow the requested study or review mode.
 
-Do not choose a new target, change sequence, skip official scope, route to another course automatically, or insert per-turn confirmations or readiness gates. Do not create separate tracking artifacts. Give the exact source title and version, direct link, assigned scope, official practice, and expected outputs. Verify details against the source and actual practice requirements. Video, text, and source-grounded dialogue are all valid ways to learn; do not describe dialogue as video viewing. Use only ROADMAP's approved selected scope. Distinguish full official work, selected parts, arbitrary scaled runs, officially permitted low-resource adaptations, and incomplete requirements. Keep each official exercise a separate learner task and follow its AI and environment policies. A tutor example or completed notebook must never replace learner practice. After feedback, keep moving along the current route by teaching the next verified source segment or giving the next learner activity; wait only when their answer or execution is needed. Do not ask whether to continue after each step.
+Do not choose a new target, change sequence, skip official scope, route to another course automatically, or insert per-turn confirmations or readiness gates. Do not create separate tracking artifacts. Give the exact source title/version, direct link, current scope and expected outputs. For a selected official exercise, inspect its actual requirements; a project unit does not require completion of every reference course. Verify details against the source and actual practice requirements. Video, text, and source-grounded dialogue are all valid ways to learn; do not describe dialogue as video viewing. Use only ROADMAP's approved selected scope. AX develops one service through AX-01~04; RE-01~04 provides later model/LM/specialization/independent-experiment depth. User examples are not a fixed technology order. Do not restore P0~P5, full problem sets, fixed hours or mandatory competitions as hidden gates. Distinguish full official work, selected parts, arbitrary scaled runs, officially permitted low-resource adaptations, and incomplete requirements. Keep each official exercise a separate learner task and follow its AI and environment policies. A tutor example or completed notebook must never replace learner practice. After feedback, keep moving along the current route by teaching the next verified source segment or giving the next learner activity; wait only when their answer or execution is needed. Do not ask whether to continue after each step.
 
 ## Close a study session
 
@@ -41,9 +41,24 @@ report the commit, destination, and next resume action briefly.
 
 ## Teach and review
 
+Before a new implementation unit, explain its ten ROADMAP elements: user problem,
+implementation purpose, previous/next connection, inputs/outputs, entire data flow,
+learner-owned work, observable results, completion boundary, minimal prerequisites,
+and concepts to deepen when an actual gap appears. Reuse already established
+context rather than repeating a ten-item form for every response. Teach genuine
+prerequisites before dependent work; no long planning answer or entire math course
+is an entry test. Select the small first coding action inside that flow.
+
+The tutor owns permitted source/environment/kernel/start-space preparation; the
+learner owns target code, learning-data construction, execution and first
+interpretation. Inspect rights, conflicts and real environment facts first. Preparing
+raw source material is distinct from authoring target training/evaluation data.
+The curriculum redesign itself authorizes documentation/checks, not project setup,
+model training/inference, API calls or future practice-folder creation.
+
 Before an implementation attempt, identify the current activity from STATE,
 the verified source, and actual artifacts: supplied-starter work, existing-code
-reproduction, or representative unassisted reconstruction/recall. Apply AGENTS.md's
+reproduction, or representative unassisted reconstruction/recall. For a new project implementation, prepare rights-cleared inputs and a blank implementation space without target code or answer-bearing skeletons. Apply AGENTS.md's
 setup responsibility and prepare the permitted starting state. Do not turn
 reproduction into another blank-page exercise or hand routine preparation back
 to the learner. Inspect facts before asking; request only missing source/goal
@@ -96,8 +111,7 @@ each corrected answer that leaves the learner at the same point. Keep only
 important open items and a concise current basis there, not a session history;
 keep routine edits quiet.
 
-During implementation or debugging, connect representative practical work to
-data -> model -> loss -> train -> eval. Select checks for the current goal and
+During implementation or debugging, trace the current flow: application input -> validation -> baseline/model -> output checks -> evaluation; retrieval corpus/query -> evidence -> answer/abstention; tools -> state/error -> verified outcome. For model work, connect data -> model -> loss -> train -> eval. Select checks for the current goal and
 observed gap: predicted shapes for a tensor-contract issue, a small-batch
 overfit check for training diagnosis, and an initial cause hypothesis when an
 error actually occurred. These implementation checks do not add a quiz to an
@@ -117,18 +131,37 @@ Revisit representative units after a delay (for example, several days) with
 changed dimensions, distributions, or representations, using existing notes
 and verified chronology. Give no answer cues during cold recall. Subsequent
 help does not turn that first attempt into independent success. Repair the
-observed gap and continue the approved lesson; do not restart the entire Phase.
+observed gap and continue the approved lesson; do not restart the entire approved route.
 This does not schedule an automation or require rewriting every assignment.
 
 ## Manual weekly recall
 
 The learner starts this manually with `이번 주 회상` during the last study session of the week; an explicit request for weekly recall is the entry condition. Select two concepts actually studied in the previous week and one earlier concept from existing notes or reviews with verified chronology. File existence, modification time, and commit time do not establish when learning occurred. If chronology is unknown, ask only for the missing fact; if no older concept is available, say so.
 
-Ask for one combined cold recall without advance answer cues. After feedback, connect the single most consequential gap to a relevant official exercise you have inspected. Preserve other gaps in existing recheck items, and keep the original course resume position unless a resume change is confirmed. Do not make an execution-date tracker, reminder, generated practice, report, automatic record, note, reset, archive, commit, or push. Update STATE only as AGENTS permits.
+Ask for one combined cold recall without advance answer cues. After feedback, connect the single most consequential gap to a relevant existing task in the approved project or a reselected official exercise you have inspected. Do not restore a held course to supply a follow-up. Preserve other gaps in existing recheck items, and keep the original course resume position unless a resume change is confirmed. Do not make an execution-date tracker, reminder, generated practice, report, automatic record, note, reset, archive, commit, or push. Update STATE only as AGENTS permits.
 
-The follow-up exercise is practice after recall, not another cold-recall test. Give a complete, accurate paraphrase of its relevant givens, conditions, and required output under the course's publication rules, without its solution. Briefly name which other gaps remain open. If no gap was observed, do not manufacture one or assign redundant repair practice.
+The follow-up project task or selected exercise is practice after recall, not another cold-recall test. Give a complete, accurate paraphrase of its relevant givens, conditions, and required output under the course's publication rules, without its solution. Briefly name which other gaps remain open. If no gap was observed, do not manufacture one or assign redundant repair practice.
 
-At a confirmed chapter transition, invoke the existing [finish-chapter skill](../finish-chapter/SKILL.md), under its existing permissions. Its explicit invocation remains available under AGENTS. A normal stop or weekly recall does not invoke it.
+AX/RE unit completion alone does not invoke finish-chapter, create TIL/knowledge/reviews, reset a notebook or authorize Git operations. At a confirmed actual chapter transition, invoke the existing [finish-chapter skill](../finish-chapter/SKILL.md), under its existing permissions. Its explicit invocation remains available under AGENTS. A normal stop or weekly recall does not invoke it.
+
+## Evaluation in each unit
+
+From the first baseline identify the task, independent cases, duplicate/group/time
+boundaries, development/final evaluation, chosen metrics and model-selection scope.
+Separate corpus indexing from evaluation queries/qrels; fit/selection for learned
+models stays within train/dev. If final examples informed changes, disclose reuse.
+Compare baseline/changed factors/fixed conditions, actual results and failure cases.
+An interpreted performance decrease is useful evidence; an unexecuted call remains
+unexecuted. Check agent-reported success against actual local state/permissions.
+LLM-judge scores need comparison to human criteria, not automatic truth status.
+Keep quality/latency/cost observations scoped; local execution is not production.
+
+AX-01 can support early JD comparison once problem, working feature, evaluation/
+failure, reproduction conditions, contribution/help and claim limits are available.
+The main portfolio joins AX-01~04. Do not delay applications until every RE unit,
+optional fine-tuning or external deployment is complete, or promise eligibility.
+Read actual JD requirements/preferred items/experience/degree and compare actual
+learner evidence; old source snapshots do not establish current recruiting.
 
 ## Mathematical display
 

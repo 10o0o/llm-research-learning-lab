@@ -51,6 +51,8 @@
 
 ## 챕터 마무리
 
+AX/RE 단위 완료 자체는 챕터 경계가 아니며 기록·knowledge·노트북 초기화·Git 권한을 만들지 않습니다.
+
 확인된 챕터 전환에서는 다음 챕터를 시작하기 전에
 [마무리 스킬](../.agents/skills/finish-chapter/SKILL.md)을 기본 수행합니다.
 `$finish-chapter` 또는 `이번 챕터 정리해줘`로 명시적으로 호출할 수도 있습니다.
@@ -82,12 +84,16 @@ KANT live labs에서 제공된 프로젝트의 개인 작업 사본과 결과는
 이 사본과 결과는 공개 Git에서 제외되며, 필요한 파일은 별도로 백업합니다.
 제공 프로젝트의 환경 설정과 요구사항을 확인한 뒤 별도 `uv` 환경을 준비합니다.
 
+## 승인 경로의 예정 작업 공간
+
+공개 가능한 자체 코드는 `practice/ai-applications/workflow-assistant/`, 원자료/평가 정답·큰 출력/가중치는 ignored `practice/private/workflow-assistant/`를 후보로 둡니다. **문서 개편에서 이 실습 폴더·대상 코드·학습 데이터·모델은 생성하지 않습니다.** 실제 학습 시작 때 권리·평가 가능성·환경/비용·비어 있지 않은 공간 충돌을 확인하고 튜터가 허용 준비를 맡습니다. 원 사내비/팀 코드를 가져오면 출처·도움을 구별하고 새 독립 구현으로 세지 않습니다. 이전 STATE만의 근거는 [이행 전 인용](./reviews/curriculum-transition.md)에 있으며 현재 재개에는 쓰지 않습니다.
+
 ## 기본 원칙
 
 - 일반 학습에서는 새 연습을 임의로 만들지 않습니다. 현재 승인된 실습에
   필요한 시작 자료와 작업 공간은 Agent가 생성·복구할 수 있습니다.
-  [준비 책임](../AGENTS.md#learning-setup-and-starting-materials)을 따릅니다.
-- 공식 구현·exercises·assignments가 기본 실습입니다.
+  [준비 책임](../.agents/references/learning-policies.md#learning-setup-and-starting-materials)을 따릅니다.
+- 승인된 AX/RE 프로젝트의 작은 직접 구현이 기본입니다. 공식 과제를 선택하면 그 활동의 원문·starter·exercises/assignments 요구와 정책을 따르며 완성 예제로 대신하지 않습니다.
 - KANT는 진도·주제 대조용 보조이며 기본 실습이나 완료 기준으로 사용하지 않습니다.
   같은 주제의 독립 품질·도움·공개 권한이 확인되면 재사용하되 공식 필수 과제 완료를 대신하지 않습니다.
 - 위 준비 범위 외의 파일 생성·수정은 정확한 요청이나 확인된 챕터 전환의
@@ -153,26 +159,7 @@ Notebook을 확인할 때는 파일을 통째로 읽지 않고 `scripts/nbpeek.p
 
 ## 과목별 도움 범위
 
-선택 범위는 [`ROADMAP.md`](../ROADMAP.md), 미완료 보류와 복귀 조건은
-[`DEFERRED.md`](../DEFERRED.md)를 따릅니다. MIT 18.05 Spring 2022 전체
-reading·in-class·온라인 문제·PS1~PS11·R 튜토리얼은 필수 조건에서 제외하며
-미선택 활동은 미완료 보류합니다. 확률·통계 핵심은 기존 MLP와 CS229·ISLP의
-모델 학습·평가에 연결합니다. 선택한 공식 활동이 요구할 때만 R을 사용하고
-Python/PyTorch 모델 실습을 MIT 공식 과제 완료로 기록하지 않습니다.
-
-CS229 Summer 2020 PS1~PS3 필수 written·coding을 유지합니다. PS3의 RL·ICA도
-필수이며 그 밖의 추가 심화 보류와 구분합니다. 보조 재구현은 공식 PS를 대신하지 않습니다.
-
-CS231n Spring 2024 A2 Q1~Q3만 선택합니다. Q4·Q5·전체 CV 과정은 미완료 보류입니다.
-[CS224N Spring 2024, 1246](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html)은
-A3 Q1(i)와 A4 Q1~Q2 written을 사용하며 나머지 written·programming·Final Project는
-보류입니다. 공식 정책은 직접 답 요구·복사와 AI의 실질적 과제 대행을 금지합니다.
-선택 범위를 A1~A4 전체 완료라고 하지 않으며 Winter 2024, 1244와 혼용하지 않습니다.
-
-CS336 A1은 P3의 공식 독립 구현 기준입니다. 교육용 핵심, 임의 축소 실험,
-공식 허용 저자원 경로 수행을 구분합니다. A2는 P4 학습 profiling·memory·kernel·
-parallelism의 선택 자료이며 별도 inference/운영 workload를 설계합니다. B200·
-다중 GPU 미검증을 로컬 실행으로 채우지 않고 Triton backward는 OPTIONAL입니다.
+선택 범위는 [ROADMAP](../ROADMAP.md), 선수·자료는 [CURRICULUM](../CURRICULUM.md), 제외 이유/복귀 조건은 [DEFERRED](../DEFERRED.md), 실제 정책은 [learning-policies](../.agents/references/learning-policies.md#course-specific-scope-and-assistance)를 따릅니다. 옛 전체 PS·수학·고정 시간/대회·Phase 순서를 현재 프로젝트의 필수 gate로 복원하지 않습니다. 재선택한 공식 활동의 Optional·Bonus/미완료·AI/private/별도 환경은 유지합니다. CS224N은 Spring 2024 archive 1246이며 과거 A3 Q1(i)·A4 Q1~Q2 written 선택과 나머지 written/programming/Final Project의 미완료는 새 전체 완료가 아닙니다. 기존 노트북·회고·도움/출력 이력은 보존합니다.
 
 빈 파일 재구현은 대표 단위만 확인합니다. 공식 수행, API-doc-assisted 실무 구현,
 자료를 닫은 회상과 며칠 뒤 전이는 별도 근거이며 도움받은 코드는 무보조 성공이 아닙니다.

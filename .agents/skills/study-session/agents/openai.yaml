@@ -1,7 +1,7 @@
 interface:
   display_name: "학습 세션"
-  short_description: "현재 승인된 학습 코스를 이어가고 주간 회상 진행"
-  default_prompt: "$study-session으로 현재 승인된 코스를 이어 학습하거나 이번 주 회상을 진행해 주세요."
+  short_description: "승인된 프로젝트 맥락·직접 구현·평가와 요청한 회상 진행"
+  default_prompt: "$study-session으로 STATE의 승인 단위에서 목적·흐름과 최소 선수를 설명한 뒤 직접 구현·실행·첫 해석을 이어가거나 요청한 주간 회상을 진행해 주세요."
 
 policy:
   allow_implicit_invocation: true

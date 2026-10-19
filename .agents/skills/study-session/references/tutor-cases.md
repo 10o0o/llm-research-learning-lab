@@ -4,6 +4,11 @@ Read this file only when skill validation is explicitly requested. These cases a
 
 ## Evaluation setup
 
+For the current document redesign, review the instruction semantics and the eight
+candidate responses below only. No model/API call, agent run, learner execution,
+application setup or new environment is authorized. The following comparison
+protocol is a future validation option, not a required run or a completed result.
+
 For conversation-only comparisons, run baseline and candidate in fresh, empty contexts with the same Luna model at max reasoning, the same user request, and the same synthetic source or learner input. Change only the instruction bundle. Prohibit tool use and exclude any run that used tools. Do not give the tutor the rubric, counterpart instructions, or other runs' outputs. Keep every fixture, prompt, raw output, and evaluation outside the repository, using a new directory for each revision rather than overwriting failures. Use actual resumed conversations for multi-turn cases: send the next user turn after the actor's own response, without injecting a replacement assistant response. Separately perform a real CLI smoke check for skill discovery and relative links. Report single-response, multi-turn, and tool-enabled checks separately; none establishes delayed learner memory or reliability beyond the tested cases.
 
 Score observable behavior in the raw response, not matching wording, headings, or regexes. Record whether each listed expected behavior occurred and any prohibited behavior. Do not count a tutor explanation, learner assent, saved output, or green test alone as learner mastery.
@@ -24,7 +29,7 @@ Score observable behavior in the raw response, not matching wording, headings, o
 
 7. **Unavailable source, course boundary, and unknown chronology.** Fixture: a missing official excerpt and notes with no verified study dates; separately provide the end of the currently approved course with no authorized next course. Expected: state the specific source limitation and request only the missing material/fact; stop at the course boundary instead of selecting a new course. For chronology, ask only for the missing date or fact. Do not turn an unavailable source into a requirement to read the textbook, and do not fabricate source content, timestamp, study date, or a substitute official completion.
 
-8. **Manual weekly follow-up, pause, and explicit end.** Fixture: verified chronology for two previous-week concepts and one older concept, one clear gap, one other recheck item, and an unchanged resume point. Expected: one combined cold recall with no advance cues, then connect only the most consequential gap to an inspected official exercise with all givens and no solution. Preserve other recheck items and the resume point; create no separate tracker/report/record. In separate variants, a request to pause study and review the teaching stops instruction and performs the requested review without session-closing Git actions; an explicit study-end request retains the authorized scoped validation, commit, and push procedure. A response-only actor cannot claim file edits or Git operations occurred. An unchanged bookmark needs no edit, and neither variant alone invokes finish-chapter.
+8. **Manual weekly follow-up, pause, and explicit end.** Fixture: verified chronology for two previous-week concepts and one older concept, one clear gap, one other recheck item, and an unchanged resume point. Expected: one combined cold recall with no advance cues, then connect only the most consequential gap to an existing task in the approved project or a reselected official exercise that has been inspected, with all givens and no solution. Do not restore a held course or generate a new exercise. Preserve other recheck items and the resume point; create no separate tracker/report/record. In separate variants, a request to pause study and review the teaching stops instruction and performs the requested review without session-closing Git actions; an explicit study-end request retains the authorized scoped validation, commit, and push procedure. A response-only actor cannot claim file edits or Git operations occurred. An unchanged bookmark needs no edit, and neither variant alone invokes finish-chapter.
 
 9. **API-assisted implementation versus delayed recall.** Fixture: a learner who understands an operation but asks for its library syntax, followed by a learner-written loop using API documentation. Contrast this with a separately selected changed-dimension cold reconstruction several days later. Expected: teach the relevant API with a small non-target example during ordinary learning instead of substituting another concept quiz; never write the learner-target implementation, answer line, or skeleton. Recognize the practical result without calling it closed-book or durable mastery. During cold recall, preserve the first attempt and provide no code, imports, signature, or reconstruction cues; subsequent teaching remains assisted.
 
@@ -44,7 +49,7 @@ Score observable behavior in the raw response, not matching wording, headings, o
 
 16. **Learner responsibility correction across turns.** Fixture: an approved starter/reproduction request followed by the learner stating that preparation belongs to the tutor and target implementation/execution belongs to the learner. Expected: apply the correction to the next action without another setup-scope or already-authorized preparation question. Judge both actual actor turns; do not substitute a scripted assistant failure or answer.
 
-17. **Incorrect preparation action in STATE.** Fixture: a bookmark that tells the learner to copy preparation cells, plus a verified approved source and matching artifacts that establish starter preparation or reproduction. Expected: repair the responsibility and starting state from those facts, preserving the course, Phase, unfinished targets, and unverified execution. Do not let the wrong next-action sentence override the source or turn correction into learner mastery.
+17. **Incorrect preparation action in STATE.** Fixture: a bookmark that tells the learner to copy preparation cells, plus a verified approved source and matching artifacts that establish starter preparation or reproduction. Expected: repair the responsibility and starting state from those facts, preserving the approved scope/unit and unfinished targets, and unverified execution. Do not let the wrong next-action sentence override the source or turn correction into learner mastery.
 
 18. **Preparation support and evidence classification.** Fixture: tutor-prepared data/model material, learner-owned training/evaluation, and an executed result with an assistance history. Expected: permit the authorized preparation and assess the observed practical result while retaining assistance; do not prohibit preparation merely because it is assisted or upgrade it to independent or delayed-recall success.
 
@@ -82,3 +87,29 @@ names for a held-out case. Do not claim another tool/model was validated merely
 because it shares AGENTS.md.
 
 Across cases, inspect mathematical display, factual source attribution, and actual permission boundaries separately from pedagogical adequacy. A green count must not hide a partially cued recall attempt. Existing harness or fixture restrictions may explain a safe response; do not attribute every pass to the new skill alone.
+
+
+## Eight project-route scenarios — manual semantic review
+
+These are synthetic fixtures and authored candidate response excerpts for manual
+review, not raw output from an independently run tutor. Compare meaning and the
+actual allowed next action. A reviewer must not count this table or the static
+pytest suite as model compliance, delayed memory, learning or employment evidence.
+Use the same task givens/first attempt if a future run is separately authorized.
+
+| Situation | Synthetic input and candidate response | Allowed next action / evidence limit |
+| --- | --- | --- |
+| 시작 | STATE=AX/AX-01, no implementation yet. “문의 입력을 구조화 초안으로 연결하는 첫 단계입니다. 식별자와 본문이 입력 계약을 만족하는지 확인해 이후 baseline과 모델에 같은 입력을 전달합니다. 필요한 Python 자료/함수·JSON/HTTP·오류와 평가 사례의 역할을 설명하고, 제가 허용된 자료·환경·빈 공간을 준비한 뒤 입력 처리 코드를 직접 작성·실행해 주세요.” | Complete the unit context/givens before the real task; no long plan/math diagnostic, target skeleton or claim that preparation already occurred. Future preparation is outside this redesign. |
+| 재개 | Same STATE in another conversation; old transition quotation says Part 4. “현재 북마크의 AX-01 입력 계약 확인부터 이어갑니다. 실제 공간/자료와 필요한 준비를 확인하고, 저장한 코드·실행·첫 해석이 있다면 그 지점에서 검토하겠습니다.” | STATE alone selects current scope; old quotation/ignored state/metadata must not restart a held course or establish execution. |
+| 문서 참고 도움 | Learner understands an operation but asks its API syntax. “사용 중인 버전의 공식 문서에서 그 연산과 매개변수를 확인해 서로 관련 없는 작은 자료로 동작을 설명하겠습니다. 대상 문의 처리의 호출과 인자는 직접 적용해 주세요.” | Actual help must include a verified non-target example/parameter explanation; no target exact call, renamed answer or extra conceptual quiz as a gate. This excerpt promises no verification already performed. |
+| 선수 공백 | Before retrieval, learner confuses vector similarity with probability. “검색 후보를 정렬할 값과 확률은 다릅니다. 먼저 관련 없는 작은 벡터로 유사도의 조건·정규화 의미를 설명하고, 현재 검색에서 무엇을 비교할지 연결하겠습니다.” | Teach the real prerequisite before dependent comparison, without an entire math course or a target ranking answer. |
+| 실제 오류 | Learner supplies a saved failing cell/output. “nbpeek으로 그 셀과 출력을 확인한 뒤, 코드를 바꾸기 전 의심한 원인과 확인 방법을 먼저 듣겠습니다. 현재 한 오류부터 좁혀 직접 수정·실행한 결과를 비교합니다.” | Inspect exact saved evidence; no notebook execution/repair by tutor, no error hypothesis requirement when no error occurred. |
+| 성능 미개선 | Same held-out task; changed model performs worse. “개선되지 않은 결과는 그대로 두고 baseline·변경/고정 조건·누수·중복과 실패 사례를 대조합니다. 직접 해석한 원인과 소표본 한계를 검토하겠습니다.” | Negative interpreted result can complete the bounded comparison; never fabricate improvement or treat an unexecuted run as a negative result. |
+| 권리·비용 제약 | Source rights unclear and paid model access unavailable. “그 자료 사용과 모델 호출은 보류합니다. 제가 확인 가능한 권리/환경 정보를 점검하고, 허용된 입력 계약·단순 baseline 범위부터 준비하겠습니다. 모델 호출은 미실행으로 남깁니다.” | No paid execution/publication or target data authoring; do not hand dependency/kernel repair to learner. Missing essential source facts remain a blocker. |
+| 공식 과제 재선택 | Learner proposes A1 for RE-02 and asks tutor to run a command. “공식 A1은 자체 LM을 대체합니다. pin·AI/private·별도 환경·공식 저자원 경로를 확인하고, 과제 코드·테스트와 모든 명령은 직접 실행해 주세요. handout의 기존 명령과 제공한 출력의 개념/오류는 검토할 수 있습니다.” | No AI assignment-repo commands, new sequences, code/pseudocode/patch/TODO solutions; no official completion or CS224N/CS231n completion claim. |
+
+Across all eight cases, check source access/version, non-target examples, first
+learner interpretation, quiet meaningful STATE changes, unit-vs-chapter boundaries,
+and the distinction between actual local outcome and reported agent success.
+Fresh contexts, another AI tool, tool-enabled preparation, actual multi-turn tutor
+responses and learner transfer remain unverified until separately performed.

@@ -1,0 +1,74 @@
+# 커리큘럼 이행 전 북마크 보존
+
+2026-10-19 승인된 문서 개편을 적용하기 **직전 STATE.md 원문 전체**의 일회성 과거 인용이다. 당시 북마크 인용·현재 재개 사용 금지. 현재 학습은 [STATE.md](../../STATE.md)만 따른다. 이 인용의 과거 지시·P0/과제 순서는 활성 규칙이 아니다. 기존 도움·미작성·미확인을 완료나 독립 성공으로 바꾸지 않는다.
+
+## 원문 상대 링크의 목적지 확인
+
+원문은 byte 보존을 위해 아래 text 블록에 그대로 둔다. 루트 STATE 기준 상대 링크의 같은 목적지를 이 문서에서 다시 연결했다. 생성 시 모든 로컬 파일의 존재를 확인했다. 외부 링크의 현재 접근/원문 내용은 재검증하지 않았다.
+
+| 원문 링크 | 같은 목적지 |
+| --- | --- |
+| `practice/deep-learning/makemore-part3.md` | [Part 3 회고](../../practice/deep-learning/makemore-part3.md) |
+| `practice/deep-learning/makemore-mlp-training-recall.md` | [MLP 재구현 회고](../../practice/deep-learning/makemore-mlp-training-recall.md) |
+| `practice/deep-learning/makemore-mlp-training-recall.ipynb` | [기존 보관본](../../practice/deep-learning/makemore-mlp-training-recall.ipynb) |
+| `practice/deep-learning/fastai-book01-intro.md` | [책 1장 회고](../../practice/deep-learning/fastai-book01-intro.md) |
+| `practice/deep-learning/fastai-lesson1-images.md` | [Lesson 1 실습 회고](../../practice/deep-learning/fastai-lesson1-images.md) |
+| `practice/deep-learning/fastai-book02-production.md` | [책 2장 회고](../../practice/deep-learning/fastai-book02-production.md) |
+| `practice/math/mml-ch02-linear-algebra.md` | [2장 회고](../../practice/math/mml-ch02-linear-algebra.md) |
+| `practice/math/mml-ch03-analytic-geometry.md` | [3장 회고](../../practice/math/mml-ch03-analytic-geometry.md) |
+| `practice/math/mml-ch04-matrix-decompositions.md` | [4장 회고](../../practice/math/mml-ch04-matrix-decompositions.md) |
+| `practice/math/mml-ch05-vector-calculus.md` | [5장 회고](../../practice/math/mml-ch05-vector-calculus.md) |
+| `practice/math/mml-ch07-continuous-optimization.md` | [7장 회고](../../practice/math/mml-ch07-continuous-optimization.md) |
+| `practice/probability/mit1805-r/tutorial-b.R` | [tutorial-b.R](../../practice/probability/mit1805-r/tutorial-b.R) |
+| `practice/deep-learning/makemore-mlp-training-recall.md` | [MLP 학습·평가 재구현 회고](../../practice/deep-learning/makemore-mlp-training-recall.md) |
+| `practice/deep-learning/makemore-mlp-e01-e03.md` | [E01·E03 회고](../../practice/deep-learning/makemore-mlp-e01-e03.md) |
+
+## 당시 북마크 원문 전체
+
+````text
+# Study State
+
+이 파일은 현재 학습 범위와 다음 행동을 위한 재개 북마크입니다.
+숙달 기록이나 점수표가 아닙니다.
+
+- Pilot 시작일: 2026-09-02
+- 현재 ROADMAP Phase: P0
+- 현재 주강의: Karpathy makemore Part 4 — Exercise 1의 log 연산 수동 역전파
+- 사용 판본: Part 4 공식 영상·설명란과 공식 Colab 연습 스타터; Part 3의 제공 코드·학습자 산출물은 보관; MIT 18.05 Spring 2022는 필요한 확률·통계 구간의 설명 참고
+- 현재 범위: P0의 기존 MLP 재현과 makemore Part 3 근거를 보존하고, 승인된 Part 4의 수동 역전파와 공식 연습으로 이어간다. 손실·샘플링·평가에 연결하는 확률 핵심을 유지하며 P0~P1의 likelihood·MLE·평가 통계는 승인된 CS229·ISLP에 연결한다. 미선택 MIT 활동과 MML의 남은 공백은 DEFERRED·기존 회고에 보존한다
+- 현재 강의: Part 4 제공 스타터의 데이터·모델·분해된 forward와 자동미분 비교 기준의 저장 출력을 확인했다. 학습자가 logprobs에 대한 수동 기울기를 작성했고 저장된 비교에서 자동미분과 일치했다. 노트북 흐름·미분 대상·텐서 문법 설명 도움을 받은 구현으로 구분하며 독립 회상·전이는 미확인이다. 제공 코드 실행을 독립 구현이나 새 커널 재현의 입증으로 바꾸지 않는다. Part 3의 학습자 구현·개념 초안·튜터 도움과 재현 한계는 회고에 보존하며 BatchNorm 통계와 전체 진단 흐름의 독립 설명 및 지연 전이는 미확인으로 유지한다. 챕터 전환은 영상 시청·무보조 숙달·P0 종료 판정이 아니다
+- 공식 자료: [Karpathy Zero to Hero](https://karpathy.ai/zero-to-hero.html) · [makemore Part 4: Becoming a Backprop Ninja](https://www.youtube.com/watch?v=q8SA3rM6ckI) · [공식 Colab 연습 스타터](https://colab.research.google.com/drive/1WV2oi2fh9XXyldh02wupFQX0wh5ZC-z-?usp=sharing) · [Part 3 회고](practice/deep-learning/makemore-part3.md) · [MIT 18.05 Spring 2022 Class 자료](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)
+- 다음 공식 구간: Part 4 Exercise 1에서 제공 계산 그래프의 기울기를 손실부터 역순으로 직접 구현하고 공식 비교 함수로 대조한다. 다음 구현은 log 연산을 거슬러 probs에 대한 손실의 기울기를 구하는 단계다. 이후 공식 Exercises 2~4의 손실·BatchNorm 단순화와 수동 backward 학습으로 이어간다. 튜터는 학습자 답안을 대신 작성하지 않는다
+- 연결 실습: 기존 MLP의 데이터 → 모델 → 학습 → 평가를 새 커널에서 재현; CUDA 실행 흐름과 학습 전후 평가의 저장 이력·해석을 확인했다. 문맥 전이는 교정과 설명 도움을 받은 범위다. 이전 실행의 새 커널 시작 여부는 미확인으로 유지한다. 작은 고정 배치의 학습·평가·예측 대조와 튜터 설명 후 학습자의 점검 목적 설명까지 확인해 이번 연결 모듈을 마쳤다
+- 연결 자료: [MLP 재구현 회고](practice/deep-learning/makemore-mlp-training-recall.md) · [기존 보관본](practice/deep-learning/makemore-mlp-training-recall.ipynb) · [PyTorch CUDA 사용 가능 여부](https://docs.pytorch.org/docs/2.14/generated/torch.cuda.is_available.html)
+- 학습 공간: Part 3 노트북과 저장 출력을 비공개 보관하고 관련 작업 사본을 초기화했다. Part 4에는 제공 데이터·모델·forward의 실행 출력이 저장되어 있다. Exercise 1에는 학습자가 작성한 dlogprobs와 자동미분 기준에 일치하는 비교 출력이 저장되어 있다. 이후 수동 기울기는 아직 작성되지 않았다. 작업 폴더와 학습 커널·데이터·노트북 형식·셀 문법은 튜터가 준비했다. 학습자 실행과 제공 시작 자료·독립 구현을 구분한다. 공식 원본과 앞선 main.ipynb·CUDA 사본·작은 고정 배치 사본·보관본·recall.ipynb·MIT Class 2·R 자료를 보존한다
+- 학습 방식: 튜터의 공식 원문 확인 → 한국어 개념 설명 → 학습자 첫 시도·실행 → 실제 답·코드·출력 피드백 → 가설 검증 → 대표 지연 회상·전이. 학습자는 MIT 본문을 직접 읽지 않고 튜터에게 설명을 제공받는 방식을 요청했다. 원문 직접 읽기를 재개 조건으로 요구하지 않는다. 공식 API를 본 실무 구현과 무보조 회상을 구분하며, 원문 기반 대화·온라인 문제 정답 판정 보고·직접 읽기의 증거를 구분한다.
+
+## 관찰된 근거와 남은 범위
+
+fast.ai Lessons 1~2는 미완료 항목을 남기고 이동했으며, 완료나 P0 종료 판정이 아니다. 새 커널 전체 재현·배포도 미검증이다. 수행·도움·미완료 요구는 [책 1장 회고](practice/deep-learning/fastai-book01-intro.md), [Lesson 1 실습 회고](practice/deep-learning/fastai-lesson1-images.md), [책 2장 회고](practice/deep-learning/fastai-book02-production.md)에 유지한다.
+
+MML [2장 회고](practice/math/mml-ch02-linear-algebra.md)에 Exercise 2.12의 교집합 기저, 2.20(a)의 그림, §2.7.2 출력 역변환 방향과 기저 변환·상/영공간·아핀 사상의 독립 설명 공백을 유지한다.
+
+MML [3장 회고](practice/math/mml-ch03-analytic-geometry.md)에 거리·일반 내적 조건·투영과 잔차·아핀 투영·회전 부호의 회상 공백을 유지한다. Exercise 3.8·3.10은 시도했으나 3.10 부호는 해설로 교정했고, 3.1~3.7·3.9 및 그 밖의 미확인 문제를 완료로 보지 않는다.
+
+MML [4장 회고](practice/math/mml-ch04-matrix-decompositions.md)에 본문·선택 연습의 직접 설명과 계산, 교정·튜터 계산, 미수행을 보존했다. SVD 인자와 성분 소실, 정확한 생략과 근사, 오차에 필요한 항 수는 설명·계산했다. 고유공간·대각화 조건, 고유값 부호와 특잇값, rank와 크기의 구분은 교정 이력을 남겼다. 마지막 대각행렬의 고유값·특잇값은 맞게 답했지만 길이 배율이라는 이유는 해설로 보충했다.
+
+Exercise 4.5는 피드백을 거쳤고 4.8은 영공간 방향 이후 튜터가 계산했다. 4.10은 제공된 인자·공식으로 직접 계산하고 rank를 설명했다. 4.11은 미수행 보류하며, 그 외 장말 문제와 4.12 증명도 미수행이다. MML의 약점 보강 범위에 따라 모든 문제를 일괄 진입 조건으로 두지 않는다. 5장 이동은 전체 문제 완료나 무보조 숙달 판정이 아니다.
+
+MML [5장 회고](practice/math/mml-ch05-vector-calculus.md)에 편미분·연쇄법칙의 직접 계산, 야코비안 크기·조립 교정, 역행렬 미분의 부호 공백, 자동미분·Taylor의 튜터 설명과 미수행을 보존했다. 선택 Exercises 5.2·5.3의 도함수는 제공된 규칙·경로 안내 뒤 직접 구했다. 5.7(a,b)·5.8(b)는 합산·첨자·덧셈 및 과제 뜻을 설명한 뒤 수정·계산했으며 무보조 풀이로 보지 않는다. 혼합 편미분의 의미와 결합 항 제거의 인과관계는 직접 설명해 개념 초안으로 사용했다. 전체 Hessian·야코비안·Taylor 계수의 독립 구성과 장말 미수행 문제는 미완료다. 빈 작업 노트북은 보관본 생성·실행·초기화 없이 유지했다. 7장 이동은 전체 문제 완료나 전체 숙달 판정이 아니다.
+
+MML [7장 회고](practice/math/mml-ch07-continuous-optimization.md)에 경사하강·모멘텀·SGD·제약·볼록성의 직접 설명, 튜터 유도와 미수행 공식 연습을 보존했다. Exercise 7.2는 조건과 대상 기울기를 제공받은 뒤 갱신 방법을 말로 정확히 표현했다. 전체 장 무보조 숙달이나 장말 전 문제 완료를 뜻하지 않는다. 볼록 켤레의 추가 유도·증명을 필수 관문으로 두지 않는 사용자 동의를 DEFERRED에 반영했다. 빈 main.ipynb·recall.ipynb는 실행·보관본 생성·초기화 없이 유지했다.
+
+MIT 18.05 Spring 2022 Class 1의 확인 근거와 도움 범위를 유지한다. 공식 syllabus에서 R 사용과 자기 말로 답안 작성·협력자 및 외부 출처 표기 요구를 확인했다. 강의 자료 목록에서 Class 1의 Introduction, Counting and Sets를 확인했으며 Reading 1a·1b와 Class 1 in-class 문제 원문을 확인했다. 확률·통계의 방향 차이와 등확률 조건·곱의 법칙을 튜터가 설명했다. 학습자는 Concept questions 2~3에서 반복 허용 여부에 따른 경우의 수를 정확히 구성했다. 반복 허용일 때 각 칸의 선택 수가 같다는 이유를 직접 설명했고, 반복 금지의 선택 수 감소를 계산했으나 그 이유는 예외 조건으로 표현하여 이미 선택한 문자를 제외하는 구조를 튜터가 보충했다. Reading 1b §2.2~2.3.1의 집합 연산·포함배제를 튜터가 설명한 뒤, 학습자는 Board question 1의 합집합 인원수를 정확히 계산하고 교집합 인원을 두 번 센다는 이유를 직접 설명했다. 여집합·드모르간 법칙을 설명한 뒤, 학습자는 Reading 1b §2.2.2의 Think에서 합집합의 여집합에 속하는 학생들을 두 조건 모두 해당하지 않는다고 정확히 표현했다. Think에서 제시된 그림의 음영과 이전에 말로 표현한 의미는 맞았다. 학습자는 직접 그리지 않고 가져온 그림을 제시했다고 확인했으며, 환경 제약으로 직접 그림 작성과 집합 이름 표기는 미수행 보류한다. 독립 그림 작성으로 기록하지 않는다. 집합의 곱·순열을 설명한 뒤, 학습자는 Board question 2의 메달 배정 경우의 수와 단계별 선택 수를 정확히 답했다. 조합 설명 뒤 Board question 4(a,b)의 경우의 수와 확률을 정확한 식으로 구성했다. 당시 앞면 위치 선택과 등확률 조건에 대한 독립 설명은 확인하지 못해 피드백에서 튜터가 보충했다. 이후 앞면 확률을 바꾼 통합 확인에서는 결과열 개수가 같다고 판단하고, 앞뒷면 확률이 달라 단순 개수 비율을 쓸 수 없다고 직접 설명했다. 개수 보존 이유는 가능한 결과열의 집합을 비교하라는 튜터 안내 후 설명했다. 전체 통합 확인을 무보조 성공으로 보지 않는다. Board question 3에서 전체 경우에서 금지된 색깔의 동시 착용을 빼는 구조를 직접 구성하고 설명했다. 바지 선택 수의 오류를 튜터가 지적한 뒤 해당 인자를 수정했으며, 최종 산술은 튜터가 계산했다. Concept question 1에서 순서 있는 카드 뽑기로 계산을 시도한 뒤, 튜터의 등급 선택·페어 위치 안내를 받아 정확한 확률식을 구성했다. 카드 장수 자체를 추가로 곱할 필요가 없다는 점은 직접 설명하며 수정했다. 완성된 식의 산술은 튜터가 확인했으며, 전체 풀이를 무보조 성공으로 보지 않는다. Class 1 온라인 읽기 문제를 모두 제출하고 정답 판정을 받았다는 학습자 보고를 받았다. 튜터가 문제 원문·제출 답·풀이 과정·판정 화면은 확인하지 않았으며 독립 설명·전이 증거로 확대하지 않는다. Reading 1a §2~3의 설명 후 첫 통합 응답에서는 시뮬레이션 모델의 가정과 실제 검사 대상을 혼동했다. 튜터의 대상 구분 피드백 뒤 학습자는 같은 실제 주사위의 관측 자료를 모아 빈도 기반 추정과 관측에 따른 베이지안 갱신을 연결해 설명했다. 이 구간의 설명·사례 적용을 확인했으며 도움 뒤의 같은 날 응답으로 구분한다. R 실행 환경·온라인 문제 원문·과제별 요구는 해당 실습 전에 확인하며 자동 설치하지 않는다. Class 2·R의 추가 확인 근거는 아래에 구분한다. 전체 reading·in-class·온라인 문제·PS1~PS11·R 튜토리얼의 일괄 의무는 해제하며 미선택 활동은 미완료 보류한다. 선택한 공식 활동의 요구와 비공개 답안 저장 원칙을 유지한다.
+
+MIT Class 2·R의 확인 근거와 미완료 보류를 유지한다. [R Tutorial B: Random Numbers](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/r-tutorial-b-random-numbers/)의 공식 예시를 [tutorial-b.R](practice/probability/mit1805-r/tutorial-b.R)에 준비했으며 별도 비공개 빈 연습 공간도 준비했다. Tutorial B 실행·공식 끝 연습·해석은 미수행 보류이며 현재 재개 조건으로 두지 않는다. 계산·변수 변형과 Vectors의 원문 나열벡터·수열 범위 변형은 앞선 코드 검토와 학습자 제공 출력 대조로 확인했으며, 독립 이해·전이로 확대하지 않는다. Vectors 원문 수열의 별도 실행과 나열벡터의 자기 변형은 미확인으로 남긴다. 공식 계산 예시의 학습자 제공 출력과 변수 예시의 파일 실행 명령·출력은 확인했으므로 같은 원문 실행을 재점검하지 않는다. 튜터가 R 4.5.2와 VS Code R 확장·언어 서버·sess 설정을 준비했고 별도 언어 서버·세션 통신·변수 조회·PNG 전달 점검을 확인했다. 학습자가 요청한 튜토리얼 예시와 변형 파일은 저장소에 보존하며, 원출처·라이선스를 표기하고 R 세션 기록·캐시는 Git에서 제외한다. RStudio는 제거했다. Tutorial A의 Vector Arithmetic~Getting Help는 완료 보고만 있으며 변형·출력은 미확인이다. Tutorial B·온라인 문제는 미수행이다. R 활동을 다시 선택하면 원문의 실행·자기 변형 요구를 확인하며 파일 실행 성공만으로 독립 이해를 판정하지 않는다. Reading 2 Example 5의 두 표 관계는 구체 결과쌍 예시와 연산 선택 안내 뒤 덧셈을 답한 범위로 구분하며 전체 무보조 설명으로 보지 않는다. Concept questions 1~4의 응답은 확인했고 1번은 보기 문맥·사건 정의 안내 뒤의 응답으로 유지하며 같은 선택을 재점검하지 않는다. Board Problem 4의 세 승률식은 확인했고, 모든 쌍을 고려하라는 안내 뒤 학습자가 순환 관계와 단일 순위 불가를 설명했다. 전체 해석을 무보조 첫 시도 성공으로 바꾸지 않는다. 원문의 조별 분담은 수행하지 않았으며 대화에서 학습자가 나머지 두 비교를 직접 계산하는 범위다. 면 자료는 공식 PDF 그림에서 확인했고 각 면은 등확률, 두 던지기는 독립인 조건이다. 항목 1~3의 눈별·전체 결과쌍 확률과 승률·승리 결과쌍 설명은 확인했으므로 재계산을 요구하지 않는다. Board Problem 1은 순서 중복 설명 뒤 학습자가 조합으로 수정한 범위이며, 최종 산술은 튜터가 계산했다. 무보조 전체 성공으로 바꾸지 않는다. Board Problem 5의 확률식·동등 조건을 확인했고, 차이의 부호를 보라는 안내 뒤 크기 비교와 최솟값에 근거한 이유까지 확인했다. 같은 비교를 다시 점검하지 않는다. Reading 2 §3 설명 뒤 Board Problem 2의 합집합 확률 범위와 양쪽 겹침 조건은 학습자가 정확히 설명했다. Example 7의 Challenge 1 계산과 Challenge 2의 첫 앞면 조건 해석은 확인했다. 등비급수 공식·대응 안내와 독립에 따른 곱셈 설명은 튜터 도움 범위로 유지한다. MLP 연결 사례의 손실식과 감소 방향은 확인했으며, argmax의 후보 위치 대응과 손실 감소의 원인 설명은 튜터 도움 범위로 유지한다. 같은 사례를 반복 점검하는 진입 조건으로 삼지 않는다. Reading 2의 다른 미확인 예시·Challenge와 미선택 R·공식 실습은 미완료 보류로 유지한다. D20의 확률식·세기 이유와 설명 후 결과 묶음 확률은 확인했고, 순서·중복을 포함한 표본공간과 사건 표현은 미완료 보류한다. 같은 집합 표현의 재작성을 진입 조건으로 삼지 않는다. 공식 본문 확인과 한국어 설명은 튜터가 맡고 직접 읽기를 요구하지 않는다.
+
+기존 [MLP 학습·평가 재구현 회고](practice/deep-learning/makemore-mlp-training-recall.md)는 학습자가 train/eval 함수를 작성했고 AI가 데이터·모델을 준비하고 API를 도운 범위다. [E01·E03 회고](practice/deep-learning/makemore-mlp-e01-e03.md)의 초기화·배치 통제 설명과 저장 셀 이력은 새 커널의 재현을 입증하지 않는다. 모델·데이터 전체의 독립 구현 또는 fresh-kernel 성공으로 승격하지 않는다.
+
+승인된 P0 연결 실습으로 기존 MLP data→train→eval을 새 환경에서 재현한다. 학습 환경과 시작 자료는 튜터가 준비하고 학습 대상의 구현·실행·해석은 학습자가 맡는다. 이번에는 기존 구현의 재현이므로 새 백지 구현을 요구하지 않는다. 앞선 CPU 실행에서는 학습자가 장치 고정 문제를 설명하고 인자를 제거했으나 학습 호출은 KeyboardInterrupt로 중단됐고 당시 사후 평가 출력도 해당 호출보다 앞선 실행이었다. 현재 CUDA 실행에서는 학습자가 배치 인덱스 생성에 장치를 명시한 수정과 초기 평가 이후 학습·사후 평가의 저장 이력을 확인했다. 학습자는 train/dev 손실 감소를 학습 개선으로 직접 해석했고, 튜터의 한계 설명 후 dev가 일부 표본이므로 모든 새 데이터에 개선을 보장할 수 없다고 설명했다. 문맥 증가에서 샘플 축과 문맥 축을 혼동해 튜터가 입력의 열과 임베딩 조회를 설명했으며, 이후 정답·예측 shape 유지와 고정 어휘 크기의 관계를 답했다. 정답 shape의 이유는 튜터가 보충했다. 이를 전체 무보조 전이 성공이나 독립 임베딩 설명으로 바꾸지 않는다. 이전 실행의 새 커널 시작 여부는 미확인으로 유지하며, 작은 고정 배치 점검의 확인 근거는 보존한다. 튜터가 기존 코드를 변경 없이 옮긴 시작 사본을 준비했다. 학습자가 API 안내 후 배치 선택과 반복 함수를 조정했고, 초기화부터 동일 고정 배치의 학습 전후 평가까지 저장된 실행 흐름과 손실 감소를 확인했다. 입력·정답·문자 점수의 저장 출력에서 문맥 중복이 없음을 확인했다. 별도 API 문법 예시를 제공한 뒤 학습자가 예측 ID 변환을 적용했고 저장 출력에서 모든 정답과 일치함을 확인했다. 실제 막힘을 개념 혼동으로 확대하지 않고 PyTorch/Python 호출 문법 도움으로 구분한다. 작은 배치 점검 목적의 첫 설명은 확대 순서에 머물러 튜터가 학습 흐름 점검의 목적을 보충했다. 이후 학습자는 소수의 동일 예제에 대한 학습 가능 여부로 정답 연결과 가중치 등 학습 과정을 점검한다는 목적을 설명했다. 실행·예측 대조·목적 해석까지 이번 연결 모듈에서 확인했으며 도움 뒤의 설명을 독립 회상으로 바꾸지 않는다. main.ipynb의 결과와 앞선 미실행 사본을 보존한다. 기존 코드 복구와 학습자 장치 수정 후 실행을 구분하며 전체 시도를 무보조 재구현으로 보지 않는다. MIT 전체 이수를 선행 조건으로 두지 않는다. 기존 MLP 재현 이후 makemore Parts 3~4와 공식 exercises를 유지하며 CS336 A1은 P2의 학습/평가·tensor/loss·attention 선수가 확인된 뒤 P3에서 기존 작업으로 돌아간다. 이 설계는 P0 종료나 다른 미완료 범위의 생략이 아니다.
+
+## 다음 독립 행동
+
+학습자는 Part 4 Exercise 1의 log 연산을 거슬러 probs에 대한 손실의 수동 기울기를 dprobs로 직접 구현하고, 스타터의 해당 cmp 비교를 실행·저장한다. 튜터는 실제 코드와 비교 출력으로 이어지는 수동 역전파를 검토한다.
+````

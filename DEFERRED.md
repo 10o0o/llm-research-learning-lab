@@ -1,211 +1,51 @@
-# 보류 자료
+# 보류 범위와 복귀 조건
 
-이 문서는 현재 주경로에서 뺀 범위와 다시 제안할 조건을 기록합니다. 보류는 완료나
-불필요 판정이 아닙니다. 조건이 관찰되면 필요한 부분만 제안하고, 사용자가 승인한
-뒤에만 `STATE.md`의 다음 범위를 바꿉니다.
+현재 승인 경로에서 선택하지 않는 범위·역할·이유·관찰 가능한 복귀 조건이다. **미완료 보류는 완료나 불필요 판정이 아니다.** 기존 도움·실행·미확인 근거는 원 실습/회고와 [이행 전 북마크 인용](./practice/reviews/curriculum-transition.md)에 보존한다. 점수·학습 날짜·완료표·진도를 두지 않는다. 판본/행사 시기는 자료 식별 정보다.
 
-## 공식 과정의 보류 범위
+범위는 [ROADMAP](./ROADMAP.md), 선수/자료는 [CURRICULUM](./CURRICULUM.md), 판단 근거는 [옛 의무 대응](./specs/001-employment-project-curriculum/research.md#r6-옛-의무의-새-역할)과 [선택 매핑](./specs/001-employment-project-curriculum/research/decision-matrix.md)이다. 조건이 생겨도 자동으로 시작하지 않고 실제 필요/범위 변경을 확인한다. 승인 범위 안의 통상 진행·필요 개념 설명에는 중복 승인을 요구하지 않는다.
 
-### MIT 18.05 전체 과정의 일괄 이수
+| 기존 또는 추가 후보 범위 | 새 역할 | 제외·선택 이유 | 관찰 가능한 복귀 조건 |
+| --- | --- | --- | --- |
+| P0~P5 고정 순서·Phase 종료 시험·전환마다 공고 3~5건 | 의무 해제 | 취업 경로의 의무 해제; 프로젝트 기능과 지원 근거부터 확인 | 실제 지원 검토 시 읽은 공고와 자기 구현을 비교; 장기 확장은 공백·목표와 사용자 결정으로 선택 |
+| MML 2~5·7, MIT 18.01SC, 깊은 행렬·미분·최적화 연습 | 사용처별 최소 설명·선택 | 필요한 개념 설명은 유지; 단원 전체·장말 연습을 선행 관문에서 제외 | 현재 코드의 벡터/텐서 계약, 유사도, 손실·gradient 또는 선택 논문의 유도를 설명하지 못할 때 해당 부분 |
+| MIT 18.05 핵심 확률·LLN/CLT·추론, 전체 활동·R, Stat110/OpenIntro | 평가 전 최소 설명; 전체 활동/R 보류 | 표본·누수·지표·불확실성은 관련 평가 전에 설명; 전체 과정·R·상세 Bayes 계산은 보류 | 현재 비교의 독립성·변동·추론 해석 또는 다시 선택한 공식 활동에서 요구할 때; R은 해당 활동의 실제 요구 확인 후 |
+| 기존 MLP 재현, makemore Parts 3~4와 exercises, Part 5 | 기존 근거 참고; AX gate 해제 | 기존 근거·미완료 보존; 첫 프로젝트의 필수 gate 해제 | 파인튜닝/장기 모델 작업에서 학습 루프·역전파·정규화 공백이 드러나거나 사용자가 해당 활동을 재선택할 때 |
+| fast.ai Lesson 1~2와 이후 전체 수강 | 기존 근거 참고; 전체 수강 의무 없음 | 과거 수행·미검증 보존; 전체 수강 의무 없음 | 현재 과업의 모델 학습·추론·실행 흐름을 다른 설명으로 보강할 실제 필요가 있을 때 |
+| CS229 Summer 2020 PS1~PS3 전체 written/coding, PS3 RL·ICA | notes 선택; 전체 PS/RL/ICA 보류 | 손실·일반화 설명은 필요한 만큼 선택; 전체 PS와 RL·ICA 문제는 보류 | 선택한 모델의 목적함수/최적화 공백 또는 실제 RL·ICA 작업이 필요하고 사용자가 공식 범위를 재선택할 때 |
+| ISLP 5·6·8·13 본문·전체 labs | 평가/규제 절 선택; 전체 lab 의무 해제 | 분리·평가·규제 설명은 선택 참고; 전체 지정 장·lab 의무 해제 | 현재 모델 선택·오류·불확실성에 해결되지 않는 공백이 확인될 때 해당 절·연습 검토 |
+| CS231n Spring 2024 L2~6·A2 Q1~Q3 및 나머지 CV | 진단 설명 선택; 공식 과제 보류 | 학습 진단 설명은 선택 참고; 공식 과제는 취업 경로 의무에서 제외 | 실제 학습·normalization·dropout·CV 공백이 생겨 해당 공식 활동을 재선택할 때 |
+| CS224N Spring 2024 1246 A3 Q1(i)·A4 Q1~Q2, 나머지 과정·RNN/LSTM 필수 연결 | attention 설명 선택; 공식 과제 보류 | attention 설명은 필요 시 사용; written·programming·RNN/LSTM 전체를 선행 gate에서 제외 | 모델 입력·attention·position 또는 sequence 모델 비교의 실제 공백과 재선택이 있을 때 |
+| Karpathy GPT·BPE, Raschka 전체 구현 | 필요 설명 선택; 중복 전체 구현 제외 | 필요한 설명만 선택; 같은 LM을 여러 번 전체 구현하는 의무 없음 | 장기 LM 내부 구현에서 현재 이해로 연결하지 못하는 부분이 있을 때; 공식 A1 중 타 구현 참고 금지는 유지 |
+| CS336 A1 v26.0.3, A2 v26.1.3 | A1은 RE-02 대체; A2는 선택 | A1은 RE-02 자체 LM을 대체할 공식 구현 후보, A2는 RE-03 추론/시스템 대안의 선택 활동; AX/지원 gate 해제 | LM 내부 직접 구현 또는 측정 연구를 선택하고 관련 학습/평가·tensor/loss·attention 근거가 확인될 때; 자원·정책을 다시 확인 |
+| Systems/Inference 고정 1순위, SFT/eval·DPO/RLVR, 연구 cycle | 한 전문화 기본안/대안과 질문 cycle | RE-03은 post-training/evaluation 기본안과 inference 대안 중 하나, RE-04는 독립 질문 하나; 여러 전문화 병렬 의무 해제 | 실제 병목·품질 문제·읽은 논문 질문·확인한 직무 요구에 따라 하나의 방향과 필요한 선수 선택 |
+| P1 Kaggle 필수 및 다른 Phase 대회 | 모든 대회 의무 해제 | 모든 대회 의무 해제; 현재 프로젝트와 별도 경쟁 트랙을 강제하지 않음 | 실제 열린 대회·권리·자원이 현재 목표의 적용 확인에 적합하고 사용자가 선택할 때 |
+| Phase별 백지 구현 목록·Deep-ML·시간제한 트랙 | 대표 확인/공백 보강 선택 | API 참고 실무 구현과 구분한 대표 확인만 유지; 별도 필수 트랙 해제 | 실제 관찰된 개념/구현 공백, 계획된 대표 확인 또는 사용자 회상 요청이 있을 때 |
+| 주 60시간 의도·18/27/9/6 배분·KANT/알고리즘 시간·이전 달력 | 의무 일정·시간 배분 해제 | 의무 일정·성공 기준에서 제거; 기존 표현은 과거 북마크/이력으로만 구분 | 사용자가 시간 배분을 다시 요청하면 실제 확보 시간과 직접 수행을 보고 검토; 새 추적기·고정 예측은 만들지 않음 |
+| 기존 MOD/MA/PC catalog의 필수·readiness 관계 | 역사적 참고; 현재 gate 해제 | 현재 경로 선택 권한 해제; 과거 설계·자료 감사 참고로 경계를 표시해 보존 | 필요한 역량을 참조할 때만 사용; 새 AX 단위를 옛 milestone 완료로 환산하지 않음 |
+| 연속 사전분포·켤레 사전분포 상세 계산 | 상세 계산 보류 | 기본 prior/posterior/MAP·손실 연결과 모든 conjugate 계산은 다른 깊이 | 선택한 과제/논문이 해당 prior·posterior 계산/유도를 요구할 때 필요한 부분 |
+| MML §7.3.3 볼록 켤레 추가 유도·증명 / 전권 | 추가 유도·증명/전권 보류 | Examples 7.7~7.9·Exercises 7.9~7.11과 전권은 현재 선행 관문이 아님 | 현재 최적화/논문이 쌍대·볼록 켤레 유도 또는 특정 수학 공백을 요구할 때 |
+| CS229 최종 프로젝트·공식 시험 / 2018 영상 전부 | 전체 활동 보류; 설명 구간 선택 | Summer 2020 notes와 필요한 설명만 연결; 전체 수강/시험은 별도 범위 | 현재 목적함수/일반화 공백 또는 공식 프로젝트/시험 범위를 재선택할 때 |
+| CS231n A1·A3·A2 Q4/Q5·전체 CV·Final Project | 공식 CV 과제 보류 | 텍스트 AX/한 LM과 전체 CV 과제를 중복 의무화하지 않음 | 실제 CV·vision encoder·CNN/normalization 문제와 사용자 범위 선택이 있을 때 |
+| CS224N 나머지 written·programming·Final Project | 공식 과제 보류; 설명 구간 선택 | Spring 2024 1246의 과거 A3 Q1(i)·A4 Q1~Q2 written도 현재 gate가 아님 | 실제 word-vector·dependency parsing·encoder·attention/position·RNN/LSTM/seq2seq 공백과 해당 활동의 재선택; 1244 혼용 금지 |
+| CS336 Assignment 3·4·5 전체 | 전체 과제 보류 | 전체 scaling/data/alignment 과제를 병렬 의무화하지 않음; 평가/오염 방지는 유지 | scaling·data·SFT/RL 질문이 요구하고 선수/권리/자원·선택이 확인될 때 |
+| CS336 A2 B200·2/4/6 GPU·2 GPU DDP/FSDP / Triton backward OPTIONAL | 외부 benchmark 미수행; backward OPTIONAL | 단일 장치/CPU Gloo는 GPU scaling·공식 전체 완료가 아님; PyTorch/torch.compile backward 별개 | 질문/직무가 요구하고 VRAM·시간·장치 수·공식 hardware·비용과 별도 사용 권한이 확인될 때 |
+| ISLP·Stat110·OpenIntro·MIT 18.01SC 전권/전체 과정 | 전권/전체 보류; 공백별 절 선택 | 표본/분리·추론·미적분의 현재 공백만 보강 | 현재 평가/논문의 계산·가정을 다른 설명 없이는 해석하지 못할 때 해당 절 |
+| GP·ICA 추가 심화·넓은 RL 과정 | 보류; 필요 개념만 선택 | 별도 전체 과정을 AX 서비스·작은 LM의 공통 선수로 추가하지 않음. CS229 PS3 Q1 RL·Q6 ICA 자체의 보류와 추가 심화의 보류는 별개 | 선택한 논문·연구 질문이 GP·ICA 또는 policy gradient·reward·RL 평가를 실제 요구하고 관련 선수·활동 범위를 확인할 때 |
+| Made With ML의 별도 프로젝트·전체 수강 | 별도 필수 프로젝트 해제; 공백별 참고 | AX-01~04에서 한 서비스의 평가·재현·품질을 연결하므로 기존 과정 프로젝트를 추가 의무로 두지 않음 | 실제 데이터·모델 변경·재현·production 설계 공백에 필요한 설명이 있고 해당 원문을 확인했을 때 필요한 구간 |
+| Full Stack Deep Learning·Hugging Face LLM Course·smol-course·Agents Course 전체 / Google·기업 교육 등록 | 선택 구간만 참고; 전체/등록 보류 | 선택 구간 외 전체 수강·여러 framework·인증·Hub 게시/코드랩 전부는 의무 아님 | 선택 구간으로 해결되지 않는 실제 과업/운영 공백과 정확한 원문/활동이 확인될 때 |
+| MIT 6.S191 전체 lab / fast.ai 전체 | 기초 설명 선택; 전체 lab/lesson 보류 | 필요 DL/sequence 설명과 기존 근거를 쓰며 전체 CV/RL/music·lesson은 의무 아님 | 실제 모델/학습/추론 workflow 공백이 특정 활동을 요구하고 정책/환경을 확인했을 때 |
+| Karpathy makemore Part 5 — WaveNet | WaveNet 보류 | convolution sequence 전체가 현재 서비스/작은 Transformer의 공통 선수는 아님 | 실제 receptive field·convolution sequence 비교 질문과 선택이 있을 때 |
+| 사내비 Q&A 재구현 | 기본 문제의 대체 후보 | 같은 역량의 대체 맥락 후보이며 원 코드/배포·팀 성과는 새 독립 구현이 아님 | 사용자 선호·문제·자료 권리·새 기여/평가 가능성 확인 후 같은 계약으로 맥락을 바꿀 때 |
+| TF-IDF·키워드/BM25·dense/hybrid 모든 방식 | TF-IDF는 sparse 후보; 모든 방식 의무 없음 | sparse 후보 하나 대비 dense 또는 hybrid 하나만 기본 비교; TF-IDF는 필수 아님 | 실제 검색 오류/평가가 다른 방식을 비교할 이유를 제공할 때 |
+| 분류기·분류 파인튜닝 | task-specific 선택 확장 | task-specific 확장; routing/라벨 없는 모든 AX의 필수 아님; 생성 SFT와 별개 | 실제 routing 실패·라벨/split·baseline·직무 요구·자원에서 학습 비교 가설이 생길 때 |
+| LangChain 전체·LangGraph 전체·ADK 전체 / MCP | 기본 LangGraph 한 개; MCP 선택 | 한 framework 기본 LangGraph로 상태/도구 책임 학습; 모든 framework/프로토콜 순회는 의무 아님 | 실제 도구 표준화·연동/직무 요구와 직접 tool contract/권한 이해가 확인될 때 |
+| multi-agent·A2A·장기 메모리·독립 벡터 DB 플랫폼 | multi-agent/플랫폼 보류 | 단일 workflow/agent·작은 검색으로 확인할 결과에 불필요한 복잡도를 추가하지 않음 | 해결 못한 분해/context/통신·규모 문제와 비교 지표·실패/비용 근거가 있을 때 |
+| DPO/RLVR·대규모 사전학습·kernel/분산·data engineering 전체 | 한 전문화 외 선택 심화 후보 | 한 전문화 외 모든 심화를 동시에 요구하지 않음 | 질문이 방법을 요구하고 LM·목적함수·데이터/reward·최적화/평가 선수와 자원/권한을 확인할 때 |
+| ASR/TTS·실시간 streaming·새 UI/범용 인프라 전체 | 목표 직무/문제에 따른 선택 확장 | 특정 업무 요건을 텍스트 AX 전체의 공통 선행으로 일반화하지 않음 | 실제 목표 JD/사용자 문제에 음성/streaming·운영/UX 공백이 있을 때 필요한 범위 |
+| 별도 월별 논문 quota·전체 과제 재구현 | quota/전체 재구현 보류; 대표 확인 선택 | 논문/과목 수·모든 코드를 다시 쓰는 반복은 현재 단위 완료 기준이 아님 | RE-04 질문의 실제 논문 또는 대표/지연 확인에서 관찰한 구성요소 공백이 있을 때 |
 
-Spring 2022 전체 reading·in-class·온라인 문제·PS1~PS11·R 튜토리얼을 일괄
-필수 조건에서 제외한다. 미선택 활동은 **미완료 보류**이며 MIT 전체 완료를 뜻하지
-않는다. 이미 확인한 실행·설명과 미검증 완료 보고는 STATE의 근거 구분을 유지한다.
+## 재선택의 경계
 
-- **왜 뺐나**: P0의 핵심 확률 개념은 기존 MLP의 손실·샘플링·평가에 연결하고,
-  P0~P1의 likelihood·MLE·통계적 불확실성은 승인된 CS229·ISLP 작업에 연결한다.
-  전체 MIT 과정과 R 문법 실습을 마쳐야 모델 학습을 진행하는 의존성을 없앤다.
-- **복귀 조건**: 승인된 공식 과제나 읽는 논문에서 현재 경로로 해결되지 않는
-  구체적인 확률·추론 공백이 확인될 때 해당 활동만 제안한다. 현재 승인된 핵심
-  개념에 대한 MIT 해당 절의 설명은 기존 범위의 보강이며, 미선택 공식 과제의
-  추가나 전체 이수 의무 복귀는 별도 승인 없이 진행하지 않는다. 선택한 활동이
-  R을 요구하면 R로 수행하며 Python 모델 실습을 공식 완료로 대신하지 않는다.
+재선택은 실제 목표/공백·자료 판본/접근·권리·환경/자원과 필요한 범위를 확인하는 결정이다. 선택해제와 불가 자원은 완료가 아니다. 보류된 전체 과제를 취업 경로의 숨은 선수로 적용하거나 짧은 보강을 새 승인 gate로 만들지 않는다. 과거 ID/hash·충족도/감사·미완료를 새 자료/학습 성과로 바꾸지 않는다.
 
-### 연속 사전분포·켤레 사전분포의 상세 계산
-
-- **왜 뺐나**: likelihood·prior·posterior·MAP의 기본 구분과 모델 손실 연결은
-  유지하되, 모든 사전분포의 갱신 계산·유도를 P0의 필수 관문으로 두지 않는다.
-  상세 계산은 **미완료 보류**이며 Bayes 개념을 이해했다는 완료 기록이 아니다.
-- **복귀 조건**: 승인된 공식 과제나 읽는 논문이 해당 사전분포의 선택·사후분포
-  계산·유도를 실제로 요구할 때 필요한 범위만 보강한다.
-
-### CS224N 미선택 written·programming·Final Project
-
-Spring 2024, archive 1246의 A3 Q1(i) attention 비교와 A4 Q1~Q2 written만
-P2/P3에서 사용한다. 기존 A1~A4 전체 의무를 이번 승인 재설계로 줄였으며
-나머지 written·programming·Final Project는 **미완료 보류**다.
-
-- **왜 뺐나**: 작은 autoregressive LM을 CS336 A1에서 독립 구현하는 경로와
-  전체 NLP 과정을 중복 의무화하지 않기 위해서다. 선택 written 수행은 A1~A4
-  전체 완료나 대학 채점 통과가 아니다.
-- **복귀 조건**: word-vector·dependency parsing·RNN/LSTM·seq2seq·encoder 모델의
-  실제 공백 또는 연구/직무 요구가 확인될 때 해당 요구만 제안한다. Winter 2024,
-  archive 1244의 과제 번호·환경으로 교체하지 않는다.
-
-### CS336 Assignment 2의 미선택·외부 hardware 검증
-
-A1은 P3의 공식 독립 구현 기준이며 v26.0.3의 공식 저자원 경로와 임의 축소
-실험을 구분한다. A2 v26.1.3 전체는 현재 의무가 아니다. P4에서 training
-profiling·memory/FLOPs·mixed precision·activation checkpointing·kernel·parallelism을
-선택하고 별도 inference/운영 workload를 설계한다.
-
-- **왜 뺐나**: B200 benchmark와 2/4/6 GPU all-reduce, 2 GPU DDP/FSDP 측정을
-  단일 8GB 장치로 모두 검증했다고 할 수 없다. 로컬/축소 결과는 해당 범위의
-  근거이며 공식 A2 전체 완료가 아니다. Triton backward는 OPTIONAL로 유지한다.
-- **복귀 조건**: 질문이나 직무가 해당 GPU benchmark·distributed scaling을 실제로
-  요구하고, VRAM·연산시간·장치 수·공식 지정 hardware·비용·한도를 확인한 뒤
-  외부 자원 사용을 별도 승인했을 때 필요한 검증부터 수행한다. 그 전에도
-  가능한 로컬 학습·측정은 진행한다.
-
-### CS336 Assignment 3·4·5
-
-A3 Scaling, A4 Data, A5 Alignment and Reasoning RL의 전체 과제는 미완료 보류다.
-
-- **왜 뺐나**: 작은 LM·한 전문화·한 독립 연구 cycle에 집중하고 대규모 과제
-  전체를 병렬 의무화하지 않기 위해서다. split·leakage·dedup·contamination·
-  uncertainty·error analysis는 공통 핵심이므로 함께 보류하지 않는다.
-- **복귀 조건**: scaling 질문이면 A3, data pipeline 질문이면 A4, Eval /
-  Post-training 분기에서 선수가 확인된 SFT/RL 질문이면 A5의 필요한 범위부터
-  제안한다. Transformer 이후의 작은 SFT/eval 노출은 이미 ROADMAP 범위이며
-  P5까지 기다리는 별도 복귀 승인을 요구하지 않는다.
-
-### CS231n A2 Q4·Q5, Assignment 1·3와 Final Project
-
-Spring 2024 Lecture 2~6 필요한 설명과 A2 Q1~Q3를 선택한다. 기존 Q1~Q5
-전체 의무에서 빠진 Q4 CNN·Q5 CIFAR-10도 미완료 보류이며 수행 완료가 아니다.
-
-- **왜 뺐나**: FC/backprop·optimizer·normalization·dropout이 현재 LM 경로의
-  직접 선수다. 전체 CV 과제와 별도 GPT 구현을 함께 요구하지 않는다.
-- **복귀 조건**: multimodal vision encoder·CNN·CV 연구 또는 실제 직무 공백이
-  확인될 때 해당 부분만 제안한다.
-
-### Karpathy GPT·Tokenizer의 별도 전체 구현
-
-- **왜 뺐나**: CS336 A1에서 BPE·Transformer LM을 독립 구현한다. 동일한 모델을
-  세 과정으로 반복하는 별도 전체 구현은 현재 의무가 아니다. GPT 설명 bridge는
-  A1 전에 막힌 개념만 사용하고 공식 A1 중에는 다른 구현을 참고하지 않는다.
-- **복귀 조건**: A1 진입 전 개념 연결이 막힌 경우의 필요한 구간, 또는 별도
-  tokenizer 연구를 선택하고 공식 과제 정책과 중복 범위를 검토한 경우다.
-
-## 과정·자료의 보류 범위
-
-### CS229 최종 프로젝트·공식 시험
-
-- **왜 뺐나**: Summer 2020 notes·PS1~PS3 필수 written·coding과 같은 P1 실험의
-  작은 배포·검증이 지정 범위입니다. 최종 프로젝트·시험까지 수행한 것으로 세지 않습니다.
-- **복귀 조건**: 사용자가 해당 공식 요구사항까지 확장하기로 결정할 때
-
-### ISLP 전권·MIT 18.01SC 전체 과정
-
-- **왜 뺐나**: ISLP는 5·6·8·13장 본문과 Python lab만 필요하며 MIT 18.01SC는
-  단변수 미분·정적분 공백을 메우는 보조 자료입니다.
-- **복귀 조건**: 현재 설명이나 과제에서 빠진 개념이 실제로 드러날 때 관련 절만 보강
-
-### fast.ai Part 1 Lesson 3 이후
-
-- **왜 뺐나**: P0의 Lesson 1~2가 top-down workflow 역할을 맡고, 이후 modeling·
-  deployment 내용은 P1·P2의 공식 과정과 프로젝트에서 더 깊게 수행합니다.
-- **복귀 조건**: 특정 downstream task를 빠르게 prototype해야 하고 현재 주과정에
-  해당 workflow가 없을 때 필요한 lesson만 제안
-
-### MML §7.3.3 볼록 켤레의 추가 유도·증명
-
-- **왜 뺐나**: 현재 기초 보강에서는 지지 직선·하한·쌍대 표현의 용도를 이해하는 깊이로 제한합니다. Examples 7.7~7.9의 일반 행렬·합성함수 유도와 Exercises 7.9~7.11의 켤레 계산·증명은 추가 필수 관문으로 두지 않습니다. 이미 제공한 튜터 계산은 학습자의 독립 수행으로 보지 않습니다.
-- **복귀 조건**: 승인된 공식 과제나 읽는 논문의 최적화 방법에서 볼록 켤레·쌍대 유도가 실제로 필요할 때 해당 부분만 보강합니다.
-
-### Mathematics for Machine Learning 전권 완독
-
-- **왜 뺐나**: P0에서는 Chapter 2~5, 7의 기초 범위를 무보조 설명·계산으로
-  빠짐없이 확인하되 부족한 부분만 본문과 공식 연습문제로 보강합니다.
-  전권 완독은 Karpathy·CS229 공식 작업과 필요한 MIT 설명에서 다루는 범위와 중복됩니다.
-- **복귀 조건**: linear algebra, vector calculus, optimization의 특정 공백이 현재
-  공식 과제 수행을 막고 있을 때 해당 절만 사용
-
-### Stat110·OpenIntro 전체 과정
-
-- **왜 뺐나**: 확률·통계 핵심은 기존 모델 실습과 승인된 CS229·ISLP 작업에
-  연결하고 필요한 MIT 18.05 Spring 2022 구간으로 보강합니다. Stat110과
-  OpenIntro 전체를 추가하면 같은 개념을 별도 전체 과정으로 반복합니다.
-- **복귀 조건**: 현재 경로의 설명만으로 해결되지 않는 확률 또는 추론 개념에 대해
-  다른 유도·예제가 필요할 때 해당 절만 보조로 사용
-
-### CS229 2018 공개 영상 전체를 별도 과정으로 수행
-
-- **왜 뺐나**: P1의 판본은 공개 notes와 PS1~PS3가 함께 있는 Summer 2020입니다.
-  2018 영상은 같은 주제의 설명 보조이며 별도 완료 대상으로 세지 않습니다.
-- **복귀 조건**: Summer 2020 notes의 특정 유도에 영상 설명이 필요할 때 해당 강의만
-
-### Full Stack Deep Learning 전체 과정
-
-- **왜 뺐나**: P1의 Made With ML 프로젝트와 P4·P5 systems 작업이 현재 산출물을
-  직접 만듭니다. FSDL 전체 수강을 병렬 의무화하지 않습니다.
-- **복귀 조건**: 실제 ML systems design 면접이나 production 설계에서 특정 공백이
-  확인될 때 관련 강의만 제안
-
-### Hugging Face LLM Course
-
-- **왜 뺐나**: P0~P4는 내부 메커니즘과 공식 assignment를 직접 구현하는 구간입니다.
-- **복귀 조건**: Transformer 기초 이후의 작은 SFT/eval 비교 또는 실제 serving에서
-  `transformers`, `tokenizers` 관례를 자기 구현과 비교해야 할 때 필요한 절만 사용.
-  smol-course 선택 절은 ROADMAP에 포함되어 있으며 전체 과정과 구분한다.
-
-### MIT 6.S191과 기타 조망 강의
-
-- **왜 뺐나**: 별도 완강 없이 각 Phase의 주과정이 같은 내용을 더 깊게 다룹니다.
-- **복귀 조건**: 새 분야의 전체 지형을 짧게 볼 필요가 있을 때 관련 강의 하나만
-
-### Karpathy makemore Part 5 — WaveNet
-
-- **왜 뺐나**: convolution sequence model보다 Transformer inference가 현재
-  1순위입니다.
-- **복귀 조건**: convolution 기반 sequence architecture나 receptive field를 실제로
-  다룰 때
-
-## 별도 트랙과 반복 작업
-
-### GP·ICA 추가 심화·넓은 RL 과정
-
-- **왜 뺐나**: P1은 회귀/분류·likelihood·최적화·규제와 실험에 집중한다.
-  **CS229 Summer 2020 PS3 Q1 RL·Q6 ICA는 기존 필수 범위로 유지**하며 해당
-  선수 notes를 먼저 읽는다. 보류는 이 문제들을 조용히 삭제한다는 뜻이 아니다.
-- **복귀 조건**: 공식 필수 문제를 넘어 특정 논문·연구 질문에서 GP·ICA 또는
-  policy gradient·reward·RL 평가를 실제로 필요로 할 때 해당 개념만 보강한다.
-
-### Post-training 전문화의 전체 심화·data engineering 전체 과정
-
-- **왜 뺐나**: 현재 주전문화는 잠정 Systems / Inference다. 전 트랙 병렬 의무는
-  연구 시간을 분산한다. 평가 공통 핵심과 Transformer 이후의 작은 SFT/eval
-  비교는 보류하지 않으며 loss 감소를 held-out 품질로 대체하지 않는다.
-- **복귀 조건**: 작은 SFT/eval 비교·독립 품질·실제 공고로 전문화를 재검토하고
-  Eval / Post-training을 선택하면 held-out eval → SFT/LoRA → 독립 평가 →
-  하나의 DPO/RLVR 질문을 준비한다. data engineering 전체는 실제 data 질문이
-  있을 때만 제안한다. 학교 노출만으로 연구-level 독립 수행을 인정하지 않는다.
-
-### P0·P2·P3 Kaggle competition
-
-P1 tabular Kaggle만 필수입니다. 다른 Phase의 competition은 선택입니다.
-
-- **왜 뺐나**: P0의 제출은 공식 학습 근거가 아니고, P2·P3의 공식 과제와 별도
-  competition을 모두 의무화하면 중복 프로젝트가 됩니다.
-- **복귀 조건**: P0는 예측을 만들 수 있으면 첫 제출 경험을 제안하며 이전 제출
-  경험을 요구하지 않습니다. P2·P3는 핵심 학습 이후, 실제 열린 대회가 적용 능력을
-  확인하고 실제 확보한 개인 학습 시간 안에서 수행 가능할 때 제안합니다.
-
-### 별도 월별 논문 quota와 과제 전체 재구현
-
-- **왜 뺐나**: 공식 지정 reading은 논문 근거에 포함하고, assignment 전체를 다시
-  쓰는 대신 Phase별 대표 단위만 무보조 재구현으로 확인합니다.
-- **복귀 조건**: 공식 reading이 연구 질문을 다루지 못하거나 대표 재구현에서
-  실제 공백이 드러났을 때 필요한 논문 또는 구성요소만 추가
-
-## 갱신 규칙
-
-1. 항목을 뺄 때는 이유와 복귀 조건을 함께 적습니다.
-2. 보류 항목은 완료·날짜·점수·mastery를 기록하지 않습니다.
-3. 복귀 판단은 학습자의 실제 설명·계산·구현·실행·해석과 현재 외부 요구를
-   근거로 합니다.
-4. 조건이 생겨도 자동으로 시작하지 않고 필요한 범위를 제안한 뒤 실질적인
-   과정·트랙 확장 결정을 확인합니다. 이미 승인된 ROADMAP 범위나 확인된
-   북마크 수정에 반복 승인을 요구하지 않습니다.
-
-어떤 조건도 자동으로 학습을 시작하지 않습니다.
+공식 과제를 다시 고르면 AI/private/별도 환경·명령 정책과 Optional·Bonus를 유지한다. CS229 Summer 2020, CS231n Spring 2024, CS224N Spring 2024 archive 1246, CS336 A1 v26.0.3·A2 v26.1.3 판본과 기존 private clone을 보존한다. 자체 LM과 공식 A1은 대체 관계이며 AX/지원 gate가 아니다. A2 학습 profiling과 serving은 다르다. 유료 GPU/외부 게시·배포는 별도 권한을 따른다. [상세 정책](./.agents/references/learning-policies.md#course-specific-scope-and-assistance)을 직접 읽는다.

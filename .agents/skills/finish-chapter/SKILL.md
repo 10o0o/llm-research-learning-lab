@@ -11,6 +11,9 @@ authorizes the chapter's archive, review, knowledge edits, verified workspace re
 and local commit. Run it before starting the next chapter when the boundary is
 confirmed; ordinary cells, subsections and session endings do not trigger it.
 Report unresolved requirements rather than treating a transition as mastery.
+AX/RE unit completion alone does not trigger finish-chapter, new records, knowledge
+edits, notebook reset or Git operations. Confirm an actual chapter boundary under
+the approved ROADMAP; this curriculum redesign is not a chapter wrap-up.
 It does not authorize push, assignment-code
 repair/execution, automatic next-course teaching, or a dated TIL. Explicit narrower
 instructions (for example, no reset or no commit) override these defaults.
@@ -19,7 +22,7 @@ a CS336 assignment checkout or copy that checkout through this workflow.
 
 ## Establish the chapter
 
-Read `AGENTS.md`, `STATE.md`, `ROADMAP.md`, the current conversation and saved
+Read `AGENTS.md`, `.agents/references/learning-policies.md`, `STATE.md`, `ROADMAP.md`, the current conversation and saved
 `main.ipynb` and other active chapter artifacts such as `recall.ipynb`.
 Read relevant existing knowledge
 and index files. Do not mine ignored state, old sessions, or Git history for
