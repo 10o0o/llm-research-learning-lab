@@ -5,15 +5,15 @@
 
 - Pilot 시작일: 2026-09-02
 - 현재 ROADMAP Phase: P0
-- 현재 주강의: Karpathy makemore Part 4 — 공식 스타터와 Exercise 1 준비
+- 현재 주강의: Karpathy makemore Part 4 — Exercise 1의 log 연산 수동 역전파
 - 사용 판본: Part 4 공식 영상·설명란과 공식 Colab 연습 스타터; Part 3의 제공 코드·학습자 산출물은 보관; MIT 18.05 Spring 2022는 필요한 확률·통계 구간의 설명 참고
 - 현재 범위: P0의 기존 MLP 재현과 makemore Part 3 근거를 보존하고, 승인된 Part 4의 수동 역전파와 공식 연습으로 이어간다. 손실·샘플링·평가에 연결하는 확률 핵심을 유지하며 P0~P1의 likelihood·MLE·평가 통계는 승인된 CS229·ISLP에 연결한다. 미선택 MIT 활동과 MML의 남은 공백은 DEFERRED·기존 회고에 보존한다
-- 현재 강의: Part 3 공식 E01·E02의 실행·해석과 제공 코드·수식·호출 흐름·API 도움을 회고에 구분해 보존했다. E01의 갱신 범위와 문맥 학습 제한을 학습자가 답했으며 구체적 기울기 경로는 튜터가 보충했다. 초기화 크기·tanh 포화·신호 전달의 기억 기반 초안을 확인하고 조건과 예시를 보충했다. BatchNorm 통계와 전체 진단 흐름의 독립 설명, 새 커널 전체 재현과 지연 전이는 미확인으로 유지한다. Part 4는 공식 미완성 스타터를 준비했으며 제공 forward와 자동미분 비교 기준의 학습자 실행은 대기 중이다. 챕터 전환을 영상 시청·무보조 숙달·P0 종료로 판정하지 않는다
+- 현재 강의: Part 4 제공 스타터의 데이터·모델·분해된 forward와 자동미분 비교 기준의 저장 출력을 확인했다. 학습자가 logprobs에 대한 수동 기울기를 작성했고 저장된 비교에서 자동미분과 일치했다. 노트북 흐름·미분 대상·텐서 문법 설명 도움을 받은 구현으로 구분하며 독립 회상·전이는 미확인이다. 제공 코드 실행을 독립 구현이나 새 커널 재현의 입증으로 바꾸지 않는다. Part 3의 학습자 구현·개념 초안·튜터 도움과 재현 한계는 회고에 보존하며 BatchNorm 통계와 전체 진단 흐름의 독립 설명 및 지연 전이는 미확인으로 유지한다. 챕터 전환은 영상 시청·무보조 숙달·P0 종료 판정이 아니다
 - 공식 자료: [Karpathy Zero to Hero](https://karpathy.ai/zero-to-hero.html) · [makemore Part 4: Becoming a Backprop Ninja](https://www.youtube.com/watch?v=q8SA3rM6ckI) · [공식 Colab 연습 스타터](https://colab.research.google.com/drive/1WV2oi2fh9XXyldh02wupFQX0wh5ZC-z-?usp=sharing) · [Part 3 회고](practice/deep-learning/makemore-part3.md) · [MIT 18.05 Spring 2022 Class 자료](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/pages/classes-reading-and-in-class-materials/)
-- 다음 공식 구간: Part 4 공식 스타터의 데이터·모델·분해된 forward와 자동미분 비교 기준을 먼저 실행한다. 이어 Exercise 1에서 제공 계산 그래프의 기울기를 역순으로 직접 구현하고 공식 비교 함수로 대조한다. 이후 공식 Exercises 2~4의 손실·BatchNorm 단순화와 수동 backward 학습으로 이어간다. 튜터는 학습자 답안을 대신 작성하지 않는다
+- 다음 공식 구간: Part 4 Exercise 1에서 제공 계산 그래프의 기울기를 손실부터 역순으로 직접 구현하고 공식 비교 함수로 대조한다. 다음 구현은 log 연산을 거슬러 probs에 대한 손실의 기울기를 구하는 단계다. 이후 공식 Exercises 2~4의 손실·BatchNorm 단순화와 수동 backward 학습으로 이어간다. 튜터는 학습자 답안을 대신 작성하지 않는다
 - 연결 실습: 기존 MLP의 데이터 → 모델 → 학습 → 평가를 새 커널에서 재현; CUDA 실행 흐름과 학습 전후 평가의 저장 이력·해석을 확인했다. 문맥 전이는 교정과 설명 도움을 받은 범위다. 이전 실행의 새 커널 시작 여부는 미확인으로 유지한다. 작은 고정 배치의 학습·평가·예측 대조와 튜터 설명 후 학습자의 점검 목적 설명까지 확인해 이번 연결 모듈을 마쳤다
 - 연결 자료: [MLP 재구현 회고](practice/deep-learning/makemore-mlp-training-recall.md) · [기존 보관본](practice/deep-learning/makemore-mlp-training-recall.ipynb) · [PyTorch CUDA 사용 가능 여부](https://docs.pytorch.org/docs/2.14/generated/torch.cuda.is_available.html)
-- 학습 공간: Part 3 노트북과 저장 출력을 바이트 그대로 비공개 보관하고, 개념 초안·문서 검증 후 해당 작업 사본을 빈 코드 셀로 초기화했다. Part 4 작업 사본은 공식 스타터의 모든 셀과 미완성 구현 영역을 유지하고 출력·실행 횟수를 비웠다. 작업 폴더 설정과 기존 학습 커널을 연결하고 데이터·노트북 형식·셀 문법을 확인했다. 시작 자료는 튜터 준비이며 학습자 실행·독립 구현 근거로 보지 않는다. 공식 원본과 앞선 main.ipynb·CUDA 사본·작은 고정 배치 사본·보관본·recall.ipynb·MIT Class 2·R 자료를 보존한다
+- 학습 공간: Part 3 노트북과 저장 출력을 비공개 보관하고 관련 작업 사본을 초기화했다. Part 4에는 제공 데이터·모델·forward의 실행 출력이 저장되어 있다. Exercise 1에는 학습자가 작성한 dlogprobs와 자동미분 기준에 일치하는 비교 출력이 저장되어 있다. 이후 수동 기울기는 아직 작성되지 않았다. 작업 폴더와 학습 커널·데이터·노트북 형식·셀 문법은 튜터가 준비했다. 학습자 실행과 제공 시작 자료·독립 구현을 구분한다. 공식 원본과 앞선 main.ipynb·CUDA 사본·작은 고정 배치 사본·보관본·recall.ipynb·MIT Class 2·R 자료를 보존한다
 - 학습 방식: 튜터의 공식 원문 확인 → 한국어 개념 설명 → 학습자 첫 시도·실행 → 실제 답·코드·출력 피드백 → 가설 검증 → 대표 지연 회상·전이. 학습자는 MIT 본문을 직접 읽지 않고 튜터에게 설명을 제공받는 방식을 요청했다. 원문 직접 읽기를 재개 조건으로 요구하지 않는다. 공식 API를 본 실무 구현과 무보조 회상을 구분하며, 원문 기반 대화·온라인 문제 정답 판정 보고·직접 읽기의 증거를 구분한다.
 
 ## 관찰된 근거와 남은 범위
@@ -42,4 +42,4 @@ MIT Class 2·R의 확인 근거와 미완료 보류를 유지한다. [R Tutorial
 
 ## 다음 독립 행동
 
-학습자는 준비된 Part 4 공식 스타터 작업 사본을 학습용 새 커널에서 열고, 처음부터 분해된 forward와 자동미분 비교 기준 셀까지 순서대로 실행·저장한다. 아직 Exercise 1의 빈 구현 영역은 채우지 않는다. 튜터는 저장된 출력과 실행 오류를 확인한 뒤 공식 Exercise 1의 첫 역전파 연산으로 안내한다.
+학습자는 Part 4 Exercise 1의 log 연산을 거슬러 probs에 대한 손실의 수동 기울기를 dprobs로 직접 구현하고, 스타터의 해당 cmp 비교를 실행·저장한다. 튜터는 실제 코드와 비교 출력으로 이어지는 수동 역전파를 검토한다.
