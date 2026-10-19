@@ -33,3 +33,6 @@ web/.astro/
 web/dist/
 web/playwright-report/
 web/test-results/
+
+# Local Spec Kit workflow state and output
+/.specify/workflows/runs/

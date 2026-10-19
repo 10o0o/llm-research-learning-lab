@@ -1,0 +1,53 @@
+version = 1
+name = "llm-research-learning-lab"
+
+[setup]
+script = ""
+
+[[actions]]
+name = "Spec Kit: Start"
+icon = "run"
+command = "bash scripts/speckit-workflow.sh run"
+platform = "linux"
+
+[[actions]]
+name = "Spec Kit: Start"
+icon = "run"
+command = "wsl.exe --exec bash scripts/speckit-workflow.sh run"
+platform = "win32"
+
+[[actions]]
+name = "Spec Kit: Status"
+icon = "run"
+command = "bash scripts/speckit-workflow.sh status"
+platform = "linux"
+
+[[actions]]
+name = "Spec Kit: Status"
+icon = "run"
+command = "wsl.exe --exec bash scripts/speckit-workflow.sh status"
+platform = "win32"
+
+[[actions]]
+name = "Spec Kit: Resume"
+icon = "run"
+command = "bash scripts/speckit-workflow.sh resume"
+platform = "linux"
+
+[[actions]]
+name = "Spec Kit: Resume"
+icon = "run"
+command = "wsl.exe --exec bash scripts/speckit-workflow.sh resume"
+platform = "win32"
+
+[[actions]]
+name = "Spec Kit: Check"
+icon = "run"
+command = "bash scripts/speckit-workflow.sh check"
+platform = "linux"
+
+[[actions]]
+name = "Spec Kit: Check"
+icon = "run"
+command = "wsl.exe --exec bash scripts/speckit-workflow.sh check"
+platform = "win32"

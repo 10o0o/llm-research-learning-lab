@@ -1,0 +1,80 @@
+{"version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Spec Kit: Check",
+      "type": "process",
+      "command": "/bin/bash",
+      "args": [
+        "${workspaceFolder}/scripts/speckit-workflow.sh",
+        "check"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Spec Kit: Start",
+      "type": "process",
+      "command": "/bin/bash",
+      "args": [
+        "${workspaceFolder}/scripts/speckit-workflow.sh",
+        "run",
+        "${input:speckitFeature}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Spec Kit: Status",
+      "type": "process",
+      "command": "/bin/bash",
+      "args": [
+        "${workspaceFolder}/scripts/speckit-workflow.sh",
+        "status"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Spec Kit: Resume",
+      "type": "process",
+      "command": "/bin/bash",
+      "args": [
+        "${workspaceFolder}/scripts/speckit-workflow.sh",
+        "resume",
+        "${input:speckitRunId}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "speckitFeature",
+      "type": "promptString",
+      "description": "새로 개발할 기능 설명"
+    },
+    {
+      "id": "speckitRunId",
+      "type": "promptString",
+      "description": "Status에 표시된 실제 Run ID"
+    }
+  ]
+}
