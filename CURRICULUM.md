@@ -4,7 +4,7 @@
 
 ## 1. 목적과 비목적
 
-단기 AX/AI 애플리케이션 취업 준비와 장기 LLM Research Engineer를 위한 정적 역량/자료 참고다. 승인 범위와 단위별 열 개 안내 요소는 [ROADMAP](./ROADMAP.md), 제외 이유/복귀 조건은 [DEFERRED](./DEFERRED.md)에 둔다. 현재 학습 범위와 다음 행동은 `STATE.md`만 정하며 이 문서의 ID·선수관계·catalog가 자동으로 수업을 선택하지 않는다. 점수·진도율·완료표·학습자 transcript·새 평가 DB는 만들지 않는다.
+단기 AX/AI 애플리케이션 취업 준비와 장기 LLM Research Engineer를 위한 정적 역량/자료 참고다. 승인 범위와 단위별 계약은 [ROADMAP](./ROADMAP.md), 제외 이유/복귀 조건은 [DEFERRED](./DEFERRED.md)에 둔다. 현재 학습 범위와 다음 행동은 `STATE.md`만 정하며 이 문서의 ID·선수관계·catalog가 자동으로 수업을 선택하지 않는다. 점수·진도율·완료표·학습자 transcript·새 평가 DB는 만들지 않는다.
 
 이 문서 1~3절이 현재 역량/자료 기준이다. 기존 4~8절은 **역사적 참고**로 본문을 보존한다. 당시 필수·readiness·RNN/LSTM·P0~P5 표기는 현재 지시가 아니다. `CC/SRC/MOD/MA/PC`의 의미를 재사용하거나 AX/RE 단위를 옛 milestone 완료로 환산하지 않는다. 과거 자료의 충분/부분/없음/감사 판정은 새 공식 자료나 학습자의 이해 평가가 아니다. 새 자료를 다운로드하거나 전체 감사한 것으로 기록하지 않는다.
 
@@ -14,14 +14,14 @@
 
 | 단위 | 먼저 설명할 최소 선수 | 실제 사용처·학습자 근거 | 관찰 공백의 보강 | 사용할 자료 구간 |
 | --- | --- | --- | --- | --- |
-| AX-01 | Python 자료/함수·JSON/HTTP·예외, token/context·비결정성, baseline·평가 사례 역할 | 문의 입력 계약→구조화 초안→정상/실패 검증을 직접 코드/실행/첫 해석 | 파싱/형식/API 오류는 해당 동작; 작은 차이 해석은 독립 사례/반복·불확실성 | REF-03 foundations/앱 출시 원리, REF-06 Unit1 메시지/LLM/도구 기초 |
-| AX-02 | 벡터/내적/유사도·embedding·chunk/metadata, corpus와 질의/qrels·중복/그룹 | 검색 recall과 답변 근거/누락·기권을 분리, sparse 하나 대비 dense 또는 hybrid 하나 | 차원·정규화/ranking 실패, 오래된/누락 근거·길이 한계 | REF-03 Augmented Language Models, REF-04 datasets/tokenizers 필요한 설명, Microsoft RAG 설계/평가 |
-| AX-03 | 함수/API/SQL 계약·상태·부작용·멱등성·권한/사람 확인 | 도구 하나·고정 workflow 대 bounded agent, trace와 실제 모의 상태 대조 | 중복/timeout/retry·복구·context 혼선·prompt injection 실제 문제 | REF-06 Unit1 tools/actions/observations·Unit2.3 LangGraph 하나 |
-| AX-04 | HTTP/API·저장/상태·테스트·PII·관측성·latency/cost 측정 단위 | 같은 서비스의 회귀·재현·실패·지원 설명, 로컬/실제 운영 구별 | 요청 간 누수·동시성·비용/지연·권한 오류에서 필요한 범위 | REF-03 UX/LLMOps, REF-08 Production 구성·REF-09 문제/평가/설명 참고 |
-| RE-01 | tensor/shape·행렬·미분/chain rule·gradient/Jacobian, likelihood/loss·분리/누수 | data→train→validation, 작은 배치·train/eval·gradient/update 진단 | 초기화·일반화/규제·최적화·확률/통계 공백 | REF-01 2026 L1/필요 sequence, REF-04 Ch2~3·5; MML/MIT/ISLP 필요한 절 |
-| RE-02 | 조건부확률·softmax/CE·token shift·attention/mask·행렬·학습/검증 | 한 LM의 token→logit/next-token loss→학습/생성/재개 | 토큰화·mask·수치 안정성·compute/memory·오염/일반화 | REF-02 2026 L1~3·12~14, REF-04 Ch1·6 보조; 공식 A1은 자체 LM 대체 |
-| RE-03 | base/instruct·chat template·loss mask·SFT/PEFT·독립 분리/오염·자원 권한 | base 대비 SFT 한 비교 또는 inference 한 축, held-out·고정 조건·실패 | 데이터/최적화·판정기 불일치 또는 수치/성능 병목 | REF-05 chat templates/SFT/PEFT/domain evaluation·REF-04 Ch10~11; 대안 REF-02 L2·5~8·10 |
-| RE-04 | 선택 방법의 모델/최적화 또는 systems 기반, 가설/통제·표본·불확실성 | 자기 질문·실제 논문 한 주장·baseline/ablation·실패·주장 한계 | 논문 수학·실험 설계·통계/재현 공백만 보강 | REF-02 data/eval/선택 전문화, 실제 읽고 검증한 논문 제한 실험 |
+| AX-01 | 자료/함수·JSON/예외는 입출력 전, JSON/HTTP·token/context·비결정성은 호출 전, baseline·사례 역할은 비교 전 | 문의 현상·알려진 조건→접수 초안→형식/사실/충분성을 직접 코드/실행/첫 해석 | 파싱/형식/API 오류는 해당 동작; 작은 차이 해석은 독립 사례/반복·불확실성 | REF-03 foundations/앱 출시 원리, REF-06 Unit1 메시지/LLM/도구 기초 |
+| AX-02 | corpus와 질의/qrels·중복/그룹은 자료 전, chunk/metadata는 색인 전. 선택한 검색의 점수/가중치는 구현 전, 벡터/내적/정규화는 해당 연산을 쓰기 전, embedding은 dense 선택 시 사용 전 | sparse baseline 하나의 질의→근거→답변/기권. 오류나 사전 학습 질문이 있을 때 dense/hybrid 비교 선택 | 차원·정규화/ranking 실패, 오래된/누락 근거·길이 한계 | REF-03 Augmented Language Models, REF-04 datasets/tokenizers 필요한 설명, Microsoft RAG 설계/평가 |
+| AX-03 | 함수/API·필요 시 SQL 계약은 도구 전, 상태·부작용·멱등성·권한은 모의 변경 전, agent 차이/종료는 비교 전 | 일반 Python 고정 흐름과 도구 하나의 실제 모의 상태 대조. 재개/승인 필요 시 LangGraph, 모델 주도 선택 질문 시 bounded agent 비교 | 중복/timeout/retry·복구·context 혼선·prompt injection 실제 문제 | REF-06 Unit1 tools/actions/observations; 조건 충족 시 Unit2.3 LangGraph |
+| AX-04 | HTTP/API·상태·테스트는 API 전, PII·권한은 저장/로그 전, latency/cost·외부 조건은 측정 전 | 앞 단위의 평가·권리·재현·기여를 누적해 API/저장·회귀 강화, 로컬/실제 운영 구별 | 요청 간 누수·동시성·비용/지연·권한 오류에서 필요한 범위 | REF-03 UX/LLMOps, REF-08 Production 구성·REF-09 문제/평가/설명 참고 |
+| RE-01 | tensor/shape·행렬은 입력/model 전, 미분/chain rule·gradient·likelihood/loss는 update 전, 분리/누수는 fit/비교 전 | 작은 모델 하나의 data→train→validation·첫 해석, 작은 배치·train/eval·gradient 진단 | Jacobian·초기화·일반화/규제·최적화·확률/통계의 실제 공백 | REF-01 2026 L1/필요 sequence, REF-04 Ch2~3·5; MML/MIT/ISLP 필요한 절 |
+| RE-02 | RE-01 학습/검증을 연결, 조건부확률·softmax/CE·shift는 loss 전, embedding·attention/mask·행렬은 해당 구성 전, 자원은 실행 전 | 한 LM의 token→logit/next-token loss→학습/생성/재개 | 토큰화·mask·수치 안정성·compute/memory·오염/일반화 | REF-02 2026 L1~3·12~14, REF-04 Ch1·6 보조; 공식 A1은 자체 LM 대체 |
+| RE-03 | 학습 선택 시 base/instruct·template/loss mask·SFT/PEFT·분리를 fit 전; 추론 선택 시 prefill/decode·cache·workload/허용오차를 측정 전. 공통 자원 권한·통제 비교 | base 대비 SFT 한 비교 또는 inference 한 축, held-out·고정 조건·실패 | 데이터/최적화·판정기 불일치 또는 수치/성능 병목 | REF-05 chat templates/SFT/PEFT/domain evaluation·REF-04 Ch10~11; 대안 REF-02 L2·5~8·10 |
+| RE-04 | 선택 방법의 모델/최적화 또는 systems는 구현 전, 가설/통제·표본·불확실성은 설계 전, 원문/로컬 차이는 범위 선택 전 | 자기 질문·실제 논문 한 주장·baseline/ablation·실패·주장 한계 | 논문 수학·실험 설계·통계/재현 공백만 보강 | REF-02 data/eval/선택 전문화, 실제 읽고 검증한 논문 제한 실험 |
 
 조건부확률·독립성·확률변수/분포·기댓값/분산, LLN·CLT의 의미/가정은 sampling·평가·모델 학습에 필요할 때 연결한다. likelihood/MLE·prior/posterior/MAP는 손실·선택 방법의 가정을 설명할 때 다룬다. 신뢰구간·가설검정·검정력·bootstrap·다중비교는 표본 단위·작은 차이·반복 선택을 해석할 때 가정과 함께 보강한다. 행렬/선형변환·rank/SVD·미분/chain rule·Jacobian·convexity는 현재 검색·학습·논문에서 실제 필요한 깊이를 유지한다. 선택한 공식 활동이 R을 요구할 때만 R을 쓰며 Python 실습으로 MIT 공식 완료를 만들지 않는다.
 
@@ -66,7 +66,7 @@
 | Full Stack Deep Learning, REF-03 | April 2023 LLM Bootcamp의 Foundations/앱 출시·Augmented LMs·UX/LLMOps → AX-01/02/04 | 무료 녹화의 원리 참고; 옛 API를 현재 사실로 사용하지 않음. walkthrough는 학습자 직접 구현이 아님 |
 | Hugging Face LLM Course, REF-04 | 상시 개정판 Ch2~3·5 → RE-01, Ch1·6 → RE-02, Ch10~11 → RE-03 | 정확한 절/API·버전은 실제 사용 전 확인. 12장·Hub 게시·인증은 의무 아님 |
 | Hugging Face smol-course, REF-05 | chat templates·SFT/PEFT·domain evaluation → RE-03 기본안 | 목차/sidebar 번호 차이로 주제명 참조. 읽기 공개와 모델/VRAM/계정/플랜·비용은 구별 |
-| Hugging Face Agents Course, REF-06 | Unit1와 Unit2.3 LangGraph 한 framework → AX-01/03 | 예제의 강한 외부 API 모델 접근을 그대로 실행하지 않음. 여러 framework·인증/leaderboard·게시 제외 |
+| Hugging Face Agents Course, REF-06 | Unit1 메시지/도구 → AX-01/03; 상태 보존·중단/재개·승인 필요 시 Unit2.3 LangGraph | Python 고정 흐름이 먼저이며 framework 필수 수강이 아님. 예제의 외부 모델 접근·여러 framework·인증/leaderboard·게시를 자동 실행하지 않음 |
 | Google Agents Intensive, REF-07 | 2025 안내/회고의 tools·memory·eval·production coverage 비교 | 행사 종료·guide 본문 미표시; 코드랩 원문 검토/수료로 세지 않음. ADK 전체 추가 없음 |
 | Boostcamp AI Tech, REF-08 | 8기 2025–26 AI Core→한 도메인→Production 구성 참고 | 종료된 기수의 설계 참고. 선발/전일제 시간표·GPU 지원을 개인 경로에 복제하지 않음 |
 | LG Aimers, REF-09 | 9기 2026 공식 소개의 문제·코드·평가·발표 연결 참고 | 과정 소개/목차와 강의 원문/직접 수행 구별; 전체 과정·대회 의무 없음 |
@@ -75,7 +75,11 @@
 | CS229 Summer 2020·ISLP | loss/MLE·일반화, ISLP 5/6/8/13의 현재 평가/모델 공백 | notes/선택 절은 참고; PS1~PS3 전체 written/coding·RL/ICA·전체 lab은 보류. 2018 영상/현재 homepage를 동일 판본으로 바꾸지 않음 |
 | CS231n Spring 2024·CS224N Spring 2024 1246·Karpathy | 학습 진단·attention/position·역전파의 관찰 공백 설명 | 공식 과제는 재선택 시에만, 과거 미완료는 원문 인용/회고 보존. 모든 과제/GPT·BPE 재구현 gate 없음 |
 
-정확한 공식 자료·API URL/판본/접근 한계는 위 feature의 교육과정·선택 매핑을 따른다. 목록을 읽은 사실로 특정 강의 본문이나 과제 요구를 확인했다고 주장하지 않는다. 접근 실패면 그 자료 의존 수업만 멈추고 필요한 구간을 확인한다. 공식 과제 원문·답안은 공개하지 않는다. [상세 정책](./.agents/references/learning-policies.md#course-specific-scope-and-assistance)을 따른다.
+2026-10-21 검토의 [공식 출처 카드 S-01~07](./specs/002-learning-method-audit/evidence/plan-source-supplement.md)와 [선택 이유·추적표](./specs/002-learning-method-audit/evidence/proposal-traceability.md)는 다음 적용의 근거다. FSDL 2022 labs의 한 시스템 누적은 AX 서비스의 연결, 별도 2023 walkthrough는 검색/근거 흐름의 설명에 참고한다. Made With ML scripting/testing은 반복 실행과 코드/모델 평가의 분리, DataTalksClub 프로젝트 지침은 초기 문제·평가·재현·기여 설명에 참고한다. MIT의 제공 starter/직접 TODO와 CS224N/CS336의 실제 실험·기여/내부 구현은 최소 선수와 RE 깊이/도움 경계를 비교하는 자료다. 이들 전체 수강·등록·배포·대학의 성적 비중은 개인 경로의 의무가 아니다.
+
+카드의 확인/부분/미확인과 관찰/적용 해석을 유지한다. FSDL 두 과정은 한 기관, DataTalksClub은 가변 main/2025 연결을 고정 2026판과 구별하고 CS224N 1246 홈페이지/중간 지침의 비중 불일치를 보존한다. MIT archive 접근 실패·개별 notebook 본문 미검토, CS336 handout/pin의 별도 확인 경계, 자습자의 채점/멘토·GPU·비용·AI·재사용 권리 미확인을 완료로 세지 않는다. 공개 소개/저장소 링크는 코드·데이터/모델·공식 답안의 사용/재배포 권한이 아니다.
+
+정확한 공식 자료·API URL/판본/접근 한계는 위 feature의 교육과정·선택 매핑과 새 출처 카드를 따른다. 목록을 읽은 사실로 특정 강의 본문이나 과제 요구를 확인했다고 주장하지 않는다. 접근 실패면 그 자료 의존 수업만 멈추고 필요한 구간을 확인한다. 공식 과제 원문·답안은 공개하지 않는다. [상세 정책](./.agents/references/learning-policies.md#course-specific-scope-and-assistance)을 따른다.
 
 ## 역사적 참고 — 기존 4~8절 보존 경계
 

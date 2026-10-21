@@ -36,12 +36,13 @@
 | MIT 6.S191 전체 lab / fast.ai 전체 | 기초 설명 선택; 전체 lab/lesson 보류 | 필요 DL/sequence 설명과 기존 근거를 쓰며 전체 CV/RL/music·lesson은 의무 아님 | 실제 모델/학습/추론 workflow 공백이 특정 활동을 요구하고 정책/환경을 확인했을 때 |
 | Karpathy makemore Part 5 — WaveNet | WaveNet 보류 | convolution sequence 전체가 현재 서비스/작은 Transformer의 공통 선수는 아님 | 실제 receptive field·convolution sequence 비교 질문과 선택이 있을 때 |
 | 사내비 Q&A 재구현 | 기본 문제의 대체 후보 | 같은 역량의 대체 맥락 후보이며 원 코드/배포·팀 성과는 새 독립 구현이 아님 | 사용자 선호·문제·자료 권리·새 기여/평가 가능성 확인 후 같은 계약으로 맥락을 바꿀 때 |
-| TF-IDF·키워드/BM25·dense/hybrid 모든 방식 | TF-IDF는 sparse 후보; 모든 방식 의무 없음 | sparse 후보 하나 대비 dense 또는 hybrid 하나만 기본 비교; TF-IDF는 필수 아님 | 실제 검색 오류/평가가 다른 방식을 비교할 이유를 제공할 때 |
+| TF-IDF·키워드/BM25·dense/hybrid 모든 방식 | sparse baseline 하나부터; 추가 비교 선택 | TF-IDF는 후보 하나이며 필수가 아님. 관찰한 오류 또는 사전 학습 질문 없이 검색법 전체 순회나 두 번째 방식 비교를 의무화하지 않음 | 실제 검색 오류 또는 사전 학습 질문이 dense/hybrid 중 한 비교를 필요로 할 때; 미선택은 미수행/근거 있는 제외이며 옛 전체 계약 완료가 아님 |
 | 분류기·분류 파인튜닝 | task-specific 선택 확장 | task-specific 확장; routing/라벨 없는 모든 AX의 필수 아님; 생성 SFT와 별개 | 실제 routing 실패·라벨/split·baseline·직무 요구·자원에서 학습 비교 가설이 생길 때 |
-| LangChain 전체·LangGraph 전체·ADK 전체 / MCP | 기본 LangGraph 한 개; MCP 선택 | 한 framework 기본 LangGraph로 상태/도구 책임 학습; 모든 framework/프로토콜 순회는 의무 아님 | 실제 도구 표준화·연동/직무 요구와 직접 tool contract/권한 이해가 확인될 때 |
+| LangChain 전체·LangGraph 전체·ADK 전체 / MCP | 일반 Python 고정 흐름 우선; framework/MCP 선택 | 작은 도구 계약·상태/오류 책임부터 확인. framework/프로토콜 전체 순회는 의무 아님 | LangGraph는 상태 보존·중단/재개·승인이 필요할 때, MCP는 실제 도구 표준화/연동 필요와 tool contract/권한 이해가 확인될 때 |
+| bounded single-agent 비교 | 모델 주도 선택 질문이 있을 때 선택 | 고정 흐름으로 충분하면 agent를 넣기 위해 문제를 바꾸지 않음. 미선택은 미수행/근거 있는 제외로 남기고 옛 전체 비교 계약 완료로 세지 않음 | 같은 과업·도구·초기 상태/권한에서 모델 주도 선택의 결과·실패·단계 제한을 비교할 사전 질문이 있을 때 |
 | multi-agent·A2A·장기 메모리·독립 벡터 DB 플랫폼 | multi-agent/플랫폼 보류 | 단일 workflow/agent·작은 검색으로 확인할 결과에 불필요한 복잡도를 추가하지 않음 | 해결 못한 분해/context/통신·규모 문제와 비교 지표·실패/비용 근거가 있을 때 |
 | DPO/RLVR·대규모 사전학습·kernel/분산·data engineering 전체 | 한 전문화 외 선택 심화 후보 | 한 전문화 외 모든 심화를 동시에 요구하지 않음 | 질문이 방법을 요구하고 LM·목적함수·데이터/reward·최적화/평가 선수와 자원/권한을 확인할 때 |
-| ASR/TTS·실시간 streaming·새 UI/범용 인프라 전체 | 목표 직무/문제에 따른 선택 확장 | 특정 업무 요건을 텍스트 AX 전체의 공통 선행으로 일반화하지 않음 | 실제 목표 JD/사용자 문제에 음성/streaming·운영/UX 공백이 있을 때 필요한 범위 |
+| ASR/TTS·실시간 streaming·새 UI/범용 인프라 전체·클라우드/외부 배포 | 목표 직무/문제에 따른 선택 확장 | 작은 평가·권리·재현·오류/기여는 AX 초반부터 누적하되 UI/클라우드/배포를 AX-04 완료의 공통 필수로 만들지 않음 | 실제 목표 JD/사용자 문제에 음성/streaming·운영/UX 공백이 있을 때 필요한 범위, 자원/게시·배포 권한은 별도 확인 |
 | 별도 월별 논문 quota·전체 과제 재구현 | quota/전체 재구현 보류; 대표 확인 선택 | 논문/과목 수·모든 코드를 다시 쓰는 반복은 현재 단위 완료 기준이 아님 | RE-04 질문의 실제 논문 또는 대표/지연 확인에서 관찰한 구성요소 공백이 있을 때 |
 
 ## 재선택의 경계

@@ -4,6 +4,9 @@ import hashlib
 import re
 import tomllib
 from pathlib import Path
+from urllib.parse import unquote
+
+import pytest
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -547,17 +550,94 @@ def test_chapter_wrap_up_defaults_to_confirmed_transitions_only() -> None:
         assert "$finish-chapter" in _normalized(path)
 
 
-def test_state_is_a_public_bookmark_with_one_next_action_and_preserved_original() -> None:
-    state = _raw("STATE.md")
-    for label in ("현재 경로", "현재 단위", "현재 범위"):
-        assert len(re.findall(rf"^- {label}: \S[^\n]*$", state, re.M)) == 1
-    assert "AX-01" in state and "재개 북마크" in state
+def _assert_public_bookmark(state: str) -> None:
+    """Check the bookmark's structure and privacy, without grading its prose.
+
+    Whether unnumbered sentences share one purpose needs a manual semantic
+    review. This guard must accept connected steps without requiring particular
+    verbs or refer-back words, and never selects a lesson or writes STATE.
+    """
+    fields = {}
+    for label in ("현재 경로", "현재 단위", "현재 범위", "확인된 근거", "재확인"):
+        values = re.findall(rf"^- {label}: ([^\n]*)$", state, re.M)
+        assert len(values) == 1 and values[0].strip(), label
+        fields[label] = values[0].strip()
+    valid_units = set(re.findall(r"^## ((?:AX|RE)-\d{2}) —", _raw("ROADMAP.md"), re.M))
+    current = re.match(r"((?:AX|RE)-\d{2})(?:\s|$)", fields["현재 단위"])
+    assert current and current[1] in valid_units, "유효한 현재 단위"
+    assert re.match(rf"{current[1][:2]}(?:\s|$)", fields["현재 경로"]), "경로/단위 일치"
+    assert "재개 북마크" in state
     assert len(re.findall(r"^## 다음 독립 행동$", state, re.M)) == 1
     action = state.split("## 다음 독립 행동\n", 1)[1].strip()
-    assert "식별자·본문" in action and "직접 작성·실행" in action
-    assert "준비" in state and "미실행" in state
-    for forbidden in ("schema_version", "evidence_id", "sha256", "materials/private", "tmp/", "/home/", "- [ ]", "dprobs"):
-        assert forbidden not in state
+    assert action and not re.fullmatch(r"(?:계속|다음|미정|TODO|진행|확인)(?:한다)?[.! ]*", action, re.I)
+    assert not re.search(r"(?m)^#{1,6}\s+", action), "다음 행동 뒤의 별도 구간"
+    bullets = re.findall(r"(?m)^\s*[-*+]\s+(?=\S)", action)
+    numbered = re.findall(r"(?:^|\s)\d+[.)]\s+(?=\S)|[①-⑳]", action)
+    assert len(bullets) + len(numbered) <= 1, "나열된 독립 목표"
+    decoded = unquote(state).replace("\\", "/")
+    for forbidden in ("schema_version", "evidence_id", "sha256", "materials/private",
+                      "practice/private", "tmp/", "/home/", "/Users/", "C:/Users/", "- [ ]", "dprobs"):
+        assert forbidden.casefold() not in decoded.casefold(), forbidden
+    assert not re.search(r"(?im)^- (?:점수|진도율|누적 시간|이력|transcript):|(?:api[_ -]?key|password|access[_ -]?token)\s*[:=]", decoded)
+
+
+def _sample_bookmark(unit: str, action: str) -> str:
+    return f"""# Study State
+
+현재 범위와 다음 행동의 재개 북마크다. 숙달 기록이 아니다.
+
+- 현재 경로: {unit[:2]} — 승인 경로
+- 현재 단위: {unit} — 현재 단위
+- 현재 범위: 권리 확인 자료의 작은 기능/평가
+- 확인된 근거: 제공 도구와 학습자 변경·실행/해석의 근거를 구분한다.
+- 재확인: 다른 환경 재현·독립 수행·지연 기억은 미확인이다.
+
+## 다음 독립 행동
+
+{action}
+"""
+
+
+@pytest.mark.parametrize(("unit", "action"), [
+    ("AX-01", "저장된 응답을 원문/추가 확인 기준과 비교하고 내용 오류를 첫 해석한다."),
+    ("AX-02", "sparse 검색 baseline의 질의→근거→기권 기능을 작성·실행하고 실패를 해석한다."),
+    ("AX-03", "로컬 조회 함수의 오류 반환을 구현한다. 같은 입력으로 실행하고 그 결과를 해석한다."),
+    ("AX-03", "로컬 조회 함수를 작성한다. 저장하고 실행한다."),
+    ("RE-02", "checkpoint를 불러와 이어 학습한다."),
+    ("RE-03", "같은 모델과 요청 길이에서 지연을 재고 결과의 차이를 해석한다."),
+    ("AX-04", "한 API 경계의 요청 검증을 작성한다. 그리고 같은 기능의 정상/실패 응답을 비교한다."),
+    ("RE-01", "한 모델의 학습/검증 흐름을 작성→실행→첫 해석하여 손실 격차를 진단한다."),
+    ("RE-04", "실제로 읽은 주장과 baseline의 부정 결과를 비교해 해석의 한계를 설명한다."),
+])
+def test_bookmark_accepts_later_units_and_connected_evaluation_actions(unit: str, action: str) -> None:
+    _assert_public_bookmark(_sample_bookmark(unit, action))
+
+
+@pytest.mark.parametrize("state", [
+    _sample_bookmark("AX-99", "저장된 응답의 실패 원인을 해석한다."),
+    _sample_bookmark("AX-01", ""),
+    _sample_bookmark("AX-01", "계속"),
+    _sample_bookmark("AX-01", "- 검색 baseline을 작성한다.\n- 새 모델의 학습을 구현한다."),
+    _sample_bookmark("AX-01", "1) 검색 baseline을 작성한다. 2) 새 모델의 학습을 구현한다."),
+    _sample_bookmark("AX-01", "① 검색 baseline을 작성한다. ② 새 모델의 학습을 구현한다."),
+    _sample_bookmark("AX-01", "저장 응답을 /home/synthetic-user/run.json과 비교한다."),
+    _sample_bookmark("AX-01", r"저장 응답을 C:\Users\synthetic-user\run.json과 비교한다."),
+    _sample_bookmark("AX-01", "materials/private/source의 저장 응답을 비교한다."),
+    _sample_bookmark("AX-01", "materials%2Fprivate%2Fsource의 저장 응답을 비교한다."),
+    _sample_bookmark("AX-01", "저장 응답을 비교한다. api_key=synthetic-example"),
+    _sample_bookmark("AX-01", "저장 응답을 비교한다.").replace("현재 경로: AX", "현재 경로: RE"),
+    _sample_bookmark("AX-01", "저장 응답을 비교한다.").replace("- 확인된 근거:", "- 없는 필드:"),
+    _sample_bookmark("AX-01", "저장 응답을 비교한다.").replace("- 재확인:", "- 없는 필드:"),
+    _sample_bookmark("AX-01", "저장 응답을 비교한다.").replace("권리 확인 자료의 작은 기능/평가", " "),
+])
+def test_bookmark_rejects_invalid_empty_multiple_or_private_state(state: str) -> None:
+    with pytest.raises(AssertionError):
+        _assert_public_bookmark(state)
+
+
+def test_state_is_a_public_bookmark_with_one_next_action_and_preserved_original() -> None:
+    state = _raw("STATE.md")
+    _assert_public_bookmark(state)
     archive = _raw("practice/reviews/curriculum-transition.md")
     original = archive.split("````text\n", 1)[1].rsplit("````\n", 1)[0]
     assert hashlib.sha256(original.encode()).hexdigest() == "bab21404447e173855853a825bbb4e987622036c496563b3f585b782711ba127"
@@ -664,3 +744,45 @@ def test_evaluation_separates_corpus_final_test_and_actual_outcome() -> None:
     text = _raw("ROADMAP.md")
     for term in ("독립 표본", "qrels", "train/dev", "최종 평가", "중복", "실제 상태", "판정기", "미사용 test", "반복 시도"):
         assert term in text
+
+
+def test_conditional_search_and_workflow_choices_keep_their_purpose() -> None:
+    """Guard changed scope; static documents alone cannot prove tutor behavior."""
+    search, workflow = _unit("AX-02"), _unit("AX-03")
+    assert "sparse baseline 하나" in search and "사전 학습 질문" in search
+    assert "비교" in search and "선택" in search and "qrels" in search
+    assert "Python 고정" in workflow
+    for condition in ("상태 보존", "중단/재개", "승인", "모델 주도 선택", "단계 제한", "실제 상태"):
+        assert condition in workflow
+    assert "LangGraph 하나로 책임을 표현" not in workflow
+    deferred = _raw("DEFERRED.md")
+    for term in ("sparse baseline 하나부터", "Python 고정 흐름 우선", "옛 전체", "미수행"):
+        assert term in deferred
+
+
+def test_current_delegation_preserves_default_ownership_and_restricted_work() -> None:
+    """Check the documented distinctions; V-B judges actual response excerpts."""
+    policy = _normalized(".agents/references/learning-policies.md")
+    ownership = policy.split("## Learner ownership and evidence", 1)[1].split("## Evidence and long-term review", 1)[0]
+    for term in ("기본 학습", "현재 명시적으로 위임한 수정·작성·필요 검증", "요청 범위", "중복 승인", "일괄 거절", "보조 수행", "상시 대행 권한", "공식 과제", "무보조 확인", "백지 재작성"):
+        assert term in ownership, term
+    assert "even when asked" not in ownership
+    # The strict official policy and cold-recall protections remain separate.
+    assert "Do not provide code, pseudocode, patches, or TODO solutions, even after an explicit request" in policy
+    assert "not even an import list or a function signature" in policy
+    skill = _normalized(".agents/skills/study-session/SKILL.md")
+    assert "현재 명시적으로 위임한 수정·작성·필요 검증" in skill
+    assert "Prior help is not standing delegation" in skill
+
+
+def test_validation_boundaries_cover_the_eight_cases_without_claiming_learning_effects() -> None:
+    policy = _normalized(".agents/references/learning-policies.md")
+    for level in ("V-A", "V-B", "V-C"):
+        assert level in policy
+    for limit in ("별도 학습 재개 요청", "첫 해석", "⑥기여/재현 설명", "미수행", "개선율"):
+        assert limit in policy
+    cases = _raw(".agents/skills/study-session/references/tutor-cases.md")
+    audited = cases.split("## Approved audit scenarios", 1)[1]
+    assert re.findall(r"^\| (B[1-8]) ", audited, re.M) == [f"B{i}" for i in range(1, 9)]
+    for limit in ("합성 수동", "모델 실행 의무가 없다", "현재는 미수행", "교육 효과", "첫 원인 가설"):
+        assert limit in audited

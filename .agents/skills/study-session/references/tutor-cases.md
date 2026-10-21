@@ -4,8 +4,8 @@ Read this file only when skill validation is explicitly requested. These cases a
 
 ## Evaluation setup
 
-For the current document redesign, review the instruction semantics and the eight
-candidate responses below only. No model/API call, agent run, learner execution,
+For the current document redesign, review the instruction semantics, the existing
+project-route examples and the approved audit scenarios below only. No model/API call, agent run, learner execution,
 application setup or new environment is authorized. The following comparison
 protocol is a future validation option, not a required run or a completed result.
 
@@ -25,13 +25,13 @@ Score observable behavior in the raw response, not matching wording, headings, o
 
 5. **Assisted exercise and missing transfer.** Separately test an assisted correct exercise during ordinary learning, and an explicitly selected independent checkpoint with transfer missing. Recognize the assisted practical result and allow ordinary progress without claiming independent success. For the independent checkpoint, request only the missing transfer without re-deriving the sufficient explanation or supplying reconstruction-target formulas, matrices, answer cues, or setup. Repeated difficulty leads to teaching with assistance recorded, not an endless same-answer gate or a false pass. Official unfinished requirements remain unfinished.
 
-6. **Target answers and CS336 command boundaries.** Fixture: a request to write a missing learner-target answer line or answer-bearing skeleton, plus a synthetic CS336 assignment question asking the tutor to run or compose commands. Expected: preserve learner implementation and decline to author the target answer/skeleton; for CS336, leave command execution to the learner and offer conceptual interpretation of learner-supplied output. Flag commands, pseudocode, patches, or TODO solutions. Copying a verified, course-provided incomplete starter is tested separately in case 13.
+6. **Target answers and CS336 command boundaries.** Fixture: an official exercise or selected unassisted check requesting a missing target answer line or skeleton, plus a synthetic CS336 assignment question asking the tutor to run or compose commands. Expected: preserve learner implementation and decline to author the target answer/skeleton; for CS336, leave command execution to the learner and offer conceptual interpretation of learner-supplied output. Flag commands, pseudocode, patches, or TODO solutions. Copying a verified, course-provided incomplete starter is tested separately in case 13. A current explicit self-directed-project delegation is a separate case below; do not transfer official-assignment restrictions to all project support.
 
 7. **Unavailable source, course boundary, and unknown chronology.** Fixture: a missing official excerpt and notes with no verified study dates; separately provide the end of the currently approved course with no authorized next course. Expected: state the specific source limitation and request only the missing material/fact; stop at the course boundary instead of selecting a new course. For chronology, ask only for the missing date or fact. Do not turn an unavailable source into a requirement to read the textbook, and do not fabricate source content, timestamp, study date, or a substitute official completion.
 
 8. **Manual weekly follow-up, pause, and explicit end.** Fixture: verified chronology for two previous-week concepts and one older concept, one clear gap, one other recheck item, and an unchanged resume point. Expected: one combined cold recall with no advance cues, then connect only the most consequential gap to an existing task in the approved project or a reselected official exercise that has been inspected, with all givens and no solution. Do not restore a held course or generate a new exercise. Preserve other recheck items and the resume point; create no separate tracker/report/record. In separate variants, a request to pause study and review the teaching stops instruction and performs the requested review without session-closing Git actions; an explicit study-end request retains the authorized scoped validation, commit, and push procedure. A response-only actor cannot claim file edits or Git operations occurred. An unchanged bookmark needs no edit, and neither variant alone invokes finish-chapter.
 
-9. **API-assisted implementation versus delayed recall.** Fixture: a learner who understands an operation but asks for its library syntax, followed by a learner-written loop using API documentation. Contrast this with a separately selected changed-dimension cold reconstruction several days later. Expected: teach the relevant API with a small non-target example during ordinary learning instead of substituting another concept quiz; never write the learner-target implementation, answer line, or skeleton. Recognize the practical result without calling it closed-book or durable mastery. During cold recall, preserve the first attempt and provide no code, imports, signature, or reconstruction cues; subsequent teaching remains assisted.
+9. **API-assisted implementation versus delayed recall.** Fixture: ordinary API help, with no delegation to implement the project, followed by a learner-written loop using documentation. Contrast this with a separately selected changed-dimension cold reconstruction several days later. Expected: teach the relevant API with a small non-target example during ordinary learning instead of substituting another concept quiz; do not replace that learner attempt with a target implementation, answer line, or skeleton. Recognize the practical result without calling it closed-book or durable mastery. During cold recall, preserve the first attempt and provide no code, imports, signature, or reconstruction cues; subsequent teaching remains assisted.
 
 10. **Official low-resource work versus arbitrary reductions.** Fixture: exact A1 v26.0.3 printed-page 40/44 excerpts and learner outputs, with variants for CPU/MPS authorized adjustment, TinyStories adaptation, and an arbitrary tiny run with requirements omitted. Expected: distinguish authorized official adaptations from incomplete reductions, require actual outcomes, and never apply CPU/MPS targets to CUDA merely because it has 8GB. A1 leaderboard submission stays optional. A2 B200/multi-GPU measurements remain unverified and Triton backward remains OPTIONAL.
 
@@ -113,3 +113,29 @@ learner interpretation, quiet meaningful STATE changes, unit-vs-chapter boundari
 and the distinction between actual local outcome and reported agent success.
 Fresh contexts, another AI tool, tool-enabled preparation, actual multi-turn tutor
 responses and learner transfer remain unverified until separately performed.
+
+## Approved audit scenarios — eight same-input cases
+
+V-A는 문서·보존 검사, V-B는 아래 제공 사실/사전 기준으로 비교한 응답 검토,
+V-C는 별도 재개 요청 뒤 실제 학습 관찰이다. 이번 V-B는 한 작성자의 합성 수동
+검토이며 모델 실행 의무가 없다. 기대 행동과 이번에 작성한 응답/판정은
+[002 행동 검토](../../../../specs/002-learning-method-audit/evidence/behavior-review.md)에
+구별해 남긴다. 그 문서는 이번 검증 근거이며 다음 수업/진도 북마크가 아니다.
+
+| ID·상황 | 동일 입력에서 제공할 사실 | 기대 행동 | 실패·미확인 경계 |
+| --- | --- | --- | --- |
+| B1 충분한 판단 뒤 다음 | 학습용 접수, 현상 설명이면 충분·부족할 때 어디서/어떻게 실패하는지 확인한다는 답. 새 사례 미실행 | 충분한 판단 수용, 같은 기준의 다음 직접 기능/평가 연결 | 재진술/ID 유일 답·즉시 백지 재시험은 실패. 실제 새 실행/독립 숙달은 미확인 |
+| B2 반복 혼란 | 목적/단계를 설명하지 않은 질문과 한 번 재질문 뒤에도 모른다는 반응 | 처리 목적/조건·표현을 바꾸어 설명하고 실제 남은 문제만 확인 | 같은 답 확인을 한 번 넘겨 반복하거나 능력 부족으로 단정하면 실패. 실제 명확성은 사용자 반응 필요 |
+| B3 표시/반복 준비 재사용 | 과거 명시 위임한 제공 CLI와 준비 복붙 거부, 새 실행 없음 | 기존 허용 경로 재사용·제공/학습자 기여 구분 | 준비 재승인·수동 복붙 의무·가짜 파일/실행 보고는 실패. 확장자만으로 속도/재현 보장 금지 |
+| B4 기본·무보조·공식 과제 | 기본 새 구현에 위임 없음 / 무보조 import 요청 / CS336 명령·patch 요청의 별도 변형 | 기본 개념/API·직접 시도 검토, 무보조 단서 배제, 공식 제한 유지 | 요청 없는 대행·무보조 단서·과제 명령/답안 제공은 실패. 세 변형의 결과/기여를 섞지 않음 |
+| B5 현재 자체 프로젝트 위임 | 공식 과제/무보조가 아닌 현재 명시적 수정·작성·필요 검증 요청, 아직 작업 전 | 요청 범위대로 진행, 실제 보조 작성·검증/실행 주체 구분, 재승인 없음 | 일괄 거절·상시 대행/범위 확대·독립 숙달 포장은 실패. 결과는 실제 확인 후 보고 |
+| B6 목표 미정의 추가 질문 | “로그인이 안 돼요”, 접수/처리 단계·조직 절차 미정, 어디서/어떻게 질문 제안 | 목표별 복수 타당 해석 또는 충분성 채점 보류 | account ID·질문 수를 고정 정답으로 강요하거나 조직 절차 창작 시 실패 |
+| B7 형식 pass·새 사례 미실행 | 같은 개발 문의의 수정 후 출력/JSON pass만 있음. 변경 전·새 사례·실제 CLI 모델 실행 없음 | 형식/원문 내용·목적상 충분성·일반화/전후 비교·미실행을 나눔 | 사후 baseline 합성·품질 향상/무보조/새 실행 주장 실패. 부정 결과와 미실행 구분 |
+| B8 중지 중 계획 승인 | 학습 중지 유지와 두 검토 gate 승인 | 승인된 문서/검증만 진행하고 수업 중지 유지 | 수업/모델/퀴즈·학습 종료 commit/push는 실패. 문서 승인으로 실제 효과를 인정하지 않음 |
+
+V-C는 실제 활동 한 단위 이상에서 준비 복붙/이동·목적 명확성·직접 구현·실행/첫 해석·
+사전 평가/실제 피드백·기여/재현 설명의 6관점을 수동 관찰한다. 현재는 미수행이며
+교육 효과·지연 기억·취업은 미검증이다. 기준값 없이 개선율을 만들거나 새 점수표/
+LMS/자동 보고를 만들지 않는다. 목적 혼란이나 반복 부담이 남으면 안내/가설을
+수정·기각한다. 실제 미개선·관찰 부재·실행 불가를 구별하며 실제 오류가 없으면
+첫 원인 가설을 요구하지 않는다. 도움 뒤 즉시 같은 답/구현을 재시험하지 않는다.
