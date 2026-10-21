@@ -1,0 +1,63 @@
+id: dotfiles-bounded-parallel
+extends: speckit
+# Spec Kit uses lower numbers for higher precedence than the Luna-only layer.
+priority: 5
+enabled: true
+edits:
+  - replace: plan
+    step:
+      id: plan
+      command: speckit.plan
+      integration: "{{ inputs.integration }}"
+      input:
+        args: |
+          {{ inputs.spec }}
+
+          Execution policy for this plan step:
+          Follow the stock speckit-plan procedure and all project instructions.
+          During research only, delegate 2 or 3 genuinely independent, read-only
+          research questions to the existing researcher role, with at most 3
+          subagents active at once. Give each a bounded question, relevant paths,
+          and a request to return findings, evidence, and unresolved questions.
+          Subagents must not edit files or delegate further work. Keep the existing
+          role models and reasoning efforts; do not override model settings.
+          The main agent owns all plan artifacts and consolidates the findings
+          before writing research.md or other planning documents. Dependent
+          research and all artifact writing stay sequential. If fewer than 2
+          independent questions exist, or delegation is unavailable, work serially
+          and report that choice. Wait for all delegated work before finishing.
+          Execute only this step; do not start another workflow, approve a gate,
+          or perform implementation or additional parallel reviews.
+  - replace: implement
+    step:
+      id: implement
+      command: speckit.implement
+      integration: "{{ inputs.integration }}"
+      # Preserve the existing implementation model policy when replacing a step.
+      model: gpt-6-luna
+      input:
+        args: |
+          {{ inputs.spec }}
+
+          Execution policy for this implementation step:
+          Follow the stock speckit-implement procedure and all project instructions.
+          Within the current phase only, delegate 2 or 3 independent, ready [P]
+          task groups to the existing worker role, with at most 3 subagents active
+          at once. Every delegated task must have [P], completed prerequisites,
+          and disjoint owned files, including its tests. State the task IDs,
+          relevant spec/plan excerpts, owned paths, forbidden paths, and acceptance
+          checks in each brief. Workers must not spawn further agents, change
+          shared metadata, or commit, push, merge, or deploy. Keep the existing
+          role models and reasoning efforts; do not override model settings.
+          The main agent alone updates tasks.md and shared metadata, verifies
+          worker reports and the integrated result, then records completion.
+          Each worker returns completed/blocked task IDs, actual changed files,
+          checks and results, and remaining issues. Stop affected work on an
+          unexpected file overlap or unmet dependency and reconcile serially.
+          Tasks without [P], dependent work, shared-file changes, integration,
+          and review remain sequential under the existing policies. Use targeted
+          checks per task group and the required combined checks at phase end.
+          If fewer than 2 safe groups exist, or delegation is unavailable, work
+          serially and report that choice. Wait for all delegated work before
+          advancing phases or finishing. Execute only this step; do not start
+          another workflow, approve a gate, or add parallel review stages.
