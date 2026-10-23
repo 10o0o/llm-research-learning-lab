@@ -10,6 +10,10 @@
   "workbench.editorAssociations": {
     "*.copilotmd": "vscode.markdown.preview.editor"
   },
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.extraPaths": [
+    "./practice/ai-apps"
+  ],
   "[python]": {
     "editor.tabSize": 4,
     "editor.insertSpaces": true,

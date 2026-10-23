@@ -50,7 +50,7 @@ STATE는 public-safe 현재 범위·짧은 실제 근거·재확인·다음 독�
 
 ## More than one assistant
 
-`AGENTS.md`가 공통 지침이고 `CLAUDE.md -> AGENTS.md` symlink를 유지한다. 도구별 명령을 지침에 넣지 않는다. `STATE.md` is the only handoff. One session at a time; 한 명만 북마크를 쓴다. Using another assistant is not a second chance to be handed an answer. When explanations disagree, the official source settles it, not the more confident assistant. 추가 에이전트/작성자·매 응답 agent swarm은 만들지 않는다.
+`AGENTS.md`가 공통 지침이고 `CLAUDE.md -> AGENTS.md` symlink를 유지한다. 도구별 명령을 지침에 넣지 않는다. `STATE.md` is the only handoff. One session at a time; 한 명만 북마크를 쓴다. Using another assistant is not a second chance to be handed an answer. When explanations disagree, the official source settles it, not the more confident assistant.
 
 ## Layout and verification
 
