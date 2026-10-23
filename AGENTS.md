@@ -64,11 +64,3 @@ git diff --check
 ```
 
 기존 사용자/다른 작성자 변경·staged 변경을 보존한다. 커밋/푸시는 해당 명시 요청, 학습 종료의 범위 내 commit+push, 실제 챕터 wrap-up의 로컬 commit 권한만 따른다. 커밋 요청은 push 허가가 아니다. 정확한 허용 경로만 stage하고 staged name-status/diff와 `git diff --cached --check`를 확인한다. 테스트·문서/합성 응답 검토와 실제 학습·운영·취업 결과를 분리한다.
-
-<!-- dotfiles:speckit:start -->
-## 공식 Spec Kit 워크플로
-
-- 사용자가 “공식 Spec Kit 워크플로로 OO 기능 개발해줘”와 같은 의미로 요청하면 앱·VS Code 확장 채팅에서도 실행 도우미를 사용한다. 프로젝트 루트에서 `bash scripts/speckit-workflow.sh check`로 환경을 확인한 뒤, 같은 도우미의 `run`에 기능 설명과 요구사항 전체를 하나의 인수로 전달해 공식 워크플로를 시작한다.
-- 명세·계획 검토 단계마다 생성된 문서 위치와 핵심 내용을 보여주고 사용자 결정을 기다린다. 개발 시작 요청을 검토 승인으로 간주하거나 자동 승인하지 않으며, 해당 단계의 명시적인 승인을 받은 뒤에만 다음 단계로 진행한다.
-- 실행이 `paused`로 멈추면 Run ID와 재개 방법을 알린다. 재개할 때는 도우미의 `status`로 상태를 확인하고 같은 Run ID를 `resume`에 전달한다. 터미널 없는 실행에서 승인을 입력할 수 없으면 앱·VS Code의 Resume 실행 항목으로 내부 터미널에서 이어가도록 안내한다.
-<!-- dotfiles:speckit:end -->
