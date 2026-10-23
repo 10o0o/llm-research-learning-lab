@@ -1,3 +1,5 @@
+> 역사 자료: 아래 헌법은 Spec Kit 운영 당시의 비준·버전·본문을 보존한 문서다. 현재 작업 권한과 학습 절차는 사용자 요청·[AGENTS](../../AGENTS.md)·해당 스킬이 정한다. 이 문서의 Governance나 승인 단계를 현재 위임의 근거로 사용하지 않는다. 퇴역 경위는 [이전 워크플로 안내](../README.md)를 참고한다.
+
 # LLM Research Learning Lab Constitution
 
 ## Core Principles

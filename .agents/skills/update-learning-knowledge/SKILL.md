@@ -5,6 +5,10 @@ description: Explicit standalone update of zero to three durable knowledge notes
 
 # Update Demonstrated Knowledge
 
+Apply [recordkeeping policies](../../references/recordkeeping-policies.md#standalone-writing-and-sources)
+and the root [publication/ownership boundaries](../../../AGENTS.md). This explicit
+standalone procedure does not apply automatically during study or chapter wrap-up.
+
 Maintain `knowledge/` as the learner's current reusable understanding, not a
 lecture summary, transcript, or progress record. Read `knowledge/README.md` as
 the canonical authoring rules, then `knowledge/template.md`, relevant existing

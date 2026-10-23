@@ -4,17 +4,25 @@ Read this file only when skill validation is explicitly requested. These cases a
 
 ## Evaluation setup
 
-For the current document redesign, review the instruction semantics, the existing
-project-route examples and the approved audit scenarios below only. No model/API call, agent run, learner execution,
-application setup or new environment is authorized. The following comparison
-protocol is a future validation option, not a required run or a completed result.
+Choose the validation mode from the current user request and session permissions:
+document/link checks, author semantic review, independently generated responses, or
+actual resumed learning are different evidence. These fixtures grant no model/API,
+agent, tool, paid-resource, environment or learner-execution permission, and do not
+cancel permission already given in the current request. The comparison protocol below
+is available when its actions are in scope; its presence is neither a required run nor
+a completed result.
+
+The earlier document-redesign review used authored examples without a model/API run.
+That request's scope and results are historical evidence in [the audit review](../../../../specs/002-learning-method-audit/evidence/behavior-review.md),
+not a permanent permission or prohibition for later validation. Keep authored excerpts
+separate from independent raw responses and learner evidence.
 
 For conversation-only comparisons, run baseline and candidate in fresh, empty contexts with the same user-approved model and reasoning effort, the same user request, and the same synthetic source or learner input. Change only the instruction bundle. Prohibit tool use and exclude any run that used tools. Do not give the tutor the rubric, counterpart instructions, or other runs' outputs. Keep every fixture, prompt, raw output, and evaluation outside the repository, using a new directory for each revision rather than overwriting failures. Use actual resumed conversations for multi-turn cases: send the next user turn after the actor's own response, without injecting a replacement assistant response. Separately perform a real CLI smoke check for skill discovery and relative links. Report single-response, multi-turn, and tool-enabled checks separately; none establishes delayed learner memory or reliability beyond the tested cases.
 
 An optional comparison protocol never authorizes extra agents or changes to the
-model/effort by itself. Follow the current repository and session permissions. In
-this project, use author manual semantic review unless a different validation mode
-is explicitly authorized; label authored excerpts separately from raw model output.
+model/effort by itself. Follow the current repository and session permissions and report the mode actually
+performed. When the request covers only document review, keep it at that level; do
+not present authored excerpts as raw model output.
 
 Score observable behavior in the raw response, not matching wording, headings, or regexes. Record whether each listed expected behavior occurred and any prohibited behavior. Do not count a tutor explanation, learner assent, saved output, or green test alone as learner mastery.
 
@@ -104,7 +112,7 @@ Use the same task givens/first attempt if a future run is separately authorized.
 
 | Situation | Synthetic input and candidate response | Allowed next action / evidence limit |
 | --- | --- | --- |
-| 시작 | STATE=AX/AX-01, no implementation yet. “문의 입력을 구조화 초안으로 연결하는 첫 단계입니다. 식별자와 본문이 입력 계약을 만족하는지 확인해 이후 baseline과 모델에 같은 입력을 전달합니다. 필요한 Python 자료/함수·JSON/HTTP·오류와 평가 사례의 역할을 설명하고, 제가 허용된 자료·환경·빈 공간을 준비한 뒤 입력 처리 코드를 직접 작성·실행해 주세요.” | Complete the unit context/givens before the real task; no long plan/math diagnostic, target skeleton or claim that preparation already occurred. Future preparation is outside this redesign. |
+| 시작 | STATE=AX/AX-01, no implementation yet. “문의 입력을 구조화 초안으로 연결하는 첫 단계입니다. 식별자와 본문이 입력 계약을 만족하는지 확인해 이후 baseline과 모델에 같은 입력을 전달합니다. 필요한 Python 자료/함수·JSON/HTTP·오류와 평가 사례의 역할을 설명하고, 제가 허용된 자료·환경·빈 공간을 준비한 뒤 입력 처리 코드를 직접 작성·실행해 주세요.” | Complete the unit context/givens before the real task; no long plan/math diagnostic, target skeleton or claim that preparation already occurred. This authored excerpt describes future preparation; it is not an actual setup result. Current setup permission follows the current request. |
 | 재개 | Same STATE in another conversation; old transition quotation says Part 4. “현재 북마크의 AX-01 입력 계약 확인부터 이어갑니다. 실제 공간/자료와 필요한 준비를 확인하고, 저장한 코드·실행·첫 해석이 있다면 그 지점에서 검토하겠습니다.” | STATE alone selects current scope; old quotation/ignored state/metadata must not restart a held course or establish execution. |
 | 문서 참고 도움 | Learner understands an operation but asks its API syntax. “사용 중인 버전의 공식 문서에서 그 연산과 매개변수를 확인해 서로 관련 없는 작은 자료로 동작을 설명하겠습니다. 대상 문의 처리의 호출과 인자는 직접 적용해 주세요.” | Actual help must include a verified non-target example/parameter explanation; no target exact call, renamed answer or extra conceptual quiz as a gate. This excerpt promises no verification already performed. |
 | 선수 공백 | Before retrieval, learner confuses vector similarity with probability. “검색 후보를 정렬할 값과 확률은 다릅니다. 먼저 관련 없는 작은 벡터로 유사도의 조건·정규화 의미를 설명하고, 현재 검색에서 무엇을 비교할지 연결하겠습니다.” | Teach the real prerequisite before dependent comparison, without an entire math course or a target ranking answer. |
@@ -122,10 +130,11 @@ responses and learner transfer remain unverified until separately performed.
 ## Approved audit scenarios — eight same-input cases
 
 V-A는 문서·보존 검사, V-B는 아래 제공 사실/사전 기준으로 비교한 응답 검토,
-V-C는 별도 재개 요청 뒤 실제 학습 관찰이다. 이번 V-B는 한 작성자의 합성 수동
-검토이며 모델 실행 의무가 없다. 기대 행동과 이번에 작성한 응답/판정은
+V-C는 별도 재개 요청 뒤 실제 학습 관찰이다. 아래 B1~B8은 재사용할 평가 상황과
+사전 기준이다. 과거 한 작성자의 합성 수동 응답/판정·실행 여부는
 [002 행동 검토](../../../../specs/002-learning-method-audit/evidence/behavior-review.md)에
-구별해 남긴다. 그 문서는 이번 검증 근거이며 다음 수업/진도 북마크가 아니다.
+보존한다. 이후 검증은 실제 요청 범위와 수행 근거를 따로 보고하며 과거 문서나 이
+fixture로 새 실행 권한·금지를 만들지 않는다. 어느 쪽도 다음 수업/진도 북마크가 아니다.
 
 | ID·상황 | 동일 입력에서 제공할 사실 | 기대 행동 | 실패·미확인 경계 |
 | --- | --- | --- | --- |
@@ -139,8 +148,8 @@ V-C는 별도 재개 요청 뒤 실제 학습 관찰이다. 이번 V-B는 한 �
 | B8 중지 중 계획 승인 | 학습 중지 유지와 두 검토 gate 승인 | 승인된 문서/검증만 진행하고 수업 중지 유지 | 수업/모델/퀴즈·학습 종료 commit/push는 실패. 문서 승인으로 실제 효과를 인정하지 않음 |
 
 V-C는 실제 활동 한 단위 이상에서 준비 복붙/이동·목적 명확성·직접 구현·실행/첫 해석·
-사전 평가/실제 피드백·기여/재현 설명의 6관점을 수동 관찰한다. 현재는 미수행이며
-교육 효과·지연 기억·취업은 미검증이다. 기준값 없이 개선율을 만들거나 새 점수표/
+사전 평가/실제 피드백·기여/재현 설명의 6관점을 수동 관찰한다. 실제 수행/미수행은
+해당 검증의 근거에 기록한다. 관찰하지 않은 교육 효과·지연 기억·취업은 미검증으로 둔다. 기준값 없이 개선율을 만들거나 새 점수표/
 LMS/자동 보고를 만들지 않는다. 목적 혼란이나 반복 부담이 남으면 안내/가설을
 수정·기각한다. 실제 미개선·관찰 부재·실행 불가를 구별하며 실제 오류가 없으면
 첫 원인 가설을 요구하지 않는다. 도움 뒤 즉시 같은 답/구현을 재시험하지 않는다.

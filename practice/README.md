@@ -1,6 +1,13 @@
 # Practice
 
-학습자가 직접 구현하고 실행한 뒤 결과를 해석한 산출물을 둡니다.
+학습자의 구현·실행·해석과 도움 범위를 구별해 보관합니다.
+
+## 현재 실습
+
+[문의 보조 Python 실습](./ai-apps/README.md)에 현재 코드의 파일 역할과 CLI가 있습니다.
+실제 재개 위치·다음 독립 행동은 [STATE](../STATE.md)만 정합니다. Python 본체 하나를
+기준으로 필요한 모듈을 분리하고, 탐색·시각화에는 선택적으로 notebook을 사용합니다.
+다중 파일 구조는 재사용 경계가 필요할 때 늘리며 먼저 큰 패키지를 만들지 않습니다.
 
 ## 보관한 실습
 
@@ -49,147 +56,42 @@
   분할·smoothing, 인덱싱·cross-entropy, sampling/greedy 실험입니다.
   원본은 수정·재실행하지 않았으며, 문법 오류와 저장 출력의 한계는 회고에 명시했습니다.
 
-## 챕터 마무리
+## 준비·피드백·보관
 
-AX/RE 단위 완료 자체는 챕터 경계가 아니며 기록·knowledge·노트북 초기화·Git 권한을 만들지 않습니다.
+현재 승인 활동의 환경·허용 시작 자료는 튜터가 [준비 책임](../.agents/references/learning-policies.md#learning-setup-and-starting-materials)에
+따라 준비합니다. 위 준비 범위 외의 파일 생성·수정은 명시 요청이나 확인된 챕터
+마무리의 권한을 따릅니다. 기본 대상 구현·실행·첫 해석은 학습자 몫이며, 자체 프로젝트의
+현재 명시적 위임은 [소유권 정책](../.agents/references/learning-policies.md#learner-ownership-and-evidence)에
+따라 보조 수행으로 구분합니다. 피드백은 실제 파일·저장 출력·첫 해석을 함께 봅니다.
+노트북은 `scripts/nbpeek.py`로 관련 셀만 읽고, 보관본을 재실행하거나 과거 오류를 지우지 않습니다.
 
-확인된 챕터 전환에서는 다음 챕터를 시작하기 전에
-[마무리 스킬](../.agents/skills/finish-chapter/SKILL.md)을 기본 수행합니다.
-`$finish-chapter` 또는 `이번 챕터 정리해줘`로 명시적으로 호출할 수도 있습니다.
-`practice/<area>/<chapter>.ipynb`에 원본 바이트를 보존하고, 같은 이름의
-`.md`에 과정·결과·도움·한계를 정리합니다. 개념은 knowledge와 연결합니다.
-모든 대상 보관본의 일치와 문서 검증 후 `main.ipynb`, 해당 챕터의 `recall.ipynb`
-같은 작업 노트북을 빈 코드 셀로 초기화합니다. 확인된 근거로 STATE를 사전 승인 없이
-갱신하고 해당 범위의 로컬 커밋까지 진행합니다.
+확인된 실제 챕터 전환의 보관·회고·초안 기반 knowledge·검증 후 초기화·로컬 커밋은
+[finish-chapter](../.agents/skills/finish-chapter/SKILL.md)의 절차를 따릅니다.
+`$finish-chapter` / `이번 챕터 정리해줘`로도 호출합니다. AX/RE 단위 완료나 일반 `완료`는
+챕터 마무리·기록·초기화·Git 권한이 아닙니다. 기록 권한은 [기록 정책](../.agents/references/recordkeeping-policies.md)에 있습니다.
 
-보관본은 학습 흔적이지 재실행을 검증한 완성본이 아닙니다. 과거 오류를
-지우거나 노트북을 실행해 결과를 새로 만들지 않습니다. 기존 보관본이 다른
-내용이면 덮어쓰지 않으며, 빈 노트북의 재호출로 과거 실습을 교체하지 않습니다.
-일반 `완료` 응답에는 적용하지 않고, TIL과 push는 별도 요청입니다.
+## 위치와 공개 범위
 
-## 저장 위치
+자체 코드의 현재 위치는 `practice/ai-apps/`입니다. 별도 서비스 repo로 계속 발전시킬 때는
+[ROADMAP](../ROADMAP.md#초기-개발-공간과-서비스의-지속-발전)의 환경·권리·원본 보존·기여 경계를
+확인합니다. 예전 후보 경로는 새 작업 공간을 자동 생성하는 지시가 아닙니다.
+[이행 전 북마크 인용](./reviews/curriculum-transition.md)도 현재 재개를 선택하지 않습니다.
 
-```text
-practice/<area>/<topic>.py
-practice/<area>/<topic>.ipynb
-```
-
-Notebook, Python script, benchmark, 작은 dataset experiment 중 목적에 가장
-단순한 형태를 선택합니다. 재사용 가능한 여러 모듈과 테스트 구조 자체가
-학습 목표일 때만 다중 파일 프로젝트를 만듭니다.
-
-KANT live labs에서 제공된 프로젝트의 개인 작업 사본과 결과는
-`practice/private/kant-live-labs/<프로젝트>/`에 보관해 제공 원본인
-`materials/private/kant-live-labs/course-provided-practice/`와 구분합니다.
-이 사본과 결과는 공개 Git에서 제외되며, 필요한 파일은 별도로 백업합니다.
-제공 프로젝트의 환경 설정과 요구사항을 확인한 뒤 별도 `uv` 환경을 준비합니다.
-
-## 승인 경로의 예정 작업 공간
-
-공개 가능한 자체 코드는 `practice/ai-applications/workflow-assistant/`, 원자료/평가 정답·큰 출력/가중치는 ignored `practice/private/workflow-assistant/`를 후보로 둡니다. **문서 개편에서 이 실습 폴더·대상 코드·학습 데이터·모델은 생성하지 않습니다.** 실제 학습 시작 때 권리·평가 가능성·환경/비용·비어 있지 않은 공간 충돌을 확인하고 튜터가 허용 준비를 맡습니다. 원 사내비/팀 코드를 가져오면 출처·도움을 구별하고 새 독립 구현으로 세지 않습니다. 이전 STATE만의 근거는 [이행 전 인용](./reviews/curriculum-transition.md)에 있으며 현재 재개에는 쓰지 않습니다.
-
-## 기본 원칙
-
-- 일반 학습에서는 새 연습을 임의로 만들지 않습니다. 현재 승인된 실습에
-  필요한 시작 자료와 작업 공간은 Agent가 생성·복구할 수 있습니다.
-  [준비 책임](../.agents/references/learning-policies.md#learning-setup-and-starting-materials)을 따릅니다.
-- 승인된 AX/RE 프로젝트의 작은 직접 구현이 기본입니다. 공식 과제를 선택하면 그 활동의 원문·starter·exercises/assignments 요구와 정책을 따르며 완성 예제로 대신하지 않습니다.
-- KANT는 진도·주제 대조용 보조이며 기본 실습이나 완료 기준으로 사용하지 않습니다.
-  같은 주제의 독립 품질·도움·공개 권한이 확인되면 재사용하되 공식 필수 과제 완료를 대신하지 않습니다.
-- 위 준비 범위 외의 파일 생성·수정은 정확한 요청이나 확인된 챕터 전환의
-  보관·회고 범위에서 작업합니다.
-- 기본 학습의 핵심 구현·실행·첫 해석과 실제 오류의 첫 debugging 가설은 학습자가 담당합니다. 자체 프로젝트의 현재 명시 위임은 [소유권 정책](../.agents/references/learning-policies.md#learner-ownership-and-evidence)에 따라 처리하고 보조 수행/주체를 구분합니다.
-- 함수나 Tensor를 수정한 뒤에는 영향을 받는 셀 또는 script를 다시
-  실행하고 최신 결과를 확인합니다.
-- 성공한 테스트만이 아니라 상태, shape, gradient, loss, metric이 왜 그런
-  결과를 냈는지 설명합니다.
-- 실행하지 않은 출력이나 실험 결과를 기록하지 않습니다.
-
-## 공식 실습의 수행과 확인
-
-| 자료 | 수행 방식 |
-|---|---|
-| 강의 속 구현 | 설명을 따라 전체 구현을 작성·실행하고 해석 |
-| 별도 exercises·assignments | 요구사항을 읽고 직접 시도하며 과목별 도움 정책 준수 |
-| 강사의 완성 노트북 | 설명·비교용 참고 자료 |
-| AI 보충 예제 | 공식 실습을 이해하기 위한 보충 |
-
-완성 노트북 실행이나 AI 보충 예제로 공식 실습을 대체하지 않습니다.
-영상·문서·공식 자료 기반 대화를 허용하며 설명 매체가 달라도 공식 내용과
-실습은 유지합니다. 실습을 배치할 때 본문을 읽고 Optional·Bonus는 선택
-항목으로 표시합니다. 접근·실행 제약은 알리고 해당 항목을 미완료로 남깁니다.
-매 구간마다 새 시험·보고서를 만들지 않고 공식 요구사항에 대한 답·코드·
-실행·해석을 확인합니다. 대화형 학습을 영상 시청으로, 로컬 검사 통과를
-대학의 공식 채점 통과로 표현하지 않습니다.
-
-실습은 다음 흐름으로 진행합니다.
-
-```text
-목적과 입력 조건에 맞는 환경·시작 자료 준비
-→ learner-owned 구현
-→ deterministic fixture 또는 sanity check
-→ 실제 실행과 오류 확인
-→ 결과 의미와 한계 해석
-```
-
-기존 Notebook의 provenance나 metadata는 당시 산출물의 일부로 보존합니다.
-현재 resume state로 읽거나 새 형식으로 자동 migration하지 않습니다. 예전
-validator가 없어도 Notebook 코드와 출력은 그대로 열고 실행할 수 있습니다.
-
-## 피드백 요청
-
-새 대화에서는 exact 경로와 현재 오류 또는 질문을 함께 적습니다.
-
-```text
-practice/deep-learning/example.ipynb의 현재 코드와 실제 traceback을 보고
-첫 번째 원인을 설명해줘.
-```
-
-Agent는 현재 파일과 실제 출력부터 확인합니다. 별도 허가 없이 learner-owned
-구현을 덮어쓰지 않으며, 코드 수정 요청을 받았을 때만 course 정책 범위에서
-편집합니다.
-
-기본 학습의 대상 연습 코드는 학습자가 직접 씁니다. Agent는 환경·커널을 확인하고,
-공식 미완성 스타터를 준비하거나 기존 코드를 그대로 복구합니다. 학습자가
-작성해야 하는 답안·구현·정답을 포함한 골격을 요청 없이 대신 제공하지 않습니다. 다섯 줄짜리
-갱신 루프도 학습 대상이면 이 제한을 적용합니다. 무보조 구현·회상에는 코드나
-import를 제공하지 않습니다. 기존 학습자 코드의 문제를 복구 과정에서 고치지
-않으며, 준비 지원은 독립 구현 증거로 바꾸지 않습니다. 현재 자체 프로젝트의 명시적
-수정·작성·검증 위임과 공식 과제/무보조 제한은 위 소유권 정책으로 구별합니다.
-Notebook을 확인할 때는 파일을 통째로 읽지 않고 `scripts/nbpeek.py`를 씁니다.
-
-## 과목별 도움 범위
-
-선택 범위는 [ROADMAP](../ROADMAP.md), 선수·자료는 [CURRICULUM](../CURRICULUM.md), 제외 이유/복귀 조건은 [DEFERRED](../DEFERRED.md), 실제 정책은 [learning-policies](../.agents/references/learning-policies.md#course-specific-scope-and-assistance)를 따릅니다. 옛 전체 PS·수학·고정 시간/대회·Phase 순서를 현재 프로젝트의 필수 gate로 복원하지 않습니다. 재선택한 공식 활동의 Optional·Bonus/미완료·AI/private/별도 환경은 유지합니다. CS224N은 Spring 2024 archive 1246이며 과거 A3 Q1(i)·A4 Q1~Q2 written 선택과 나머지 written/programming/Final Project의 미완료는 새 전체 완료가 아닙니다. 기존 노트북·회고·도움/출력 이력은 보존합니다.
-
-빈 파일 재구현은 대표 단위만 확인합니다. 공식 수행, API-doc-assisted 실무 구현,
-자료를 닫은 회상과 며칠 뒤 전이는 별도 근거이며 도움받은 코드는 무보조 성공이 아닙니다.
-기존 회고에는 첫 시도, 도움 종류·시점, 실제 실행·해석과 재현 한계만 짧게 남깁니다.
-seed 고정, 환경 재구성, 수치 허용 오차, 여러 seed/표본의 통계적 재현을 구분합니다.
-
-CS336 assignment에서는 학습자가 과제 코드·제공 테스트·모든 명령을 실행합니다.
-Agent는 코드·pseudocode·patch·TODO 해답·새 명령 시퀀스를 제공하거나 과제 저장소에서
-실행하지 않습니다. 공식 handout의 기존 명령 해석, 개념·오류·sanity check·일반 리뷰만 합니다.
-
-## 강의 제공 실습과 외부 제출
+KANT 제공 원본은 `materials/private/<course>/course-provided-practice/`, 개인 작업 사본과
+결과는 `practice/private/kant-live-labs/<프로젝트>/`로 구분해 공개 Git에서 제외합니다.
+원자료와 강사 완성본은 학습자의 새 독립 구현이 아닙니다.
 
 MIT 18.05 문제 세트 답안과 CS229·CS231n·CS224N·CS336 공식 과제 답안은
-written·코드·노트북·저장 출력 모두 별도 비공개 작업 공간에 둡니다. 이 공개
-저장소의 `practice/`나 `challenges/`에는 넣지 않습니다. 공개할 수 있는 것은
-자신의 개념 노트, 공식 답안과 분리된 빈 파일 재구현, 공개 가능한 대회 작업과
-재현 보고서입니다. 공식 문제 원문·해답·저작권 자료는 커밋하지 않습니다.
+written·코드·노트북·저장 출력 모두 별도 비공개 작업 공간에 둡니다. 공식 원문·답안·
+저작권 자료·개인/고객 정보·비밀정보·큰 데이터/가중치는 공개 Git에 자동 추가하지 않습니다.
 
-강의 제공 원본은 다음 위치에 보존합니다.
+## 공식 실습을 재선택할 때
 
-```text
-materials/private/<course>/course-provided-practice/
-```
-
-학습자 산출물과 섞지 않으며, 원본의 starter나 해답을 학습자 결과로
-간주하지 않습니다. Kaggle처럼 data handling, validation, metric, error
-analysis가 핵심인 외부 활동은 현재 공식 정보를 확인하고 계정 접근·참여·
-제출 전에 별도 승인을 받습니다. 짧은 외부 제출 코드는 `challenges/`에
-둡니다.
-
-Dataset, model weight, credential, 큰 출력은 명시적 승인과 적절한 ignore
-없이는 Git에 추가하지 않습니다.
+현재 승인 범위는 [ROADMAP](../ROADMAP.md), 선수·자료는 [CURRICULUM](../CURRICULUM.md),
+보류 이유는 [DEFERRED](../DEFERRED.md), 판본·도움·명령·환경·비공개 제한은
+[공식 과제 정책](../.agents/references/official-course-policies.md)을 따릅니다.
+실제 원문·starter·exercises/assignments 요구를 확인하고 Optional·Bonus는 선택,
+미실행 요구는 미완료로 남깁니다. 완성 노트북 실행·AI 예제·KANT 자료가 선택한 공식
+실습을 대신하지 않습니다. 대화 설명을 영상 시청으로, 로컬 검사를 대학 공식 채점으로
+표현하지 않습니다. 기존 metadata·저장 출력·도움 이력은 당시 산출물로 보존합니다.
+API 문서 참고 실무 구현과 무보조 회상·지연 전이는 별도 근거입니다.

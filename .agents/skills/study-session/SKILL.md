@@ -16,7 +16,13 @@ Follow the repository's [AGENTS.md](../../../AGENTS.md) for scope, evidence, and
 - `이번 주 회상`: run the manual weekly recall below.
 - `$study-session`: follow the requested study or review mode.
 
-Do not choose a new target, change sequence, skip official scope, route to another course automatically, or insert per-turn confirmations or readiness gates. Do not create separate tracking artifacts. Give the exact source title/version, direct link, current scope and expected outputs. For a selected official exercise, inspect its actual requirements; a project unit does not require completion of every reference course. Verify details against the source and actual practice requirements. Video, text, and source-grounded dialogue are all valid ways to learn; do not describe dialogue as video viewing. Use only ROADMAP's approved selected scope. AX develops one service through AX-01~04; RE-01~04 provides later model/LM/specialization/independent-experiment depth. User examples are not a fixed technology order. Do not restore P0~P5, full problem sets, fixed hours or mandatory competitions as hidden gates. Distinguish full official work, selected parts, arbitrary scaled runs, officially permitted low-resource adaptations, and incomplete requirements. Keep each official exercise a separate learner task and follow its AI and environment policies. A tutor example or completed notebook must never replace learner practice. After feedback, keep moving along the current route by teaching the next verified source segment or giving the next learner activity; wait only when their answer or execution is needed. Do not ask whether to continue after each step.
+Stay within the approved scope and verified source segment; [AGENTS](../../../AGENTS.md)
+owns route and publication boundaries. When official practice is selected, directly
+read [official course policies](../../references/official-course-policies.md) and its
+actual requirements before assigning work. Ordinary AX study does not load all held
+courses or create a new readiness gate. After feedback, teach the next verified segment
+or give the next connected activity; wait when the learner's answer/execution is needed.
+Do not ask whether to continue after each step or create separate tracking artifacts.
 
 ## Close a study session
 
@@ -101,15 +107,11 @@ ordinary progress; retain its assisted/unverified status and actual open require
 수행하고 보조 수행·작성/실행 주체를 구분한다. 중복 승인·일괄 거절이나 도움 뒤 즉시
 백지 재시험을 요구하지 않는다. 공식 과제·무보조 확인의 별도 제한은 유지한다.
 
-Before content evaluation, define the role, processing stage, permitted evidence and
-sufficiency briefly. Accept sufficient intake descriptions; do not re-ask known facts
-or force account ID/question count as the sole answer. Separate format, facts,
-necessary questions, usefulness, development/final and repeated/independent examples.
-An interpreted negative result can finish a bounded comparison. If more prompt edits
-produce no new observation or implementation decision, retain the known failure and
-advance under the policy; important state/approval violations block that function's use.
-Do not equate a fixed Python helper with model-selected tool calling or actual external
-execution. Derive program state from actual tool results, separately from model prose.
+Before content evaluation, apply [evaluation and operating evidence](../../references/learning-policies.md#evaluation-and-operating-evidence):
+name the role, stage, allowed evidence and sufficiency before judging the response.
+Accept sufficient facts; separate program state from model prose and fixed helpers
+from model-selected tools. End a bounded comparison when further edits add no new
+observation; keep unresolved state/approval violations from use.
 
 Keep internal routing labels out of lessons. Supply routine arithmetic when it is not
 the learning goal. If the exact source is unavailable, stop that dependent explanation
@@ -125,18 +127,11 @@ During cold recall, do not prefill answer cues, derivations, shapes, model flow,
 
 ## Practical evidence, experiments, and delayed transfer
 
-Official API-doc-assisted practical work is allowed under course policy and is
-not closed-book recall. Permitted preparation and assistance classification are
-separate decisions: prepare the current starting state, preserve unfinished
-targets, and retain assistance history. Provide no recalled code, imports, or
-skeletons during an unassisted reconstruction. Record help per attempt only within an authorized existing
-review: first attempt, source/API/concept hint or historical code help, timing,
-actual learner execution, and interpretation. Do not generate a new tracker or
-review during ordinary study. Update STATE without prior proposal or approval
-only when the confirmed next independent action meaningfully changes, not for
-each corrected answer that leaves the learner at the same point. Keep only
-important open items and a concise current basis there, not a session history;
-keep routine edits quiet.
+Use [ownership](../../references/learning-policies.md#learner-ownership-and-evidence)
+and [evidence and long-term review](../../references/learning-policies.md#evidence-and-long-term-review)
+for API-assisted work, unassisted reconstruction, delayed transfer and help classification.
+Keep permitted preparation separate from independent evidence. Update only a meaningfully
+changed resume action in STATE; ordinary study creates no review or per-attempt tracker.
 
 During implementation or debugging, trace the current flow: application input -> validation -> baseline/model -> output checks -> evaluation; retrieval corpus/query -> evidence -> answer/abstention; tools -> state/error -> verified outcome. For model work, connect data -> model -> loss -> train -> eval. Select checks for the current goal and
 observed gap: predicted shapes for a tensor-contract issue, a small-batch
@@ -146,24 +141,14 @@ ordinary concept discussion. Use exact saved code/output;
 do not run the notebook or repair its history to make a gate pass. Preserve
 existing MLP assistance and unverified fresh-kernel reproduction.
 
-For comparisons, identify the independent variable before fixing other axes.
-Change one axis during initial debugging; planned small interaction experiments
-are allowed later. Check split/leakage, actual independent sampling units,
-repeated-run variance, error cases, and claim limits throughout the route.
-Ten questions run twice are twenty attempts, not twenty independent questions.
-Separate environment reconstruction, numerical tolerance, and statistical
-reproduction; a fixed seed guarantees none of these across all environments.
-
-Revisit representative units after a delay (for example, several days) with
-changed dimensions, distributions, or representations, using existing notes
-and verified chronology. Give no answer cues during cold recall. Subsequent
-help does not turn that first attempt into independent success. Repair the
-observed gap and continue the approved lesson; do not restart the entire approved route.
-This does not schedule an automation or require rewriting every assignment.
+For comparisons, follow the shared evaluation policy rather than recreating its rubric.
+At a planned delayed check use verified chronology and changed conditions, without cold
+recall cues. Repair the observed gap and continue the approved lesson; this does not
+schedule an automation or require rewriting every assignment.
 
 ## Manual weekly recall
 
-The learner starts this manually with `이번 주 회상` during the last study session of the week; an explicit request for weekly recall is the entry condition. Select two concepts actually studied in the previous week and one earlier concept from existing notes or reviews with verified chronology. File existence, modification time, and commit time do not establish when learning occurred. If chronology is unknown, ask only for the missing fact; if no older concept is available, say so.
+The learner starts this manually with `이번 주 회상`; an explicit request for weekly recall is the entry condition, not a calendar or last-session obligation. Select two concepts actually studied in the previous week and one earlier concept from existing notes or reviews with verified chronology. File existence, modification time, and commit time do not establish when learning occurred. If chronology is unknown, ask only for the missing fact; if no older concept is available, say so.
 
 Ask for one combined cold recall without advance answer cues. After feedback, connect the single most consequential gap to a relevant existing task in the approved project or a reselected official exercise you have inspected. Do not restore a held course to supply a follow-up. Preserve other gaps in existing recheck items, and keep the original course resume position unless a resume change is confirmed. Do not make an execution-date tracker, reminder, generated practice, report, automatic record, note, reset, archive, commit, or push. Update STATE only as AGENTS permits.
 
@@ -173,22 +158,12 @@ AX/RE unit completion alone does not invoke finish-chapter, create TIL/knowledge
 
 ## Evaluation in each unit
 
-From the first baseline identify the task, independent cases, duplicate/group/time
-boundaries, development/final evaluation, chosen metrics and model-selection scope.
-Separate corpus indexing from evaluation queries/qrels; fit/selection for learned
-models stays within train/dev. If final examples informed changes, disclose reuse.
-Compare baseline/changed factors/fixed conditions, actual results and failure cases.
-An interpreted performance decrease is useful evidence; an unexecuted call remains
-unexecuted. Check agent-reported success against actual local state/permissions.
-LLM-judge scores need comparison to human criteria, not automatic truth status.
-Keep quality/latency/cost observations scoped; local execution is not production.
-
-AX-01 can support early JD comparison once problem, working feature, evaluation/
-failure, reproduction conditions, contribution/help and claim limits are available.
-The main portfolio joins AX-01~04. Do not delay applications until every RE unit,
-optional fine-tuning or external deployment is complete, or promise eligibility.
-Read actual JD requirements/preferred items/experience/degree and compare actual
-learner evidence; old source snapshots do not establish current recruiting.
+Use the common [evaluation policy](../../references/learning-policies.md#evaluation-and-operating-evidence)
+for case independence, splits, metrics, comparisons, uncertainty and operating claims.
+Keep actual saved results and the learner's first interpretation together. An interpreted
+negative result is evidence; an unexecuted call remains unexecuted. Use [ROADMAP](../../../ROADMAP.md)
+for unit outputs and portfolio boundaries; neither this skill nor green checks promise
+learning effects or hiring eligibility.
 
 ## Mathematical display
 

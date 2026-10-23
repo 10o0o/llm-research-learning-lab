@@ -49,4 +49,4 @@
 
 재선택은 실제 목표/공백·자료 판본/접근·권리·환경/자원과 필요한 범위를 확인하는 결정이다. 선택해제와 불가 자원은 완료가 아니다. 보류된 전체 과제를 취업 경로의 숨은 선수로 적용하거나 짧은 보강을 새 승인 gate로 만들지 않는다. 과거 ID/hash·충족도/감사·미완료를 새 자료/학습 성과로 바꾸지 않는다.
 
-공식 과제를 다시 고르면 AI/private/별도 환경·명령 정책과 Optional·Bonus를 유지한다. CS229 Summer 2020, CS231n Spring 2024, CS224N Spring 2024 archive 1246, CS336 A1 v26.0.3·A2 v26.1.3 판본과 기존 private clone을 보존한다. 자체 LM과 공식 A1은 대체 관계이며 AX/지원 gate가 아니다. A2 학습 profiling과 serving은 다르다. 유료 GPU/외부 게시·배포는 별도 권한을 따른다. [상세 정책](./.agents/references/learning-policies.md#course-specific-scope-and-assistance)을 직접 읽는다.
+공식 과제를 다시 고르면 AI/private/별도 환경·명령 정책과 Optional·Bonus를 유지한다. CS229 Summer 2020, CS231n Spring 2024, CS224N Spring 2024 archive 1246, CS336 A1 v26.0.3·A2 v26.1.3 판본과 기존 private clone을 보존한다. 자체 LM과 공식 A1은 대체 관계이며 AX/지원 gate가 아니다. A2 학습 profiling과 serving은 다르다. 유료 GPU/외부 게시·배포는 별도 권한을 따른다. [상세 정책](./.agents/references/official-course-policies.md#course-specific-scope-and-assistance)을 직접 읽는다.

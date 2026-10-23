@@ -13,7 +13,7 @@ confirmed; ordinary cells, subsections and session endings do not trigger it.
 Report unresolved requirements rather than treating a transition as mastery.
 AX/RE unit completion alone does not trigger finish-chapter, new records, knowledge
 edits, notebook reset or Git operations. Confirm an actual chapter boundary under
-the approved ROADMAP; this curriculum redesign is not a chapter wrap-up.
+the approved ROADMAP; a curriculum or document review is not a chapter wrap-up.
 It does not authorize push, assignment-code
 repair/execution, automatic next-course teaching, or a dated TIL. Explicit narrower
 instructions (for example, no reset or no commit) override these defaults.
@@ -22,8 +22,12 @@ a CS336 assignment checkout or copy that checkout through this workflow.
 
 ## Establish the chapter
 
-Read `AGENTS.md`, `.agents/references/learning-policies.md`, `STATE.md`, `ROADMAP.md`, the current conversation and saved
-`main.ipynb` and other active chapter artifacts such as `recall.ipynb`.
+Read [AGENTS](../../../AGENTS.md), [common policies](../../references/learning-policies.md),
+[recordkeeping policies](../../references/recordkeeping-policies.md), [STATE](../../../STATE.md),
+the current [ROADMAP](../../../ROADMAP.md) scope and the learner's current conversation.
+When official coursework is involved, directly read [official policies](../../references/official-course-policies.md).
+Inspect relevant saved chapter cells/outputs through `scripts/nbpeek.py`, including
+`main.ipynb` or `recall.ipynb` when active. Do not run them.
 Read relevant existing knowledge
 and index files. Do not mine ignored state, old sessions, or Git history for
 learning evidence. Use Git status/diffs only to preserve changes and bound commits.
@@ -117,8 +121,7 @@ authorized/unrelated changes within one file require hunk-level selection and re
 
 Check staged name-status, the full staged diff (notebook JSON may be reviewed as
 cell/source/output summaries plus byte verification), and `git diff --cached --check`.
-Commit as `study: finish <chapter-slug>`; a first skill implementation can use a
-descriptive `feat:` message. Verify committed paths and remaining changes. Report
+Commit as `study: finish <chapter-slug>`. Verify committed paths and remaining changes. Report
 commit ID, archive/review/knowledge links, checks and limitations. Never amend or
 push automatically. On validation/commit failure, preserve artifacts and explain
 the failure rather than resetting work or claiming completion.

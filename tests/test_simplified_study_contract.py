@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import runpy
 import tomllib
 from pathlib import Path
 from urllib.parse import unquote
@@ -10,6 +11,28 @@ import pytest
 
 
 REPO = Path(__file__).resolve().parents[1]
+_EXTRACT_LINK_TARGETS = runpy.run_path(
+    str(REPO / ".agents/skills/update-learning-knowledge/scripts/validate_knowledge.py")
+)["extract_link_targets"]
+
+OPERATING_DOCS = (
+    "AGENTS.md", "STATE.md", "README.md", "USAGE.md",
+    "ROADMAP.md", "CURRICULUM.md", "DEFERRED.md",
+    ".agents/references/learning-policies.md",
+    ".agents/references/official-course-policies.md",
+    ".agents/references/recordkeeping-policies.md",
+    ".agents/skills/study-session/SKILL.md",
+    ".agents/skills/study-session/references/tutor-cases.md",
+    ".agents/skills/finish-chapter/SKILL.md",
+    ".agents/skills/finish-chapter/references/chapter-review.md",
+    ".agents/skills/save-today-til/SKILL.md",
+    ".agents/skills/update-learning-knowledge/SKILL.md",
+    ".specify/README.md", ".specify/memory/constitution.md",
+    "practice/README.md", "practice/ai-apps/README.md",
+    "materials/README.md", "challenges/README.md",
+    "challenges/deep-ml/README.md", "knowledge/README.md",
+    "knowledge/template.md", "til/README.md", "til/template.md",
+)
 
 
 def _raw(path: str) -> str:
@@ -27,8 +50,84 @@ def _markdown_cells(line: str) -> list[str]:
 
 
 def _contract() -> str:
-    # Inspect both explicitly required resources; root safety/loading has its own test.
-    return _normalized("AGENTS.md") + " " + _normalized(".agents/references/learning-policies.md")
+    # Inspect canonical contracts; this is not a loader or a study reading list.
+    sources = (
+        "AGENTS.md",
+        ".agents/references/learning-policies.md",
+        ".agents/references/official-course-policies.md",
+        ".agents/references/recordkeeping-policies.md",
+    )
+    return " ".join(_normalized(path) for path in sources)
+
+
+
+def _doc_lines(path: Path) -> list[tuple[int, str]]:
+    """Markdown lines outside fenced/inline examples; never execute examples."""
+    visible = []
+    fence = ""
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        marker = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if fence:
+            if marker and marker[1][0] == fence[0] and len(marker[1]) >= len(fence) and not marker[2].strip():
+                fence = ""
+            continue
+        if marker:
+            fence = marker[1]
+            continue
+        visible.append((number, line))
+    return visible
+
+
+def _doc_heading_ids(path: Path) -> set[str]:
+    """GitHub-style ATX heading IDs used by this repository, including duplicates."""
+    ids: set[str] = set()
+    for _, line in _doc_lines(path):
+        heading = re.match(r"^ {0,3}#{1,6}\s+(.+?)\s*$", line)
+        if not heading:
+            continue
+        text = re.sub(r"<[^>]+>", "", heading[1])
+        text = re.sub(r"\[([^]]+)\]\([^)]*\)", r"\1", text)
+        slug = re.sub(r"[^\w\s-]", "", text.lower())
+        slug = re.sub(r"\s", "-", slug.strip())
+        candidate, suffix = slug, 0
+        while candidate in ids:
+            suffix += 1
+            candidate = f"{slug}-{suffix}"
+        ids.add(candidate)
+    return ids
+
+
+def _doc_link_errors(path: Path) -> list[str]:
+    """Check local inline link files/headings; external URLs and templates are inert."""
+    if not path.is_file():
+        return [f"{path}: document missing"]
+    errors = []
+    for number, line in _doc_lines(path):
+        line = re.sub(r"`+[^`]*`+", "", line)
+        for raw in _EXTRACT_LINK_TARGETS(line):
+            target = raw.strip()
+            if target.startswith("<") and ">" in target:
+                target = target[1:target.index(">")]
+            else:
+                target = target.split(maxsplit=1)[0] if target else ""
+            if re.match(r"[a-zA-Z][\w+.-]*:", target) or target.startswith("//"):
+                continue
+            file_part, _, fragment = target.partition("#")
+            file_part = re.sub(r"\\([\\()])", r"\1", unquote(file_part))
+            fragment = unquote(fragment)
+            if re.search(r"[<>{}]", file_part):
+                continue  # e.g. knowledge/<area>/<concept>.md, not a real file.
+            linked = (path.parent / file_part).resolve() if file_part else path.resolve()
+            prefix = f"{path}:{number}: {raw}"
+            if not linked.exists():
+                errors.append(f"{prefix}: target missing")
+                continue
+            if linked.is_dir():
+                linked = linked / "README.md"
+            if fragment and linked.suffix.lower() == ".md":
+                if not linked.is_file() or fragment not in _doc_heading_ids(linked):
+                    errors.append(f"{prefix}: heading missing")
+    return errors
 
 
 def _unit(unit: str) -> str:
@@ -769,7 +868,7 @@ def test_current_delegation_preserves_default_ownership_and_restricted_work() ->
         assert term in ownership, term
     assert "even when asked" not in ownership
     # The strict official policy and cold-recall protections remain separate.
-    assert "Do not provide code, pseudocode, patches, or TODO solutions, even after an explicit request" in policy
+    assert "Do not provide code, pseudocode, patches, or TODO solutions, even after an explicit request" in _normalized(".agents/references/official-course-policies.md")
     assert "not even an import list or a function signature" in policy
     skill = _normalized(".agents/skills/study-session/SKILL.md")
     assert "현재 명시적으로 위임한 수정·작성·필요 검증" in skill
@@ -785,5 +884,68 @@ def test_validation_boundaries_cover_the_eight_cases_without_claiming_learning_e
     cases = _raw(".agents/skills/study-session/references/tutor-cases.md")
     audited = cases.split("## Approved audit scenarios", 1)[1]
     assert re.findall(r"^\| (B[1-8]) ", audited, re.M) == [f"B{i}" for i in range(1, 9)]
-    for limit in ("합성 수동", "모델 실행 의무가 없다", "현재는 미수행", "교육 효과", "첫 원인 가설"):
+    # Inspect scenario/evidence coverage, not a frozen past execution status.
+    for limit in ("합성 수동", "교육 효과", "첫 원인 가설"):
         assert limit in audited
+
+
+def test_doc_link_errors_handle_real_and_example_targets(tmp_path: Path) -> None:
+    target = tmp_path / "참고 문서(1).md"
+    target.write_text("## 절 하나\n", encoding="utf-8")
+    page = tmp_path / "guide.md"
+    page.write_text(
+        "[정상](<참고 문서(1).md#절-하나>)\n\n"
+        "```md\n[예시](missing-example.md)\n```\n",
+        encoding="utf-8",
+    )
+    assert _doc_link_errors(page) == []
+    page.write_text("[누락](missing.md)\n", encoding="utf-8")
+    assert any("missing.md" in error for error in _doc_link_errors(page))
+    page.write_text("[없는 절](<참고 문서(1).md#없는-절>)\n", encoding="utf-8")
+    assert any("없는-절" in error for error in _doc_link_errors(page))
+
+
+@pytest.mark.parametrize("relative", OPERATING_DOCS)
+def test_operating_doc_links_resolve(relative: str) -> None:
+    assert _doc_link_errors(REPO / relative) == []
+
+
+def test_doc_links_normalize_escapes_fragments_and_duplicate_headings(tmp_path: Path) -> None:
+    target = tmp_path / "한 글(1).md"
+    target.write_text("## API `find` / Set\n## API `find` / Set\n", encoding="utf-8")
+    page = tmp_path / "guide.md"
+    page.write_text(
+        "# Local\n"
+        "[self](#local)\n"
+        "[encoded](%ED%95%9C%20%EA%B8%80%281%29.md#api-find--set-1)\n"
+        "[escaped](<한 글\\(1\\).md#api-find--set>)\n",
+        encoding="utf-8",
+    )
+    assert _doc_link_errors(page) == []
+    page.write_text("[missing self](#absent)\n", encoding="utf-8")
+    assert any("#absent" in error for error in _doc_link_errors(page))
+
+
+def test_doc_links_ignore_urls_templates_and_nested_fenced_examples(tmp_path: Path) -> None:
+    page = tmp_path / "guide.md"
+    page.write_text(
+        "[web](https://example.invalid/doc#missing)\n"
+        "[email](mailto:example@example.invalid)\n"
+        "[template](knowledge/<area>/<concept>.md)\n"
+        "`[inline example](absent-inline.md)`\n"
+        "~~~~md\n[example](absent-tilde.md)\n~~~~\n"
+        "````md\n```md\n[example](absent-nested.md)\n```\n````\n",
+        encoding="utf-8",
+    )
+    assert _doc_link_errors(page) == []
+
+
+@pytest.mark.parametrize("fragment", (
+    "course-specific-scope-and-assistance", "cs336-return-and-boundaries",
+    "default-chapter-transition-wrap-up", "standalone-writing-and-sources",
+))
+def test_moved_policy_anchors_remain_reachable(tmp_path: Path, fragment: str) -> None:
+    page = tmp_path / "compatibility.md"
+    target = REPO / ".agents/references/learning-policies.md"
+    page.write_text(f"[old link](<{target}#{fragment}>)\n", encoding="utf-8")
+    assert _doc_link_errors(page) == []

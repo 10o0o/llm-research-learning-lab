@@ -1,6 +1,6 @@
 # Learning policies
 
-이 파일은 현재 승인 활동의 **필독 상세 정책**이다. 루트 [AGENTS](../../AGENTS.md)의 핵심 경계를 유지하며 [study-session](../skills/study-session/SKILL.md)과 함께 직접 읽는다. 자동 로딩을 가정하지 않는다. 범위는 [ROADMAP](../../ROADMAP.md), 선수/자료는 [CURRICULUM](../../CURRICULUM.md), 보류 이유/조건은 [DEFERRED](../../DEFERRED.md), 현재 재개는 [STATE](../../STATE.md)만 정한다.
+이 파일은 일반 학습/수동 회상의 **필독 공통 정책**이다. 루트 [AGENTS](../../AGENTS.md)의 핵심 경계를 유지하며 [study-session](../skills/study-session/SKILL.md)과 함께 직접 읽는다. 자동 로딩을 가정하지 않는다. 범위는 [ROADMAP](../../ROADMAP.md), 선수/자료는 [CURRICULUM](../../CURRICULUM.md), 보류 이유/조건은 [DEFERRED](../../DEFERRED.md), 현재 재개는 [STATE](../../STATE.md)만 정한다.
 
 AX/RE는 static reference이며 진도 키가 아니다. 기존 P0~P5·전체 PS·수학 전권·고정 시간·대회 의무는 현재 gate가 아니다. 역사적 catalog/registry·과거 STATE 인용·회고는 그 당시 도움·미완료를 보존하는 참고이며 새 과제 선택기나 성과 증거로 쓰지 않는다. 튜터는 한 서비스의 목적/입출력/흐름과 최소 선수를 설명하고 학습자는 작은 직접 구현·실행·첫 해석으로 이어간다. 더 깊은 수학/확률/최적화는 실제 공백의 의존 작업 전에 보강한다.
 
@@ -101,8 +101,7 @@ general recollection.
 않는다. 실제 작성·검증/실행 주체와 보조 수행을 밝히고 학습자 독립 구현·실행·숙달로
 세지 않는다. 과거 위임은 이후 모든 대상의 상시 대행 권한이 아니며 현재 범위를
 다른 기능·데이터·실행·게시로 확대하지 않는다. 공식 과제와 선택된 무보조 확인은
-해당 활동의 도움·명령·비공개 제한을 유지한다. 이 구분은 헌법 Governance의 명시
-요청 우선 적용이며 헌법 변경이나 새 상시 예외가 아니다. 도움 뒤 즉시 같은 기능을
+해당 활동의 도움·명령·비공개 제한을 유지한다. 현재 명시적 위임은 사용자 요청과 루트 지침의 범위 안에서 적용하며 미래 상시 예외가 아니다. 도움 뒤 즉시 같은 기능을
 백지 재작성하거나 선호 문장으로 재진술하는 시험을 강제하지 않는다.
 
 Apply the default ownership restriction to the learning target, not to the notebook cell format
@@ -214,137 +213,27 @@ Comparisons require a baseline, changed factor, fixed conditions, actual result,
 
 ## Course-specific scope and assistance
 
-[ROADMAP](../../ROADMAP.md)의 프로젝트가 현재 승인 경로다. 공식 과제를 선택하면 정확한 판본·개별 요구·AI/공개·환경/명령 정책을 먼저 확인하고 inspect actual requirements before assigning them. Use selected official course implementations, exercises, and assignments as primary practice within that selected activity; supplementary examples and completed instructor notebooks do not replace official practice. Report access or runtime limits as incomplete. Preserve Optional/Bonus labels, and do not describe dialogue as video viewing or local checks as official university grading. KANT is supporting context; verify independent quality, assistance and rights before reusing a matching task. It cannot replace selected official requirements.
-
-CS229는 Summer 2020 notes/PS 판본을 유지하고 2018 영상/현 홈페이지와 혼용하지 않는다. PS1~PS3 전체 written/coding와 PS3 Q1 RL·Q6 ICA는 현재 AX 필수가 아니라 보류다. 재선택하면 실제 공식 범위를 지키고 NumPy 연습으로 완료를 대신하지 않는다. ISLP 지정 장/lab 전체도 자동 gate가 아니다. MIT 18.05 Spring 2022·MML은 현재 공백 참고다. 선택한 공식 활동이 R을 요구하면 R로 수행하며 Python 모델 실습으로 공식 과제 완료를 만들지 않는다. R·오래된 과제 별도 환경은 진입 전 확인하며 자동 설치하지 않는다.
-
-CS231n Spring 2024 L2~6·A2 Q1~Q3와 나머지 CV 과제는 재선택 후보이며 현재 선행 필수가 아니다. CS224N is Spring 2024, archive 1246: the formerly selected A3 Q1(i) and A4 Q1-Q2 written are now optional references/reselection candidates, not AX gates. Never mix Winter 2024 archive 1244. Its [AI Tools Policy](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html) applies: AI collaboration is allowed but direct answer solicitation, copying answers, and substantial completion by AI are prohibited. Check assignment-specific requirements. Keep remaining written/programming/Final Project incomplete; do not claim full-course completion.
-
-CS336 A2 Systems v26.1.3 remains pinned to public commit `ca8bc81a59b70516f7ebb2da4808daade877c736`. It concerns training profiling, memory/FLOPs, mixed precision, activation checkpointing, FlashAttention-2 and parallelism, not serving completion. Single-device or scaled results do not complete B200/multi-GPU benchmarks (2/4/6 GPU all-reduce, 2 GPU DDP/FSDP). Triton backward remains OPTIONAL; PyTorch/torch.compile backward is separate. CPU Gloo function checks do not establish GPU scaling. CMU is a gap reference, not another mandatory course. 자원이 없으면 해당 검증은 미수행으로 남기고 가능한 로컬 학습을 계속한다.
-
-This repository is public and part of it is published as a site, so official coursework solutions must not land in it. MIT 18.05 problem-set answers and CS229, CS231n, CS224N, and CS336 assignment solutions belong in separate private workspaces, including written answers, code, notebooks, and saved outputs. What may be published is the learner's own concept notes, independent reimplementations, permitted competition work and research reports — never assignment code, official problem statements, or copyrighted course material. Review publication rights before staging. Preserve existing private clones. Never copy private KANT outlines/content, customer data, personal profile/education details, internal links or secrets into public notes.
-
-The KANT materials (`SRC-KAM-*`, `SRC-KDL-*`, `SRC-KBM-*`) are historical supporting context. Preparing a project does not authorize copying private originals or creating target learning data/answers. Input documents supplied as permitted starting materials and learner-built training/evaluation data remain distinct.
+공식 과제를 다룰 때 [공식 과제 정책](official-course-policies.md#course-specific-scope-and-assistance)을 직접 읽는다. 판본·도움·공개·저자원 경계의 기준 본문은 그곳에 있다.
 
 ### Official low-resource and resource boundaries
 
-A1 v26.0.3 printed page 40 permits the CPU/MPS learning-rate path with total
-40,000,000 tokens and validation loss target 2.00; this does not authorize the
-same targets for CUDA 8GB. Printed page 44 permits limited-GPU online learners
-to continue change experiments using TinyStories instead of OWT. Verify the
-exact path and remaining written/experimental requirements when reselected.
-An arbitrary toy run, official permitted adaptation and university grading are
-different. Leaderboard submission is optional. A2 printed page 28 B200 and
-page 32 multi-GPU requirements need actual hardware results. Paid GPU purchase,
-registration or execution needs separate authorization; unavailable benchmarks
-stay incomplete while feasible local work continues.
+[공식 자원 정책](official-course-policies.md#official-low-resource-and-resource-boundaries)으로 이동했다.
 
 ### CS336 return and boundaries
 
-[Stanford CS336 Spring 2026](https://cs336.stanford.edu/) Assignment 1 remains
-pinned to public commit `a158843b20107949f1a8d7df1b05cd33b9166712` (handout v26.0.3).
-Do not clone, register, cache, or download it unless the learner separately asks.
-
-If the learner reselects official A1 as the replacement for the RE-02 project, return to the existing assignment when learner work demonstrates:
-- constructing, running, and interpreting a small model's training and validation;
-- adapting feature or class counts while maintaining Tensor/loss contracts;
-- tracing token IDs, embeddings, attention, logits, next-token targets, and masks.
-
-Official API docs are allowed under course policy. Do not impose a second full
-tokenizer/Transformer implementation as an entry test. Entry does not cancel
-unfinished work or authorize claiming full CS224N/CS231n completion. Apply the
-already approved selected route without asking again about removed requirements.
-
-Foundation practice uses this learning lab's Python 3.14 environment.
-The assignment uses a separate sibling clone and its own official uv environment
-with Python 3.12 or 3.13. Never add it as a lab dependency or install it into this
-repository's `.venv`. Check required R and older assignment environments before
-entry; do not install them automatically. External GPU consideration includes
-VRAM, runtime, device count and official hardware requirements. Paid GPU purchase,
-registration or execution needs separate authorization; continue feasible local
-work and keep unavailable hardware benchmarks incomplete.
-
-During a CS336 assignment, follow the assignment's official AI policy strictly.
-The learner writes the assignment code, runs the provided tests,
-and runs every bash command. The AI must not
-execute bash commands in the assignment repository. It may explain a command
-already shown in the official handout and interpret output supplied by the
-learner, but it must not create a new command sequence to solve or automate the
-assignment. Provide concept explanations, error-message interpretation, sanity
-checks, and general review only. Do not provide code, pseudocode, patches, or
-TODO solutions, even after an explicit request.
+[CS336 정책](official-course-policies.md#cs336-return-and-boundaries)으로 이동했다. 루트의 명령·답안 제한은 항상 유효하다.
 
 ## TIL, knowledge, practice, and sources
 
+기록이나 챕터 정리 때 [기록 정책](recordkeeping-policies.md)을 직접 읽는다.
+
 ### Default chapter-transition wrap-up
 
-AX/RE 단위 완료는 실제 챕터 전환이 아니다. 단위 완료만으로 finish-chapter·기록 생성·초기화·로컬 커밋 권한이 생기지 않는다.
-
-At a confirmed chapter transition, invoke
-[finish-chapter](../skills/finish-chapter/SKILL.md) before starting the next
-chapter, without a separate wrap-up request. The learner has authorized this as
-the default: preserve saved chapter notebooks, write matching reviews, update
-demonstrated knowledge, reset the verified chapter workspaces (including a
-chapter-specific recall notebook), update STATE, and make a scoped local commit
-after validation. `$finish-chapter` and `이번 챕터 정리해줘` also invoke it directly.
-Confirm the chapter boundary from the approved course and actual work; an ordinary
-cell, subsection, or session ending is not a chapter transition. Report incomplete
-requirements instead of silently marking a chapter complete. A wrap-up does not
-authorize changing courses; use the already approved next step or ask about scope.
-It does not activate for `완료`, `이해했어`, or `오늘 학습 종료` alone.
-Ordinary study and standalone TIL/knowledge requests retain their existing rules.
-
-Keep the notebook byte-identical in its archive; do not execute or repair it.
-Write process/results/assistance in the chapter review and reusable concepts in
-knowledge. The wrap-up has no fixed concept-count limit. Reuse existing validators;
-do not indirectly invoke the standalone explicit-only skills. Do not create a TIL,
-tracking system, or next lesson automatically. Course-specific restrictions apply.
-Confirm the learner's unassisted concept drafts before knowledge edits or workspace
-reset. If a needed draft is missing, ask for it instead of writing it for them.
-Learner-authored conceptual answers already in the conversation can serve as
-drafts; do not require a duplicate formal note. Use their actual explanation and
-interpreted artifacts, not the tutor's prose or an "understood" response, and
-preserve any assistance boundary. Concepts without learner evidence stay in the
-review as open questions, not as established knowledge.
-
-Complete and verify the archive and notes before resetting the workspace. Update
-STATE from confirmed evidence without prior approval, then run affected checks.
-The wrap-up's previously authorized local commit proceeds without another commit
-question. Standalone STATE updates are still edit-only except at an explicit
-study stop. Unrelated changes are excluded unless explicitly included; a chapter
-wrap-up alone does not authorize push, while the study-stop procedure does.
+[챕터 전환 권한](recordkeeping-policies.md#default-chapter-transition-wrap-up)과 [finish-chapter 절차](../skills/finish-chapter/SKILL.md)를 따른다.
 
 ### Standalone writing and sources
 
-- Ordinary study may prepare a necessary starting notebook or script for the
-  current approved activity under the setup responsibility above. Do not invent
-  supplementary exercises or replace official implementations, exercises, or
-  assignments with them.
-- Other `practice/` artifacts require an explicit learner request or the
-  authorized chapter-transition wrap-up's archive and review.
-  Keep setup, implementation, run, and interpretation together when practical.
-- Existing notebooks may retain historical metadata. Do not rewrite it merely
-  to fit the pilot, and do not treat it as active state.
-- Write a dated TIL only when the learner explicitly asks and identifies the
-  current conversation, draft, or artifacts to summarize. Do not infer missing
-  claims or auto-commit it.
-- Update `knowledge/` on an explicit request or during the authorized chapter
-  transition, and only from learner-authored
-  explanation, calculation, or executed and interpreted artifacts. `NO_CHANGE`
-  is valid.
-- Keep source material distinct from learner work. Do not copy copyrighted
-  material into public notes. Do not delete a PDF or original Notion export
-  until its text, page renders, code indentation, tables, links, formulas, and
-  assets have been checked.
-- Do not add datasets, model weights, credentials, or large generated files to
-  Git unless explicitly authorized and appropriate.
-
-Standalone formatting checks remain available:
-
-```bash
-python3 .agents/skills/save-today-til/scripts/validate_til.py til/YYYY/MM/YYYY-MM-DD.md
-python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py knowledge/<area>/<concept>.md
-```
+[개별 기록과 원자료 정책](recordkeeping-policies.md#standalone-writing-and-sources)을 따른다.
 
 ## Editing and Git
 
@@ -362,6 +251,6 @@ python3 .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py k
 - Do not commit or push unless the learner explicitly asks for that specific
   operation or invokes the authorized study-stop procedure (scoped commit and push).
   An explicit or default chapter-transition wrap-up includes its scoped local commit
-  as described above. A commit request never implies push permission. Before a commit,
+  as described in [recordkeeping policies](recordkeeping-policies.md#default-chapter-transition-wrap-up). A commit request never implies push permission. Before a commit,
   stage only the exact authorized paths, inspect the staged name-status and
   diff, and run `git diff --cached --check`.

@@ -8,8 +8,10 @@
 
 1. [STATE.md](STATE.md): 유일한 현재 재개 북마크·다음 독립 행동 하나.
 2. [study-session](.agents/skills/study-session/SKILL.md): `$study-session`도 명시 진입점인 진행/피드백/회상/종료 절차.
-3. [learning-policies](.agents/references/learning-policies.md): 준비·답안/근거·공식 과제·기록/보존·Git의 필독 상세 정책.
+3. [learning-policies](.agents/references/learning-policies.md): 준비·소유권/근거·기능 수업·Git의 필독 공통 정책.
 4. 현재 단위의 [ROADMAP](ROADMAP.md)과 필요한 [CURRICULUM](CURRICULUM.md) 구간 및 정확한 공식 원문. 범위/자료는 STATE를 대신해 현재 위치를 선택하지 않는다.
+
+공식 과제를 선택·재개하거나 관련 자료/도움을 다룰 때는 [공식 과제 정책](.agents/references/official-course-policies.md), 기록·챕터 정리·보관·초기화 때는 [기록 정책](.agents/references/recordkeeping-policies.md)을 추가로 직접 읽는다. 일반 AX 수업에서 이 두 정책 전체를 상시 필독으로 요구하지 않는다.
 
 ROADMAP은 승인 범위·AX/RE 단위 계약·최소 산출물, CURRICULUM은 역량/최소 선수·자료 참고, [DEFERRED](DEFERRED.md)는 제외 이유/복귀 조건이다. README/USAGE/하위 안내는 요약/링크다. 보존된 catalog/registry·과거 북마크 인용·회고의 ‘필수’는 현재 지시가 아니다. P0~P5·전체 과제/수학·고정 시간/대회 의무를 숨은 gate로 복원하지 않는다. 사내비·TF-IDF·분류기·분류 파인튜닝·LangChain은 사용자 예시이며 고정 필수 순서가 아니다. 새 범위·보류 과정 추가는 선택을 확인하되 승인 범위의 통상 진행·준비에 중복 승인을 요구하지 않는다.
 
@@ -38,13 +40,13 @@ ROADMAP은 승인 범위·AX/RE 단위 계약·최소 산출물, CURRICULUM은 �
 
 이 저장소는 공개이며 일부가 사이트로 게시된다. MIT 18.05·CS229·CS231n·CS224N·CS336 공식 과제의 written/코드/노트북/저장 출력 답안과 공식 원문·저작권 자료는 private 작업 공간에 둔다. 원자료·평가 정답·개인/고객·비공개 KANT·비밀키·인증 정보·큰 데이터/가중치를 자동으로 Git에 넣지 않는다. 공개 자료도 라이선스·재배포/사용 권리·PII를 사용 전에 확인한다. 유료 실행·외부 게시/배포는 별도 권한을 따른다.
 
-공식 과제를 재선택하면 판본·AI·비공개·별도 환경·명령 제한을 그대로 적용한다. CS336 A1 v26.0.3 pin은 `a158843b20107949f1a8d7df1b05cd33b9166712`다. 기존 private clone을 보존하고 별도 요청 없이 clone/download/register하지 않는다. **CS336은 학습자가 과제 코드·테스트·모든 bash 명령을 실행한다. AI는 과제 repository에서 명령을 실행하지 않으며 code/pseudocode/patch/TODO 답안·새 명령 시퀀스를 제공하지 않는다.** handout에 이미 있는 명령 설명·개념·학습자 출력의 일반 검토만 한다. lab Python 3.14와 별도 sibling 과제 uv Python 3.12/3.13을 섞지 않는다. R·다른 과제 환경을 자동 설치하지 않는다. 공식 허용 저자원 조정·임의 축소·전체 완료는 구별하고 Optional/Bonus를 유지한다. 상세 판본·정책은 필독 learning-policies에 있다.
+공식 과제를 재선택하면 판본·AI·비공개·별도 환경·명령 제한을 그대로 적용한다. CS336 A1 v26.0.3 pin은 `a158843b20107949f1a8d7df1b05cd33b9166712`다. 기존 private clone을 보존하고 별도 요청 없이 clone/download/register하지 않는다. **CS336은 학습자가 과제 코드·테스트·모든 bash 명령을 실행한다. AI는 과제 repository에서 명령을 실행하지 않으며 code/pseudocode/patch/TODO 답안·새 명령 시퀀스를 제공하지 않는다.** handout에 이미 있는 명령 설명·개념·학습자 출력의 일반 검토만 한다. lab Python 3.14와 별도 sibling 과제 uv Python 3.12/3.13을 섞지 않는다. R·다른 과제 환경을 자동 설치하지 않는다. 공식 허용 저자원 조정·임의 축소·전체 완료는 구별하고 Optional/Bonus를 유지한다. 상세 판본·정책은 공식 과제 정책에 있다.
 
 ## State, records and Default chapter-transition wrap-up
 
 STATE는 public-safe 현재 범위·짧은 실제 근거·재확인·다음 독립 행동 하나만 둔다. 점수·완료표·transcript·개인 경로·hash·누적 시간/이력·자동 다음 목표를 추가하지 않는다. 실제 재개가 바뀔 때 사전 승인 없이 조용히 갱신한다. 충돌/누락은 확인된 자료로 고치고 남은 사실만 묻는다. 단독 STATE 수정은 편집만 허용한다.
 
-[finish-chapter](.agents/skills/finish-chapter/SKILL.md)는 확인된 실제 챕터 전환에서 다음 장 전에 기본 실행하며 `$finish-chapter`/`이번 챕터 정리해줘`로도 호출한다. 원본 byte 보관·회고·학습자 초안에 근거한 knowledge·검증 후 초기화·범위 내 로컬 커밋 권한이며 push는 없다. **AX/RE 단위 완료만으로 finish-chapter·기록·knowledge·노트북 초기화·Git 권한이 생기지 않는다.** 일반 `완료`/`이해했어`·학습 종료·주간 회상도 챕터 전환이 아니다. 학습자 초안·보관 확인이 없으면 노트 작성/초기화를 대신하지 않는다.
+[finish-chapter](.agents/skills/finish-chapter/SKILL.md)는 확인된 실제 챕터 전환에서 다음 장 전에 기본 실행하며 `$finish-chapter`/`이번 챕터 정리해줘`로도 호출한다. 원본 byte 보관·회고를 수행하고 knowledge는 확인된 학습자 초안으로 정리하며, 보관·노트 검증 뒤에만 초기화한다. 검증 후 범위 내 로컬 커밋만 포함하며 push는 없다. 상세 권한은 기록 정책, 절차는 스킬에 둔다. **AX/RE 단위 완료만으로 finish-chapter·기록·knowledge·노트북 초기화·Git 권한이 생기지 않는다.** 일반 `완료`/`이해했어`·학습 종료·주간 회상도 챕터 전환이 아니다. 학습자 초안·보관 확인이 없으면 노트 작성/초기화를 대신하지 않는다.
 
 일반 학습은 필요한 현재 시작 자료 준비 외에 새 연습·리뷰·TIL·knowledge·다음 수업 준비를 만들지 않는다. 개별 TIL/knowledge는 명시 요청과 학습자 근거로만 작성하며 자체 커밋 권한은 없다. 기존 실습/회고·knowledge/TIL·archive·원자료/private는 보존한다. 과거 STATE 원문은 [일회성 인용](practice/reviews/curriculum-transition.md)이며 현재 재개는 STATE만 정한다.
 

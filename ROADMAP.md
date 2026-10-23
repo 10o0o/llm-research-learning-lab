@@ -189,7 +189,7 @@ AX-01 작은 AI 업무 기능 → AX-02 데이터·검색·근거
 
 자료·근거: JD-KR-04, JD-US-03·04; REF-02 → tokenizer·embedding·causal attention·Transformer·next-token CE·sampling·checkpoint, 계산/메모리 이해. 사용할 구간: REF-02 2026 L1~3·12~14; REF-04 Ch1·6 보조. 기본은 자체 LM 프로젝트; 공식 A1 선택 시 대체. 판본/접근 한계와 실제 수업 전 확인은 [CURRICULUM](./CURRICULUM.md#3-자료와-판본접근-경계)·[선택 매핑](./specs/001-employment-project-curriculum/research/decision-matrix.md#3-근거역량선택-자료직접-산출물)을 따른다.
 
-진입 근거: RE-01의 학습/검증 실행·해석, feature/class 변화의 Tensor/loss 계약, token→embedding→attention→mask 흐름을 연결한다. 기본은 자체 LM 하나이며 공식 A1 선택 시 이를 대체한다. 자체 LM 전체 후 A1 전체를 다시 요구하지 않는다. 다음 진입은 같은 모델의 실제 train/validation·생성/checkpoint·자원/데이터 한계를 해석한 근거다. 공식 A1의 pin/private/명령 정책은 [상세 정책](./.agents/references/learning-policies.md#cs336-return-and-boundaries)을 따른다.
+진입 근거: RE-01의 학습/검증 실행·해석, feature/class 변화의 Tensor/loss 계약, token→embedding→attention→mask 흐름을 연결한다. 기본은 자체 LM 하나이며 공식 A1 선택 시 이를 대체한다. 자체 LM 전체 후 A1 전체를 다시 요구하지 않는다. 다음 진입은 같은 모델의 실제 train/validation·생성/checkpoint·자원/데이터 한계를 해석한 근거다. 공식 A1의 pin/private/명령 정책은 [상세 정책](./.agents/references/official-course-policies.md#cs336-return-and-boundaries)을 따른다.
 
 ## RE-03 — 전문화 한 비교
 

@@ -5,6 +5,10 @@ description: Explicit standalone TIL writing from learner-authored content and e
 
 # Save a Standalone TIL
 
+Apply [recordkeeping policies](../../references/recordkeeping-policies.md#standalone-writing-and-sources)
+and the root [publication/ownership boundaries](../../../AGENTS.md). This explicit
+standalone procedure does not apply automatically during study or chapter wrap-up.
+
 Use only the inputs named in the current request: learner-authored explanations
 or calculations in the current conversation, an exact draft, and exact
 executed artifacts with the learner's interpretation. `STATE.md` is a resume
