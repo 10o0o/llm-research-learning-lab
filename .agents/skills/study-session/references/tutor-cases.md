@@ -9,7 +9,12 @@ project-route examples and the approved audit scenarios below only. No model/API
 application setup or new environment is authorized. The following comparison
 protocol is a future validation option, not a required run or a completed result.
 
-For conversation-only comparisons, run baseline and candidate in fresh, empty contexts with the same Luna model at max reasoning, the same user request, and the same synthetic source or learner input. Change only the instruction bundle. Prohibit tool use and exclude any run that used tools. Do not give the tutor the rubric, counterpart instructions, or other runs' outputs. Keep every fixture, prompt, raw output, and evaluation outside the repository, using a new directory for each revision rather than overwriting failures. Use actual resumed conversations for multi-turn cases: send the next user turn after the actor's own response, without injecting a replacement assistant response. Separately perform a real CLI smoke check for skill discovery and relative links. Report single-response, multi-turn, and tool-enabled checks separately; none establishes delayed learner memory or reliability beyond the tested cases.
+For conversation-only comparisons, run baseline and candidate in fresh, empty contexts with the same user-approved model and reasoning effort, the same user request, and the same synthetic source or learner input. Change only the instruction bundle. Prohibit tool use and exclude any run that used tools. Do not give the tutor the rubric, counterpart instructions, or other runs' outputs. Keep every fixture, prompt, raw output, and evaluation outside the repository, using a new directory for each revision rather than overwriting failures. Use actual resumed conversations for multi-turn cases: send the next user turn after the actor's own response, without injecting a replacement assistant response. Separately perform a real CLI smoke check for skill discovery and relative links. Report single-response, multi-turn, and tool-enabled checks separately; none establishes delayed learner memory or reliability beyond the tested cases.
+
+An optional comparison protocol never authorizes extra agents or changes to the
+model/effort by itself. Follow the current repository and session permissions. In
+this project, use author manual semantic review unless a different validation mode
+is explicitly authorized; label authored excerpts separately from raw model output.
 
 Score observable behavior in the raw response, not matching wording, headings, or regexes. Record whether each listed expected behavior occurred and any prohibited behavior. Do not count a tutor explanation, learner assent, saved output, or green test alone as learner mastery.
 
@@ -139,3 +144,28 @@ V-C는 실제 활동 한 단위 이상에서 준비 복붙/이동·목적 명확
 LMS/자동 보고를 만들지 않는다. 목적 혼란이나 반복 부담이 남으면 안내/가설을
 수정·기각한다. 실제 미개선·관찰 부재·실행 불가를 구별하며 실제 오류가 없으면
 첫 원인 가설을 요구하지 않는다. 도움 뒤 즉시 같은 답/구현을 재시험하지 않는다.
+
+## Approved tutoring redesign scenarios
+
+Use the ten situations in the [2026-10-23 design](../../../../specs/002-learning-method-audit/tutoring-redesign-2026-10-23.md)
+as additional V-B criteria. Keep the original givens and distinguish source/meaning
+review, authored candidate excerpts, independent model responses and actual resumed
+learning. Their presence here is not a completed behavioral test.
+
+Review task granularity and source continuity together: one connected lecture segment
+and one user-visible feature, with JS-to-Python help and the observed data flow before
+implementation. For repeated prompt edits, require a new observation or implementation
+decision; distinguish a known quality limit from a blocking state/approval violation.
+Inspect known-value reuse, unrequested draft behavior and actual state as contracts,
+without turning helper fields or routine formatting into separate study milestones.
+
+Check purpose confusion, syntax gaps, missing connections and current delegation as
+different support paths. Preserve sufficient answers and the single-follow-up limit.
+At review/pause, perform only the requested document/support work. Preserve the actual
+bookmark and unresolved learning evidence; never infer video viewing, full-course
+completion, model-selected tools or durable mastery from a document/test result.
+
+Report which cases were reviewed, by whom and against which saved instructions.
+No new prose-matching pytest or generated pass count establishes tutor compliance.
+If later independent runs are authorized, reuse the same inputs and criteria and
+preserve raw failures before changing the instruction bundle.

@@ -14,10 +14,10 @@
 
 | 단위 | 먼저 설명할 최소 선수 | 실제 사용처·학습자 근거 | 관찰 공백의 보강 | 사용할 자료 구간 |
 | --- | --- | --- | --- | --- |
-| AX-01 | 자료/함수·JSON/예외는 입출력 전, JSON/HTTP·token/context·비결정성은 호출 전, baseline·사례 역할은 비교 전 | 문의 현상·알려진 조건→접수 초안→형식/사실/충분성을 직접 코드/실행/첫 해석 | 파싱/형식/API 오류는 해당 동작; 작은 차이 해석은 독립 사례/반복·불확실성 | REF-03 foundations/앱 출시 원리, REF-06 Unit1 메시지/LLM/도구 기초 |
-| AX-02 | corpus와 질의/qrels·중복/그룹은 자료 전, chunk/metadata는 색인 전. 선택한 검색의 점수/가중치는 구현 전, 벡터/내적/정규화는 해당 연산을 쓰기 전, embedding은 dense 선택 시 사용 전 | sparse baseline 하나의 질의→근거→답변/기권. 오류나 사전 학습 질문이 있을 때 dense/hybrid 비교 선택 | 차원·정규화/ranking 실패, 오래된/누락 근거·길이 한계 | REF-03 Augmented Language Models, REF-04 datasets/tokenizers 필요한 설명, Microsoft RAG 설계/평가 |
-| AX-03 | 함수/API·필요 시 SQL 계약은 도구 전, 상태·부작용·멱등성·권한은 모의 변경 전, agent 차이/종료는 비교 전 | 일반 Python 고정 흐름과 도구 하나의 실제 모의 상태 대조. 재개/승인 필요 시 LangGraph, 모델 주도 선택 질문 시 bounded agent 비교 | 중복/timeout/retry·복구·context 혼선·prompt injection 실제 문제 | REF-06 Unit1 tools/actions/observations; 조건 충족 시 Unit2.3 LangGraph |
-| AX-04 | HTTP/API·상태·테스트는 API 전, PII·권한은 저장/로그 전, latency/cost·외부 조건은 측정 전 | 앞 단위의 평가·권리·재현·기여를 누적해 API/저장·회귀 강화, 로컬/실제 운영 구별 | 요청 간 누수·동시성·비용/지연·권한 오류에서 필요한 범위 | REF-03 UX/LLMOps, REF-08 Production 구성·REF-09 문제/평가/설명 참고 |
+| AX-01 | 자료/함수·JSON/예외는 입출력 전, JSON/HTTP·token/context·비결정성은 호출 전, baseline·사례 역할은 비교 전 | 문의 현상·알려진 조건→접수 초안→형식/사실/충분성을 직접 코드/실행/첫 해석 | 파싱/형식/API 오류는 해당 동작; 작은 차이 해석은 독립 사례/반복·불확실성 | Zoomcamp Part 1의 문제·전체 흐름을 주교재로, REF-03 foundations·REF-06 메시지를 보조로 사용 |
+| AX-02 | corpus와 질의/qrels·중복/그룹은 자료 전, chunk/metadata는 색인 전. 선택한 검색의 점수/가중치는 구현 전, 벡터/내적/정규화는 해당 연산을 쓰기 전, embedding은 dense 선택 시 사용 전 | sparse baseline 하나의 질의→근거→답변/기권. 오류나 사전 학습 질문이 있을 때 dense/hybrid 비교 선택 | 차원·정규화/ranking 실패, 오래된/누락 근거·길이 한계 | Zoomcamp Part 1의 연결된 RAG 설명·Module 4 평가 구간; REF-03·REF-04·Microsoft는 관찰 공백의 보조 |
+| AX-03 | 함수/API·필요 시 SQL 계약은 도구 전, 상태·부작용·멱등성·권한은 모의 변경 전, agent 차이/종료는 비교 전 | 일반 Python 고정 흐름과 도구 하나의 실제 모의 상태 대조. 재개/승인 필요 시 LangGraph, 모델 주도 선택 질문 시 bounded agent 비교 | 중복/timeout/retry·복구·context 혼선·prompt injection 실제 문제 | 주교재의 전체 흐름을 재사용하고 REF-06 What are Tools의 정의·실행 주체를 보조. 조건 충족 시 Zoomcamp Part 2 또는 Unit2.3 LangGraph |
+| AX-04 | HTTP/API·상태·테스트는 API 전, PII·권한은 저장/로그 전, latency/cost·외부 조건은 측정 전 | 앞 단위의 평가·권리·재현·기여를 누적해 API/저장·회귀 강화, 로컬/실제 운영 구별 | 요청 간 누수·동시성·비용/지연·권한 오류에서 필요한 범위 | Zoomcamp 프로젝트 지침의 종단 연결·평가·실행 설명; REF-03 UX/LLMOps·REF-08/09는 보조 |
 | RE-01 | tensor/shape·행렬은 입력/model 전, 미분/chain rule·gradient·likelihood/loss는 update 전, 분리/누수는 fit/비교 전 | 작은 모델 하나의 data→train→validation·첫 해석, 작은 배치·train/eval·gradient 진단 | Jacobian·초기화·일반화/규제·최적화·확률/통계의 실제 공백 | REF-01 2026 L1/필요 sequence, REF-04 Ch2~3·5; MML/MIT/ISLP 필요한 절 |
 | RE-02 | RE-01 학습/검증을 연결, 조건부확률·softmax/CE·shift는 loss 전, embedding·attention/mask·행렬은 해당 구성 전, 자원은 실행 전 | 한 LM의 token→logit/next-token loss→학습/생성/재개 | 토큰화·mask·수치 안정성·compute/memory·오염/일반화 | REF-02 2026 L1~3·12~14, REF-04 Ch1·6 보조; 공식 A1은 자체 LM 대체 |
 | RE-03 | 학습 선택 시 base/instruct·template/loss mask·SFT/PEFT·분리를 fit 전; 추론 선택 시 prefill/decode·cache·workload/허용오차를 측정 전. 공통 자원 권한·통제 비교 | base 대비 SFT 한 비교 또는 inference 한 축, held-out·고정 조건·실패 | 데이터/최적화·판정기 불일치 또는 수치/성능 병목 | REF-05 chat templates/SFT/PEFT/domain evaluation·REF-04 Ch10~11; 대안 REF-02 L2·5~8·10 |
@@ -58,6 +58,22 @@
 ## 3. 자료와 판본·접근 경계
 
 아래 선택은 [JD 원문 관찰](./specs/001-employment-project-curriculum/research/jd-evidence.md)·[공식 기술 동향](./specs/001-employment-project-curriculum/research/trend-evidence.md)·[교육과정 비교](./specs/001-employment-project-curriculum/research/reference-curricula.md)를 연결한 **설계 판단**이다. 조회 기준은 2026-10-19이며 현재 채용/접근·개별 활동/환경/권리의 검증은 별개다. [근거→역량→구간→산출물/평가 매핑](./specs/001-employment-project-curriculum/research/decision-matrix.md)을 기준으로 사용한다. 각 과정 전체 이수/등록·모델 실행·게시를 요구하지 않는다.
+
+### 프로젝트 수업의 주교재와 보조 자료
+
+2026-10-23 승인한 [수업 운영 개선](./specs/002-learning-method-audit/tutoring-redesign-2026-10-23.md)에 따라 **연결된 강의 구간→현재 프로젝트의 기능 하나→실행·첫 해석→리뷰**를 기본으로 한다. 아래는 현재 AX 프로젝트에서의 자료 우선순위다. 기존 REF 목록과 2026-10-19 선택 매핑은 당시 근거로 보존하며 병렬 필수 수강 목록으로 쓰지 않는다. 단기 AX와 후속 RE의 범위는 ROADMAP을 유지한다.
+
+| 역할·사용처 | 고정할 설명 구간 | 실제 적용과 확인 경계 |
+| --- | --- | --- |
+| 주교재 — AX의 문제·RAG 전체 흐름 | [Zoomcamp Module 1 Part 1](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/01-agentic-rag/README.md)의 연결된 구성. [RAG 교안](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/01-agentic-rag/03-rag.md)의 문제→context→search/prompt/LLM과 [Part 1 정리](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/01-agentic-rag/10-rag-next-steps.md) | 해당 두 교안과 모듈 구성을 확인했다. 필요한 연결 구간을 정해 유지하고 매 응답 새 주제로 바꾸지 않는다. 기존 구현을 예제로 재사용하며 Part 1 전체 재작성을 관문으로 삼지 않는다. 검색 성공과 생성 정확성은 별도다. |
+| 주교재 — 검색·답변 평가와 결과물 | [Zoomcamp Module 4](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/04-evaluation/README.md)의 Search Evaluation→RAG and Agent Evaluation 구성과 [프로젝트 지침](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/project.md)의 종단 연결·문제/실행/평가 설명 | 평가 모듈은 구성 확인이며 개별 절 본문은 가르치기 전에 읽는다. LLM 생성 라벨·LLM judge를 자동 정답으로 삼지 않는다. 평가와 API 연결은 기존 서비스에서 수행한다. |
+| 보조 — 현재 도구의 개념·책임 | [HF What are Tools](https://huggingface.co/learn/agents-course/en/unit1/tools)의 What are AI Tools·How do tools work | 정의·입력/반환·모델 호출 요청과 프로그램 실행 주체를 확인했다. generic Tool 클래스·introspection·decorator 구현을 현재 과제로 추가하지 않는다. |
+| 보조 — Python 사용 공백·제품 관점 | [CS50P](https://cs50.harvard.edu/python/)의 Loops·Exceptions·Libraries·File I/O 중 실제 공백, REF-03 FSDL 2023의 UX/LLMOps | 과정 목차는 확인했으며 개별 절은 사용 전에 확인한다. JS 경험을 활용해 표현을 묶어 설명한다. 전체 입문 과정이나 두 번째 전체 강의를 요구하지 않는다. |
+| 조건부 — 모델 주도 선택·상태 책임 | [Zoomcamp Part 2 Function Calling](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/01-agentic-rag/13-function-calling.md), REF-06 LangGraph | function-calling 교안은 확인했다. 모델이 선택하는 흐름의 비교 질문 또는 상태 보존·중단/재개 책임이 있을 때 선택한다. 로컬 helper만으로 agent 완료를 주장하지 않는다. |
+
+Zoomcamp는 조회 당시 공개 HEAD `1c42efbeb8141c183e7ae51698ad912c70c06a06`의 교안·구성을 기준으로 삼는다. [공식 안내](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/README.md)는 Python·CLI·기초 Docker를 선수로 두며 자습에는 채점·동료 리뷰·수료증이 없다. 영상 전편의 품질이나 본인의 언어·속도 적합성은 미확인이다. 영상 시청을 가정하거나 사전 시청을 수업 진입 조건으로 두지 않고, 튜터는 필요한 내용을 한국어로 설명한다. 직접 시청·원문 읽기·출처 기반 대화는 실제 수행한 방식대로 구분한다.
+
+주교재 선택은 전체 공식 과정 등록·수료, 모든 기술·과제·유료 API 사용의 승인이 아니다. 기존 Ollama와 강의 API를 교체한 실행의 호환·성능도 미확인이다. Kestra·PGVector·LangChain·대시보드 등을 현재 기능에 필요 없이 추가하지 않으며, 실제 수업 전 정확한 절·API·환경·비용·권리를 확인한다. 자료가 맞지 않으면 실제 언어/속도/선수 부담에 근거해 조정하되 기존 프로젝트와 도움 이력을 초기화하지 않는다.
 
 | 자료 | 사용할 판본·구간 | 접근/선택 한계 |
 | --- | --- | --- |

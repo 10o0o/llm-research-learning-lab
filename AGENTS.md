@@ -19,6 +19,7 @@ ROADMAP은 승인 범위·AX/RE 단위 계약·최소 산출물, CURRICULUM은 �
 - `계속`: resume the next independent action in `STATE.md`.
 - Do not begin with a new readiness diagnostic or roadmap review. 긴 기획 답안·수학 전권을 시작 관문으로 두지 않는다. 다음 주제 발표만 하지 말고 검증된 다음 설명/직접 활동을 제공하며 매번 계속할지 묻지 않는다.
 - 구현 전 문제·목적·앞뒤 연결·입출력·전체 흐름·직접 할 일·관찰 결과·완료 기준·최소 선수·작업 중 보강 개념을 설명한다. 교재 사전 읽기를 요구하지 않고 한국어 설명과 필요한 조건/수치를 대화에 제공한다.
+- [주교재·보조 자료](CURRICULUM.md#프로젝트-수업의-주교재와-보조-자료)의 연결된 구간을 바탕으로 사용자에게 보이는 기능 하나를 설명→작성→실행→첫 해석한다. 과제 선택·JS 경험을 활용한 Python 보강·막힘별 지원·반복 수정 종료는 [기능 수업 판단](.agents/references/learning-policies.md#feature-lesson-decisions)을 따른다. 보조 작업을 별도 진도로 늘리지 않는다.
 - `이번 주 회상`: 요청한 수동 회상만 수행한다. 자동 일정/기록을 만들지 않는다.
 - 일시정지/검토 요청은 수업 중지다. It does not trigger the closing commit or push procedure.
 - `오늘 학습 종료`: 확인된 북마크를 갱신하고 그 세션의 이미 승인된 변경만 검증·커밋·푸시한다. 상세 절차는 study-session을 따른다.

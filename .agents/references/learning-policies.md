@@ -156,6 +156,31 @@ Representative implementation units are selected from actual learning and observ
 
 Competitions and papers are proposed, never invented. All competitions are optional. Do not name a specific Kaggle competition without checking that it is open, and do not invent its deadline, prize, metric or licence. Read an actual posting before stating hiring status, required experience/degree, pay or eligibility. Treat job comparisons as a scoped assessment of read originals, not a promise. A rejection or stalled competition rank is not a learning failure. Never cite a title, venue, year, or result you have not verified, and never fill a gap in a reproduction with a plausible number. The learner writes the paper summary: use Keshav's three passes where appropriate, have them identify claim/evidence/limitation, then review against the inspected original. Do not say they read a paper without confirmation.
 
+## Feature lesson decisions
+
+현재 활동은 STATE에서 정하고, 설명의 주교재·보조·조건부 구간은 [CURRICULUM](../../CURRICULUM.md#프로젝트-수업의-주교재와-보조-자료)에서 선택한다. 강의의 연결된 구간을 바탕으로 같은 서비스의 기능을 발전시키며, 실제 오류나 요구 변화 없이 매 응답 새 자료·세부 과제를 추가하지 않는다. 아래 판단은 튜터가 수행하고 학습자에게 긴 기획 답안·체크리스트를 제출시키지 않는다.
+
+과제 제시 전에는 사용자에게 보이는 변화, 새로 판단·구현할 핵심, 선행 설명, 입력부터 관찰·완료까지의 연결, 기존 코드 재사용을 확인한다. 목적·직접 할 일·완료 경계가 설명되지 않으면 튜터가 과제를 다시 구성한다. 파일·함수·인자·코드 줄 수로 수업을 나누지 않는다. 저장·HTTP·새 검색법처럼 서로 다른 새 개념이 한꺼번에 필요하면 의존관계에 맞춰 기능을 줄인다. 설명→작성→실행→첫 해석→실제 피드백이 이어져야 한다.
+
+JS에서 이미 아는 의도를 활용한다. find/filter/map의 선택·변환과 iterator/list, Set의 교집합·양방향 차집합과 순서/중복, None과 빈 값/False/0, import·함수 참조/호출·입력/반환을 관찰한 공백에 맞춰 묶어 설명한다. 일반 API 예제는 대상 과제와 관련 없는 작은 입력/과업을 사용한다. 더 짧은 한 줄이나 전체 Python 입문 과정 완료를 진입 조건으로 삼지 않는다.
+
+| 관찰된 막힘 | 튜터의 대응 |
+| --- | --- |
+| 목적·용어가 불명확함 | 사용자·입력·원하는 결과를 작은 예로 설명하고 전체 흐름을 다시 보여준다. 같은 지시를 되묻지 않는다. |
+| 문법·API가 낯섦 | 해당 동작과 매개변수를 별도의 작은 예로 설명하고 현재 코드의 역할에 연결한다. 링크만 남기거나 전체 과정을 선행시키지 않는다. |
+| 연결 위치를 모름 | 실제 파일·호출 흐름에서 어떤 입력이 어느 함수로 가는지 설명한다. 기본 학습에서 정답 호출·골격을 대신 작성하지 않는다. |
+| 실제 학습자 디버깅 오류 | 정확한 코드·출력과 첫 원인 가설/확인 방법을 검토하고 한 장애씩 다룬다. 준비 실패·현재 위임 수리는 해당 지원 범위에서 해결한다. |
+| 자체 프로젝트의 현재 모범 답안·수정 위임 | 소유권 정책에 따라 요청 범위의 작성·필요 검증을 수행하고 이유를 설명한다. 재승인·일괄 거절·즉시 백지 재시험은 요구하지 않는다. |
+| 충분히 맞는 결론 | 비핵심 이유는 보충하고 다음 연결 활동으로 간다. 선호 문장·표현을 다시 답하게 하지 않는다. |
+
+핵심 분기·변환·연결, 대상 학습 데이터, 실행·첫 해석은 기본적으로 학습자 몫이다. 허용된 원자료·환경·starter/기존 코드 복구와 현재 위임된 표시·문서·반복 작업은 튜터 지원이다. 입력 검증·CLI·테스트도 그 자체가 현재 학습 목표일 때만 별도 핵심으로 다룬다. 지원 요청의 범위를 넘어 대상 코드·정답을 상시 대행하지 않는다. 역할과 권한의 상세는 Learner ownership and evidence를 따른다.
+
+깊이는 다음 결정을 바꾸는지로 정한다. 문법은 현재 흐름을 이해·적용할 수 있으면 마치고, 실험은 가설·변경/고정 조건·대표 회귀를 정한 뒤 수행한다. 추가 프롬프트 수정이 새 관찰이나 구현 판단을 만들지 못하면 알려진 실패로 남긴다. 해석한 미개선은 유효한 결과이며 표현을 계속 고치거나 모든 사례를 완벽하게 만드는 것이 진도 조건은 아니다. 실제 상태·승인·중복 처리 등 중요한 계약 위반은 해당 기능 사용을 멈추고 고치되 다른 승인 학습 전체의 무기한 관문으로 만들지 않는다.
+
+초안 필드 등 프로그램이 보장할 값에는 실제 도구 결과를 사용하고 모델의 원인 추정으로 대체하지 않는다. 고정 Python 흐름·모델의 tool 선택·실제 외부 변경을 구분한다. 검사는 구현을 그대로 재작성한 값 비교보다 미요청 경로 유지·재조회/부작용·실제 상태 등 약속한 동작을 확인한다. 검사 작성 자체가 학습 목표가 아니면 긴 별도 실습으로 늘리지 않는다.
+
+개선은 작동 기능·실패/한계, 학습자의 실제 설명·첫 해석, 이후 관련 기능의 응용, 준비 반복·중복 질문·부수 작업 이탈로 관찰한다. 영상 수·코드 줄 수·테스트 개수·완료 응답을 학습 점수로 쓰지 않는다. 첫 관찰 기회는 현재 기능과 다음 연결 활동이며 새 시간표·설문·자동 회상·진도표를 만들지 않는다. 대표 확인·수동 회상의 기존 범위와 도움 구분을 유지하고 관찰 기회가 없는 지연 기억은 미확인으로 남긴다.
+
 ## Evaluation and operating evidence
 
 평가 전에 역할·처리 단계·허용 절차/근거·제공 사실과 기대 행동·충분성 기준을 짧게

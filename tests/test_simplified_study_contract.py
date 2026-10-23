@@ -306,10 +306,11 @@ def test_unit_reference_does_not_reopen_progress_tracking() -> None:
     assert "hashes, readiness scores, session history, or metrics" in agents
 
 
-def test_understanding_is_verified_by_unassisted_recall() -> None:
+def test_evidence_contract_separates_practical_work_and_unassisted_recall() -> None:
     """Evidence and artifact permissions stay in the shared contract.
 
-    Tutoring behavior is exercised separately with isolated response cases;
+    These assertions check the published evidence contract only. Actual tutor
+    behavior requires separate response review or resumed-study observation;
     matching prose in several guides cannot establish tutor compliance.
     """
     agents = _contract()
@@ -431,7 +432,7 @@ def test_tutoring_flow_cases_cover_the_approved_behavior_comparison() -> None:
                    "Manual weekly follow-up, pause, and explicit end"):
         assert family in cases, family
     for method in ("baseline and candidate in fresh, empty contexts",
-                   "same Luna model at max reasoning",
+                   "same user-approved model and reasoning effort",
                    "Change only the instruction bundle",
                    "Prohibit tool use and exclude any run that used tools",
                    "without injecting a replacement assistant response",
