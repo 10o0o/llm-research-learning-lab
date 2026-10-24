@@ -1,7 +1,7 @@
 from inquiry.config import DOCUMENTS_PATH, MODEL_NAME
 from inquiry.prompts import build_prompt
 from inquiry.retrieval import search_idf
-from inquiry.tools import get_account_status
+from inquiry.tools import build_lock_review_draft, get_account_status
 from inquiry.validation import RESPONSE_SCHEMA, parse_and_validate_output
 
 
@@ -20,6 +20,7 @@ def run_inquiry(
     account_id=None,
     top_k=None,
     document_path=DOCUMENTS_PATH,
+    draft=False,
 ):
     account_info = None
 
@@ -36,6 +37,17 @@ def run_inquiry(
         raise ValueError(f"문의를 찾을 수 없습니다: {inquiry_id}")
 
     documents = search_idf(path=document_path, query_text=inquiry["text"], k=top_k)
+
+    if draft:
+        if account_info is None:
+            raise ValueError("계정 정보가 없습니다.")
+
+        draft = build_lock_review_draft(
+            account_id=account_info["id"],
+            account_status=account_info["status"],
+            inquiry_text=inquiry["text"],
+        )
+
     prompt = build_prompt(documents, account_info)
 
     messages = [
@@ -59,6 +71,7 @@ def run_inquiry(
         "output": None,
         "format_error": None,
         "tool_result": {"account_info": account_info},
+        "draft": draft,
     }
     try:
         run["output"] = parse_and_validate_output(run["raw_content"], documents)

@@ -26,6 +26,9 @@ def print_run(run):
         ):
             print("업무 포털 관련 문의만 처리합니다.")
 
+        if run["draft"]:
+            print(f"초안이 있습니다. {run['draft']}")
+
         print(json.dumps(run["output"], ensure_ascii=False, indent=2))
     else:
         print(f"출력 형식 검사 실패: {run['format_error']}")
@@ -53,6 +56,7 @@ def main(argv=None):
     parser.add_argument(
         "--documents", help="규정 파일 경로", default=DOCUMENTS_PATH, type=Path
     )
+    parser.add_argument("--draft", help="초안 요청", action="store_true")
 
     args = parser.parse_args(argv)
 
@@ -120,6 +124,7 @@ def main(argv=None):
                 account_id=args.account_id,
                 top_k=args.top_k,
                 document_path=args.documents,
+                draft=args.draft,
             )
         except (ValueError, OSError) as error:
             parser.error(str(error))
