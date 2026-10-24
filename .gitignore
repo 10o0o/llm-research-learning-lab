@@ -27,7 +27,7 @@ tmp/
 # Local test file
 main.py
 
-# Knowledge frontend
+# Historical frontend build artifacts (not published)
 web/node_modules/
 web/.astro/
 web/dist/

@@ -134,7 +134,7 @@ Taylor 계수·고차 배열의 독립 구성은 다시 볼 부분이다. Hessia
 
 ## 연결
 
-- [혼합 편미분과 Hessian 비대각원소](../../knowledge/math/mixed-partials-hessian.md)
-- [기존 도함수와 수치 미분](../../knowledge/math/derivatives-and-finite-differences.md)
-- [기존 계산 그래프와 역전파](../../knowledge/deep-learning/computational-graph-autograd.md)
-- [기존 행렬곱과 완전연결층](../../knowledge/math/matrix-multiplication-linear-layer.md)
+- [혼합 편미분과 Hessian 비대각원소](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/mixed-partials-hessian.md)
+- [기존 도함수와 수치 미분](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/derivatives-and-finite-differences.md)
+- [기존 계산 그래프와 역전파](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/computational-graph-autograd.md)
+- [기존 행렬곱과 완전연결층](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/matrix-multiplication-linear-layer.md)

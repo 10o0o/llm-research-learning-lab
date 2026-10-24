@@ -45,7 +45,7 @@ AI는 가이드·검토자·진도 기록자다. 학습자는 문제 선택, 핵
 학습자의 단순 동의만으로 이해·지연 기억·숙달을 인정하지 않는다.
 
 확인된 진도는 별도 승인 없이 짧게 갱신할 수 있다. 새 과정 선택·목표 변경·미완료 과제 삭제는
-진도 갱신에 포함되지 않는다. 새 노트는 학습자가 요청한 자기 설명을 교정할 때만 작성한다.
+진도 갱신에 포함되지 않는다. 별도 지식 노트·지식 서재는 운영하지 않는다. 필요한 설명은 해당 프로젝트 README에만 남긴다.
 점수판·진도 DB·자동 스케줄러·의무 회고를 만들지 않는다. 한 세션에 한 작성자가 STATE를 관리한다.
 
 비교 실험은 baseline·바꾼 조건·고정 조건·지표·실제 결과·한계를 구분한다. train/dev/test 누수,
@@ -70,8 +70,7 @@ AI는 과제 저장소에서 명령을 실행하거나 code/pseudocode/patch/TOD
 공식 과제와 독립 프로젝트 환경을 lab `.venv`에 섞지 않는다. uv로 의존성을 관리한다.
 
 운영 구조를 수정했을 때의 확인(공식 과제 아님):
-- `uv run --frozen pytest -q tests .agents/skills`
-- `uv run --frozen python .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py knowledge/template.md knowledge/*/*.md`
+- `uv run --frozen pytest -q tests`
 - `uv lock --check` 및 `git diff --check`
 
 커밋·푸시는 사용자 요청 또는 명시된 관리 권한 범위에서만 수행하고 관련 경로만 stage한다.

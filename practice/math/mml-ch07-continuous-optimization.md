@@ -40,7 +40,7 @@ Exercise 7.2 외의 장말 Exercises 7.1·7.3~7.11은 공식 문제로 직접 �
 
 ## 연결
 
-- [미니배치 기울기와 SGD](../../knowledge/deep-learning/mini-batch-gradient.md)
-- [모멘텀과 이동 방향의 누적](../../knowledge/deep-learning/momentum-directions.md)
-- [볼록함수의 합과 최적해의 유일성](../../knowledge/math/convex-function-combinations.md)
-- [제약 최적화와 최솟값의 상한·하한](../../knowledge/math/constrained-optimum-bounds.md)
+- [미니배치 기울기와 SGD](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/mini-batch-gradient.md)
+- [모멘텀과 이동 방향의 누적](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/momentum-directions.md)
+- [볼록함수의 합과 최적해의 유일성](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/convex-function-combinations.md)
+- [제약 최적화와 최솟값의 상한·하한](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/constrained-optimum-bounds.md)

@@ -43,5 +43,5 @@
 
 ## 연결
 
-- [다중분류 학습 반복과 autograd](../../knowledge/deep-learning/multiclass-training-loop.md)
-- [모델 비교 실험과 결과 해석](../../knowledge/ml/controlled-model-comparison.md)
+- [다중분류 학습 반복과 autograd](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/multiclass-training-loop.md)
+- [모델 비교 실험과 결과 해석](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/ml/controlled-model-comparison.md)

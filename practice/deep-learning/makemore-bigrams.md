@@ -128,11 +128,11 @@ E06의 스스로 주제 정하기는 위처럼 경계를 둔다. 대학의 공�
 
 ## 연결할 개념
 
-- [문자 n-gram 언어모델](../../knowledge/llm/character-ngram-models.md)
-- [데이터 분할과 smoothing 선택](../../knowledge/ml/data-split-and-smoothing.md)
-- [행렬곱과 one-hot 행 선택](../../knowledge/math/matrix-multiplication-linear-layer.md)
-- [Softmax와 NLL, cross-entropy](../../knowledge/deep-learning/softmax-negative-log-likelihood.md)
-- [Sampling과 greedy](../../knowledge/llm/sampling-and-greedy.md)
+- [문자 n-gram 언어모델](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/llm/character-ngram-models.md)
+- [데이터 분할과 smoothing 선택](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/ml/data-split-and-smoothing.md)
+- [행렬곱과 one-hot 행 선택](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/matrix-multiplication-linear-layer.md)
+- [Softmax와 NLL, cross-entropy](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/softmax-negative-log-likelihood.md)
+- [Sampling과 greedy](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/llm/sampling-and-greedy.md)
 
 다음 승인된 강의는 [Building makemore Part 2: MLP](https://www.youtube.com/watch?v=TCH_1BHY58I)다.
 다음 강의를 이미 시작했다는 기록은 아니며, 재개 위치는 승인 후 STATE에 둔다.

@@ -41,11 +41,11 @@
 대화에서 학습자가 먼저 설명한 부분공간·독립성·아핀 개념을 초안으로 사용했다.
 노트에는 교정된 참고 설명을 담았으며, 교정 내용을 전부 무보조로 설명했다는 뜻은 아니다.
 
-- [벡터 부분공간](../../knowledge/math/vector-subspaces.md): 세션 중 요청으로 이미 기록한 내용을 유지했다.
-- [선형독립과 생성 공간](../../knowledge/math/linear-independence-and-span.md): 독립성 판별 설명과 조합 벡터 추가에 대한 교정을 정리했다.
-- [아핀 공간과 아핀 사상](../../knowledge/math/affine-spaces-and-mappings.md): 학습자의 평행이동·곱셈 후 덧셈 설명을 출발점으로 차원 제한과 선형성 구별을 교정했다.
-- 기존 [선형변환과 기저](../../knowledge/math/linear-transformation-basis.md),
-  [랭크와 영공간](../../knowledge/math/rank-null-space-linear-systems.md)은 참고 노트로 유지했다.
+- [벡터 부분공간](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/vector-subspaces.md): 세션 중 요청으로 이미 기록한 내용을 유지했다.
+- [선형독립과 생성 공간](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/linear-independence-and-span.md): 독립성 판별 설명과 조합 벡터 추가에 대한 교정을 정리했다.
+- [아핀 공간과 아핀 사상](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/affine-spaces-and-mappings.md): 학습자의 평행이동·곱셈 후 덧셈 설명을 출발점으로 차원 제한과 선형성 구별을 교정했다.
+- 기존 [선형변환과 기저](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/linear-transformation-basis.md),
+  [랭크와 영공간](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/rank-null-space-linear-systems.md)은 참고 노트로 유지했다.
   노트의 존재를 이번 세션의 독립 이해 근거로 사용하지 않는다.
 
 ## 보관과 한계

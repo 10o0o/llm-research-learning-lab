@@ -1,14 +1,41 @@
 """Structural checks for the learning hub, not a test of learner mastery."""
 from __future__ import annotations
 import re
-import runpy
 import subprocess
 from pathlib import Path
 from urllib.parse import unquote
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-_EXTRACT_LINK_TARGETS = runpy.run_path(str(REPO / ".agents/skills/update-learning-knowledge/scripts/validate_knowledge.py"))["extract_link_targets"]
+def _extract_link_targets(line: str) -> list[str]:
+    targets: list[str] = []
+    cursor = 0
+    while True:
+        start = line.find("](", cursor)
+        if start == -1:
+            return targets
+        index = start + 2
+        depth = 1
+        escaped = False
+        while index < len(line):
+            character = line[index]
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == "(":
+                depth += 1
+            elif character == ")":
+                depth -= 1
+                if depth == 0:
+                    targets.append(line[start + 2 : index])
+                    cursor = index + 1
+                    break
+            index += 1
+        else:
+            return targets
+
+
 # All active tracked Markdown, including preserved learner notes; historical archive is immutable.
 OPERATING_DOCS = tuple(path for path in subprocess.check_output(
     ["git", "ls-files", "*.md"], cwd=REPO, text=True
@@ -57,7 +84,7 @@ def _doc_link_errors(path: Path) -> list[str]:
     errors = []
     for number, line in _doc_lines(path):
         line = re.sub(r"`+[^`]*`+", "", line)
-        for raw in _EXTRACT_LINK_TARGETS(line):
+        for raw in _extract_link_targets(line):
             target = raw.strip()
             if target.startswith("<") and ">" in target:
                 target = target[1:target.index(">")]
@@ -69,7 +96,7 @@ def _doc_link_errors(path: Path) -> list[str]:
             file_part = re.sub(r"\\([\\()])", r"\1", unquote(file_part))
             fragment = unquote(fragment)
             if re.search(r"[<>{}]", file_part):
-                continue  # e.g. knowledge/<area>/<concept>.md, not a real file.
+                continue  # e.g. notes/<area>/<concept>.md, not a real file.
             linked = (path.parent / file_part).resolve() if file_part else path.resolve()
             prefix = f"{path}:{number}: {raw}"
             if not linked.exists():
@@ -125,7 +152,7 @@ def test_doc_links_ignore_urls_templates_and_nested_fenced_examples(tmp_path: Pa
     page.write_text(
         "[web](https://example.invalid/doc#missing)\n"
         "[email](mailto:example@example.invalid)\n"
-        "[template](knowledge/<area>/<concept>.md)\n"
+        "[template](notes/<area>/<concept>.md)\n"
         "`[inline example](absent-inline.md)`\n"
         "~~~~md\n[example](absent-tilde.md)\n~~~~\n"
         "````md\n```md\n[example](absent-nested.md)\n```\n````\n",
@@ -141,7 +168,7 @@ def test_shared_agent_entrypoint() -> None:
 
 
 def test_removed_management_is_not_an_active_dependency() -> None:
-    for relative in ("til/README.md", "USAGE.md", "DEFERRED.md",
+    for relative in ("knowledge", ".agents/skills/update-learning-knowledge", "til/README.md", "USAGE.md", "DEFERRED.md",
                      ".agents/skills/finish-chapter/SKILL.md",
                      ".agents/skills/save-today-til/SKILL.md", ".specify/README.md"):
         assert not (REPO / relative).exists()

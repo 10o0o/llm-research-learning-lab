@@ -95,11 +95,11 @@ From Model to Production이다. 책·공식 자료 중심 설명을 유지하고
 GPU 필요 여부·로컬 적합성·미확인 비용을 먼저 안내한다.
 
 - [Lesson 1 이미지 실습 회고](./fastai-lesson1-images.md)
-- [모델 비교와 평가](../../knowledge/ml/controlled-model-comparison.md)
-- [분류와 회귀](../../knowledge/ml/classification-and-regression.md)
-- [피드백 루프](../../knowledge/ml/prediction-feedback-loops.md)
-- [사전학습과 계산 자원](../../knowledge/deep-learning/pretraining-and-compute.md)
-- [파라미터와 하이퍼파라미터](../../knowledge/ml/parameters-and-hyperparameters.md)
+- [모델 비교와 평가](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/ml/controlled-model-comparison.md)
+- [분류와 회귀](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/ml/classification-and-regression.md)
+- [피드백 루프](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/ml/prediction-feedback-loops.md)
+- [사전학습과 계산 자원](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/pretraining-and-compute.md)
+- [파라미터와 하이퍼파라미터](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/ml/parameters-and-hyperparameters.md)
 - [책 1장](https://github.com/fastai/fastbook/blob/master/01_intro.ipynb)
 - [Jupyter 부록](https://github.com/fastai/fastbook/blob/master/app_jupyter.ipynb)
 - [Lesson 2](https://course.fast.ai/Lessons/lesson2.html)

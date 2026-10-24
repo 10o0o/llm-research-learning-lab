@@ -51,8 +51,8 @@ Head, 초기 층·뒤쪽 층의 특징, loss와 metric의 구분, gradient에 �
 환경·파일 경로 수정은 AI 도움이고 실제 학습·예측 실행은 학습자가 했다.
 
 - [책 1장 실습과 미완료 항목](./fastai-book01-intro.md)
-- [모델 비교와 평가](../../knowledge/ml/controlled-model-comparison.md)
-- [입력 해상도](../../knowledge/deep-learning/image-input-resolution.md)
-- [파라미터와 하이퍼파라미터](../../knowledge/ml/parameters-and-hyperparameters.md)
+- [모델 비교와 평가](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/ml/controlled-model-comparison.md)
+- [입력 해상도](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/image-input-resolution.md)
+- [파라미터와 하이퍼파라미터](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/ml/parameters-and-hyperparameters.md)
 - [공식 Lesson 1](https://course.fast.ai/Lessons/lesson1.html)
 - [공식 이미지 실습](https://www.kaggle.com/code/jhoward/is-it-a-bird-creating-a-model-from-your-own-data)

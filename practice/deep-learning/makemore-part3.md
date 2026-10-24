@@ -62,10 +62,10 @@ E02의 수치 확인을 학습 모드의 동등성·속도 개선·모든 입력
 
 ## 관련 자료
 
-- [MLP와 경사하강](../../knowledge/deep-learning/mlp-and-gradient-descent.md)
-- [초기화 크기와 Tanh 포화](../../knowledge/deep-learning/initialization-and-tanh-saturation.md)
-- [계산 그래프와 역전파](../../knowledge/deep-learning/computational-graph-autograd.md)
-- [다중분류 학습 반복](../../knowledge/deep-learning/multiclass-training-loop.md)
-- [행렬곱과 완전연결층](../../knowledge/math/matrix-multiplication-linear-layer.md)
+- [MLP와 경사하강](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/mlp-and-gradient-descent.md)
+- [초기화 크기와 Tanh 포화](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/initialization-and-tanh-saturation.md)
+- [계산 그래프와 역전파](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/computational-graph-autograd.md)
+- [다중분류 학습 반복](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/multiclass-training-loop.md)
+- [행렬곱과 완전연결층](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/matrix-multiplication-linear-layer.md)
 - [Part 3 공식 영상·연습 안내](https://www.youtube.com/watch?v=P6sfmUTpUmc)
 - [Part 3 공식 저자 노트북](https://github.com/karpathy/nn-zero-to-hero/blob/master/lectures/makemore/makemore_part3_bn.ipynb)

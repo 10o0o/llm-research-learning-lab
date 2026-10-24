@@ -110,8 +110,8 @@ SVD 인자와 방향·길이의 역할, 영 성분 생략과 근사 차이, 스�
 
 ## 연결
 
-- [SVD의 기저와 특잇값](../../knowledge/math/singular-value-decomposition.md)
-- [SVD 저랭크 근사와 오차](../../knowledge/math/svd-low-rank-approximation.md)
-- [전치행렬 곱과 양의 준정부호](../../knowledge/math/gram-matrix-positive-semidefinite.md)
-- [기존 고유기저와 대각화](../../knowledge/math/eigenbasis-diagonalization.md)
-- [기존 rank와 영공간](../../knowledge/math/rank-null-space-linear-systems.md)
+- [SVD의 기저와 특잇값](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/singular-value-decomposition.md)
+- [SVD 저랭크 근사와 오차](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/svd-low-rank-approximation.md)
+- [전치행렬 곱과 양의 준정부호](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/gram-matrix-positive-semidefinite.md)
+- [기존 고유기저와 대각화](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/eigenbasis-diagonalization.md)
+- [기존 rank와 영공간](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/rank-null-space-linear-systems.md)

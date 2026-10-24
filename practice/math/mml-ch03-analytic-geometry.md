@@ -55,11 +55,11 @@
 - 양의 2차원 회전행렬의 사인 부호. 장말 초안에서는 시계 방향 행렬을 적었다.
 
 학습자의 회전 설명과 직접 계산을 초안으로 삼아
-[회전행렬과 Givens 회전](../../knowledge/math/rotation-matrices.md)을 작성하되,
+[회전행렬과 Givens 회전](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/rotation-matrices.md)을 작성하되,
 부호 오류와 도움 범위는 이 회고에 남겼다. 기존
-[벡터 내적과 코사인 유사도](../../knowledge/math/dot-product-cosine-similarity.md),
-[벡터 L2 정규화](../../knowledge/math/vector-l2-normalization.md),
-[최소제곱과 잔차 직교성](../../knowledge/math/least-squares-residual-orthogonality.md)은
+[벡터 내적과 코사인 유사도](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/dot-product-cosine-similarity.md),
+[벡터 L2 정규화](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/vector-l2-normalization.md),
+[최소제곱과 잔차 직교성](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/math/least-squares-residual-orthogonality.md)은
 참고 노트로 유지했다. 장말에 복원되지 않은 일반 내적·투영 내용을 새 지식으로
 대신 작성하지 않았다.
 

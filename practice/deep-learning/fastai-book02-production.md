@@ -88,11 +88,11 @@ UI와 공개 배포가 없는 상태를 공식 문항 9 전체 수행으로 기�
 보강이다. 기존 선형변환·랭크·고유기저·최소제곱 노트는 보존하고, 벡터 부분공간의
 성립 조건부터 연결한다. fast.ai 3장이나 다음 Phase로 진입하지 않는다.
 
-- [입력과 정답 연결](../../knowledge/ml/input-label-matching.md)
-- [학습한 모델의 저장과 추론](../../knowledge/deep-learning/model-export-inference.md)
-- [이미지 크기와 crop](../../knowledge/deep-learning/image-input-resolution.md)
-- [모델 비교와 실제 환경 평가](../../knowledge/ml/controlled-model-comparison.md)
-- [추천과 행동의 피드백](../../knowledge/ml/prediction-feedback-loops.md)
+- [입력과 정답 연결](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/ml/input-label-matching.md)
+- [학습한 모델의 저장과 추론](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/model-export-inference.md)
+- [이미지 크기와 crop](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/image-input-resolution.md)
+- [모델 비교와 실제 환경 평가](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/ml/controlled-model-comparison.md)
+- [추천과 행동의 피드백](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/ml/prediction-feedback-loops.md)
 - [이전 책 1장 회고](./fastai-book01-intro.md)
 - [fastbook 2장](https://github.com/fastai/fastbook/blob/master/02_production.ipynb)
 - [Lesson 2](https://course.fast.ai/Lessons/lesson2.html)

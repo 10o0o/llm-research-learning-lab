@@ -48,7 +48,7 @@
   `Value` 자동미분, 뉴런·MLP 학습, 미분 검산, `ExerciseValue`의 softmax·로그 loss,
   PyTorch 비교를 담은 코드·출력 보관본입니다. 강의 따라 구현한 부분과 공식
   exercises의 직접 시도·피드백 수정, 보충 예제가 함께 들어 있습니다.
-  관련 개념은 [knowledge 안내](../knowledge/README.md)에 연결했습니다.
+  관련 개념은 [knowledge 안내](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/README.md)에 연결했습니다.
 - 루트의 `main.ipynb`는 다음 학습을 위한 작업 공간입니다. 과거 실습을
   확인할 때는 위 보관본을 사용합니다.
 - [makemore bigram 보관본](./deep-learning/makemore-bigrams.ipynb) ·

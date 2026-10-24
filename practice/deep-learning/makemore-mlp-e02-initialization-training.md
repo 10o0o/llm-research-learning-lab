@@ -67,5 +67,5 @@ dev 손실 2.7118217945098877이 저장되어 있다. 이는 과거 실행 기�
 
 ## 관련 개념
 
-- [다중분류 학습 반복과 autograd](../../knowledge/deep-learning/multiclass-training-loop.md)
-- [MLP 구성과 경사하강 학습](../../knowledge/deep-learning/mlp-and-gradient-descent.md)
+- [다중분류 학습 반복과 autograd](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/multiclass-training-loop.md)
+- [MLP 구성과 경사하강 학습](https://github.com/10o0o/llm-research-learning-lab/blob/5f0fccb96894e75805430ad194282319d6e44c4c/knowledge/deep-learning/mlp-and-gradient-descent.md)

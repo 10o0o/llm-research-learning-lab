@@ -36,10 +36,7 @@ jobs:
         run: uv sync --frozen
 
       - name: Run public test suite
-        run: uv run --frozen pytest -q tests .agents/skills
-
-      - name: Validate public knowledge notes
-        run: uv run --frozen python .agents/skills/update-learning-knowledge/scripts/validate_knowledge.py knowledge/template.md knowledge/*/*.md
+        run: uv run --frozen pytest -q tests
 
       - name: Check lockfile
         run: uv lock --check
@@ -63,59 +60,25 @@ jobs:
             git diff --check
           fi
 
-  frontend:
+  pages-artifact:
+    needs: validate
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    env:
-      SITE_BASE: /llm-research-learning-lab/
-    defaults:
-      run:
-        working-directory: web
+    timeout-minutes: 5
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-
-      - name: Install frontend dependencies
-        run: npm ci
-
-      - name: Check frontend
-        run: npm run check
-
-      - name: Run frontend unit tests
-        run: npm test
-
-      - name: Build frontend
-        run: npm run build
-
-      - name: Install Korean fonts
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y fonts-noto-cjk
-
-      - name: Install Chromium for Playwright
-        run: npx playwright install --with-deps chromium
-
-      - name: Run frontend browser tests
-        run: npm run test:e2e
-
-      - name: Upload GitHub Pages artifact
-        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      - name: Upload static retirement notice
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
-          path: web/dist
+          path: web/public
 
   deploy:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    needs: [validate, frontend]
+    needs: [validate, pages-artifact]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
