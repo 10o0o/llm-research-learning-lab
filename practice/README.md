@@ -56,42 +56,12 @@
   분할·smoothing, 인덱싱·cross-entropy, sampling/greedy 실험입니다.
   원본은 수정·재실행하지 않았으며, 문법 오류와 저장 출력의 한계는 회고에 명시했습니다.
 
-## 준비·피드백·보관
+## 새 실습과 보존
 
-현재 승인 활동의 환경·허용 시작 자료는 튜터가 [준비 책임](../.agents/references/learning-policies.md#learning-setup-and-starting-materials)에
-따라 준비합니다. 위 준비 범위 외의 파일 생성·수정은 명시 요청이나 확인된 챕터
-마무리의 권한을 따릅니다. 기본 대상 구현·실행·첫 해석은 학습자 몫이며, 자체 프로젝트의
-현재 명시적 위임은 [소유권 정책](../.agents/references/learning-policies.md#learner-ownership-and-evidence)에
-따라 보조 수행으로 구분합니다. 피드백은 실제 파일·저장 출력·첫 해석을 함께 봅니다.
-노트북은 `scripts/nbpeek.py`로 관련 셀만 읽고, 보관본을 재실행하거나 과거 오류를 지우지 않습니다.
+새 실험은 질문 하나에 필요한 작은 코드로 시작한다. 지속 제품은 필요할 때 별도 저장소에서
+학습자가 직접 구성한다. 기존 코드·notebook·저장 출력은 재실행·초기화하지 않고 보존한다.
+현재 실제 진도는 [STATE](../STATE.md), 진행 방법은 [AGENTS](../AGENTS.md)를 따른다.
 
-확인된 실제 챕터 전환의 보관·회고·초안 기반 knowledge·검증 후 초기화·로컬 커밋은
-[finish-chapter](../.agents/skills/finish-chapter/SKILL.md)의 절차를 따릅니다.
-`$finish-chapter` / `이번 챕터 정리해줘`로도 호출합니다. AX/RE 단위 완료나 일반 `완료`는
-챕터 마무리·기록·초기화·Git 권한이 아닙니다. 기록 권한은 [기록 정책](../.agents/references/recordkeeping-policies.md)에 있습니다.
-
-## 위치와 공개 범위
-
-자체 코드의 현재 위치는 `practice/ai-apps/`입니다. 별도 서비스 repo로 계속 발전시킬 때는
-[ROADMAP](../ROADMAP.md#초기-개발-공간과-서비스의-지속-발전)의 환경·권리·원본 보존·기여 경계를
-확인합니다. 예전 후보 경로는 새 작업 공간을 자동 생성하는 지시가 아닙니다.
-[이행 전 북마크 인용](./reviews/curriculum-transition.md)도 현재 재개를 선택하지 않습니다.
-
-KANT 제공 원본은 `materials/private/<course>/course-provided-practice/`, 개인 작업 사본과
-결과는 `practice/private/kant-live-labs/<프로젝트>/`로 구분해 공개 Git에서 제외합니다.
-원자료와 강사 완성본은 학습자의 새 독립 구현이 아닙니다.
-
-MIT 18.05 문제 세트 답안과 CS229·CS231n·CS224N·CS336 공식 과제 답안은
-written·코드·노트북·저장 출력 모두 별도 비공개 작업 공간에 둡니다. 공식 원문·답안·
-저작권 자료·개인/고객 정보·비밀정보·큰 데이터/가중치는 공개 Git에 자동 추가하지 않습니다.
-
-## 공식 실습을 재선택할 때
-
-현재 승인 범위는 [ROADMAP](../ROADMAP.md), 선수·자료는 [CURRICULUM](../CURRICULUM.md),
-보류 이유는 [DEFERRED](../DEFERRED.md), 판본·도움·명령·환경·비공개 제한은
-[공식 과제 정책](../.agents/references/official-course-policies.md)을 따릅니다.
-실제 원문·starter·exercises/assignments 요구를 확인하고 Optional·Bonus는 선택,
-미실행 요구는 미완료로 남깁니다. 완성 노트북 실행·AI 예제·KANT 자료가 선택한 공식
-실습을 대신하지 않습니다. 대화 설명을 영상 시청으로, 로컬 검사를 대학 공식 채점으로
-표현하지 않습니다. 기존 metadata·저장 출력·도움 이력은 당시 산출물로 보존합니다.
-API 문서 참고 실무 구현과 무보조 회상·지연 전이는 별도 근거입니다.
+KANT 원자료와 개인 사본은 기존 비공개 경로에 유지한다. 공식 과제 답안과 출력은 공개하지 않는다.
+공식 과제를 다시 선택할 때만 [과정별 정책](../.agents/references/official-course-policies.md)을 읽는다.
+완성 강의 코드 실행과 독립 구현, 저장 출력과 이번 실행을 구분한다.

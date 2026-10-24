@@ -68,5 +68,5 @@ cond(M_uneven) = 1e8
 
 ## 관련 기록
 
-- TIL: [2026-08-18](../../til/2026/08/2026-08-18.md)
+- TIL: [2026-08-18](https://github.com/10o0o/llm-research-learning-lab/blob/909ab6ea962a97d51f1cfa8e9f963f2797304b23/til/2026/08/2026-08-18.md)
 - Source: KANT 기초수학, 1장 4강 「특수 행렬과 행렬 연산 성질」

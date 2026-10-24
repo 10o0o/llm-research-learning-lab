@@ -47,5 +47,5 @@ v = np.array([3, 2])
 ## 관련 기록
 
 - Knowledge: [벡터 L2 정규화](./vector-l2-normalization.md)
-- TIL: [2026-08-13](../../til/2026/08/2026-08-13.md)
+- TIL: [2026-08-13](https://github.com/10o0o/llm-research-learning-lab/blob/909ab6ea962a97d51f1cfa8e9f963f2797304b23/til/2026/08/2026-08-13.md)
 - Source: KANT 기초수학, 1장 1강 「벡터의 수학적 정의와 기하학적 해석」

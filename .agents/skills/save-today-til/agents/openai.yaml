@@ -1,6 +1,0 @@
-interface:
-  display_name: "Standalone TIL 저장"
-  short_description: "명시한 내 설명과 실행 artifact만 TIL로 정리합니다"
-  default_prompt: "$save-today-til을 사용해 현재 요청에서 지정한 내 설명, draft, 실행하고 해석한 artifact만 concept-first 날짜 TIL로 정리해줘. ignored state나 Git history를 추론하지 말고 commit하지 마."
-policy:
-  allow_implicit_invocation: false

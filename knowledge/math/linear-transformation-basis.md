@@ -83,5 +83,5 @@ A @ e2 = [1, 1]
 ## 관련 기록
 
 - Knowledge: [행렬곱과 완전연결층](./matrix-multiplication-linear-layer.md)
-- TIL: [2026-08-18](../../til/2026/08/2026-08-18.md)
+- TIL: [2026-08-18](https://github.com/10o0o/llm-research-learning-lab/blob/909ab6ea962a97d51f1cfa8e9f963f2797304b23/til/2026/08/2026-08-18.md)
 - Source: KANT 기초수학, 2장 1강 「선형 변환의 기하학적 해석」

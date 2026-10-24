@@ -142,7 +142,7 @@ model.fc.bias.grad
 ## 관련 기록
 
 - Knowledge: [계산 그래프와 역전파](./computational-graph-autograd.md) · [MLP 구성과 경사하강 학습](./mlp-and-gradient-descent.md) · [Softmax와 음의 로그우도 손실](./softmax-negative-log-likelihood.md)
-- TIL: [2026-09-02](../../til/2026/09/2026-09-02.md)
+- TIL: [2026-09-02](https://github.com/10o0o/llm-research-learning-lab/blob/909ab6ea962a97d51f1cfa8e9f963f2797304b23/til/2026/09/2026-09-02.md)
 - Practice: 당시 실습 파일 `main.py`는 현재 작업 트리에 없다. 학습 내용은 위 TIL에 남아 있다.
 - Practice: [MLP 초기화와 수동 SGD 회고](../../practice/deep-learning/makemore-mlp-e02-initialization-training.md)
 - Source: [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)

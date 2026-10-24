@@ -1,353 +1,235 @@
-# 프로젝트 역량·선수·자료 참고
+# 커리큘럼과 자료
 
-<!-- curriculum-schema: 2 -->
+[로드맵](ROADMAP.md)의 단계에 필요한 자료만 펼친다. 아래 확인 기준은 **우리의 학습 제안**이며
+대학의 성적·공식 과제 완료 기준이 아니다. 현재 선택과 실제 수행은 [STATE](STATE.md)에만 기록한다.
+한 번에 주 자료 하나를 사용하고, 수학·다른 강의는 막힌 부분의 참고로 둔다.
 
-## 1. 목적과 비목적
+공식 자료 확인: 2026-10-24. 자료 열람, 수강 등록, 과제 수행, 독립 구현을 구분한다.
+여기에 링크가 있다고 수강하거나 과제를 완료한 것은 아니다.
 
-단기 AX/AI 애플리케이션 취업 준비와 장기 LLM Research Engineer를 위한 정적 역량/자료 참고다. 승인 범위와 단위별 계약은 [ROADMAP](./ROADMAP.md), 제외 이유/복귀 조건은 [DEFERRED](./DEFERRED.md)에 둔다. 현재 학습 범위와 다음 행동은 `STATE.md`만 정하며 이 문서의 ID·선수관계·catalog가 자동으로 수업을 선택하지 않는다. 점수·진도율·완료표·학습자 transcript·새 평가 DB는 만들지 않는다.
+## 0. 작은 AI 기능과 기존 경험
 
-이 문서 1~3절이 현재 역량/자료 기준이다. 기존 4~8절은 **역사적 참고**로 본문을 보존한다. 당시 필수·readiness·RNN/LSTM·P0~P5 표기는 현재 지시가 아니다. `CC/SRC/MOD/MA/PC`의 의미를 재사용하거나 AX/RE 단위를 옛 milestone 완료로 환산하지 않는다. 과거 자료의 충분/부분/없음/감사 판정은 새 공식 자료나 학습자의 이해 평가가 아니다. 새 자료를 다운로드하거나 전체 감사한 것으로 기록하지 않는다.
+현재 [문의 보조 앱](practice/ai-apps/README.md)은 입력·조회·검색·생성·표시가 연결된 사례다.
+이 코드를 모두 정리하는 것이 목표는 아니다. 오늘의 질문을 작은 파일로 떼어 이해하거나
+학습자가 직접 설계할 제품의 작은 기능을 선택한다. 기존 실습은 [보관 색인](practice/README.md)에서 확인한다.
 
-## 2. 역량·최소 선수와 보강 사용처
+확인할 것: 입력과 출력, 자신이 바꾸는 부분, 실제 결과, 남은 문제를 직접 설명할 수 있는가.
+과거 실행 기록과 도움을 받은 구현은 보존하며 이번 독립 수행으로 재분류하지 않는다.
 
-개념은 의존 작업 전에 필요한 만큼 설명하고 실제 코드·오류·평가에서 깊이를 늘린다. 전체 수학/과목·PS·실습 순회를 먼저 끝내는 조건은 없다. 최소 선수와 작업 중 보강을 구별한다. 공식 문서 참고 실무 구현과 무보조/지연 회상은 서로 다른 근거다.
+## 1. PyTorch 학습 루프
 
-| 단위 | 먼저 설명할 최소 선수 | 실제 사용처·학습자 근거 | 관찰 공백의 보강 | 사용할 자료 구간 |
-| --- | --- | --- | --- | --- |
-| AX-01 | 자료/함수·JSON/예외는 입출력 전, JSON/HTTP·token/context·비결정성은 호출 전, baseline·사례 역할은 비교 전 | 문의 현상·알려진 조건→접수 초안→형식/사실/충분성을 직접 코드/실행/첫 해석 | 파싱/형식/API 오류는 해당 동작; 작은 차이 해석은 독립 사례/반복·불확실성 | Zoomcamp Part 1의 문제·전체 흐름을 주교재로, REF-03 foundations·REF-06 메시지를 보조로 사용 |
-| AX-02 | corpus와 질의/qrels·중복/그룹은 자료 전, chunk/metadata는 색인 전. 선택한 검색의 점수/가중치는 구현 전, 벡터/내적/정규화는 해당 연산을 쓰기 전, embedding은 dense 선택 시 사용 전 | sparse baseline 하나의 질의→근거→답변/기권. 오류나 사전 학습 질문이 있을 때 dense/hybrid 비교 선택 | 차원·정규화/ranking 실패, 오래된/누락 근거·길이 한계 | Zoomcamp Part 1의 연결된 RAG 설명·Module 4 평가 구간; REF-03·REF-04·Microsoft는 관찰 공백의 보조 |
-| AX-03 | 함수/API·필요 시 SQL 계약은 도구 전, 상태·부작용·멱등성·권한은 모의 변경 전, agent 차이/종료는 비교 전 | 일반 Python 고정 흐름과 도구 하나의 실제 모의 상태 대조. 재개/승인 필요 시 LangGraph, 모델 주도 선택 질문 시 bounded agent 비교 | 중복/timeout/retry·복구·context 혼선·prompt injection 실제 문제 | 주교재의 전체 흐름을 재사용하고 REF-06 What are Tools의 정의·실행 주체를 보조. 조건 충족 시 Zoomcamp Part 2 또는 Unit2.3 LangGraph |
-| AX-04 | HTTP/API·상태·테스트는 API 전, PII·권한은 저장/로그 전, latency/cost·외부 조건은 측정 전 | 앞 단위의 평가·권리·재현·기여를 누적해 API/저장·회귀 강화, 로컬/실제 운영 구별 | 요청 간 누수·동시성·비용/지연·권한 오류에서 필요한 범위 | Zoomcamp 프로젝트 지침의 종단 연결·평가·실행 설명; REF-03 UX/LLMOps·REF-08/09는 보조 |
-| RE-01 | tensor/shape·행렬은 입력/model 전, 미분/chain rule·gradient·likelihood/loss는 update 전, 분리/누수는 fit/비교 전 | 작은 모델 하나의 data→train→validation·첫 해석, 작은 배치·train/eval·gradient 진단 | Jacobian·초기화·일반화/규제·최적화·확률/통계의 실제 공백 | REF-01 2026 L1/필요 sequence, REF-04 Ch2~3·5; MML/MIT/ISLP 필요한 절 |
-| RE-02 | RE-01 학습/검증을 연결, 조건부확률·softmax/CE·shift는 loss 전, embedding·attention/mask·행렬은 해당 구성 전, 자원은 실행 전 | 한 LM의 token→logit/next-token loss→학습/생성/재개 | 토큰화·mask·수치 안정성·compute/memory·오염/일반화 | REF-02 2026 L1~3·12~14, REF-04 Ch1·6 보조; 공식 A1은 자체 LM 대체 |
-| RE-03 | 학습 선택 시 base/instruct·template/loss mask·SFT/PEFT·분리를 fit 전; 추론 선택 시 prefill/decode·cache·workload/허용오차를 측정 전. 공통 자원 권한·통제 비교 | base 대비 SFT 한 비교 또는 inference 한 축, held-out·고정 조건·실패 | 데이터/최적화·판정기 불일치 또는 수치/성능 병목 | REF-05 chat templates/SFT/PEFT/domain evaluation·REF-04 Ch10~11; 대안 REF-02 L2·5~8·10 |
-| RE-04 | 선택 방법의 모델/최적화 또는 systems는 구현 전, 가설/통제·표본·불확실성은 설계 전, 원문/로컬 차이는 범위 선택 전 | 자기 질문·실제 논문 한 주장·baseline/ablation·실패·주장 한계 | 논문 수학·실험 설계·통계/재현 공백만 보강 | REF-02 data/eval/선택 전문화, 실제 읽고 검증한 논문 제한 실험 |
+주 자료: [Karpathy Neural Networks: Zero to Hero](https://github.com/karpathy/nn-zero-to-hero).
+기존 micrograd·makemore에서 부족한 MLP/backprop 부분만 골라 본다. 완성 강의 코드를
+그대로 실행하는 것과 자신의 파일에서 학습 루프를 연결하는 것을 구분한다.
 
-조건부확률·독립성·확률변수/분포·기댓값/분산, LLN·CLT의 의미/가정은 sampling·평가·모델 학습에 필요할 때 연결한다. likelihood/MLE·prior/posterior/MAP는 손실·선택 방법의 가정을 설명할 때 다룬다. 신뢰구간·가설검정·검정력·bootstrap·다중비교는 표본 단위·작은 차이·반복 선택을 해석할 때 가정과 함께 보강한다. 행렬/선형변환·rank/SVD·미분/chain rule·Jacobian·convexity는 현재 검색·학습·논문에서 실제 필요한 깊이를 유지한다. 선택한 공식 활동이 R을 요구할 때만 R을 쓰며 Python 실습으로 MIT 공식 완료를 만들지 않는다.
+실습 제안: 작은 분류기의 forward→loss→backward→update를 직접 작성한다.
+입력·가중치·출력 shape, gradient와 update의 차이를 설명하고 learning rate 등 한 조건을 바꾼다.
+새로운 앱 구조, 데이터 파이프라인, 예외 처리부터 만들 필요는 없다.
 
-### 역사적 ID·감사 용어의 해석
+## 2. ML 기초와 평가
 
-다음 범례는 보존한 4~8절을 읽기 위한 것이다. 당시 catalog의 깊이/필수 연결은 현재 과제 선택 권한이 아니며 현재 AX/RE에 추가 시험·capstone을 부과하지 않는다.
+주 자료: [MIT 6.036 Introduction to Machine Learning, Fall 2020](https://ocw.mit.edu/courses/6-036-introduction-to-machine-learning-fall-2020/).
+Python·미적분·선형대수 선행 지식을 요구한다. 표현, 지도학습, 모델 비교, 과적합/일반화를
+현재 작은 모델과 연결한다. 공식 연결 학습 페이지의 URL에 1T2019가 있어도 OCW 판본과 혼동하지 않는다.
+강의 원문은 복제하지 않고 링크와 자신의 설명을 남긴다.
 
-- 역량 ID: 공통 핵심은 `CC-<AREA>-NN`, 선택 전문 트랙은 `TR-<TRACK>-NN`이다. ID의 의미는 한 번 부여한 뒤 바꾸거나 재사용하지 않는다.
-- 자료 ID: `SRC-<대문자 namespace>-<NN-NN>` 형식이다. namespace는 숫자를 포함한 여러 대문자 토큰을 `-`로 연결할 수 있으며, 과정과 판본을 함께 식별한다. 예: `SRC-KDL-08-01`, `SRC-HARV-STAT110-2E-00-01`.
-- 자료 관계: `primary`는 학습 성과를 직접 가르치고, `supporting`은 일부 개념이나 선수를 보완하며, `context`는 언급 또는 응용 맥락만 제공한다. `context`만 연결된 역량은 `충분`이 될 수 없다.
+실습 제안: train/dev/test를 구분하고 baseline과 변경 모델을 비교한다. 같은 데이터로
+반복 선택한 결과를 독립 test 결과라고 하지 않는다. 점수 외에 누수 여부와 실패 예시를 확인한다.
 
-깊이는 다음 세 단계로 고정한다.
+## 3. NLP와 Transformer
 
-- `D1`: 목적, 작동 방식, 한계를 작은 예제로 설명한다.
-- `D2`: D1에 더해 계산, shape 추적, 구현, 디버깅, 출력 해석을 수행한다.
-- `D3`: D2에 더해 가설, baseline, 통제 실험, ablation, 통계적 한계, 논문 주장을 평가한다.
+주 자료: [Stanford CS224N Spring 2024, archive 1246](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/).
+word vectors, backprop, attention, Transformers, pretraining, evaluation 중 필요한 강의를 선택한다.
+이 페이지의 무료 공개 영상은 2023년 영상이고, 2024년 영상은 Canvas 접근이 필요하다.
+2024 slides와 2023 공개 영상을 구분해 기록하며 Winter 2024 archive 1244와 섞지 않는다.
 
-요구 근거에는 `explain`, `calculate`, `shape`, `implement`, `debug`, `interpret`, `design`, `transfer`만 쓴다. 한 행에 적힌 토큰은 그 역량을 입증할 때 필요한 관찰 가능한 산출물이다.
+실습 제안: 작은 attention 연산에서 입력→score→mask→가중합→logits 흐름을 확인한다.
+shape와 causal mask를 설명하고 조건 하나를 바꾼 실제 결과를 해석한다.
+공식 과제를 선택하면 과정 AI 정책을 먼저 확인한다. 직접 답 요청·복사와 상당 부분 AI 대행은 금지된다.
 
-자료 충족도는 다음으로 고정한다.
+## 4. 작은 LM 구현: 둘 중 하나
 
-- `미감사`: 연결 자료를 아직 전체 감사하지 않았다.
-- `충분`: 현재 연결 자료만으로 목표 깊이의 요구 근거를 직접 만들 수 있다.
-- `부분`: 직접 다루는 내용은 있으나 목표 깊이 또는 필수 하위 주제가 비어 있다.
-- `없음`: 직접 가르치는 자료가 없다. `context` 연결은 있을 수 있다.
-- `판정보류`: 원본 또는 근거가 불완전해 현재 판단할 수 없다.
+- 공식 경로: [Stanford CS336 Spring 2026](https://cs336.stanford.edu/) A1.
+  Python/PyTorch·수학·ML 역량을 요구하고 scaffolding이 적으므로 즉시 시작할 입문 과정은 아니다.
+  선택 시 [과정별 정책](.agents/references/official-course-policies.md)의 A1 v26.0.3 고정 판본과
+  정확한 handout, 환경, 자원과 AI 제한을 확인한다. 공식 답안은 별도 비공개 공간에 둔다.
+- 독립 경로: 자신이 정한 작은 LM에서 토큰화·학습·생성·평가를 구현한다.
+  [Karpathy 강의](https://github.com/karpathy/nn-zero-to-hero)의 GPT 부분은 연결이 부족할 때 참고한다.
 
-공백 처리는 `그대로 사용`, `수업 내 보충`, `별도 자료 확보`, `원본 복구 후 재감사`, `트랙 선택 시 확보` 중 하나만 쓴다.
+확인할 것: 데이터·토큰 수·모델 설정·실제 실행 조건·held-out loss·생성 예시와 한계를 설명한다.
+자체 toy run, 공식 허용 축소 경로, 공식 과제 전체 완료는 서로 다르다. 두 구현을 모두 강제하지 않는다.
+모델/데이터 다운로드나 유료 GPU 실행은 이 문서만으로 승인되지 않는다.
 
-자료 registry의 무결성은 `complete`, `limited`, `blocked`, `unverified`, 감사 상태는 `complete`, `blocked`, `pending`을 쓴다. `limited`는 현재 파일을 감사할 수 있지만 변환 훼손이나 원본 누락 같은 제약이 있음을 뜻한다. 파일 hash가 registry와 다른지는 자료를 바꿀 때 실제 파일과 `INDEX.md`를 수동으로 교차 확인한다.
+## 5. 전문화 선택
 
-실습 구현 깊이는 `I1_MECHANISM`, `I2_COMPONENT`, `I3_WORKFLOW`, `I4_EXPERIMENT`, `I5_RESEARCH` 순서다. `MODULE_ASSIGNMENT`는 실제 component와 data→model→loss→train/eval workflow를 포함하고, `PHASE_CAPSTONE`은 baseline·통제 비교 또는 ablation·error analysis·재현 조건·한계 보고를 포함한다. 개념 blocker를 푸는 `PRE_LAB`은 milestone이 아니므로 catalog에 넣지 않는다.
+### 후학습과 평가
 
-## 3. 자료와 판본·접근 경계
+주 자료: [Hugging Face smol-course](https://github.com/huggingface/smol-course).
+현재 공개된 SFT와 evaluation을 우선 선택하고, baseline과 데이터가 준비되면 DPO를 검토한다.
+RL·synthetic data의 예정 날짜만으로 공개 완료를 판단하지 않고 실제 자료 존재를 진입 시 확인한다.
 
-아래 선택은 [JD 원문 관찰](./specs/001-employment-project-curriculum/research/jd-evidence.md)·[공식 기술 동향](./specs/001-employment-project-curriculum/research/trend-evidence.md)·[교육과정 비교](./specs/001-employment-project-curriculum/research/reference-curricula.md)를 연결한 **설계 판단**이다. 조회 기준은 2026-10-19이며 현재 채용/접근·개별 활동/환경/권리의 검증은 별개다. [근거→역량→구간→산출물/평가 매핑](./specs/001-employment-project-curriculum/research/decision-matrix.md)을 기준으로 사용한다. 각 과정 전체 이수/등록·모델 실행·게시를 요구하지 않는다.
+실습 제안: 고정된 held-out 질문, 학습 전후 비교, 실패 분석을 직접 만든다.
+모델 크기·라이선스·메모리·GPU 사용 가능 여부를 먼저 확인한다. 실행하지 못한 학습은 미완료다.
 
-### 프로젝트 수업의 주교재와 보조 자료
+### 시스템 대안
 
-2026-10-23 승인한 [수업 운영 개선](./specs/002-learning-method-audit/tutoring-redesign-2026-10-23.md)에 따라 **연결된 강의 구간→현재 프로젝트의 기능 하나→실행·첫 해석→리뷰**를 기본으로 한다. 아래는 현재 AX 프로젝트에서의 자료 우선순위다. 기존 REF 목록과 2026-10-19 선택 매핑은 당시 근거로 보존하며 병렬 필수 수강 목록으로 쓰지 않는다. 단기 AX와 후속 RE의 범위는 ROADMAP을 유지한다.
+주 자료: [MIT 6.5940 Fall 2024](https://hanlab.mit.edu/courses/2024-fall-65940)의 해당 단원.
+작은 모델에서 profiling·메모리/FLOPs·batch·KV cache·양자화를 먼저 연결한다.
+[CS336](https://cs336.stanford.edu/) A2 v26.1.3의 Triton·분산 학습은 선수 역량과 장비를 갖춘 뒤 선택한다.
+CPU 기능 확인이나 단일 GPU 실험은 공식 B200/다중 GPU 검증 완료가 아니다.
+후학습 경로와 동시에 의무화하지 않고, 지원하지 않는 실험을 위해 먼저 장비를 구매하지 않는다.
 
-| 역할·사용처 | 고정할 설명 구간 | 실제 적용과 확인 경계 |
-| --- | --- | --- |
-| 주교재 — AX의 문제·RAG 전체 흐름 | [Zoomcamp Module 1 Part 1](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/01-agentic-rag/README.md)의 연결된 구성. [RAG 교안](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/01-agentic-rag/03-rag.md)의 문제→context→search/prompt/LLM과 [Part 1 정리](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/01-agentic-rag/10-rag-next-steps.md) | 해당 두 교안과 모듈 구성을 확인했다. 필요한 연결 구간을 정해 유지하고 매 응답 새 주제로 바꾸지 않는다. 기존 구현을 예제로 재사용하며 Part 1 전체 재작성을 관문으로 삼지 않는다. 검색 성공과 생성 정확성은 별도다. |
-| 주교재 — 검색·답변 평가와 결과물 | [Zoomcamp Module 4](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/04-evaluation/README.md)의 Search Evaluation→RAG and Agent Evaluation 구성과 [프로젝트 지침](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/project.md)의 종단 연결·문제/실행/평가 설명 | 평가 모듈은 구성 확인이며 개별 절 본문은 가르치기 전에 읽는다. LLM 생성 라벨·LLM judge를 자동 정답으로 삼지 않는다. 평가와 API 연결은 기존 서비스에서 수행한다. |
-| 보조 — 현재 도구의 개념·책임 | [HF What are Tools](https://huggingface.co/learn/agents-course/en/unit1/tools)의 What are AI Tools·How do tools work | 정의·입력/반환·모델 호출 요청과 프로그램 실행 주체를 확인했다. generic Tool 클래스·introspection·decorator 구현을 현재 과제로 추가하지 않는다. |
-| 보조 — Python 사용 공백·제품 관점 | [CS50P](https://cs50.harvard.edu/python/)의 Loops·Exceptions·Libraries·File I/O 중 실제 공백, REF-03 FSDL 2023의 UX/LLMOps | 과정 목차는 확인했으며 개별 절은 사용 전에 확인한다. JS 경험을 활용해 표현을 묶어 설명한다. 전체 입문 과정이나 두 번째 전체 강의를 요구하지 않는다. |
-| 조건부 — 모델 주도 선택·상태 책임 | [Zoomcamp Part 2 Function Calling](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/01-agentic-rag/13-function-calling.md), REF-06 LangGraph | function-calling 교안은 확인했다. 모델이 선택하는 흐름의 비교 질문 또는 상태 보존·중단/재개 책임이 있을 때 선택한다. 로컬 helper만으로 agent 완료를 주장하지 않는다. |
+## 6. 독립 실험
 
-Zoomcamp는 조회 당시 공개 HEAD `1c42efbeb8141c183e7ae51698ad912c70c06a06`의 교안·구성을 기준으로 삼는다. [공식 안내](https://github.com/DataTalksClub/llm-zoomcamp/blob/1c42efbeb8141c183e7ae51698ad912c70c06a06/README.md)는 Python·CLI·기초 Docker를 선수로 두며 자습에는 채점·동료 리뷰·수료증이 없다. 영상 전편의 품질이나 본인의 언어·속도 적합성은 미확인이다. 영상 시청을 가정하거나 사전 시청을 수업 진입 조건으로 두지 않고, 튜터는 필요한 내용을 한국어로 설명한다. 직접 시청·원문 읽기·출처 기반 대화는 실제 수행한 방식대로 구분한다.
+자신의 문제에서 baseline, 바꿀 요인 하나, 고정 조건, 비교 지표를 정한다.
+코드와 실제 결과를 함께 보며 학습자가 먼저 설명한다. 개선되지 않은 결과도 원인과 한계를
+설명하면 학습 자료가 된다. 실행 전 예상 결과를 실제 성과처럼 적지 않는다.
 
-주교재 선택은 전체 공식 과정 등록·수료, 모든 기술·과제·유료 API 사용의 승인이 아니다. 기존 Ollama와 강의 API를 교체한 실행의 호환·성능도 미확인이다. Kestra·PGVector·LangChain·대시보드 등을 현재 기능에 필요 없이 추가하지 않으며, 실제 수업 전 정확한 절·API·환경·비용·권리를 확인한다. 자료가 맞지 않으면 실제 언어/속도/선수 부담에 근거해 조정하되 기존 프로젝트와 도움 이력을 초기화하지 않는다.
+## 필요할 때만 여는 수학·이론
 
-| 자료 | 사용할 판본·구간 | 접근/선택 한계 |
-| --- | --- | --- |
-| MIT 6.S191, REF-01 | 2026 L1 DL 기초·필요 sequence 설명 → RE-01 | 공식 메인 목차 확인; /2026/ archive 접근 실패. 정확한 강의 구간/개별 lab은 수업 전 확인, CV/RL/music 전부 제외 |
-| Stanford CS336, REF-02 | Spring 2026 L1~3·12~15와 inference 대안 L10 → RE-02~04 | syllabus/정책과 실제 segment 검증 구별. A1 v26.0.3·A2 v26.1.3 pin·별도 환경/AI 정책은 상세 정책; 전체 A1~A5 의무 없음 |
-| Full Stack Deep Learning, REF-03 | April 2023 LLM Bootcamp의 Foundations/앱 출시·Augmented LMs·UX/LLMOps → AX-01/02/04 | 무료 녹화의 원리 참고; 옛 API를 현재 사실로 사용하지 않음. walkthrough는 학습자 직접 구현이 아님 |
-| Hugging Face LLM Course, REF-04 | 상시 개정판 Ch2~3·5 → RE-01, Ch1·6 → RE-02, Ch10~11 → RE-03 | 정확한 절/API·버전은 실제 사용 전 확인. 12장·Hub 게시·인증은 의무 아님 |
-| Hugging Face smol-course, REF-05 | chat templates·SFT/PEFT·domain evaluation → RE-03 기본안 | 목차/sidebar 번호 차이로 주제명 참조. 읽기 공개와 모델/VRAM/계정/플랜·비용은 구별 |
-| Hugging Face Agents Course, REF-06 | Unit1 메시지/도구 → AX-01/03; 상태 보존·중단/재개·승인 필요 시 Unit2.3 LangGraph | Python 고정 흐름이 먼저이며 framework 필수 수강이 아님. 예제의 외부 모델 접근·여러 framework·인증/leaderboard·게시를 자동 실행하지 않음 |
-| Google Agents Intensive, REF-07 | 2025 안내/회고의 tools·memory·eval·production coverage 비교 | 행사 종료·guide 본문 미표시; 코드랩 원문 검토/수료로 세지 않음. ADK 전체 추가 없음 |
-| Boostcamp AI Tech, REF-08 | 8기 2025–26 AI Core→한 도메인→Production 구성 참고 | 종료된 기수의 설계 참고. 선발/전일제 시간표·GPU 지원을 개인 경로에 복제하지 않음 |
-| LG Aimers, REF-09 | 9기 2026 공식 소개의 문제·코드·평가·발표 연결 참고 | 과정 소개/목차와 강의 원문/직접 수행 구별; 전체 과정·대회 의무 없음 |
-| KT AIVLE, REF-10 | 공개 실무/프로젝트형 교육 소개 비교 | 현 기수 모듈·비용 불명; 과거 2024 보고서의 기간/비용을 현행으로 옮기지 않음 |
-| MML·MIT 18.05 Spring 2022·18.01SC Fall 2010 | 행렬/미분/최적화·확률/추론의 현재 공백에 필요한 절 | 기존 원본/회고 보존. 전체 본문/PS/R 의무 없음; 해당 원문·그림/식 확인 후 설명 |
-| CS229 Summer 2020·ISLP | loss/MLE·일반화, ISLP 5/6/8/13의 현재 평가/모델 공백 | notes/선택 절은 참고; PS1~PS3 전체 written/coding·RL/ICA·전체 lab은 보류. 2018 영상/현재 homepage를 동일 판본으로 바꾸지 않음 |
-| CS231n Spring 2024·CS224N Spring 2024 1246·Karpathy | 학습 진단·attention/position·역전파의 관찰 공백 설명 | 공식 과제는 재선택 시에만, 과거 미완료는 원문 인용/회고 보존. 모든 과제/GPT·BPE 재구현 gate 없음 |
+- [MIT 18.06SC Linear Algebra, Fall 2011](https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/):
+  tensor 전에 행렬·벡터·rank, 회귀에서 projection/least squares, 저랭크·LoRA에서 SVD.
+- [MIT 18.02SC Multivariable Calculus, Fall 2010](https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/):
+  backprop에서 막히면 partial derivatives, chain rule, gradient. 전 과정 선행 수료는 요구하지 않는다.
+- [MIT 18.05 Probability and Statistics, Spring 2022](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/):
+  확률변수·기댓값·조건부확률, 평가에서 신뢰구간·가설검정. R 공식 과제를 선택했다면 Python
+  유사 실험으로 공식 완료를 대신하지 않는다.
+- CS229 Summer 2020은 기존 판본의 이론 보조 후보다. 이번 원문 재확인은 완료하지 못했으며
+  [기존 과정별 정책](.agents/references/official-course-policies.md)을 보존했다. MIT와 중복 의무 수강하지 않는다.
+- [CS231n 개념 노트](https://cs231n.github.io/)는 최적화·신경망 공백 참고다.
+  현재 연결 과제는 Spring 2026이며 과거 Spring 2024 과제와 구분한다.
 
-2026-10-21 검토의 [공식 출처 카드 S-01~07](./specs/002-learning-method-audit/evidence/plan-source-supplement.md)와 [선택 이유·추적표](./specs/002-learning-method-audit/evidence/proposal-traceability.md)는 다음 적용의 근거다. FSDL 2022 labs의 한 시스템 누적은 AX 서비스의 연결, 별도 2023 walkthrough는 검색/근거 흐름의 설명에 참고한다. Made With ML scripting/testing은 반복 실행과 코드/모델 평가의 분리, DataTalksClub 프로젝트 지침은 초기 문제·평가·재현·기여 설명에 참고한다. MIT의 제공 starter/직접 TODO와 CS224N/CS336의 실제 실험·기여/내부 구현은 최소 선수와 RE 깊이/도움 경계를 비교하는 자료다. 이들 전체 수강·등록·배포·대학의 성적 비중은 개인 경로의 의무가 아니다.
+## AI 도움과 기록
 
-카드의 확인/부분/미확인과 관찰/적용 해석을 유지한다. FSDL 두 과정은 한 기관, DataTalksClub은 가변 main/2025 연결을 고정 2026판과 구별하고 CS224N 1246 홈페이지/중간 지침의 비중 불일치를 보존한다. MIT archive 접근 실패·개별 notebook 본문 미검토, CS336 handout/pin의 별도 확인 경계, 자습자의 채점/멘토·GPU·비용·AI·재사용 권리 미확인을 완료로 세지 않는다. 공개 소개/저장소 링크는 코드·데이터/모델·공식 답안의 사용/재배포 권한이 아니다.
+AI는 흐름과 변경 책임을 안내하고, 막힌 개념을 설명하고, 학습자 코드·출력·첫 해석을 검토한다.
+핵심 구현을 대신 완성하지 않는다. CS336의 더 엄격한 제한은 [과정별 정책](.agents/references/official-course-policies.md)을 따른다.
+강의 진도는 실제 보고된 위치만 기록하고, 일일 TIL·수료 점수·자동 계획표는 만들지 않는다.
 
-정확한 공식 자료·API URL/판본/접근 한계는 위 feature의 교육과정·선택 매핑과 새 출처 카드를 따른다. 목록을 읽은 사실로 특정 강의 본문이나 과제 요구를 확인했다고 주장하지 않는다. 접근 실패면 그 자료 의존 수업만 멈추고 필요한 구간을 확인한다. 공식 과제 원문·답안은 공개하지 않는다. [상세 정책](./.agents/references/learning-policies.md#course-specific-scope-and-assistance)을 따른다.
+## 목표 역량별 누락 방지 지도
 
-## 역사적 참고 — 기존 4~8절 보존 경계
+CS336은 구현 경로의 한 예시다. 다음 영역은 목표 역량의 범위를 확인하는 지도이며,
+아래 강의를 모두 수강하는 목록이나 진도 관리표가 아니다. 같은 산출물에서 여러 역량을 확인해도 된다.
+CS/AI 학위 전체를 대체하는 완전한 교육과정이라고 주장하지 않는다.
 
-이하 본문·ID/hash·감사 판정·정정·공백은 당시 기록 그대로다. **현재 지시가 아니다.** 당시의 ‘현재’, ‘필수’, readiness·RNN/LSTM·P0~P5 연결은 역사적 문맥으로만 읽는다. 1~3절의 새 범위가 과거 자료의 재감사나 성과 승격을 뜻하지 않는다.
+### 프로그래밍과 재현성: 단계 1부터
 
-## 4. 공통 핵심 역량
+- [Python 공식 튜토리얼](https://docs.python.org/3/tutorial/),
+  [NumPy 배열·broadcasting](https://numpy.org/doc/stable/user/absolute_beginners.html),
+  [PyTorch Learn Basics](https://docs.pytorch.org/tutorials/beginner/basics/intro.html)에서 필요한 부분만 사용한다.
+- [MIT Missing Semester 2026](https://missing.csail.mit.edu/)은 debugging/profiling/packaging 공백 보완이다.
+  기존 웹 개발자의 Git·셸 기초를 자동으로 다시 시키지 않는다.
+- 코드·데이터·모델·설정 버전, seed와 비결정성 한계, checkpoint 저장/재개를 작은 실험에 적용한다.
+  Python과 패키지 문서는 실제 설치 버전에 맞춘다. 재현성을 위해 큰 플랫폼부터 만들지 않는다.
 
-이하 `자료 연결·충족도·공백 처리`는 기존 보유 자료를 감사한 과거 snapshot이다.
-3절과 `ROADMAP.md`에 새로 연결한 MIT·CS229·CS231n·CS224N·CS336의 현재 범위를
-평가한 결과가 아니다. `없음`은 그 당시 감사 자료의 공백이며 현재 경로에 강의가
-없다는 뜻이 아니다. 당시의 첫 학습 범위·후속 심화 문구도 현재 순서를 바꾸지 않는다.
+### 딥러닝과 최적화: 단계 1–3
 
-| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |
-|---|---|---|---|---|---|---|---|---|
-| CC-MATH-01 | 벡터·행렬·선형변환을 기하와 좌표, 행렬곱 shape, 작은 NumPy 구현으로 연결한다. | D2 | — | explain, calculate, shape, implement | primary:SRC-KBM-01-01,SRC-KBM-01-03,SRC-KBM-02-01; supporting:SRC-KBM-01-02,SRC-KBM-01-04 | 충분 | 그대로 사용 | 벡터별 L2 정규화와 특성별 scaling은 구분해 가르친다. |
-| CC-MATH-02 | rank·최소제곱·고윳값·SVD를 계산하고 해의 존재·유일성, 저랭크 근사, 수치적 선택을 해석한다. | D2 | CC-MATH-01 | explain, calculate, shape, implement, interpret | primary:SRC-KBM-02-02,SRC-KBM-02-03,SRC-KBM-03-01,SRC-KBM-03-03,SRC-KBM-04-01; supporting:SRC-KBM-03-02,SRC-KBM-04-02,SRC-KBM-04-03 | 부분 | 수업 내 보충 | rank-deficient 최소제곱, full SVD의 기저 범위, solver별 수치 차이를 보충한다. |
-| CC-MATH-03 | 미분·chain rule·gradient·autodiff를 손계산, 계산 그래프, 코드의 gradient 흐름으로 연결한다. | D2 | CC-MATH-01 | explain, calculate, shape, implement, debug | primary:SRC-KBM-07-01,SRC-KBM-07-02,SRC-KDL-06-01,SRC-KDL-06-02,SRC-KDL-06-03; supporting:SRC-KDL-01-04,SRC-KDL-06-04,SRC-KDL-06-05 | 충분 | 그대로 사용 | scalar chain rule 손계산부터 gradient shape·누적·graph 단절 디버깅까지 직접 다룬다. Jacobian·VJP·gradcheck는 후속 심화다. |
-| CC-MATH-04 | 부동소수점, overflow·underflow, conditioning과 안정적인 연산 선택을 계산·디버깅에 적용한다. | D2 | CC-MATH-02, CC-MATH-03 | explain, calculate, implement, debug, interpret | supporting:SRC-KBM-01-04,SRC-KBM-02-03,SRC-KBM-04-01,SRC-KBM-04-02,SRC-KBM-06-02,SRC-KBM-07-01,SRC-KDL-02-03,SRC-KDL-06-05 | 부분 | 수업 내 보충 | 안정적 softmax·finite gradient 점검은 있으나 conditioning·precision·오차 전파의 통합 설명이 없다. |
-| CC-PROB-01 | 확률분포·조건부확률·기댓값·분산·sampling을 계산하고 실험 출력과 연결한다. | D2 | CC-MATH-01 | explain, calculate, implement, interpret | primary:SRC-HARV-STAT110-2E-00-01; context:SRC-KAM-02-01 | 충분 | 그대로 사용 | Stat110 2판 Chapter 1~4가 counting·조건부확률·이산분포·기댓값·분산과 R simulation을 직접 연결한다. 첫 학습 범위도 Chapter 1~4로 제한한다. |
-| CC-PROB-02 | likelihood·MLE·Bayes와 불확실성의 의미를 계산하고 모델 추정에 적용한다. | D2 | CC-PROB-01, CC-MATH-03 | explain, calculate, implement, interpret | supporting:SRC-HARV-STAT110-2E-00-01; context:SRC-KBM-06-02 | 부분 | 수업 내 보충 | 이번 연결 범위의 Chapter 2가 Bayes rule·prior/posterior·likelihood ratio를 직접 다룬다. 교재 후반의 MLE·Bayesian inference까지 이번 coverage로 채택하지 않았으므로 likelihood·MLE·모델 적용은 보충한다. |
-| CC-PROB-03 | entropy·cross entropy·KL divergence·mutual information을 계산하고 분포 차이와 학습 목적을 해석한다. | D2 | CC-PROB-01 | explain, calculate, implement, interpret | supporting:SRC-KBM-06-02 | 부분 | 수업 내 보충 | cross entropy는 직접 다루지만 entropy·KL·mutual information은 없다. |
-| CC-STAT-01 | 추정량·신뢰구간·bootstrap의 가정과 불확실성을 계산하고 보고한다. | D2 | CC-PROB-01, CC-PROB-02 | explain, calculate, implement, interpret | context:SRC-KAM-02-01,SRC-KAM-05-01 | 없음 | 별도 자료 확보 | resampling과 fold 평균·표준편차는 쓰지만 통계적 추론을 가르치지 않는다. |
-| CC-STAT-02 | 가설검정·효과크기·다중검정의 한계를 적용해 비교 결론을 평가한다. | D2 | CC-STAT-01 | explain, calculate, interpret, design | context:SRC-KAM-05-01 | 없음 | 별도 자료 확보 | 후보 비교는 있으나 유의성·효과크기·다중 비교 통제가 없다. |
-| CC-ML-01 | 문제 유형을 정의하고 train·validation·test 분리와 단순 baseline을 설계한다. | D2 | — | explain, implement, interpret, design | primary:SRC-KAM-01-01,SRC-KDL-01-02,SRC-KDL-01-03,SRC-KDL-07-04; supporting:SRC-KAM-04-02,SRC-KDL-08-05,SRC-KDL-08-08 | 충분 | 그대로 사용 | 무작위·시간·그룹 데이터의 분리 선택과 train·validation·test 역할을 포함하며, 08-08은 고정 seed 분리와 최종 test 1회 평가를 구현한다. |
-| CC-ML-02 | metric·threshold·calibration·불균형을 비용과 오류 유형에 맞춰 선택하고 해석한다. | D2 | CC-ML-01, CC-PROB-01 | explain, calculate, implement, interpret, design | primary:SRC-KAM-01-01,SRC-KAM-04-01; supporting:SRC-KDL-01-02,SRC-KDL-04-03,SRC-KDL-04-04,SRC-KDL-08-06,SRC-KDL-08-08 | 부분 | 수업 내 보충 | sample-weighted accuracy와 불균형 주의는 있으나 threshold 선택과 calibration의 계산·검증이 얕다. |
-| CC-ML-03 | 일반화·bias-variance·regularization을 진단하고 적절한 개입을 실험한다. | D2 | CC-ML-01, CC-MATH-03 | explain, calculate, implement, interpret, design | primary:SRC-KAM-03-01,SRC-KAM-03-02; supporting:SRC-KAM-02-01,SRC-KAM-02-02; context:SRC-KDL-07-04 | 부분 | 원본 복구 후 재감사 | 핵심 자료 두 개에 수식 변환 훼손 또는 신버전 원본 누락이 있다. |
-| CC-ML-04 | 선형·거리·트리·ensemble 모델 계열과 해석 도구를 데이터 조건에 맞춰 비교한다. | D2 | CC-ML-01, CC-ML-03 | explain, implement, interpret, design, transfer | primary:SRC-KAM-01-02,SRC-KAM-02-01,SRC-KAM-02-02,SRC-KAM-02-03; supporting:SRC-KDL-01-01 | 충분 | 그대로 사용 | SHAP은 예측 설명이지 인과 설명이 아님을 유지한다. |
-| CC-ML-05 | CV·search·leakage·pipeline·재현성을 하나의 공정한 선택 및 재사용 절차로 구현한다. | D2 | CC-ML-01, CC-ML-03 | explain, implement, debug, interpret, design, transfer | primary:SRC-KAM-04-02,SRC-KAM-05-01,SRC-KAM-05-02; supporting:SRC-KAM-04-01,SRC-KDL-07-03,SRC-KDL-07-04 | 충분 | 그대로 사용 | 전처리·sampler의 fit 경계, split별 transform, 재현 가능한 분리와 최종 test 1회 원칙을 포함한다. |
-| CC-DL-01 | tensor의 shape·dtype·device·broadcasting 계약을 추적하고 관련 오류를 고친다. | D2 | CC-MATH-01 | explain, calculate, shape, implement, debug | primary:SRC-KDL-02-01,SRC-KDL-02-02,SRC-KDL-02-03,SRC-KDL-02-04,SRC-KBM-05-01,SRC-KBM-05-02,SRC-KDL-07-05; supporting:SRC-KDL-03-03,SRC-KDL-03-04,SRC-KDL-03-05,SRC-KDL-05-01,SRC-KDL-05-02,SRC-KDL-06-02,SRC-KDL-06-03,SRC-KDL-07-01,SRC-KDL-07-02,SRC-KDL-07-03 | 충분 | 그대로 사용 | batch 축, gradient·label shape, dtype와 device 계약을 코드 실행 전후로 확인한다. |
-| CC-DL-02 | 데이터·모델·손실·optimizer·평가로 이어지는 학습 루프를 구현하고 출력 흐름을 해석한다. | D2 | CC-ML-01, CC-MATH-03, CC-DL-01 | explain, shape, implement, debug, interpret | primary:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KDL-06-04,SRC-KDL-06-05,SRC-KDL-07-01,SRC-KDL-07-02,SRC-KDL-07-04,SRC-KDL-07-05,SRC-KDL-08-03,SRC-KDL-08-04,SRC-KDL-08-05,SRC-KDL-08-08; supporting:SRC-KBM-07-02,SRC-KDL-03-05,SRC-KDL-04-01,SRC-KDL-04-03,SRC-KDL-04-04,SRC-KDL-05-01,SRC-KDL-05-02,SRC-KDL-05-03,SRC-KDL-05-04,SRC-KDL-06-01,SRC-KDL-06-02,SRC-KDL-06-03,SRC-KDL-07-03,SRC-KDL-08-01,SRC-KDL-08-02,SRC-KDL-08-06,SRC-KDL-08-07 | 충분 | 그대로 사용 | Dataset·DataLoader, model·loss·optimizer 연결, gradient update 순서, train·validation 함수, metric 누적과 통합 실행 루프를 다룬다. |
-| CC-DL-03 | autograd 그래프와 gradient를 추적하고 vanishing·exploding·detach·in-place 문제를 진단한다. | D2 | CC-MATH-03, CC-DL-01, CC-DL-02 | explain, calculate, shape, implement, debug | primary:SRC-KBM-07-02,SRC-KDL-06-01,SRC-KDL-06-02,SRC-KDL-06-03,SRC-KDL-06-05; supporting:SRC-KDL-02-04,SRC-KDL-04-01,SRC-KDL-04-02,SRC-KDL-05-01,SRC-KDL-05-04,SRC-KDL-06-04 | 부분 | 수업 내 보충 | 계산 그래프·gradient 누적·detach·graph 단절·finite gradient 점검은 직접 다루지만 vanishing/exploding 원인 진단, in-place 오류 재현·수정, 수동 gradient check가 부족하다. |
-| CC-DL-04 | activation·initialization·normalization·regularization의 상호작용을 구현하고 비교한다. | D2 | CC-DL-02, CC-ML-03 | explain, implement, debug, interpret, design | primary:SRC-KDL-04-01,SRC-KDL-04-02; supporting:SRC-KDL-04-03,SRC-KDL-04-04,SRC-KAM-03-02 | 부분 | 수업 내 보충 | 비선형성·ReLU·출력 activation은 직접 다루지만 initialization·normalization·통합 regularization 실험이 없다. |
-| CC-DL-05 | MLP·CNN·RNN·Transformer 등 주요 architecture의 inductive bias와 shape 흐름을 통합 비교한다. | D2 | CC-DL-04, CC-SEQ-01, CC-TRF-02 | explain, shape, interpret, transfer | primary:SRC-KDL-03-01,SRC-KDL-03-02,SRC-KDL-03-03,SRC-KDL-03-04,SRC-KDL-03-05,SRC-KDL-08-01,SRC-KDL-08-02; supporting:SRC-KDL-04-01,SRC-KDL-08-08 | 부분 | 수업 내 보충 | 개별 구현 근거는 해당 architecture 역량이 담당하며, 여기서는 MLP·CNN·RNN·Transformer의 inductive bias·shape·적용 조건을 통합 비교한다. |
-| CC-DL-06 | loss curve·gradient·validation을 진단하고 checkpoint·mixed precision을 안전하게 운용한다. | D2 | CC-DL-02, CC-DL-03, CC-SYS-01 | explain, implement, debug, interpret, design | supporting:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KAM-02-02,SRC-KDL-02-03,SRC-KDL-05-01,SRC-KDL-05-03,SRC-KDL-05-04,SRC-KDL-06-03,SRC-KDL-06-05,SRC-KDL-07-05,SRC-KDL-08-05,SRC-KDL-08-07,SRC-KDL-08-08 | 부분 | 수업 내 보충 | validation·gradient 점검·기본 curve 진단과 validation 기준 best weight 선택은 다루지만, optimizer·epoch·history·RNG까지 보존하는 checkpoint/resume와 AMP는 없다. |
-| CC-DL-07 | SGD·momentum·AdamW, learning-rate schedule, weight decay·gradient clipping의 update 동역학과 trade-off를 계산·구현·비교한다. | D2 | CC-MATH-03, CC-DL-02, CC-DL-03 | explain, calculate, implement, debug, interpret, design | primary:SRC-KBM-07-01,SRC-KDL-05-03; supporting:SRC-KDL-01-02,SRC-KDL-01-04,SRC-KDL-06-04,SRC-KDL-08-03,SRC-KDL-08-04,SRC-KDL-08-08 | 부분 | 수업 내 보충 | SGD·momentum·Adam, 기본 learning-rate 변경과 gradient update 순서는 직접 다루지만 AdamW·scheduler·decoupled weight decay·clipping의 계산과 통제 비교가 없다. |
-| CC-NLP-01 | 텍스트 normalization·tokenization·subword vocabulary의 trade-off를 구현하고 해석한다. | D2 | — | explain, implement, debug, interpret, design | context:SRC-KBM-06-02,SRC-KDL-07-02,SRC-KDL-07-03 | 없음 | 별도 자료 확보 | token ID와 dataset·transform 맥락만 있고 tokenizer를 가르치지 않는다. |
-| CC-NLP-02 | embedding·padding·mask·sequence batching의 shape와 의미를 구현·디버깅한다. | D2 | CC-NLP-01, CC-DL-01 | explain, shape, implement, debug, interpret | supporting:SRC-KBM-06-01,SRC-KBM-06-02; context:SRC-KDL-01-03,SRC-KDL-07-03 | 부분 | 수업 내 보충 | causal mask와 transform shape는 있으나 embedding·padding mask·가변 길이 batching이 부족하다. |
-| CC-SEQ-01 | recurrence·parameter sharing을 unroll하고 gradient 전달 한계를 진단하며, LSTM gate와 `h_t`·`c_t`의 tensor/state shape를 추적해 직접 `nn.Module`·`forward`로 구현하고 실제 sequence task에서 RNN·LSTM·baseline을 동일 조건으로 학습·평가·비교한다. | D2 | CC-DL-02 | explain, calculate, shape, implement, debug, interpret, transfer | — | 없음 | 별도 자료 확보 | 언어모델과 Transformer 전에 완료해야 하는 필수 연결 역량이다. 영구 등록된 전용 자료는 아직 없다. |
-| CC-LM-01 | autoregressive objective·log-likelihood·perplexity를 계산하고 token loss와 연결한다. | D2 | CC-PROB-01, CC-NLP-02, CC-SEQ-01 | explain, calculate, shape, implement, interpret | supporting:SRC-KBM-06-02 | 부분 | 수업 내 보충 | NLL·cross entropy는 있으나 sequence factorization과 perplexity가 없다. |
-| CC-LM-02 | greedy·beam·sampling 계열 decoding과 generation 설정의 품질·다양성 trade-off를 실험한다. | D2 | CC-LM-01 | explain, implement, interpret, design, transfer | supporting:SRC-KBM-06-02 | 부분 | 수업 내 보충 | greedy와 temperature만 다루며 top-k·top-p·beam과 종료 조건이 없다. |
-| CC-TRF-01 | QKV·scaled attention·mask·multi-head attention의 전체 shape 계약을 계산·구현한다. | D2 | CC-MATH-01, CC-DL-01, CC-NLP-02, CC-SEQ-01 | explain, calculate, shape, implement, debug | primary:SRC-KBM-06-01,SRC-KBM-06-02 | 부분 | 수업 내 보충 | single-head까지는 상세하지만 multi-head 분할·병합을 의도적으로 보류했다. sequence state와 attention 정보 흐름의 차이는 `CC-SEQ-01` 뒤에 연결한다. |
-| CC-TRF-02 | residual·normalization·FFN·position 구성요소의 역할과 정보 흐름을 구현·비교한다. | D2 | CC-TRF-01, CC-DL-04 | explain, shape, implement, debug, interpret | context:SRC-KBM-06-01 | 없음 | 별도 자료 확보 | 자료가 다음 단계로 명시만 하고 직접 가르치지 않는다. |
-| CC-TRF-03 | 작은 causal LM을 구현해 teacher forcing으로 학습하고 loss와 generation을 검증한다. | D2 | CC-LM-01, CC-TRF-02, CC-DL-02 | explain, shape, implement, debug, interpret, transfer | context:SRC-KBM-06-02 | 없음 | 별도 자료 확보 | attention loss의 일부만 있어 end-to-end model·학습 자료가 필요하다. |
-| CC-LLM-01 | pretraining data의 provenance·deduplication·contamination과 품질 통제를 설계한다. | D2 | CC-LM-01, CC-TRF-03 | explain, implement, interpret, design | context:SRC-KAM-04-02 | 없음 | 별도 자료 확보 | 일반 데이터 누수는 있지만 대규모 말뭉치 구축은 다루지 않는다. |
-| CC-LLM-02 | compute·data·model scaling law를 해석하고 제한된 예산의 실험을 설계한다. | D2 | CC-LM-01, CC-STAT-01, CC-SYS-01 | explain, calculate, interpret, design, transfer | — | 없음 | 별도 자료 확보 | 전용 자료가 없다. |
-| CC-LLM-03 | SFT·LoRA·PEFT의 목적, parameter·memory trade-off, 구현 경계를 비교한다. | D2 | CC-TRF-03, CC-MATH-02 | explain, calculate, shape, implement, interpret | context:SRC-KBM-04-02 | 없음 | 별도 자료 확보 | LoRA를 저랭크 맥락에서 언급할 뿐 학습 절차를 가르치지 않는다. |
-| CC-LLM-04 | preference learning·reward model·DPO·RLHF의 데이터와 목적함수, 실패 모드를 설명한다. | D2 | CC-LLM-03, CC-PROB-02 | explain, calculate, implement, interpret, design | — | 없음 | 별도 자료 확보 | 전용 자료가 없다. |
-| CC-EVAL-01 | 평가 질문·dataset·metric·오류 분류를 연결하고 비교 가능한 평가를 설계한다. | D3 | CC-ML-01, CC-ML-02, CC-STAT-01 | explain, implement, interpret, design, transfer | supporting:SRC-KAM-01-01,SRC-KAM-04-01,SRC-KAM-04-02 | 부분 | 수업 내 보충 | 일반 supervised 평가 기반은 있으나 LLM task·slice·통계 보고가 부족하다. |
-| CC-EVAL-02 | human judge와 model judge의 rubric·일치도·편향·신뢰도를 측정하고 한계를 보고한다. | D3 | CC-EVAL-01, CC-STAT-02 | explain, calculate, implement, interpret, design | — | 없음 | 별도 자료 확보 | 전용 자료가 없다. |
-| CC-EVAL-03 | contamination·robustness·safety 평가의 위협 모델과 실패 사례를 설계한다. | D3 | CC-EVAL-01, CC-LLM-01 | explain, implement, debug, interpret, design, transfer | context:SRC-KAM-04-02,SRC-KDL-01-03 | 없음 | 별도 자료 확보 | 일반 leakage와 민감 응용 예시는 LLM 안전성 평가를 직접 충족하지 않는다. |
-| CC-SYS-01 | GPU 연산·메모리·대역폭·precision·profiling의 병목을 측정하고 해석한다. | D2 | CC-DL-01 | explain, calculate, implement, debug, interpret | supporting:SRC-KDL-02-03,SRC-KDL-02-04; context:SRC-KDL-07-01,SRC-KDL-07-05 | 부분 | 수업 내 보충 | device 이동과 DataLoader 옵션 맥락은 있으나 memory hierarchy·kernel·AMP·profiler가 없다. |
-| CC-SYS-02 | distributed training의 data·tensor·pipeline parallelism과 sharded checkpoint를 구현·진단한다. | D2 | CC-SYS-01, CC-DL-06 | explain, calculate, shape, implement, debug, interpret | — | 없음 | 별도 자료 확보 | 전용 자료가 없다. |
-| CC-SYS-03 | inference latency·throughput·batching·KV cache·quantization의 trade-off를 측정한다. | D2 | CC-SYS-01, CC-TRF-03 | explain, calculate, implement, debug, interpret, design | — | 없음 | 별도 자료 확보 | 전용 자료가 없다. |
-| CC-RES-01 | 논문의 주장·실험·근거·한계를 분리해 읽고 주장의 강도를 평가한다. | D3 | CC-STAT-01, CC-ML-05 | explain, interpret, design, transfer | — | 없음 | 별도 자료 확보 | 논문 읽기와 주장 검증을 직접 가르치는 자료가 없다. |
-| CC-RES-02 | 가설·baseline·ablation·confounder를 통제한 실험을 설계하고 반증 가능성을 높인다. | D3 | CC-STAT-02, CC-RES-01 | explain, calculate, interpret, design, transfer | context:SRC-KAM-03-01,SRC-KAM-05-01 | 없음 | 별도 자료 확보 | 모델 진단·후보 비교는 있으나 연구 ablation과 confounder 통제를 가르치지 않는다. |
-| CC-RES-03 | 재현 절차·artifact·환경·부정적 결과·한계를 검증 가능하게 보고한다. | D3 | CC-RES-01, CC-ML-05 | explain, implement, debug, interpret, design, transfer | context:SRC-KAM-05-02,SRC-KDL-07-04 | 없음 | 별도 자료 확보 | seed 고정과 모델 저장·재로드는 있으나 연구 재현 패키지와 한계 보고가 없다. |
+Karpathy 구현을 주축으로 초기화, activation, SGD/Adam, regularization, 수치 안정성을 확인한다.
+[MIT 6.S191 2026](https://introtodeeplearning.com/)의 입문·sequence·RL 개요는 전체 지도를
+보완할 때 선택한다. 별도 전체 부트캠프를 의무 수강하지 않는다.
 
-## 5. 선택 전문 트랙
+### 데이터 품질과 통계적 실험: 단계 2부터 계속
 
-모든 선택 트랙의 목표 깊이는 `D3`다. 트랙을 선택하기 전에는 자료가 없어도 즉시 확보하지 않고 `트랙 선택 시 확보`로 둔다.
+출처·사용 권리·중복·오염을 확인하고 split을 지킨다. baseline과 ablation, 표본/seed에 따른
+변동, 같은 예시의 전후 오류와 평가자 불일치를 검토한다. MIT 18.05는 불확실성·신뢰구간의
+필요한 개념에 연결한다. 자동 judge 점수 하나를 품질이나 개선의 확정 증거로 삼지 않는다.
 
-| ID | 학습 성과 | 목표 깊이 | 선수 ID | 요구 근거 | 자료 연결 | 자료 충족도 | 공백 처리 | 비고 |
-|---|---|---|---|---|---|---|---|---|
-| TR-MOD-01 | 현대 LLM architecture 변형의 가설, 계산 비용, 품질 trade-off를 구현·평가한다. | D3 | CC-TRF-03, CC-RES-01 | explain, shape, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | MoE·long-context·state-space 등 선택 시점의 핵심 계열을 다룬다. |
-| TR-MOD-02 | scaling·data·model 요인을 분리한 ablation으로 개선 원인을 검증한다. | D3 | CC-LLM-02, CC-RES-02 | calculate, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-MOD-03 | 고급 post-training 목적함수와 online·offline preference 최적화를 비교한다. | D3 | CC-LLM-04, CC-EVAL-02 | explain, calculate, implement, interpret, design | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-MOD-04 | 모델링 논문의 핵심 결과를 재현하고 차이를 ablation으로 설명한다. | D3 | TR-MOD-01, CC-RES-03 | implement, debug, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-SYS-01 | CUDA·Triton kernel의 메모리 접근과 연산 병목을 profile하고 최적화한다. | D3 | CC-SYS-01 | calculate, shape, implement, debug, interpret, design | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-SYS-02 | sharding·distributed optimizer·collective 통신을 구현하고 scaling 효율을 분석한다. | D3 | CC-SYS-02, TR-SYS-01 | calculate, shape, implement, debug, interpret, design | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-SYS-03 | serving·scheduling·speculative decoding을 구현하고 latency·throughput을 최적화한다. | D3 | CC-SYS-03 | calculate, implement, debug, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-SYS-04 | 시스템 benchmark의 workload·baseline·측정 오차를 통제해 연구 결론을 낸다. | D3 | TR-SYS-03, CC-RES-02 | calculate, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | inference 연구 endpoint이며 distributed training은 강제 선수조건이 아니다. |
-| TR-EVAL-01 | 오염과 shortcut을 억제한 benchmark를 설계하고 타당성을 검증한다. | D3 | CC-EVAL-01, CC-RES-02 | explain, calculate, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-EVAL-02 | judge 신뢰도와 adversarial safety 평가를 결합해 실패 모드를 찾는다. | D3 | CC-EVAL-02, CC-EVAL-03 | explain, implement, debug, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-EVAL-03 | representation·attention·attribution 기반 interpretability 가설을 실험한다. | D3 | CC-EVAL-01, CC-TRF-03, CC-RES-02 | explain, shape, implement, debug, interpret, design | context:SRC-KAM-02-03 | 없음 | 트랙 선택 시 확보 | tabular SHAP은 연구 맥락만 제공하며 LLM interpretability 자료가 아니다. |
-| TR-EVAL-04 | 평가·해석 논문의 결과를 독립 재현하고 측정 한계를 보고한다. | D3 | TR-EVAL-01, TR-EVAL-03, CC-RES-03 | implement, debug, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-EVAL-05 | post-training과 evaluation을 결합해 baseline·통제 비교·error analysis·재현 조건·한계를 갖춘 하나의 연구 cycle을 설계·실행·보고한다. | D3 | TR-MOD-03, TR-EVAL-02, CC-RES-03 | explain, calculate, implement, debug, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | ROADMAP `2C`의 통합 endpoint이며 learner-owned 결과와 해석 전에는 완료로 보지 않는다. |
-| TR-DATA-01 | dataset provenance·license·privacy 위험을 추적하고 release 결정을 설계한다. | D3 | CC-LLM-01, CC-EVAL-03 | explain, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-DATA-02 | mixture·filtering·synthetic data·tokenizer 선택을 통제 실험으로 비교한다. | D3 | CC-LLM-01, CC-NLP-01, CC-RES-02 | calculate, implement, debug, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
-| TR-DATA-03 | retrieval·RAG pipeline을 구현하고 검색·생성 오류를 분해 평가한다. | D3 | CC-NLP-02, CC-TRF-03, CC-EVAL-01 | explain, implement, debug, interpret, design, transfer | context:SRC-KAM-02-03 | 없음 | 트랙 선택 시 확보 | RAG 사례에서 SHAP을 언급할 뿐 retrieval을 가르치지 않는다. |
-| TR-DATA-04 | data-centric ablation으로 데이터 품질·양·구성이 결과에 미치는 영향을 검증한다. | D3 | TR-DATA-02, CC-RES-02 | calculate, implement, interpret, design, transfer | — | 없음 | 트랙 선택 시 확보 | 전용 자료가 없다. |
+### 후학습의 원리: 단계 5
 
-## 6. 정적 module·milestone catalog
+SFT와 평가 후 [PEFT LoRA 개념](https://huggingface.co/docs/peft/main/en/conceptual_guides/lora)을
+통해 frozen base와 trainable low-rank update를 이해한다. main 문서는 개념 참고이며 실행 시
+설치된 안정 버전을 따른다. 소스 설치나 환경 변경을 자동으로 하지 않는다.
 
-아래는 이전 설계의 장기 참고 구조다. `필수`·readiness·endpoint 표현은 이 catalog
-내부 관계이며 현재 P0~P5의 추가 졸업 조건이나 진입 시험으로 사용하지 않는다.
-과거 `ROADMAP 2C` 같은 표기는 당시 경로 명칭으로 보존하며 현재 Phase를 가리키지 않는다.
+RLHF/RLVR 구현으로 가려면 [Hugging Face Deep RL Course](https://huggingface.co/learn/deep-rl-course/en/unit0/introduction)의
+MDP·return, policy gradient, actor-critic, PPO 관련 단원(1·4·6·8)을 선별한다.
+DPO를 전체 RL 학습과 동일시하지 않는다. RL 자체의 과제를 모두 마쳐야 SFT를 할 수 있는 것은 아니다.
 
-이 catalog는 누적 구현 구조와 endpoint closure만 정의한다. 각 target은 정확히 하나의 module에 속하지만 이 배정은 완료·진도·mastery를 뜻하지 않는다. 필수 module의 순서는 학습 순서 힌트일 뿐 기존 학습에 새 milestone credit을 소급 부여하거나 이후 milestone을 막는 gate가 아니다. 실제 readiness는 target의 선수 역량 근거로 판단한다. 선택형 full-stack systems는 inference endpoint를 막지 않는 별도 branch다.
+### 메모리·연산·추론: 단계 4–5의 공통 기초
 
-교육 구조는 [CS231n 과제·프로젝트](https://cs231n.stanford.edu/assignments.html), [CS224N](https://web.stanford.edu/class/cs224n/), [CS336](https://cs336.stanford.edu/)의 누적 구현 방식을 참고한다. 이 링크들은 module assignment·phase capstone 구조의 설계 provenance일 뿐 영구 `SRC-*` registry나 target coverage로 계산하지 않는다.
+[MIT 6.5940 TinyML and Efficient Deep Learning Computing, Fall 2024](https://hanlab.mit.edu/courses/2024-fall-65940)의
+압축·양자화·efficient LLM 단원에서 메모리, 연산, batch, prefill/decode, KV cache의 비용을 연결한다.
+작은 모델의 실제 속도·메모리 관찰을 먼저 한다. 후학습 경로에서도 이 기초를 생략하지 않는다.
+더 깊은 GPU kernel·분산 학습은 CS336 A2 등 선택 심화이며 공통 입문 관문이 아니다.
+프로세스·메모리·동시성 설명이 막힐 때만 [OSTEP](https://pages.cs.wisc.edu/~remzi/OSTEP/) 관련 장을 참고한다.
 
-| Module ID | 역할 | Target IDs | 선수 Module ID | Module assignment | 선택성 | 비고 |
-|---|---|---|---|---|---|---|
-| MOD-DL-FOUNDATION-01 | 수학·확률·통계·ML·PyTorch 학습 기반 | CC-MATH-01, CC-MATH-02, CC-MATH-03, CC-MATH-04, CC-PROB-01, CC-PROB-02, CC-PROB-03, CC-STAT-01, CC-STAT-02, CC-ML-01, CC-ML-02, CC-ML-03, CC-ML-04, CC-ML-05, CC-DL-01, CC-DL-02, CC-DL-03, CC-DL-04, CC-DL-07 | — | MA-DL-FOUNDATION-01 | 필수 | tensor·autograd·학습 loop와 공정한 비교 기반을 누적 구현한다. |
-| MOD-SEQUENCE-01 | RNN·LSTM sequence modeling 연결 | CC-SEQ-01 | MOD-DL-FOUNDATION-01 | MA-SEQUENCE-01 | 필수 | language modeling과 Transformer 전에 recurrence·state·실제 task 비교를 구현한다. |
-| MOD-LM-01 | NLP 입력 계약과 autoregressive language modeling | CC-NLP-01, CC-NLP-02, CC-LM-01, CC-LM-02 | MOD-SEQUENCE-01 | MA-LM-01 | 필수 | tokenization·batching에서 objective·decoding까지 연결한다. |
-| MOD-TRANSFORMER-01 | attention·Transformer·pretraining modeling | CC-DL-05, CC-TRF-01, CC-TRF-02, CC-TRF-03, CC-LLM-01, CC-LLM-02, TR-MOD-01, TR-MOD-02, TR-MOD-04 | MOD-SEQUENCE-01, MOD-LM-01 | MA-TRANSFORMER-01 | 필수 | architecture 통합 비교와 작은 causal LM을 누적 구현한다. |
-| MOD-SYSTEMS-INFERENCE-01 | GPU·inference·serving benchmark | CC-SYS-01, CC-SYS-03, TR-SYS-03, TR-SYS-04 | MOD-TRANSFORMER-01 | MA-SYSTEMS-INFERENCE-01 | 필수 | distributed training 없이도 inference endpoint까지 닫을 수 있다. |
-| MOD-POSTTRAIN-01 | PEFT·preference optimization·고급 post-training | CC-LLM-03, CC-LLM-04, TR-MOD-03 | MOD-TRANSFORMER-01 | MA-POSTTRAIN-01 | 필수 | 동일 base model과 평가 조건 아래 post-training 방법을 비교한다. |
-| MOD-EVALUATION-01 | LLM 평가·연구 설계·data-centric 분석 | CC-EVAL-01, CC-EVAL-02, CC-EVAL-03, CC-RES-01, CC-RES-02, CC-RES-03, TR-EVAL-01, TR-EVAL-02, TR-EVAL-03, TR-EVAL-04, TR-EVAL-05, TR-DATA-01, TR-DATA-02, TR-DATA-03, TR-DATA-04 | MOD-TRANSFORMER-01 | MA-EVALUATION-01 | 필수 | post-training과 병렬로 준비하며 통합 capstone에서 결합한다. |
-| MOD-SYSTEMS-FULLSTACK-01 | kernel·distributed training full-stack | CC-DL-06, CC-SYS-02, TR-SYS-01, TR-SYS-02 | MOD-SYSTEMS-INFERENCE-01 | MA-SYSTEMS-FULLSTACK-01 | 선택 | systems 전문화 심화 branch이며 `TR-SYS-04`의 강제 선수 module이 아니다. |
+### 제품과 연구의 연결: 단계 0부터, 단계 6에서 종합
 
-각 `MODULE_ASSIGNMENT`는 적어도 하나의 실제 component와 data→model→loss→train/eval workflow를 요구한다. 각 `PHASE_CAPSTONE`은 연결 module의 learner-owned 구현을 새 task에 통합하고 baseline·통제 비교 또는 ablation·error analysis·재현 조건·한계를 보고한다.
+[Full Stack Deep Learning 2022](https://fullstackdeeplearning.com/course/2022/)의 데이터·실험 관리·테스트·
+배포·모니터링 강의를 자신의 프로젝트에 필요한 만큼 적용한다. 당시 전체 기술 스택을 그대로
+설치하거나 실제 외부 배포를 자동 실행하지 않는다. 배포 설계와 실제 운영 검증은 구분한다.
 
-| Milestone ID | Practice layer | Module IDs | 구현 깊이 | 선수 Milestone ID | Endpoint closure | 요구 산출물 |
-|---|---|---|---|---|---|---|
-| MA-DL-FOUNDATION-01 | MODULE_ASSIGNMENT | MOD-DL-FOUNDATION-01 | I3_WORKFLOW | — | — | 실제 component와 재현 가능한 data→model→loss→train/eval workflow |
-| MA-SEQUENCE-01 | MODULE_ASSIGNMENT | MOD-SEQUENCE-01 | I4_EXPERIMENT | — | — | manual RNN/LSTM cell·classifier·delayed-information task·동일 조건 baseline 비교·오류 진단·결과 해석 |
-| PC-DL-FOUNDATION-01 | PHASE_CAPSTONE | MOD-DL-FOUNDATION-01, MOD-SEQUENCE-01 | I5_RESEARCH | MA-DL-FOUNDATION-01, MA-SEQUENCE-01 | — | foundation과 sequence component를 통합한 통제 실험·error analysis·재현 조건·한계 |
-| MA-LM-01 | MODULE_ASSIGNMENT | MOD-LM-01 | I3_WORKFLOW | MA-SEQUENCE-01 | — | tokenizer·batching·autoregressive loss·generation을 잇는 실제 workflow |
-| MA-TRANSFORMER-01 | MODULE_ASSIGNMENT | MOD-TRANSFORMER-01 | I3_WORKFLOW | MA-LM-01 | — | attention block과 작은 causal LM의 학습·평가 workflow |
-| PC-CORE-MODELING-01 | PHASE_CAPSTONE | MOD-LM-01, MOD-TRANSFORMER-01 | I5_RESEARCH | MA-LM-01, MA-TRANSFORMER-01 | — | sequence·LM·Transformer를 새 modeling task에서 통합한 baseline·ablation·error analysis·재현 보고 |
-| MA-SYSTEMS-INFERENCE-01 | MODULE_ASSIGNMENT | MOD-SYSTEMS-INFERENCE-01 | I4_EXPERIMENT | MA-TRANSFORMER-01 | — | 고정 workload에서 latency·throughput·memory baseline과 inference 최적화 비교 |
-| MA-POSTTRAIN-01 | MODULE_ASSIGNMENT | MOD-POSTTRAIN-01 | I4_EXPERIMENT | MA-TRANSFORMER-01 | — | 동일 base model·data·평가 조건의 post-training 통제 비교 |
-| MA-EVALUATION-01 | MODULE_ASSIGNMENT | MOD-EVALUATION-01 | I4_EXPERIMENT | MA-TRANSFORMER-01 | — | rubric·slice·오류 분류·통계 한계와 재현 가능한 평가 workflow |
-| MA-SYSTEMS-FULLSTACK-01 | MODULE_ASSIGNMENT | MOD-SYSTEMS-FULLSTACK-01 | I4_EXPERIMENT | MA-SYSTEMS-INFERENCE-01 | — | kernel·distributed 구성의 profile·scaling 비교와 실패 분석 |
-| PC-SYSTEMS-INFERENCE-01 | PHASE_CAPSTONE | MOD-SYSTEMS-INFERENCE-01 | I5_RESEARCH | MA-SYSTEMS-INFERENCE-01, MA-EVALUATION-01 | TR-SYS-03, TR-SYS-04 | serving 연구 질문의 baseline·통제 비교·error analysis·재현 artifact·한계 보고 |
-| PC-POSTTRAIN-EVALUATION-01 | PHASE_CAPSTONE | MOD-POSTTRAIN-01, MOD-EVALUATION-01 | I5_RESEARCH | MA-POSTTRAIN-01, MA-EVALUATION-01 | TR-MOD-03, TR-EVAL-02, TR-EVAL-05 | post-training과 evaluation을 결합한 재현 가능 연구 cycle과 부정적 결과·한계 보고 |
+논문은 주장→가정→baseline→작은 재현→ablation→한계 순으로 읽는다. 논문 개수나 요약 파일 수를
+목표로 하지 않고, 자신의 질문 하나에 실제 비교 결과를 남긴다. 인터뷰 준비와 연구 역량 모두
+직접 변경·설명할 수 있는 산출물이 중심이며, 세미나 시청은 구현과 실험을 대신하지 않는다.
 
-## 7. 현재 강의자료 Registry
+RAG 제품에서는 검색 실패와 생성 실패를 분리하고, 작은 고정 질문·근거 문서 세트로 확인한다.
+필요하면 retrieval recall@k와 답변의 근거 일치를 각각 본다. 문서·모델 출력은 신뢰 경계 밖의
+입력으로 취급하고 권한·민감정보·도구 호출 제한을 확인한다. 관련 문제에서만
+[HF Agents 평가 참고](https://huggingface.co/learn/agents-course/en/bonus-unit2/what-is-agent-observability-and-evaluation)와
+[OWASP Excessive Agency](https://genai.owasp.org/llmrisk/llm062025-excessive-agency/?lang=us)를 읽는다.
+별도 평가 관리 시스템 대신 기존 실습 파일/README에 설정·실제 결과·실패 예시를 남긴다.
 
-감사 범위는 각 과정 `INDEX.md`의 `강의 자료` 표에 있는 파일만이며 `course-provided-practice/`는 제외한다. 아래 수치는 2026-08-27 당시 Markdown 본문 전체, 모든 로컬 그림 링크와 자산, PDF 전 페이지 렌더를 검사하고 registry 구조와 full strict private-source 검증으로 대조한 snapshot이다. 이후 자료 변경은 실제 파일과 각 과정 `INDEX.md`를 수동으로 교차 확인한다. 이 snapshot에는 누락되거나 열리지 않는 파일이 없지만 `limited` 자료는 원본·변환 제약 때문에 내용 복구가 필요하다.
+## 국내외 커뮤니티에서 참고한 학습 방식
 
-| 과정 수 | Source 수 | Markdown 자산 | Raster | SVG | 기타 자산 | PDF 페이지 | Limited source |
-|---:|---:|---:|---:|---:|---:|---:|---:|
-| 4 | 71 | 241 | 204 | 37 | 0 | 648 | 3 |
+2026-10-24 공개 자료 기준이다. 커뮤니티 소개를 추천 품질의 보증이나 현재 참가 가능 여부로
+해석하지 않는다. 가입·결제·팀 참여·외부 PR은 자동 실행하지 않는다. 아래는 추가 필수 강의가 아니다.
 
-| Source ID | 정확한 경로 | 자료 형식 | SHA-256 | 무결성 | 감사 상태 | 감사일 | 비고 |
-|---|---|---|---|---|---|---|---|
-| SRC-KBM-01-01 | `materials/private/kant-basic-math/01-01_벡터의_정의와_기하학적_해석.md` | PDF 페이지 보존형 Markdown | `dc64b1fc6531ba45489c570ca240386f69f23beb78074c2dfdfe17a18ab45787` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-01-02 | `materials/private/kant-basic-math/01-02_내적과_코사인_유사도.md` | PDF 페이지 보존형 Markdown | `aa74571a130a71e75ccda6b0e4a41ed5125fcefa8178f2c1d55ec5888f124697` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-01-03 | `materials/private/kant-basic-math/01-03_행렬_연산과_딥러닝_레이어.md` | PDF 페이지 보존형 Markdown | `035a19731e5df38d382b87e6da3e53ef320ee314e9a2deaf9017d4b952b058e9` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-01-04 | `materials/private/kant-basic-math/01-04_특수_행렬과_행렬_연산_성질.md` | PDF 페이지 보존형 Markdown | `629498187fa5ca3909324e5e7668fd0363b8f3020bdb811e230c53a6d9988c81` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-02-01 | `materials/private/kant-basic-math/02-01_선형_변환의_기하학적_해석.md` | PDF 페이지 보존형 Markdown | `197ceb3f1004de72a9ffab7179a8a58e60fba743229800e293473d0803397feb` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-02-02 | `materials/private/kant-basic-math/02-02_벡터공간과_선형_독립.md` | PDF 페이지 보존형 Markdown | `8e5612dda842c8de502ebfa39bbd3d8b887c5baf0f2f07b8a47d848d1c32c544` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-02-03 | `materials/private/kant-basic-math/02-03_연립선형방정식과_행렬_해법.md` | PDF 페이지 보존형 Markdown | `e6ac1d7db7b30780f242119b451d37becc8a60b6af4f20591da9693b60953030` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-03-01 | `materials/private/kant-basic-math/03-01_고유값과_고유벡터.md` | PDF 페이지 보존형 Markdown | `8744fc2906b530991f44ebb02757099c63fcd4661ecf35bcc93d4c3bb028958e` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-03-02 | `materials/private/kant-basic-math/03-02_행렬_대각화와_PCA_구현.md` | PDF 페이지 보존형 Markdown | `5e5d755d75a9d701aec599065c0b2bbd5e42b0373bf07b5a929057aa13afcd83` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-03-03 | `materials/private/kant-basic-math/03-03_직교성과_최소제곱법.md` | PDF 페이지 보존형 Markdown | `91322e45369fe82059bdeedf8596dd44ade8f0e200054cef06577483335da7ad` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-04-01 | `materials/private/kant-basic-math/04-01_SVD의_구조와_원리.md` | PDF 페이지 보존형 Markdown | `3157566ff072b42c5cf992785eb026b4f6a14f5d981284e759f01da4e243b131` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-04-02 | `materials/private/kant-basic-math/04-02_SVD와_PCA_저랭크_응용.md` | PDF 페이지 보존형 Markdown | `adeaf26c81e6169be79e8486f0e796fafa8132dc0c875ee4fa9876437d125bb6` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-04-03 | `materials/private/kant-basic-math/04-03_선형대수_종합_미니_프로젝트.md` | PDF 페이지 보존형 Markdown | `9a826faea0120605d47d1174f8f3126237aaa9641ac87a9be5a6f16963123084` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-05-01 | `materials/private/kant-basic-math/05-01_벡터_행렬_텐서와_Shape.md` | PDF 페이지 보존형 Markdown | `c0dd25f7507175688102f07e9849ff4f078a60693fbbcf65a8ba699f27cd9411` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-05-02 | `materials/private/kant-basic-math/05-02_reshape_transpose_broadcasting_shape.md` | PDF 페이지 보존형 Markdown | `13b3f483cf163c81d8d406f043836eca397db9575ba7f02a29f80e808751666e` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-06-01 | `materials/private/kant-basic-math/06-01_Attention_score와_QK_t_shape.md` | PDF 페이지 보존형 Markdown | `931e1efdff027828a2576164baaa410dbdea134f82053e7fe5e6f0070c3a93e2` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-06-02 | `materials/private/kant-basic-math/06-02_Softmax_로그확률_Cross_Entropy.md` | PDF 페이지 보존형 Markdown | `822b4f4160a5d5681cfe537d316b0ae4dc1a4be732ac8048b7380eb885eb4f1c` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-07-01 | `materials/private/kant-basic-math/07-01_미분_Gradient_Gradient_Descent.md` | PDF 페이지 보존형 Markdown | `582d0e45125b61e752a8b9d1cfbcecc207205b6db03e12832289b36b384f215b` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KBM-07-02 | `materials/private/kant-basic-math/07-02_Chain_Rule과_Backpropagation.md` | PDF 페이지 보존형 Markdown | `07d5d4b8ee53a7b4e3aaa54e384126092dd65bf9a082688d500f695b86c4fd78` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KAM-01-01 | `materials/private/kant-advanced-machine-learning/01-01_문제_유형_데이터_분리_평가지표_리마인드.md` | PDF 페이지 보존형 Markdown | `9a2dc5db2e0daa29a8c3b83af7e41c96abf5264bb601cbfb5054473fff064d6d` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KAM-01-02 | `materials/private/kant-advanced-machine-learning/01-02_핵심_모델과_선택_기준_압축_정리.md` | PDF 페이지 보존형 Markdown | `a58807f4a2e10a9d10bb9dfd966a074c20a7a1b6721087bda0377aa5ea900690` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KAM-02-01 | `materials/private/kant-advanced-machine-learning/02-01_배깅과_랜덤포레스트.md` | HTML 토글 펼침 Markdown | `e2b0757ff006a4abdf6b0efed10730bee39d58d645d1ecc3b10a035c47280b50` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KAM-02-02 | `materials/private/kant-advanced-machine-learning/02-02_부스팅_계열_모델의_원리와_발전.md` | HTML 토글 펼침 Markdown | `6084d9358d24f48b5f96db420421d38137cc6c2b679c8588f6027d072d3eab70` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KAM-02-03 | `materials/private/kant-advanced-machine-learning/02-03_배깅_vs_부스팅_선택과_모델_해석_SHAP.md` | HTML 토글 펼침 Markdown | `2a79fe64405c6acc4b0303d1518e2bc5a26c0a73a5acb8640c88cf2803e8c45b` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KAM-03-01 | `materials/private/kant-advanced-machine-learning/03-01_편향_분산_트레이드오프와_과적합_과소적합_진단.md` | HTML 토글 펼침 Markdown | `1fc051b10f4663448a418847433d0d5ada03f2e95561e575d2402ab4d6f63a32` | limited | complete | 2026-08-20 | 수식 일부가 HTML 변환 과정에서 중복·훼손됨 |
-| SRC-KAM-03-02 | `materials/private/kant-advanced-machine-learning/03-02_규제_L1_Lasso_L2_Ridge_ElasticNet.pdf` | PDF | `95a123f99e48a9d8d0399fecef7bebdf0d4b70aed07a6c8a776ab0c506eb3527` | limited | complete | 2026-08-20 | 18쪽 구버전은 완독·렌더 확인; INDEX에 신버전 이미지 1장 누락 기록 |
-| SRC-KAM-04-01 | `materials/private/kant-advanced-machine-learning/04-01_데이터_불균형과_평가지표_왜곡.md` | HTML 토글 펼침 Markdown | `7ccb8c6b8855570e3e47f5c9df88078fb0621bfa3cfb3f6e3c54fc1c2a69a4bb` | limited | complete | 2026-08-20 | SMOTE·비용 수식 일부가 HTML 변환 과정에서 중복·훼손됨 |
-| SRC-KAM-04-02 | `materials/private/kant-advanced-machine-learning/04-02_교차검증_전략과_데이터_누수_방지.md` | HTML 토글 펼침 Markdown | `7eae401632c30f6a6ca3fd9cc05807816db1b36d7948aace25dd93582521eb2f` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KAM-05-01 | `materials/private/kant-advanced-machine-learning/05-01_CV_기반_하이퍼파라미터_탐색과_공정한_후보_선정.md` | HTML 토글 펼침 Markdown | `e7215f8b9e37c24cd1619c4089f5ee1f2ada5cfa40a70dc35eaa516c64b57bb3` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KAM-05-02 | `materials/private/kant-advanced-machine-learning/05-02_누수_없이_학습하고_재사용하는_End-to-End_Pipeline.md` | HTML 토글 펼침 Markdown | `80b80c2c5ce91d713206475e67c81459c189a9496cd1ee9ea3a128b43371e7a5` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-01-00 | `materials/private/kant-deep-learning-basics/01-00_오프닝_딥러닝_기초_학습_로드맵.md` | HTML 토글 펼침 Markdown | `83787496645ab022b3b114e9103b87592f3cecab84d5387b5dec64273ae20a97` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-01-01 | `materials/private/kant-deep-learning-basics/01-01_머신러닝과_딥러닝의_차이.md` | HTML 토글 펼침 Markdown | `8a67681ddedb7b8da2f248183925acc2e7667be98eb7cebf1a9ab0149a1bc096` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-01-02 | `materials/private/kant-deep-learning-basics/01-02_데이터_모델_손실_최적화_평가_흐름.md` | HTML 토글 펼침 Markdown | `5219b3fcf6190b639eb3000651df348b9fa3f8c3fc64c26a9df9b3da3aa0a5a7` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-01-03 | `materials/private/kant-deep-learning-basics/01-03_딥러닝_문제_유형과_입출력_구조_설계.md` | HTML 토글 펼침 Markdown | `397b979aac6102e76e55a92a9c0dfcb13912f6f93d8a78c79b2db02456a0f9ac` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-01-04 | `materials/private/kant-deep-learning-basics/01-04_기본_코드_구조_읽기.md` | HTML 토글 펼침 Markdown | `81a325e1d76c0bbe08e209c1c74358d961b1ff22a00a20029824242a456cbb6f` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-02-01 | `materials/private/kant-deep-learning-basics/02-01_Tensor_생성과_dtype_shape_확인.md` | HTML 토글 펼침 Markdown | `64b51c35d0d2b4c3d0cd813694c4feb59e08783ffc198d94678a728e7c6b6c05` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-02-02 | `materials/private/kant-deep-learning-basics/02-02_Batch_dimension과_broadcasting.md` | HTML 토글 펼침 Markdown | `343bd57f9e364fd280a1afe12a3b8949421323356020ccd36e20149c277ed787` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-02-03 | `materials/private/kant-deep-learning-basics/02-03_CPU_GPU_device와_to_device.md` | HTML 토글 펼침 Markdown | `adb2b38aab63e7ea20436ab60a2de5c369edbeea01be3c17ada123b7ae37f3a6` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-02-04 | `materials/private/kant-deep-learning-basics/02-04_Shape_Device_오류_디버깅.md` | HTML 토글 펼침 Markdown | `d649878656851cc8b17931716ba7ed71a280c9081f765026b0e5ced74429dda0` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-03-01 | `materials/private/kant-deep-learning-basics/03-01_퍼셉트론과_선형_결정_경계.md` | HTML 토글 펼침 Markdown | `171bcd83dcdbb3c2623ee153cba800482da358f82f8988400389897a45b930be` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-03-02 | `materials/private/kant-deep-learning-basics/03-02_MLP의_입력층_은닉층_출력층.md` | HTML 토글 펼침 Markdown | `d20acae10499e57ef9bb26f14a0a112b1d043dac0f762023a279ac840ff8b7ef` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-03-03 | `materials/private/kant-deep-learning-basics/03-03_가중치_편향과_nn_Linear.md` | HTML 토글 펼침 Markdown | `8c446f84b4a0aacf98c2426d23575629ed27232105d9f61fdb1cba0115eec538` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-03-04 | `materials/private/kant-deep-learning-basics/03-04_입출력_차원_계산과_flatten.md` | HTML 토글 펼침 Markdown | `23aed119df3aec18653aed8707d915c0f369742c33378120f88047895f57b39c` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-03-05 | `materials/private/kant-deep-learning-basics/03-05_MLP_forward_미니_구현.md` | HTML 토글 펼침 Markdown | `921ae90e92ba56ec0695fd4e4c3d0c36b69d78a3b942b1fc9fc173e393191de2` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-04-01 | `materials/private/kant-deep-learning-basics/04-01_비선형성과_활성화_함수_필요성.md` | HTML 토글 펼침 Markdown | `185da5e7eec5045ea5dbba2c9eafd83fe09c8ab2573763d4ef3b8004ae36f53d` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-04-02 | `materials/private/kant-deep-learning-basics/04-02_ReLU의_역할과_사용_위치.md` | HTML 토글 펼침 Markdown | `084d67d1470e626a92997ccd2135fd9d56f2d47f71d58d6207d28fb8c64338da` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-04-03 | `materials/private/kant-deep-learning-basics/04-03_Sigmoid와_이진_분류_출력층.md` | HTML 토글 펼침 Markdown | `ed1c782bcb3814552fabe2504df29af3ad5bc22d06e1a9521b9c9186d6c1373c` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-04-04 | `materials/private/kant-deep-learning-basics/04-04_Softmax와_다중_분류_출력층.md` | HTML 토글 펼침 Markdown | `cd64126894afab51a819ffe9f57d0ca71995b94921b6b1d7a2908ebc86e78ab2` | complete | complete | 2026-08-20 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-05-01 | `materials/private/kant-deep-learning-basics/05-01_손실_함수의_역할과_목표_함수.md` | HTML 토글 펼침 Markdown | `ca86e2766341de080cf8ab3582911cd5744a44ca568450739d11eead13bce164` | complete | complete | 2026-08-21 | 본문 전체와 참조 자산 확인 |
-| SRC-KDL-05-02 | `materials/private/kant-deep-learning-basics/05-02_회귀_이진_다중_분류_손실_선택.md` | HTML 토글 펼침 Markdown | `758689b2c7fa3852658c31d2aa51da2b5c570ca668b8f283c2fc86a496585e49` | complete | complete | 2026-08-21 | 본문 전체와 참조 자산 확인 |
-| SRC-KDL-05-03 | `materials/private/kant-deep-learning-basics/05-03_SGD_Adam과_learning_rate.md` | HTML 토글 펼침 Markdown | `4c0dd39aaba5b769f76abc3aa16931458e8b0d1eeaefbf4202428516e512918a` | complete | complete | 2026-08-21 | 본문 전체와 참조 자산 확인 |
-| SRC-KDL-05-04 | `materials/private/kant-deep-learning-basics/05-04_파라미터_업데이트_코드_흐름.md` | HTML 토글 펼침 Markdown | `4252a17a508aa5e90c8e496a18390efc1461d64ec5bb1f72a0c6a5f36d8c9210` | complete | complete | 2026-08-21 | 본문 전체와 참조 자산 확인 |
-| SRC-KDL-06-01 | `materials/private/kant-deep-learning-basics/06-01_계산_그래프와_Chain_Rule.md` | HTML 토글 펼침 Markdown | `3753b7a9939583953871e7f5e4f01f366edd0d3c6ea139007ff23bda6a3b30c6` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인; backward 그림의 update 단계는 수업에서 정정 |
-| SRC-KDL-06-02 | `materials/private/kant-deep-learning-basics/06-02_requires_grad와_Tensor_gradient.md` | HTML 토글 펼침 Markdown | `14b9d7c4e5a4296d0708590291388139d6948d426141b03de3a443254a997b4a` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-06-03 | `materials/private/kant-deep-learning-basics/06-03_loss_backward와_grad_확인.md` | HTML 토글 펼침 Markdown | `1f730c0978d62f9898bed31bfa49e41b6b38c10b9eabcf0e768930b4c1287d39` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-06-04 | `materials/private/kant-deep-learning-basics/06-04_zero_grad_backward_step_순서.md` | HTML 토글 펼침 Markdown | `21a8b379768c78cfaf642be9ad3dda2cb29cbd45bd7d6711991e3ac59630ca24` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-06-05 | `materials/private/kant-deep-learning-basics/06-05_Autograd_디버깅과_안전한_평가_코드.md` | HTML 토글 펼침 Markdown | `c2c3d89385944821ad18bc1080de75d432acf460b1301e5664ff88c5f17811e1` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-07-01 | `materials/private/kant-deep-learning-basics/07-01_Dataset과_DataLoader_역할.md` | HTML 토글 펼침 Markdown | `15d8477f1462f9553f1df9698f6160f7a453ad211f27505f9171a56c4175c686` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-07-02 | `materials/private/kant-deep-learning-basics/07-02_TensorDataset과_Custom_Dataset.md` | HTML 토글 펼침 Markdown | `8b78b562b743e07917de9d738a691a8719ced7b649e3ea28f46cda9809040c4c` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-07-03 | `materials/private/kant-deep-learning-basics/07-03_transform과_전처리_흐름.md` | HTML 토글 펼침 Markdown | `2bddf6da297fde40334205726856846b3dbf522c44161a132bd1182d0f76502a` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-07-04 | `materials/private/kant-deep-learning-basics/07-04_batch_size_shuffle_train_valid_split.md` | HTML 토글 펼침 Markdown | `f68be4afabdc00c9d6d7f71d794255f04117f93af97aed9b505aa7b45db635c4` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-07-05 | `materials/private/kant-deep-learning-basics/07-05_데이터_파이프라인_디버깅.md` | HTML 토글 펼침 Markdown | `90eaa381eaf79f28be1f5196f4142592fa4fd15be43ba4ebddd7a251159a0eb7` | complete | complete | 2026-08-25 | 본문 전체와 참조 자산 렌더 확인; 첫 batch 재사용 경계는 수업에서 정정 |
-| SRC-KDL-08-01 | `materials/private/kant-deep-learning-basics/08-01_nn_Module_구조와_forward_설계.md` | HTML 토글 펼침 Markdown | `49320cf447e2ee79a203763126035271ddd826debf6790ad3394cbca0b202fc3` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; 개요 그림과 실제 `model(x) -> __call__ -> forward` 호출 순서는 본문 설명을 기준으로 사용 |
-| SRC-KDL-08-02 | `materials/private/kant-deep-learning-basics/08-02_MLP_모델_클래스_완성.md` | HTML 토글 펼침 Markdown | `926aa3df781e9983b9cbdad533ae3f902330d4b0113a653fe5dfe065a26046b0` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-08-03 | `materials/private/kant-deep-learning-basics/08-03_loss와_optimizer_연결.md` | HTML 토글 펼침 Markdown | `9b45a84073b5e2c25c7df4dbe23682cbfb4e377ae24c44e243621a7102ddc9ab` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-08-04 | `materials/private/kant-deep-learning-basics/08-04_train_loop_작성.md` | HTML 토글 펼침 Markdown | `2ec6a15904a1f1720c6a89e9b2ec2722fa5410a5e9f8054bf4b189318f7b9163` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-08-05 | `materials/private/kant-deep-learning-basics/08-05_validation_loop_작성.md` | HTML 토글 펼침 Markdown | `7aad21b64f154eae3746626cbc54f53147d2d9135ab3d11e8c742c29191f7be5` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인 |
-| SRC-KDL-08-06 | `materials/private/kant-deep-learning-basics/08-06_accuracy와_metric_누적.md` | HTML 토글 펼침 Markdown | `2ce49b778769c5e93f13305945d8febdc902b8c2a96f88c6625f25d433d0c026` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; sample-weighted accuracy와 불균형 경계를 포함 |
-| SRC-KDL-08-07 | `materials/private/kant-deep-learning-basics/08-07_epoch_단위_로그와_시각화.md` | HTML 토글 펼침 Markdown | `941935259715349c8e5a81cb4b149956a04fba4e27417aaa96530d81d0fa808d` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; 왼쪽이 잘린 개요 raster의 정보는 본문·코드·SVG로 보존됨 |
-| SRC-KDL-08-08 | `materials/private/kant-deep-learning-basics/08-08_MLP_종합_실습.md` | HTML 토글 펼침 Markdown | `61e45f90bc6a396c3b8dc784fdd7f9095cc1d18e3c3ff658efa2a34a2ce19d6d` | complete | complete | 2026-08-27 | 본문 전체와 참조 자산 렌더 확인; `best_state`는 메모리 내 model weight 보존이며 checkpoint/resume은 아님 |
-| SRC-HARV-STAT110-2E-00-01 | `materials/private/harvard-stat110-probability/00-01_introduction_to_probability_2e.pdf` | PDF | `65d94135d05322b3892b49473a397998adf8a305de19844b5c8403f76f40d681` | complete | complete | 2026-08-27 | 사용자 제공 2판 PDF의 전체 내용·텍스트·630쪽 렌더 확인; 본문 쪽수 1~619와 13개 장·부록·참고문헌·색인 완결; 로컬 PDF 630쪽과 출판사 인쇄본 서지 634쪽을 구분 |
+- [Hugging Face KREW 한국어 LLM 평가 스프린트](https://github.com/Hugging-Face-KREW/k-llm-eval-sprint):
+  2026년 10~11월 운영 사례. 운영/진도 저장소와 실제 Lighteval 포크를 분리하고 평가 구현→재현→리뷰로 진행한다.
+  우리 구조도 이를 참고해 허브와 구현 공간을 구분한다. 후반 한국어 평가 실험의 참고이며 신규 모집으로 안내하지 않는다.
+- [가짜연구소 LLM technical report study](https://github.com/Pseudo-Lab/llm-technical-report-study):
+  13기 2026-10-04 시작, 모집 종료. Transformer 이후 보고서 한 편의 구조·데이터·학습·근거를 읽는 참고다.
+- [PyTorch 한국 사용자 모임의 TinyTorch 소개](https://discuss.pytorch.kr/t/tinytorch-pytorch-import/12251)와
+  [TinyTorch 원문](https://mlsysbook.ai/tinytorch/): Python으로 직접 만드는 교육용 프레임워크.
+  현재 Preview이며 classroom release는 Spring 2027 예정으로 API·학습 흐름이 안정화 중이다.
+  주 실습 환경으로 채택하지 않고 기존 micrograd/MLP와 필요한 개념만 비교한다.
+- [모두의연구소 Quant LAB](https://modulabs.co.kr/labs/816): 2026-09~12 운영, 모집 종료.
+  논문 리뷰→재현→ablation→평가 순서를 후반 추론 실험에 참고하며 학회 투고를 입문 목표로 강제하지 않는다.
+- [모두의연구소 AI 에이전트 LAB](https://modulabs.co.kr/labs/883): 게시상 2026-10-30까지 모집,
+  11월부터 활동 예정. 개인→팀 프로젝트의 AX 피드백 참고이며 모델 학습 연구 과정의 대체가 아니다.
+  실제 참여를 원할 때 일정·조건을 다시 확인한다.
 
-## 8. 감사 중 발견된 주요 오류와 공백
+### 최신성 판단
 
-### 즉시 정정할 내용
+행렬·미분·확률 같은 변하지 않는 원리는 오래된 MIT 자료도 유지한다. 하지만 예전 강의의
+프레임워크 버전·모델 ID·API·설치법은 그대로 따라 하지 않는다. 최신 README 수정일만으로
+내부 notebook까지 최신이라고 판단하지 않고, 실행할 단위의 공식 문서·환경·라이선스를 확인한다.
+새 agent/RL/추론 기법은 유행만으로 추가하지 않고 현재 질문을 해결할 때 선택한다.
 
-- `[정정]` `SRC-KBM-01-01`, **4. 정규화와 ML 특성 벡터의 의미**: 한 샘플 벡터 전체를 L2 norm으로 나누는 정규화는 특성별 단위·분산을 같게 만드는 scaling 또는 standardization과 다르다. 현재 설명은 둘을 혼동하므로 수업에서 분리한다.
-- `[정정]` `SRC-KBM-01-02`, **2. 내적과 각도 및 3. 코사인 유사도의 값 해석**: cosine similarity는 두 벡터가 모두 nonzero일 때만 정의된다. 분모의 norm 중 하나라도 0이면 각도와 similarity가 미정의이고 제시된 NumPy 코드는 `NaN`을 만들 수 있으므로, `[-1, 1]` 범위 설명과 구현에 nonzero-norm 조건을 붙인다.
-- `[정정]` `SRC-KBM-01-03`, **5페이지 신경망 계산 도식·표**: `X @ W + b`에서 `W`를 `(in_features, out_features)`로 두는 것은 수학적 표기로는 가능하지만, 이를 PyTorch `nn.Linear`의 저장 shape와 내부 계산이라고 설명한 부분은 틀렸다. `nn.Linear(in_features, out_features)`는 `weight`를 `(out_features, in_features)`로 저장하고 `X @ weight.T + bias`를 계산한다. 수업에서 수학적 `W` 관례와 framework parameter layout을 분리한다. 근거: [PyTorch `nn.Linear` 공식 문서](https://docs.pytorch.org/docs/stable/generated/torch.nn.Linear.html).
-- `[정정]` `SRC-KBM-01-04`, **5. 행렬식 존재 조건과 행렬식의 직관**: 수학적으로 singular는 determinant가 정확히 0인 경우다. 0에 가깝다는 사실만으로 singular라고 부르지 않으며 determinant 크기는 scale에 의존하므로 conditioning 판단을 대신하지 못한다.
-- `[정정]` `SRC-KBM-02-03`, **4. 선형회귀와 정규방정식** 및 **이번 강의 핵심 정리 4**: overdetermined least-squares minimizer는 존재하지만 design matrix의 열이 rank-deficient이면 계수 해는 유일하지 않을 수 있다. explicit normal equation은 condition number도 악화시킬 수 있다.
-- `[정정]` `SRC-KBM-04-01`, **2. U, Σ, Vᵀ의 의미**: full SVD의 `U` 전체가 column space의 기저이거나 `Vᵀ` 전체가 row space의 기저인 것은 아니다. nonzero singular value에 대응하는 left singular vector만 column space를, right singular vector만 row space를 span하고, 나머지는 각 ambient space의 직교기저를 완성한다.
-- `[정정]` `SRC-KBM-04-02`, **2. sklearn PCA 내부 구현과 SVD 및 이번 강의 핵심 정리 1**: `PCA`는 solver에 따라 full·randomized·ARPACK SVD뿐 아니라 covariance matrix를 만드는 `covariance_eigh`도 사용할 수 있으므로 “covariance를 만들지 않는다”와 “sklearn도 내부적으로 SVD를 사용한다”는 단정에 solver 조건을 붙여야 한다. 근거: [scikit-learn PCA 공식 문서](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html).
-- `[정정]` `SRC-KBM-03-02`, **2. PCA의 수학적 원리·표준화 심화·핵심 정리 4**; `SRC-KBM-04-02`, **3. 차원 축소 파이프라인**; `SRC-KBM-04-03`, **1. 데이터 분석 파이프라인 개관**: PCA는 feature를 center하지만 feature별 scaling은 자동으로 하지 않는다. PCA 전에 언제나 standardization해야 하는 것은 아니며, 단위 차이를 제거하려는지 원래 covariance 규모와 특성의 의미를 보존하려는지에 따라 결정한다. 근거: [scikit-learn PCA 공식 문서](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html).
-- `[정정]` `SRC-KBM-04-02`, **5. 추천 시스템과 LoRA에서의 저랭크 아이디어**: LoRA는 trainable low-rank factor를 쓰지만 일반적인 LoRA 학습이 SVD를 계산하는 것은 아니다. 공통점은 저랭크 parameterization이지 같은 알고리즘이라는 뜻이 아니다. 근거: [LoRA 원 논문](https://arxiv.org/abs/2106.09685).
-- `[정정]` `SRC-KBM-06-02`, **이번 강의 핵심 정리 4**: 정답 class의 cross entropy는 `log(p_true)`가 아니라 `-log(p_true)`다.
-- `[정정]` `SRC-KBM-06-02`, **이해 점검 2**: 미래 token score에는 양의 무한대가 아니라 음의 무한대를 더해야 softmax 확률이 0이 된다.
-- `[정정]` `SRC-KDL-05-01`, **손실 함수와 목표 함수 흐름 그림, 2-2**: prediction과 target은 loss function의 병렬 입력이며, 그림처럼 차례로 흘러가는 관계가 아니다. 또 scalar loss는 오차의 벌점을 나타낼 뿐 parameter 수정 방향을 직접 담지 않는다. 수정 방향은 `loss.backward()`가 계산한 gradient가 제공한다.
-- `[정정]` `SRC-KDL-06-01`, **계산 그래프의 forward와 backward 흐름 그림**: 그림 끝의 parameter update는 backward 자체가 수행하는 단계가 아니다. backward는 gradient를 계산·누적하고 optimizer의 `step()`이 parameter를 갱신한다.
-- `[정정]` `SRC-KDL-07-05`, **첫 batch 검사 코드**: `shuffle=True`인 loader에서 `next(iter(loader))`를 다시 호출하면 앞에서 출력한 batch와 다른 batch를 검사할 수 있다. 한 번 꺼낸 `(xb, yb)`를 shape·dtype·값 범위·유한성 검사에 재사용한다.
+### 해외 실전 커리큘럼의 선택적 활용
 
-### 무결성 제약과 허용 가능한 보류
+- [DataTalksClub LLM Zoomcamp](https://github.com/DataTalksClub/llm-zoomcamp): 현재 self-paced 경로의
+  agentic RAG·vector search·evaluation·monitoring을 단계 0의 프로젝트에 필요한 만큼 선택한다.
+  [2026 과정 설명](https://github.com/DataTalksClub/docs/blob/main/courses/llm-zoomcamp/index.md)처럼
+  black-box LLM 응용 과정이며 모델 학습의 대체가 아니다. Kestra/dlt 등 전체 운영 스택을 의무 설치하지 않는다.
+- [Maxime Labonne LLM Course](https://github.com/mlabonne/llm-course): 분야 누락을 보는 참고 지도다.
+  최근 링크 수정과 별개로 Llama 2/CodeLlama 등 오래된 예제가 남아 있으므로 notebook을 그대로 주 경로에 넣지 않는다.
+  실제 도구는 공식 최신 안정 문서로 확인한다.
 
-- `SRC-KAM-03-01`의 bias-variance 및 one-standard-error rule 수식 일부가 HTML 변환에서 중복·훼손됐다. 주변 설명과 그림은 읽을 수 있지만 정확한 식은 원본을 복구하기 전 그대로 근거로 쓰지 않는다.
-- `SRC-KAM-03-02`의 현재 18쪽 PDF는 전체 텍스트 추출과 페이지 렌더가 가능하고 모든 페이지를 확인했다. 다만 과정 `INDEX.md`가 신버전 이미지 1장 누락 때문에 구버전을 유지한다고 명시하므로 `limited`이며 신버전 복구 뒤 재감사한다.
-- `SRC-KAM-04-01`의 SMOTE 보간식과 비용식 일부가 HTML 변환에서 중복·훼손됐다. 그림·코드·서술은 남아 있지만 손상된 식은 독립 근거로 쓰지 않는다.
-- `SRC-KBM-*`의 page-preserving Markdown은 일부 검색 텍스트에서 수식이 축약되지만 모든 원페이지 render가 존재하고 육안으로 읽힌다. 수식 감사와 수업에서는 검색 텍스트만 보지 않고 연결된 페이지 render를 함께 쓴다.
-- `SRC-KBM-06-01`은 single-head attention까지만 다루고 multi-head, residual, normalization, FFN, positional encoding을 다음 단계로 명시적으로 보류한다. 이는 현재 강의 범위의 의도적 보류지만 `CC-TRF-01~03` 전체 충족으로 확대 해석하지 않는다.
-- `SRC-KDL-06-02`의 `detach()` 설명은 graph 분리는 정확하지만 원본과 storage를 공유한다는 경계를 생략한다. 독립 복사가 필요할 때는 `detach().clone()`을 사용한다고 수업에서 보충한다.
-- `SRC-KDL-06-05`의 anomaly detection 예시는 backward만 context로 감싼다. 실패 연산의 forward traceback까지 필요하면 forward와 loss 계산도 같은 context에서 실행한다고 보충한다.
-- Chapter 6·7·8의 “주차 시작에 PDF를 올렸다”는 문장은 별도 로컬 PDF 링크를 제공하지 않는다. 현재 Markdown·자산 패키지는 완전하게 감사했지만, 그 문장이 가리키는 추가 원본의 존재 여부는 별도로 확인되기 전 provenance 근거로 세지 않는다.
-- `SRC-HARV-STAT110-2E-00-01`은 사용자가 제공한 압축 PDF이므로 공식 배포 파일과 byte-identical이라고 주장하지 않는다. 표제·판권·목차·13개 장·부록·참고문헌·색인, 연속된 본문 쪽수 1~619, 전체 텍스트와 630개 페이지 렌더를 확인했다. 출판사 인쇄본 서지는 634쪽이지만 로컬 온라인 레이아웃은 PDF 630쪽이며 이를 누락이나 634쪽 파일로 기록하지 않는다.
+## Kaggle: 단계에 맞는 선택 실습
 
-### 커리큘럼 공백
+Kaggle은 알고리즘 정답을 맞히는 코딩테스트와 달리 데이터에서 모델을 만들고 평가하는 대회·실습
+플랫폼이다. 학습 목표가 맞을 때 2~3번 정도 선택할 수 있으며 순위·메달·매일 제출을 목표로 하지 않는다.
+다음은 확인 당시 종료 시각이 정해지지 않은 입문용 rolling 과제다. 참여 전 현 규칙을 다시 확인한다.
 
-이 절은 2026-08-27 보유 자료 감사의 공백 요약이다. 새 공식 자료를 반영한
-현재 수행 범위나 학습자의 이해를 평가한 결과로 읽지 않는다.
+1. 단계 2: [Titanic](https://www.kaggle.com/competitions/titanic) 또는
+   [House Prices](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/overview) 중 하나.
+   CPU의 작은 baseline, 자기 split, 변경 조건 하나, held-out 지표·오류·누수 점검을 남긴다.
+2. 단계 3 전후: [Digit Recognizer](https://www.kaggle.com/competitions/digit-recognizer/overview)는 선택이다.
+   자기 PyTorch 학습 루프에서 MLP와 작은 CNN, train/eval 모드, 오분류 예시를 확인한다.
+   같은 경험이 있으면 생략한다. MNIST는 기초 연습용 오래된 데이터이며 최신 LLM 기법으로 소개하지 않는다.
+3. 단계 4–5: [LLM Classification Finetuning](https://www.kaggle.com/competitions/llm-classification-finetuning/overview/description).
+   Chatbot Arena 응답 선호 예측의 log loss 과제다. 과거 LMSYS 대회와 구분하며 메달 대상이 아니다.
+   작은 표본·텍스트 baseline부터 시작해 자원이 허용할 때 encoder/adapter로 확장한다.
+   중복/group 분할과 응답 순서 편향을 점검한다. 이 분류 과제 자체가 DPO 학습은 아니다.
 
-- 현재 71개 자료의 강점은 선형대수·확률 기초·tensor shape·MLP와 activation·손실·optimizer·autodiff·기본 데이터 파이프라인·train-validation-test 루프·기본 attention·전통 ML 평가와 leakage 방지다.
-- likelihood·MLE를 포함한 통계 추론, RNN recurrence·LSTM gate·state와 실제 sequence task 비교, NLP 전처리와 tokenizer, 완전한 Transformer·causal LM, pretraining·post-training, LLM 평가, 분산·추론 시스템, 논문 읽기·실험 설계·재현 보고는 직접 자료가 없거나 현재 채택한 범위로는 부분 충족·맥락 언급뿐이다.
-- 딥러닝 기초 `SRC-KDL-01-00`은 14개 장의 향후 구성을 제시하지만 현재 registry에는 8개 장 40강만 있다. 등록되지 않은 미래 계획은 현재 자료 충족 근거로 세지 않는다.
-- 전문 트랙은 모두 D3가 목표이며 현재 과정은 어떤 트랙도 직접 충족하지 않는다. 트랙을 선택한 뒤 해당 자료를 확보한다.
+제출 여부와 무관하게 실습 코드·설정·실제 validation 결과·실패 예시로 학습을 판단한다.
+외부 제출·데이터 업로드·가입·규칙 동의는 자동 수행하지 않는다.
+[Notebook 자원](https://www.kaggle.com/docs/notebooks)은 계정별 한도·대기 상태를 실제 확인하며
+무료 GPU 시간이나 사용 가능성을 보장하지 않는다. 비공개 회사/고객 데이터를 올리지 않는다.
 
-## 9. 갱신 규칙
-
-활성 경로 변경은 승인 범위에 한정한다. 아래 규칙은 **보존된 기존 registry·catalog 자체의 유지보수를 명시적으로 요청할 때만** 그 체계 안에서 적용한다. 새 현재 자료 등록이나 일반 수업에 옛 target/module/milestone ID·hash 등록을 요구하지 않는다. 새 원자료의 보존·권리·목록은 [materials 안내](materials/README.md)를 따르며, 현재 북마크는 STATE가 정한다. 역사적 4~8절은 당시 자료·감사 근거로 보존한다.
-
-1. ID는 의미를 바꾸거나 재사용하지 않는다. 성과가 새로 필요하면 새 ID를 추가한다.
-2. 자료를 추가·교체하면 정확한 상대 경로와 SHA-256을 registry에 기록하고 해당 과정 `INDEX.md`와 양방향 일치를 확인한다. 각 INDEX는 `source_namespace`를 정확히 한 번 선언하며 모든 source ID가 그 namespace를 사용하고 다른 과정과 공유하지 않게 한다.
-3. 본문 전체, Markdown의 모든 로컬 자산, PDF의 모든 페이지를 확인하기 전에는 감사 상태를 `complete`로 두지 않는다.
-4. 원본 누락 또는 변환 훼손이 있으면 무결성을 `limited`나 `blocked`로 두고 `충분` 판정의 단독 근거로 쓰지 않는다.
-5. 역량 연결은 `primary`, `supporting`, `context` 중 하나로 명시한다. `context`만으로 `충분`을 부여하지 않는다.
-6. 목표 깊이와 실제로 만들 수 있는 요구 근거를 비교해 충족도를 정한다. 자료가 바뀌면 관련 매핑과 오류·공백을 다시 감사한다.
-7. Registry 감사 요약 표의 과정·자료·자산·PDF 페이지·`limited` 개수는 실제 파일과 각 과정 `INDEX.md`를 기준으로 교차 확인한다. 자료를 바꿀 때는 public registry와 private INDEX의 경로·hash·개수·감사 상태를 함께 점검한다.
-8. 모든 target은 정확히 하나의 module에 배정하고 각 module은 정확히 하나의 `MODULE_ASSIGNMENT`를 참조한다. catalog 내부의 주요 묶음은 정해진 `PHASE_CAPSTONE`으로 연결하되, 이를 `ROADMAP.md` AX/RE의 추가 종료 gate로 적용하지 않는다. 선택형 full-stack module도 systems endpoint의 강제 gate가 아니다.
-9. module·milestone catalog에는 상태·날짜·점수·mastery를 기록하지 않는다. `PRE_LAB`과 보존된 이전 시도는 milestone credit으로 올리지 않으며, 실제 prerequisite readiness는 학습자가 남긴 target evidence에서 별도로 판단한다.
+최신 도구 연결에는 [Hugging Face LLM Course 개편 안내](https://huggingface.co/blog/llm-course)의
+2025년 이후 tokenizer/Transformers 자료를 선택 참고한다. smol-course는 Python·ML·PyTorch·
+Transformer 기반 이후에 사용하며 인증서·클라우드 job·모델 공개가 우리 학습의 필수 조건은 아니다.
+[fast.ai 공식 학습 포럼](https://forums.fast.ai/c/p1v5/54)은 질문·top-down 직관 참고로 사용할 수 있지만
+Part 1은 2022 과정이다. 2026년 댓글이 있다고 오래된 notebook 환경을 주 실습에 강제하지 않는다.
+커뮤니티 글은 경험담이지 전체 합의가 아니며 기술 주장은 공식 문서·원 논문과 대조한다.

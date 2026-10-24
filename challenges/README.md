@@ -15,4 +15,4 @@
 
 통과 표시는 플랫폼 채점 결과입니다. 실제 수행·도움·실행/해석·미확인을 구별하고,
 통과만으로 이해·독립 숙달·지연 기억을 확정하지 않습니다. 현재 북마크는
-[STATE](../STATE.md), 근거 판단은 [공통 정책](../.agents/references/learning-policies.md#evidence-and-long-term-review)을 따릅니다.
+[STATE](../STATE.md), 근거 판단은 [AGENTS](../AGENTS.md)을 따릅니다.

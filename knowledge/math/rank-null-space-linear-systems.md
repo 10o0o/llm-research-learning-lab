@@ -71,5 +71,5 @@ A = [[1, 2],
 ## 관련 기록
 
 - Knowledge: [선형 변환과 기저벡터](./linear-transformation-basis.md) · [행렬식과 조건수](./determinant-condition-number.md)
-- TIL: [2026-08-18](../../til/2026/08/2026-08-18.md)
+- TIL: [2026-08-18](https://github.com/10o0o/llm-research-learning-lab/blob/909ab6ea962a97d51f1cfa8e9f963f2797304b23/til/2026/08/2026-08-18.md)
 - Source: KANT 기초수학, 2장 2강 「벡터공간과 선형 독립」 · 2장 3강 「연립선형방정식과 행렬 해법」

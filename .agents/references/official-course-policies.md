@@ -1,10 +1,10 @@
 # Official course policies
 
-공식 과제를 선택·재개하거나 관련 자료·도움을 다룰 때 직접 읽는다. 일반 AX 프로젝트의 상시 필독이나 선수 gate가 아니다. 공통 소유권·준비·Git은 [공통 정책](learning-policies.md), 현재 재개는 [STATE](../../STATE.md)를 따른다.
+공식 과제를 선택·재개하거나 관련 자료·도움을 다룰 때 직접 읽는다. 일반 AX 프로젝트의 상시 필독이나 선수 gate가 아니다. 공통 소유권·준비·Git은 [AGENTS](../../AGENTS.md), 현재 재개는 [STATE](../../STATE.md)를 따른다.
 
 ## Course-specific scope and assistance
 
-[ROADMAP](../../ROADMAP.md)의 프로젝트가 현재 승인 경로다. 공식 과제를 선택하면 정확한 판본·개별 요구·AI/공개·환경/명령 정책을 먼저 확인하고 inspect actual requirements before assigning them. Use selected official course implementations, exercises, and assignments as primary practice within that selected activity; supplementary examples and completed instructor notebooks do not replace official practice. Report access or runtime limits as incomplete. Preserve Optional/Bonus labels, and do not describe dialogue as video viewing or local checks as official university grading. KANT is supporting context; verify independent quality, assistance and rights before reusing a matching task. It cannot replace selected official requirements.
+현재 선택은 [STATE](../../STATE.md)를 따르며 [ROADMAP](../../ROADMAP.md)은 선택지다. 공식 과제를 선택하면 정확한 판본·개별 요구·AI/공개·환경/명령 정책을 먼저 확인하고 inspect actual requirements before assigning them. Use selected official course implementations, exercises, and assignments as primary practice within that selected activity; supplementary examples and completed instructor notebooks do not replace official practice. Report access or runtime limits as incomplete. Preserve Optional/Bonus labels, and do not describe dialogue as video viewing or local checks as official university grading. KANT is supporting context; verify independent quality, assistance and rights before reusing a matching task. It cannot replace selected official requirements.
 
 CS229는 Summer 2020 notes/PS 판본을 유지하고 2018 영상/현 홈페이지와 혼용하지 않는다. PS1~PS3 전체 written/coding와 PS3 Q1 RL·Q6 ICA는 현재 AX 필수가 아니라 보류다. 재선택하면 실제 공식 범위를 지키고 NumPy 연습으로 완료를 대신하지 않는다. ISLP 지정 장/lab 전체도 자동 gate가 아니다. MIT 18.05 Spring 2022·MML은 현재 공백 참고다. 선택한 공식 활동이 R을 요구하면 R로 수행하며 Python 모델 실습으로 공식 과제 완료를 만들지 않는다. R·오래된 과제 별도 환경은 진입 전 확인하며 자동 설치하지 않는다.
 
@@ -35,7 +35,7 @@ stay incomplete while feasible local work continues.
 pinned to public commit `a158843b20107949f1a8d7df1b05cd33b9166712` (handout v26.0.3).
 Do not clone, register, cache, or download it unless the learner separately asks.
 
-If the learner reselects official A1 as the replacement for the RE-02 project, return to the existing assignment when learner work demonstrates:
+If the learner reselects official A1 as the replacement for the small LM project, return to the existing assignment when learner work demonstrates:
 - constructing, running, and interpreting a small model's training and validation;
 - adapting feature or class counts while maintaining Tensor/loss contracts;
 - tracing token IDs, embeddings, attention, logits, next-token targets, and masks.

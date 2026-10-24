@@ -1,6 +1,0 @@
-interface:
-  display_name: "챕터 마무리"
-  short_description: "확인된 챕터를 보관하고 학습자 초안·검증에 따라 정리합니다"
-  default_prompt: "$finish-chapter로 확인된 챕터의 저장 실습을 원본대로 보관하고 회고를 정리해줘. 기존 학습자 초안이 확인된 개념만 knowledge에 반영하고, 보관·노트 검증이 끝난 뒤 허용 작업 공간을 초기화해줘. 초안이나 보관 확인이 없으면 대신 작성·초기화하지 마. STATE와 검증 후 범위 내 로컬 커밋까지 마치고 push는 하지 마."
-policy:
-  allow_implicit_invocation: true

@@ -97,7 +97,7 @@ ID가 여러 개인 `ids: (B,)`에서는 `W[ids]: (B, C)`가 같은 선택을 �
 ## 관련 기록
 
 - Knowledge: [벡터 내적과 코사인 유사도](./dot-product-cosine-similarity.md) · [NumPy axis, keepdims와 브로드캐스팅](./numpy-axis-broadcasting.md)
-- TIL: [2026-08-18](../../til/2026/08/2026-08-18.md)
+- TIL: [2026-08-18](https://github.com/10o0o/llm-research-learning-lab/blob/909ab6ea962a97d51f1cfa8e9f963f2797304b23/til/2026/08/2026-08-18.md)
 - Practice: [makemore one-hot 제거 회고](../../practice/deep-learning/makemore-bigrams.md)
 - Source: [building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo)
 - Source: KANT 기초수학, 1장 3강 「행렬 연산과 딥러닝 레이어」

@@ -102,5 +102,5 @@ dot_scores = candidates @ query
 ## 관련 기록
 
 - Knowledge: [벡터](./vector.md) · [벡터 L2 정규화](./vector-l2-normalization.md)
-- TIL: [2026-08-14](../../til/2026/08/2026-08-14.md)
+- TIL: [2026-08-14](https://github.com/10o0o/llm-research-learning-lab/blob/909ab6ea962a97d51f1cfa8e9f963f2797304b23/til/2026/08/2026-08-14.md)
 - Source: KANT 기초수학, 1장 2강 「내적과 코사인 유사도」

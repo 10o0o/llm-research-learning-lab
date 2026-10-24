@@ -78,5 +78,5 @@ A.T @ r    = [0]
 ## 관련 기록
 
 - Knowledge: [랭크, 영공간과 연립방정식의 해](./rank-null-space-linear-systems.md)
-- TIL: [2026-08-18](../../til/2026/08/2026-08-18.md)
+- TIL: [2026-08-18](https://github.com/10o0o/llm-research-learning-lab/blob/909ab6ea962a97d51f1cfa8e9f963f2797304b23/til/2026/08/2026-08-18.md)
 - Source: KANT 기초수학, 2장 3강 「연립선형방정식과 행렬 해법」

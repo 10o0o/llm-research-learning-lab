@@ -1,7 +1,6 @@
 interface:
-  display_name: "학습 세션"
-  short_description: "승인된 프로젝트 맥락·직접 구현·평가와 요청한 회상 진행"
-  default_prompt: "$study-session으로 STATE의 승인 단위에서 목적·흐름과 최소 선수를 설명한 뒤 직접 구현·실행·첫 해석을 이어가거나 요청한 주간 회상을 진행해 주세요."
-
+  display_name: "학습 가이드"
+  short_description: "직접 구현을 안내하고 실제 결과와 진도를 검토"
+  default_prompt: "$study-session으로 STATE의 현재 질문을 이어가고, 핵심 구현은 내가 하도록 안내·검토해 주세요."
 policy:
   allow_implicit_invocation: true

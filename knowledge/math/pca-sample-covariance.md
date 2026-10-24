@@ -52,6 +52,6 @@ $$
 ## 관련 기록
 
 - Knowledge: [고유기저와 행렬 대각화](./eigenbasis-diagonalization.md)
-- TIL: [2026-08-20](../../til/2026/08/2026-08-20.md)
+- TIL: [2026-08-20](https://github.com/10o0o/llm-research-learning-lab/blob/909ab6ea962a97d51f1cfa8e9f963f2797304b23/til/2026/08/2026-08-20.md)
 - Practice: [linear-algebra-recall](../../practice/math/linear-algebra-recall.ipynb)
 - Source: KANT 기초수학, 3장 2강 「행렬 대각화와 PCA 구현」
