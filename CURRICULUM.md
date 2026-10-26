@@ -7,11 +7,29 @@
 공식 자료 확인: 2026-10-24. 자료 열람, 수강 등록, 과제 수행, 독립 구현을 구분한다.
 여기에 링크가 있다고 수강하거나 과제를 완료한 것은 아니다.
 
+## 추천 주자료와 참고 자료
+
+| 구분 | 자료와 역할 |
+|---|---|
+| 현재 추천 주자료 | AX: [LLM Zoomcamp](https://github.com/DataTalksClub/llm-zoomcamp) / 모델 기반: [기존 Karpathy 학습](#1-pytorch-학습-루프)의 미완료 구간 |
+| 필요한 부분을 찾는 자료 | MIT 6.036, CS224N, 수학 자료, FSDL, HF Agents 등. 현재 질문의 공백을 보완할 때 해당 부분만 참고한다. |
+| 이후 전문화 자료 | CS336, smol-course, MIT 6.5940 등. 필요한 기반과 자원을 갖춘 뒤 선택한다. |
+
+참고 자료에 등록되어 있다는 사실만으로 해당 과정을 수강하거나 과제를 수행하도록 요구하지 않는다.
+새로운 자료 선택은 현재 문제와 사용자의 선택을 기준으로 한다.
+추천은 선택·수강 기록이 아니며, 실제 활성 자료와 강의 위치는 STATE에만 둔다.
+
+2026-10-26 목차 기준으로 AX의 **우리 추천 선별 경로**는 Zoomcamp `1 → 2 → 4 → 5`다.
+[공식 자료](https://github.com/DataTalksClub/llm-zoomcamp)의 Agentic RAG → Vector Search →
+Evaluation → Monitoring 중 현재 구현에 필요한 부분을 연결한다. 이 선별은 공식 전체 과정의
+순서나 수료 기준이 아니다. 이미 직접 수행한 역량은 중복 구현을 요구하지 않는다.
+오케스트레이션·추가 스택은 현재 기능에 필요하고 학습자가 선택했을 때만 추가한다.
+
 ## 0. 작은 AI 기능과 기존 경험
 
-현재 [문의 보조 앱](practice/ai-apps/README.md)은 입력·조회·검색·생성·표시가 연결된 사례다.
-이 코드를 모두 정리하는 것이 목표는 아니다. 오늘의 질문을 작은 파일로 떼어 이해하거나
-학습자가 직접 설계할 제품의 작은 기능을 선택한다. 기존 실습은 [보관 색인](practice/README.md)에서 확인한다.
+[문의 보조 앱](practice/ai-apps/README.md)은 입력·조회·검색·생성·표시가 연결된 기존 사례다.
+이 코드를 모두 정리하는 것이 목표는 아니다. STATE에 저장된 현재 질문과 작업을 이어가며,
+새 실습이나 제품의 기능은 학습자가 선택할 때 진행한다. 기존 실습은 [보관 색인](practice/README.md)에서 확인한다.
 
 확인할 것: 입력과 출력, 자신이 바꾸는 부분, 실제 결과, 남은 문제를 직접 설명할 수 있는가.
 과거 실행 기록과 도움을 받은 구현은 보존하며 이번 독립 수행으로 재분류하지 않는다.
@@ -28,7 +46,7 @@
 
 ## 2. ML 기초와 평가
 
-주 자료: [MIT 6.036 Introduction to Machine Learning, Fall 2020](https://ocw.mit.edu/courses/6-036-introduction-to-machine-learning-fall-2020/).
+해당 개념의 참고 자료: [MIT 6.036 Introduction to Machine Learning, Fall 2020](https://ocw.mit.edu/courses/6-036-introduction-to-machine-learning-fall-2020/).
 Python·미적분·선형대수 선행 지식을 요구한다. 표현, 지도학습, 모델 비교, 과적합/일반화를
 현재 작은 모델과 연결한다. 공식 연결 학습 페이지의 URL에 1T2019가 있어도 OCW 판본과 혼동하지 않는다.
 강의 원문은 복제하지 않고 링크와 자신의 설명을 남긴다.
@@ -38,7 +56,7 @@ Python·미적분·선형대수 선행 지식을 요구한다. 표현, 지도학
 
 ## 3. NLP와 Transformer
 
-주 자료: [Stanford CS224N Spring 2024, archive 1246](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/).
+해당 개념의 참고 자료: [Stanford CS224N Spring 2024, archive 1246](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/).
 word vectors, backprop, attention, Transformers, pretraining, evaluation 중 필요한 강의를 선택한다.
 이 페이지의 무료 공개 영상은 2023년 영상이고, 2024년 영상은 Canvas 접근이 필요하다.
 2024 slides와 2023 공개 영상을 구분해 기록하며 Winter 2024 archive 1244와 섞지 않는다.
@@ -102,7 +120,8 @@ CPU 기능 확인이나 단일 GPU 실험은 공식 B200/다중 GPU 검증 완�
 ## AI 도움과 기록
 
 AI는 흐름과 변경 책임을 안내하고, 막힌 개념을 설명하고, 학습자 코드·출력·첫 해석을 검토한다.
-핵심 구현을 대신 완성하지 않는다. CS336의 더 엄격한 제한은 [과정별 정책](.agents/references/official-course-policies.md)을 따른다.
+요청 없이 핵심 구현을 대신 완성하지 않는다. 자체 실습의 명시적 구현 도움은 도움 범위를 기록하며,
+CS336 등 공식 과제의 더 엄격한 제한은 [과정별 정책](.agents/references/official-course-policies.md)을 따른다.
 강의 진도는 실제 보고된 위치만 기록하고, 일일 TIL·수료 점수·자동 계획표는 만들지 않는다.
 
 ## 목표 역량별 누락 방지 지도

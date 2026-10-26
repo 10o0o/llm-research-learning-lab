@@ -184,10 +184,7 @@ def test_private_material_paths_remain_ignored() -> None:
     assert result.stdout.splitlines() == paths
 
 
-def test_curriculum_has_primary_sources_without_a_progress_database() -> None:
-    curriculum = (REPO / "CURRICULUM.md").read_text()
-    for source in ("ocw.mit.edu", "cs336.stanford.edu", "cs224n.1246", "huggingface/smol-course"):
-        assert source in curriculum
+def test_no_progress_database() -> None:
     assert not (REPO / "progress.db").exists()
 
 
