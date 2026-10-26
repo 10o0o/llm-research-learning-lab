@@ -1,65 +1,55 @@
-# Official course policies
+# 공식 과제의 도움·공개 정책
 
-공식 과제를 선택·재개하거나 관련 자료·도움을 다룰 때 직접 읽는다. 일반 AX 프로젝트의 상시 필독이나 선수 gate가 아니다. 공통 소유권·준비·Git은 [AGENTS](../../AGENTS.md), 현재 재개는 [STATE](../../STATE.md)를 따른다.
+공식 과제를 선택하거나 다시 시작할 때만 읽는다. 실제 선택과 진도는 [STATE](../../STATE.md),
+공통 학습 원칙은 [AGENTS](../../AGENTS.md)를 따른다.
 
-## Course-specific scope and assistance
+## 선택한 원문의 범위를 확인한다
 
-현재 선택은 [STATE](../../STATE.md)를 따르며 [ROADMAP](../../ROADMAP.md)은 선택지다. 공식 과제를 선택하면 정확한 판본·개별 요구·AI/공개·환경/명령 정책을 먼저 확인하고 inspect actual requirements before assigning them. Use selected official course implementations, exercises, and assignments as primary practice within that selected activity; supplementary examples and completed instructor notebooks do not replace official practice. Report access or runtime limits as incomplete. Preserve Optional/Bonus labels, and do not describe dialogue as video viewing or local checks as official university grading. KANT is supporting context; verify independent quality, assistance and rights before reusing a matching task. It cannot replace selected official requirements.
+1. 과정·연도·과제 판본과 공식 저장소를 확인한다.
+2. AI 도움, 답안 공개, 환경, 제공된 테스트, 필수·Optional/Bonus 요구를 읽는다.
+3. 실제로 선택한 범위만 수행한다. 접근·장비 문제로 못 한 부분은 미완료로 남긴다.
+4. 자체 작은 실험, 공식 허용 축소 경로, 과제 전체 완료를 구분한다.
 
-CS229는 Summer 2020 notes/PS 판본을 유지하고 2018 영상/현 홈페이지와 혼용하지 않는다. PS1~PS3 전체 written/coding와 PS3 Q1 RL·Q6 ICA는 현재 AX 필수가 아니라 보류다. 재선택하면 실제 공식 범위를 지키고 NumPy 연습으로 완료를 대신하지 않는다. ISLP 지정 장/lab 전체도 자동 gate가 아니다. MIT 18.05 Spring 2022·MML은 현재 공백 참고다. 선택한 공식 활동이 R을 요구하면 R로 수행하며 Python 모델 실습으로 공식 과제 완료를 만들지 않는다. R·오래된 과제 별도 환경은 진입 전 확인하며 자동 설치하지 않는다.
+자료 링크를 저장하는 것은 수강 등록이나 과제 완료가 아니다.
+기존 KANT 과제나 독립 실험을 선택한 공식 과제의 답안으로 자동 대체하지 않는다.
 
-CS231n Spring 2024 L2~6·A2 Q1~Q3와 나머지 CV 과제는 재선택 후보이며 현재 선행 필수가 아니다. CS224N is Spring 2024, archive 1246: the formerly selected A3 Q1(i) and A4 Q1-Q2 written are now optional references/reselection candidates, not AX gates. Never mix Winter 2024 archive 1244. Its [AI Tools Policy](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1246/index.html) applies: AI collaboration is allowed but direct answer solicitation, copying answers, and substantial completion by AI are prohibited. Check assignment-specific requirements. Keep remaining written/programming/Final Project incomplete; do not claim full-course completion.
+## 현재 참고할 정책
 
-CS336 A2 Systems v26.1.3 remains pinned to public commit `ca8bc81a59b70516f7ebb2da4808daade877c736`. It concerns training profiling, memory/FLOPs, mixed precision, activation checkpointing, FlashAttention-2 and parallelism, not serving completion. Single-device or scaled results do not complete B200/multi-GPU benchmarks (2/4/6 GPU all-reduce, 2 GPU DDP/FSDP). Triton backward remains OPTIONAL; PyTorch/torch.compile backward is separate. CPU Gloo function checks do not establish GPU scaling. CMU is a gap reference, not another mandatory course. 자원이 없으면 해당 검증은 미수행으로 남기고 가능한 로컬 학습을 계속한다.
+| 자료 | 확인할 원문과 도움의 경계 |
+|---|---|
+| LLM Zoomcamp | [공식 AI 사용 정책](https://datatalksclub.github.io/docs/courses/zoomcamp-logistics/ai-usage/): AI를 활용할 수 있지만 먼저 직접 시도하고 제출한 코드·설계를 설명할 수 있어야 한다. AI 사용 공개는 의무가 아니며 주요 기여 기록을 권장한다. [프로젝트 요구](https://datatalksclub.github.io/docs/courses/llm-zoomcamp/project/)와 실제 판본을 함께 확인한다. |
+| Karpathy / Raschka 자체 학습 | 선택한 강의·책의 연습 지시와 저장소 라이선스를 읽는다. 이 허브의 직접 구현 원칙을 적용하되, 우리가 정한 확인 활동을 공식 과제나 수료 기준이라고 부르지 않는다. |
+| Stanford CS336 | [공식 과정](https://cs336.stanford.edu/)과 [과제의 AI 지침](https://github.com/stanford-cs336/assignment1-basics/blob/main/CLAUDE.md)을 따른다. 아래 제한을 적용하고 선택한 과제의 실제 파일도 다시 확인한다. |
+| 그 밖의 대학 과제·대회 | 해당 연도·과제의 AI·협업·공개 규칙을 확인한다. 한 과정의 허용 범위를 다른 과정에 적용하지 않는다. |
 
-This repository remains public even though the learning site has been retired, so official coursework solutions must not land in it. MIT 18.05 problem-set answers and CS229, CS231n, CS224N, and CS336 assignment solutions belong in separate private workspaces, including written answers, code, notebooks, and saved outputs. What may be published is the learner's own concept notes, independent reimplementations, permitted competition work and research reports — never assignment code, official problem statements, or copyrighted course material. Review publication rights before staging. Preserve existing private clones. Never copy private KANT outlines/content, customer data, personal profile/education details, internal links or secrets into public notes.
+### CS336 공식 과제를 수행할 때
 
-The KANT materials (`SRC-KAM-*`, `SRC-KDL-*`, `SRC-KBM-*`) are historical supporting context. Preparing a project does not authorize copying private originals or creating target learning data/answers. Input documents supplied as permitted starting materials and learner-built training/evaluation data remain distinct.
+학습자가 과제 코드, 제공된 테스트, 모든 bash 명령을 직접 수행한다.
+AI는 개념, 원문 명령의 의미, 오류 메시지, 학습자가 제공한 출력의 일반 검토를 돕는다.
+과제 저장소에서 명령을 실행하거나 code/pseudocode/patch/TODO 답안을 제공하지 않는다.
+문제를 풀거나 자동화하는 새 명령 시퀀스도 만들지 않는다.
+자체 프로젝트의 구현 대행 허용을 이 과제에 적용하지 않는다.
 
-### Official low-resource and resource boundaries
+실제 handout과 AI 지침이 변경되었다면 해당 판본의 원문을 기준으로 차이를 확인한다.
+필수·선택 과제와 실제 자원 요구를 보존한다. 단일 장치·toy 실행을 다중 GPU 검증으로 기록하지 않는다.
 
-A1 v26.0.3 printed page 40 permits the CPU/MPS learning-rate path with total
-40,000,000 tokens and validation loss target 2.00; this does not authorize the
-same targets for CUDA 8GB. Printed page 44 permits limited-GPU online learners
-to continue change experiments using TinyStories instead of OWT. Verify the
-exact path and remaining written/experimental requirements when reselected.
-An arbitrary toy run, official permitted adaptation and university grading are
-different. Leaderboard submission is optional. A2 printed page 28 B200 and
-page 32 multi-GPU requirements need actual hardware results. Paid GPU purchase,
-registration or execution needs separate authorization; unavailable benchmarks
-stay incomplete while feasible local work continues.
+## 환경·공개·자원
 
-### CS336 return and boundaries
+각 실습과 공식 과제는 [별도 외부 공간](../../docs/external-practice.md)의 환경을 쓴다.
+이 허브의 공통 Python 버전이나 가상환경은 없다. 설치·실행은 선택한 자료의 판본에 맞춘다.
 
-[Stanford CS336 Spring 2026](https://cs336.stanford.edu/) Assignment 1 remains
-pinned to public commit `a158843b20107949f1a8d7df1b05cd33b9166712` (handout v26.0.3).
-Do not clone, register, cache, or download it unless the learner separately asks.
+이 공개 허브에는 과제 답안·저장 출력·강의 원문을 넣지 않는다.
+답안은 해당 과정 정책에 맞는 외부 작업 공간에 두며, 공개가 허용되는지 확인되지 않았다면
+비공개로 보관한다. 독립 구현·자기 설명·허용된 실험 결과의 공개는 출처·권리를 확인해 결정한다.
+기존 비공개 KANT 자료, 고객·개인 정보와 비밀키를 공개 저장소로 옮기지 않는다.
 
-If the learner reselects official A1 as the replacement for the small LM project, return to the existing assignment when learner work demonstrates:
-- constructing, running, and interpreting a small model's training and validation;
-- adapting feature or class counts while maintaining Tensor/loss contracts;
-- tracing token IDs, embeddings, attention, logits, next-token targets, and masks.
+무료·유료 GPU의 실제 사용 가능 여부, 메모리와 장치 수를 확인한다.
+실행하지 못한 요구는 미완료로 남기고 가능한 범위에서 학습을 이어간다.
+가입·유료 실행·외부 제출·배포는 진도 저장 권한에 포함되지 않는다.
 
-Official API docs are allowed under course policy. Do not impose a second full
-tokenizer/Transformer implementation as an entry test. Entry does not cancel
-unfinished work or authorize claiming full CS224N/CS231n completion. Apply the
-already approved selected route without asking again about removed requirements.
+## 과거에 확인한 판본과 미완료
 
-Foundation practice uses this learning lab's Python 3.14 environment.
-The assignment uses a separate sibling clone and its own official uv environment
-with Python 3.12 or 3.13. Never add it as a lab dependency or install it into this
-repository's `.venv`. Check required R and older assignment environments before
-entry; do not install them automatically. External GPU consideration includes
-VRAM, runtime, device count and official hardware requirements. Paid GPU purchase,
-registration or execution needs separate authorization; continue feasible local
-work and keep unavailable hardware benchmarks incomplete.
-
-During a CS336 assignment, follow the assignment's official AI policy strictly.
-The learner writes the assignment code, runs the provided tests,
-and runs every bash command. The AI must not
-execute bash commands in the assignment repository. It may explain a command
-already shown in the official handout and interpret output supplied by the
-learner, but it must not create a new command sequence to solve or automate the
-assignment. Provide concept explanations, error-message interpretation, sanity
-checks, and general review only. Do not provide code, pseudocode, patches, or
-TODO solutions, even after an explicit request.
+이전 CS229·CS231n·CS224N·MIT·MML의 선택/보류, CS336 A1 v26.0.3과 A2 v26.1.3의
+고정 커밋·자원 조건은 [전환 직전 정책 원문](https://github.com/10o0o/llm-research-learning-lab/blob/211b6b510c83c39930b3cb2b6796e3a83c405144/.agents/references/official-course-policies.md)에 보존했다.
+해당 활동을 다시 선택할 때 기존 작업과 함께 확인한다.
+과거 판본을 새 과정의 최신 정책으로 자동 적용하거나 보류 활동을 필수 선수조건으로 되살리지 않는다.

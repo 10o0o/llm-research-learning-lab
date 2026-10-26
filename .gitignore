@@ -1,38 +1,34 @@
-# Local course material in this public repository
-materials/private/
-# Personal copies and results for private live-lab work
+# Local private material and credentials
+/private/
+/materials/private/
 /practice/private/
+.env
+.env.*
+!.env.example
 
-# Generated R session files
-**/.Rproj.user/
+# Local scratch and caches
+/tmp/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+
+# Previously ignored local material is not part of the Git archive
+/.specify/
 .Rhistory
 .RData
 .Ruserdata
 
-# Local scratchpads
+# Preserve earlier exclusions in existing local clones
 /today.md
 /til/today.md
-
-# Generated previews and caches
-tmp/
-**/__pycache__/
-*.pyc
-
-# Python virtual environment
-.venv/
-
-# Jupyter temporary files
-**/.ipynb_checkpoints/
-
-# Local test file
 main.py
-
-# Historical frontend build artifacts (not published)
+**/.Rproj.user/
+tmp/
 web/node_modules/
 web/.astro/
 web/dist/
 web/playwright-report/
 web/test-results/
-
-# Local Spec Kit workflow state and output
-/.specify/workflows/runs/

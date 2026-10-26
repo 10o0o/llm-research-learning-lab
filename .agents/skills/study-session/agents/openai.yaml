@@ -1,7 +1,4 @@
 interface:
-  display_name: "학습 이어가기"
-  short_description: "저장된 학습을 이어가고 직접 구현과 결과 해석을 지원"
-  default_prompt: "$study-session으로 STATE에 저장된 다음 행동부터 이어가 주세요. 필요한 설명을 제공하고, 핵심 구현과 결과의 첫 해석은 내가 하도록 도와주세요."
-
-policy:
-  allow_implicit_invocation: true
+  display_name: "학습 자료와 진도 이어가기"
+  short_description: "선택한 강의의 현재 위치를 확인하고 외부 실습과 다음 행동을 연결"
+  default_prompt: "$study-session으로 STATE의 강의 위치와 실습 저장소를 확인하고 다음 행동을 안내해 주세요. 확인된 진행과 미완료를 저장해 주세요."
