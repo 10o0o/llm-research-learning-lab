@@ -24,6 +24,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Test documentation link checker
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+
       - name: Check local documentation links
         run: python3 scripts/check_links.py
 

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Check local inline Markdown links and heading anchors; no network or packages."""
+"""Check local Markdown links and anchors, respecting Git's document scope."""
 
+import os
 import re
+import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
@@ -29,9 +31,29 @@ def anchors(path):
     return result
 
 
+def markdown_pages(root):
+    try:
+        result = subprocess.run(
+            [
+                "git", "-C", str(root), "ls-files", "--cached", "--others",
+                "--exclude-standard", "-z", "--", "*.md",
+            ],
+            check=True,
+            capture_output=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return sorted(
+            path for path in root.rglob("*.md")
+            if ".git" not in path.relative_to(root).parts
+        )
+
+    paths = (root / os.fsdecode(name) for name in result.stdout.split(b"\0") if name)
+    return sorted(path for path in paths if path.is_file())
+
+
 def check(root):
     errors, checked = [], 0
-    pages = sorted(p for p in root.rglob("*.md") if ".git" not in p.relative_to(root).parts)
+    pages = markdown_pages(root)
     for page in pages:
         for match in LINK.finditer(readable_text(page)):
             target = match.group(1) or match.group(2)
