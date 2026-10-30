@@ -17,16 +17,22 @@
 
 | 문서 | 역할 |
 |---|---|
-| [ROADMAP](ROADMAP.md) | 목표 역량과 다음 단계의 선택 기준 |
+| [ROADMAP](ROADMAP.md) | 목표 역량, 첫 12주 경로와 다음 단계의 선택 기준 |
 | [CURRICULUM](CURRICULUM.md) | 주자료, 공식 단원·과제 링크, 필요한 보충 자료 |
 | [STATE](STATE.md) | 실제 강의 위치, 외부 실습 위치, 막힘과 다음 행동 |
 | [외부 실습 안내](docs/external-practice.md) | 실습 공간 선택, 튜터 규칙, 진도 전달 |
+| [학습 계획](docs/plans/project-based-learning.md) · [구현 계획·적용 기록](docs/plans/project-based-learning-implementation.md) | 2026-10-30 운영 문서에 반영한 설계 이력. 현재 경로·자료·진도는 위 문서가 기준 |
 | [AGENTS](AGENTS.md) | 에이전트의 역할과 도움·기록의 경계 |
 | [이전 작업 보관](archive/README.md) | 기존 코드·노트북·결과와 과거 진도 찾기 |
 
 주자료는 AX의 **LLM Zoomcamp**, 모델 기반의 **Karpathy**를 추천한다.
 실제로 선택한 과정은 STATE 한 곳에서 관리한다. 강의 하나의 공식 순서와 과제를 기본으로
 따라가고, 보충 자료는 현재 막힌 부분에 필요할 때 연다.
+
+[첫 12주 경로](ROADMAP.md#첫-집중-구간-12주)는 현재 Zoomcamp 실습을 이어가며 자기 데이터의
+RAG 프로젝트와 단일 추론 실험으로 연결한다. MIT 6.S191·PyTorch는 필요한 기반을 보충한다.
+학습자는 직접 설계·구현·실행·첫 해석을 맡고 에이전트는 안내·설명·리뷰를 돕는다.
+주차는 예상 작업량이며 실제 다음 행동은 STATE를 따른다.
 
 ## 실제 작업은 어디에서 하나
 
